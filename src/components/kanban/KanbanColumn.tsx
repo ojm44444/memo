@@ -1,0 +1,104 @@
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { cn } from '@/lib/cn'
+import { getSongsByColumn } from '@/db/repositories/boardRepo'
+import { ColumnPlayButton } from '@/components/board/ColumnPlayButton'
+import { ColumnSectionMenu } from '@/components/board/ColumnSectionMenu'
+import { AddMemoButton } from '@/components/import/AddMemoButton'
+import { MobileImportCard } from '@/components/import/VoiceMemosShareCard'
+import { getActiveProjectId, getProjectAccentHue } from '@/db/repositories/projectRepo'
+import { columnHeaderAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
+import { usePlayerStore } from '@/stores/playerStore'
+import { useUiStore } from '@/stores/uiStore'
+import { SongCard } from './SongCard'
+import type { Column } from '@/types/column'
+
+interface KanbanColumnProps {
+  column: Column
+  readOnly?: boolean
+}
+
+export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
+  const activeColumnId = usePlayerStore((state) => state.activeColumnId)
+  const isPlaying = usePlayerStore((state) => state.isPlaying)
+  const isActiveColumn = activeColumnId === column.slug && isPlaying
+  const activeProjectId = useLiveQuery(() => getActiveProjectId(), [])
+  const accentHue = useLiveQuery(
+    () => (activeProjectId ? getProjectAccentHue(activeProjectId) : Promise.resolve(null)),
+    [activeProjectId],
+  )
+  const headerAccentStyle =
+    isActiveColumn && activeProjectId
+      ? columnHeaderAccentStyle(activeProjectId, accentHue ?? null)
+      : undefined
+  const titleAccentStyle =
+    isActiveColumn && activeProjectId
+      ? projectAccentTextStyle(activeProjectId, accentHue ?? null)
+      : undefined
+
+  const selectionMode = useUiStore((state) => state.selectionMode)
+  const selectedSongIds = useUiStore((state) => state.selectedSongIds)
+  const selectSongs = useUiStore((state) => state.selectSongs)
+  const deselectSongs = useUiStore((state) => state.deselectSongs)
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.slug,
+    data: { type: 'column', columnSlug: column.slug },
+    disabled: readOnly,
+  })
+
+  const songs = useLiveQuery(() => getSongsByColumn(column.slug), [column.slug])
+  const songIds = songs?.map((s) => s.id) ?? []
+  const isEmpty = (songs?.length ?? 0) === 0
+  const allSelected =
+    songIds.length > 0 && songIds.every((songId) => selectedSongIds.includes(songId))
+
+  return (
+    <div
+      ref={setNodeRef}
+      data-column-slug={column.slug}
+      className={cn('board-column', isOver && 'is-over')}
+    >
+      <div
+        className={cn('board-column-header', isActiveColumn && 'is-active-column')}
+        style={headerAccentStyle}
+      >
+        <span style={titleAccentStyle}>{column.title}</span>
+        <div className="board-column-header-actions">
+          {selectionMode && !readOnly && songIds.length > 0 && (
+            <button
+              type="button"
+              className="column-select-all-btn"
+              onClick={() => (allSelected ? deselectSongs(songIds) : selectSongs(songIds))}
+            >
+              {allSelected ? 'None' : 'All'}
+            </button>
+          )}
+          <ColumnPlayButton columnSlug={column.slug} label={column.title} />
+          <span className="board-column-count">{songs?.length ?? 0}</span>
+          {!readOnly && <ColumnSectionMenu column={column} />}
+        </div>
+      </div>
+
+      <SortableContext items={songIds} strategy={verticalListSortingStrategy}>
+        <div className="board-column-scroll">
+          {songs?.map((song) => (
+            <SongCard key={song.id} song={song} columnSlug={column.slug} readOnly={readOnly} />
+          ))}
+
+          {isEmpty && column.slug !== 'inbox' && (
+            <div className="board-empty-hint">Drop audio or drag a song here</div>
+          )}
+
+          {column.slug === 'inbox' && !readOnly && (
+            <>
+              <MobileImportCard />
+              <AddMemoButton />
+            </>
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  )
+}

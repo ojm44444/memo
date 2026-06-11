@@ -1,0 +1,20 @@
+:root {
+  --bg: #121214;
+  --bg-2: #18181b;
+  --bg-3: #1f1f23;
+  --surface: #232328;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f2f0ec;
+  --text-muted: #7a7780;
+  --accent: #00ff9d;
+  --accent-hover: #33ffb1;
+  --accent-dim: rgba(0, 255, 157, 0.15);
+  --accent-glow: rgba(0, 255, 157, 0.1);
+  --audio-mint: #00ff9d;
+  --audio-mint-dim: rgba(0, 255, 157, 0.25);
+  --audio-mint-glow: rgba(0, 255, 157, 0.12);
+
+  --font-serif: 'Instrument Serif', serif;
+  --font-sans: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}

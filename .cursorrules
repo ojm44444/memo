@@ -1,0 +1,31 @@
+# Project: Memo (Stemo) — Audio Organization App
+
+## Goal
+Local-first, Kanban-style audio manager to move voice memos to finished songs.
+
+## Tech Stack
+- Frontend: Vite + React + TypeScript PWA
+- Backend: Supabase (PostgreSQL + Storage)
+- Offline: Dexie.js (IndexedDB) + Service Worker
+- Sync: Outbox pattern, flush on `online` + Background Sync fallback
+- DnD: @dnd-kit/core + @dnd-kit/sortable
+
+## Design System (merged)
+- Landing: charcoal `#0d0d0e`, lime `#c8ff57`, Instrument Serif + Bricolage Grotesque + DM Mono
+- In-app audio UI: mint `#00FF9D` for play buttons, waveforms, speed controls
+
+## Architecture Rules
+- UI NEVER calls Supabase directly — use `src/db/repositories/*`
+- All mutations write to Dexie first, then enqueue `syncQueue`
+- Audio blobs stored locally in IndexedDB; upload to Storage on sync
+- No native recording — file import only
+
+## MVP Columns
+Inbox → Ideas → Demos → Finished
+
+## Audio Player
+- Speed: 1x, 1.5x, 2x via `playbackRate`
+- Continuous column playback: auto-advance to next song in column on `ended`
+
+## Mobile
+- `overscroll-behavior: none`, fixed AppShell header, touch-friendly dnd-kit sensors
