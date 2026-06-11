@@ -48,6 +48,8 @@ export async function addAudioVersionToSong(
     createdAt: now,
   }
 
+  const metadata = fileMetadata ?? (await extractFileMetadata(file))
+
   const version: AudioVersion = {
     id: versionId,
     songId,
@@ -57,6 +59,7 @@ export async function addAudioVersionToSong(
     sortOrder: versions.length,
     localBlobId: blobId,
     storagePath: null,
+    recordedAt: metadata.recordedAt ?? null,
     createdAt: now,
     syncedAt: null,
   }
@@ -77,7 +80,6 @@ export async function addAudioVersionToSong(
     localBlobId: blobId,
   })
 
-  const metadata = fileMetadata ?? (await extractFileMetadata(file))
   await applySongMetadataFromFile(songId, metadata)
 
   return version
@@ -124,6 +126,7 @@ export async function importAudioFiles(
       columnSlug,
       musicalKey: metadata.musicalKey,
       bpm: metadata.bpm,
+      recordedAt: metadata.recordedAt,
     })
     const version = await addAudioVersionToSong(song.id, file, undefined, metadata)
     versions.push(version)
@@ -281,6 +284,7 @@ export async function duplicateSong(
       sortOrder: version.sortOrder,
       localBlobId: clonedBlob.id,
       storagePath: null,
+      recordedAt: version.recordedAt ?? null,
       createdAt: now,
       syncedAt: null,
     }

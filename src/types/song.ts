@@ -12,6 +12,8 @@ export interface Song {
   bpm: number | null
   sortOrder: number
   notes: string
+  /** When the audio was originally recorded (from file.lastModified or ID3 tag). */
+  recordedAt: string | null
   createdAt: string
   updatedAt: string
   syncedAt: string | null

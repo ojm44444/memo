@@ -123,6 +123,29 @@ export class MemoDatabase extends Dexie {
       folderWatch: 'key',
       importedSources: 'sourceKey, importedAt',
     })
+
+    this.version(6).stores({
+      columns: 'id, slug, sortOrder',
+      songs: 'id, columnSlug, projectId, isFavourite, sortOrder, updatedAt, deletedAt, recordedAt',
+      audioVersions: 'id, songId, sortOrder, localBlobId, storagePath, recordedAt',
+      audioBlobs: 'id',
+      songLinks: 'id, songId',
+      songComments: 'id, songId, userId, createdAt, deletedAt',
+      projects: 'id, sortOrder',
+      syncQueue: 'id, entityType, entityId, createdAt',
+      syncMeta: 'key',
+      folderWatch: 'key',
+      importedSources: 'sourceKey, importedAt',
+    })
+
+    this.version(6).upgrade(async (tx) => {
+      await tx.table('songs').toCollection().modify((song) => {
+        if (!('recordedAt' in song)) song.recordedAt = null
+      })
+      await tx.table('audioVersions').toCollection().modify((version) => {
+        if (!('recordedAt' in version)) version.recordedAt = null
+      })
+    })
   }
 }
 

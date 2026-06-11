@@ -23,7 +23,7 @@ export function BoardModeToggle() {
         className={boardMode === 'listen' ? 'board-mode-btn is-active' : 'board-mode-btn'}
         onClick={() => setMode('listen')}
       >
-        Listen
+        Favourites
       </button>
       <button
         type="button"

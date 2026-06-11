@@ -1697,10 +1697,23 @@ body.is-file-dragging * {
   margin-top: 6px;
 }
 
+.song-card-time-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 .song-card-time {
   font-family: var(--font-mono);
   font-size: 0.58rem;
   color: var(--text-muted);
+}
+
+.song-card-recorded-date {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 .song-card-play {
@@ -1715,6 +1728,11 @@ body.is-file-dragging * {
   font-size: 0.5rem;
   border: none;
   flex-shrink: 0;
+  transition: opacity 0.1s;
+}
+
+.song-card-play.is-playing {
+  opacity: 0.85;
 }
 
 .song-card-tag {

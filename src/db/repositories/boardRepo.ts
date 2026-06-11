@@ -40,11 +40,17 @@ async function matchesBoardFilters(song: Song) {
   return true
 }
 
-async function sortSongsForDisplay(songs: Song[]) {
+async function sortSongsForDisplay(songs: Song[], columnSlug?: ColumnSlug) {
   const sortMode = await getSongSortMode()
   return [...songs].sort((a, b) => {
     if (sortMode === 'recent') {
       return b.updatedAt.localeCompare(a.updatedAt)
+    }
+    // Inbox always sorts by recording date desc so newest captures appear first
+    if (columnSlug === 'inbox') {
+      const ra = a.recordedAt ?? a.createdAt
+      const rb = b.recordedAt ?? b.createdAt
+      return rb.localeCompare(ra)
     }
     if (a.isFavourite !== b.isFavourite) return a.isFavourite ? -1 : 1
     return a.sortOrder - b.sortOrder
@@ -58,6 +64,15 @@ async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string)
     .equals(columnSlug)
     .filter((s) => !s.deletedAt && s.projectId === scopeProjectId)
     .sortBy('sortOrder')
+}
+
+async function getSongsInColumnScopeForDisplay(columnSlug: ColumnSlug, projectId?: string) {
+  const songs = await getSongsInColumnScope(columnSlug, projectId)
+  const filtered: Song[] = []
+  for (const song of songs) {
+    if (await matchesBoardFilters(song)) filtered.push(song)
+  }
+  return sortSongsForDisplay(filtered, columnSlug)
 }
 
 export async function getColumns() {
@@ -141,14 +156,7 @@ export async function deleteColumn(columnId: string) {
 }
 
 export async function getSongsByColumn(columnSlug: ColumnSlug) {
-  const songs = await db.songs.where('columnSlug').equals(columnSlug).sortBy('sortOrder')
-  const filtered: Song[] = []
-
-  for (const song of songs) {
-    if (await matchesBoardFilters(song)) filtered.push(song)
-  }
-
-  return await sortSongsForDisplay(filtered)
+  return getSongsInColumnScopeForDisplay(columnSlug)
 }
 
 export async function getRecentSongsAcrossLibrary(limit = 6) {
@@ -227,6 +235,7 @@ export async function createSong(input: {
   projectId?: string
   musicalKey?: string | null
   bpm?: number | null
+  recordedAt?: string | null
 }) {
   const projectId = input.projectId ?? (await getActiveProjectScope())
   const songsInColumn = await getSongsInColumnScope(input.columnSlug, projectId)
@@ -241,6 +250,7 @@ export async function createSong(input: {
     isFavourite: false,
     musicalKey: input.musicalKey ?? null,
     bpm: input.bpm ?? null,
+    recordedAt: input.recordedAt ?? null,
     sortOrder: songsInColumn.length,
     notes: input.notes ?? '',
     createdAt: now,

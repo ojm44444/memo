@@ -51,7 +51,12 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
   const handlePlay = async (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
     if (!primary) return
-    await usePlayerStore.getState().playAtVersion(columnSlug, song.id, primary.id)
+    const store = usePlayerStore.getState()
+    if (isActive) {
+      store.setPlaying(false)
+      return
+    }
+    await store.playAtVersion(columnSlug, song.id, primary.id)
   }
 
   const handleCardClick = () => {
@@ -118,16 +123,23 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
         />
       )}
       <div className="song-card-meta">
-        <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
+        <div className="song-card-time-row">
+          <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
+          {song.recordedAt && (
+            <span className="song-card-recorded-date">
+              {new Date(song.recordedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <span className={cn('song-card-tag', tag.className)}>{tag.label}</span>
           <button
             type="button"
             onClick={handlePlay}
-            className="song-card-play"
-            aria-label="Play"
+            className={cn('song-card-play', isActive && 'is-playing')}
+            aria-label={isActive ? 'Pause' : 'Play'}
           >
-            ▶
+            {isActive ? '❚❚' : '▶'}
           </button>
         </div>
       </div>

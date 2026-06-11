@@ -17,7 +17,7 @@ const TOUR_STEPS = [
   },
   {
     title: 'Three modes',
-    body: 'Manage is your Kanban. Listen plays favourites. Library holds all projects and collaborators.',
+    body: 'Manage is your Kanban. Favourites plays your starred songs. Library holds all projects and collaborators.',
   },
   {
     title: 'Organise takes',

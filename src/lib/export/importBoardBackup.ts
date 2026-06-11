@@ -112,6 +112,7 @@ async function importAudioVersion(
     sortOrder: version.sortOrder,
     localBlobId,
     storagePath: remapIds ? null : version.storagePath,
+    recordedAt: version.recordedAt ?? null,
     createdAt: version.createdAt,
     syncedAt: null,
   }

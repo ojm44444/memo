@@ -25,6 +25,7 @@ export const MOCK_SONGS: Song[] = [
     createdAt: now,
     updatedAt: now,
     syncedAt: null,
+      recordedAt: null,
     deletedAt: null,
   },
   {
@@ -41,6 +42,7 @@ export const MOCK_SONGS: Song[] = [
     createdAt: now,
     updatedAt: now,
     syncedAt: null,
+      recordedAt: null,
     deletedAt: null,
   },
   {
@@ -57,6 +59,7 @@ export const MOCK_SONGS: Song[] = [
     createdAt: now,
     updatedAt: now,
     syncedAt: null,
+      recordedAt: null,
     deletedAt: null,
   },
 ]

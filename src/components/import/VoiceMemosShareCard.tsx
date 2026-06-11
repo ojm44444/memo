@@ -92,7 +92,7 @@ export function MobileImportCard() {
         <li>It lands in Inbox and syncs across your devices</li>
       </ol>
       <p className="voice-memos-share-note">
-        Installed mem• as a PWA? Use Share → mem• when iOS supports it.
+        Add mem• to your Home Screen for offline access — import still works via Files.
       </p>
     </div>
   )
