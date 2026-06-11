@@ -158,8 +158,13 @@ export function scheduleFlush() {
   }, 800)
 }
 
+let engineInitialized = false
+
 export function initSyncEngine() {
   void refreshPendingCount()
+
+  if (engineInitialized) return
+  engineInitialized = true
 
   window.addEventListener('online', () => {
     void flush()

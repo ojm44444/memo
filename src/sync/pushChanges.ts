@@ -1,4 +1,4 @@
-import { getSyncQueue, markSyncFailed, removeSyncItem } from '@/db/repositories/outboxRepo'
+import { getSyncQueue, markSyncFailed, removeSyncItem, MAX_SYNC_ATTEMPTS } from '@/db/repositories/outboxRepo'
 import { errorMessage } from '@/lib/errorMessage'
 import { supabase } from '@/lib/supabase/client'
 import { getBoardRole, resolveBoardId } from '@/lib/supabase/boardAccess'
@@ -189,19 +189,32 @@ async function processQueueItem(
     }
   }
 
-  if (item.entityType === 'column' && item.op === 'create') {
-    await assertNoError(
-      await supabase!.from('columns').upsert(
-        {
-          id: payload.id,
-          board_id: boardId,
-          slug: payload.slug,
-          title: payload.title,
-          position: payload.sortOrder,
-        },
-        { onConflict: 'board_id,slug' },
-      ),
-    )
+  if (item.entityType === 'column') {
+    if (item.op === 'create') {
+      await assertNoError(
+        await supabase!.from('columns').upsert(
+          {
+            id: payload.id,
+            board_id: boardId,
+            slug: payload.slug,
+            title: payload.title,
+            position: payload.sortOrder,
+          },
+          { onConflict: 'board_id,slug' },
+        ),
+      )
+    } else if (item.op === 'update') {
+      await assertNoError(
+        await supabase!
+          .from('columns')
+          .update({ title: payload.title, position: payload.sortOrder })
+          .eq('id', item.entityId),
+      )
+    } else if (item.op === 'delete') {
+      await assertNoError(
+        await supabase!.from('columns').delete().eq('id', item.entityId),
+      )
+    }
   }
 }
 
@@ -283,6 +296,12 @@ export async function pushChanges(userId: string): Promise<PushResult> {
   const audioItems = queue.filter((item) => item.entityType === 'audio_version')
 
   for (const item of [...metadataItems, ...audioItems]) {
+    if (item.attempts >= MAX_SYNC_ATTEMPTS) {
+      failed++
+      lastFailure = item.lastError ?? 'Max retries exceeded'
+      continue
+    }
+
     try {
       if (item.entityType === 'song_comment') {
         if (!canComment) throw new Error('You do not have permission to comment on this board')

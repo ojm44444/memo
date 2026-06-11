@@ -1,5 +1,7 @@
 import { db } from '@/db/database'
+import { clearLocalUserBoard } from '@/db/clearLocalUserBoard'
 import { supabase } from '@/lib/supabase/client'
+import { usePlayerStore } from '@/stores/playerStore'
 import { scheduleFlush } from '@/sync/syncEngine'
 
 export interface BoardMemberRow {
@@ -106,6 +108,12 @@ export async function acceptBoardInvite(token: string) {
 
   const { data: boardId, error } = await supabase.rpc('accept_board_invite', { p_token: token })
   if (error) throw error
+
+  const current = (await db.syncMeta.get('boardId'))?.value
+  if (current !== (boardId as string)) {
+    usePlayerStore.getState().stop()
+    await clearLocalUserBoard()
+  }
 
   await db.syncMeta.put({ key: 'boardId', value: boardId as string })
   await db.syncMeta.put({ key: 'lastPulledAt', value: new Date(0).toISOString() })

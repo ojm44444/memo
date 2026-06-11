@@ -12,12 +12,34 @@ const PUSH_PRIORITY: Record<SyncEntityType, number> = {
   audio_version: 5,
 }
 
+export const MAX_SYNC_ATTEMPTS = 5
+
 export async function enqueueSync(
   op: SyncOp,
   entityType: SyncEntityType,
   entityId: string,
   payload: unknown,
 ) {
+  // Coalesce duplicate update ops for the same entity so rapid edits don't
+  // flood the queue. Create/delete ops are always appended as-is.
+  if (op === 'update') {
+    const existing = await db.syncQueue
+      .where('entityId')
+      .equals(entityId)
+      .filter((item) => item.entityType === entityType && item.op === 'update')
+      .first()
+
+    if (existing) {
+      await db.syncQueue.update(existing.id, {
+        payload: JSON.stringify(payload),
+        createdAt: new Date().toISOString(),
+        attempts: 0,
+        lastError: null,
+      })
+      return
+    }
+  }
+
   await db.syncQueue.add({
     id: createId(),
     op,

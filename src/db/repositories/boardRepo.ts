@@ -123,7 +123,7 @@ export async function renameColumn(columnId: string, title: string) {
   if (column.slug === INBOX_SLUG) throw new Error('Inbox cannot be renamed')
 
   await db.columns.update(columnId, { title: trimmed })
-  await enqueueSync('create', 'column', columnId, { ...column, title: trimmed })
+  await enqueueSync('update', 'column', columnId, { title: trimmed, sortOrder: column.sortOrder })
 }
 
 export async function deleteColumn(columnId: string) {
@@ -137,6 +137,7 @@ export async function deleteColumn(columnId: string) {
   }
 
   await db.columns.delete(columnId)
+  await enqueueSync('delete', 'column', columnId, { id: columnId })
 }
 
 export async function getSongsByColumn(columnSlug: ColumnSlug) {
@@ -280,12 +281,13 @@ export async function moveSongToProject(songId: string, targetProjectId: string)
   const sourceSongs = (await getSongsInColumnScope(song.columnSlug, song.projectId)).filter(
     (entry) => entry.id !== songId,
   )
+  const now = new Date().toISOString()
   sourceSongs.forEach((entry, index) => {
     entry.sortOrder = index
+    entry.updatedAt = now
   })
 
   const targetSongs = await getSongsInColumnScope(song.columnSlug, targetProjectId)
-  const now = new Date().toISOString()
   const updated: Song = {
     ...song,
     projectId: targetProjectId,
@@ -298,6 +300,9 @@ export async function moveSongToProject(songId: string, targetProjectId: string)
     await db.songs.put(updated)
   })
 
+  for (const entry of sourceSongs) {
+    await enqueueSync('update', 'song', entry.id, { sortOrder: entry.sortOrder, updatedAt: now })
+  }
   await enqueueSync('update', 'song', songId, updated)
   return updated
 }
@@ -319,8 +324,10 @@ export async function moveSong(
     (s) => s.id !== songId,
   )
 
+  const now = new Date().toISOString()
   sourceSongs.forEach((s, i) => {
     s.sortOrder = i
+    s.updatedAt = now
   })
 
   const clampedIndex = Math.max(0, Math.min(targetIndex, targetSongs.length))
@@ -328,11 +335,12 @@ export async function moveSong(
     ...song,
     columnSlug: targetColumnSlug,
     sortOrder: clampedIndex,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   })
 
   targetSongs.forEach((s, i) => {
     s.sortOrder = i
+    if (s.id !== songId) s.updatedAt = now
   })
 
   await db.transaction('rw', db.songs, async () => {
@@ -341,6 +349,14 @@ export async function moveSong(
   })
 
   const moved = targetSongs.find((s) => s.id === songId)!
+  for (const s of sourceSongs) {
+    await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+  }
+  for (const s of targetSongs) {
+    if (s.id !== songId) {
+      await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+    }
+  }
   await enqueueSync('update', 'song', songId, {
     columnSlug: moved.columnSlug,
     sortOrder: moved.sortOrder,
@@ -360,15 +376,17 @@ export async function reorderSongInColumn(
     (s) => s.id !== songId,
   )
 
+  const now = new Date().toISOString()
   const clampedIndex = Math.max(0, Math.min(newIndex, songs.length))
   songs.splice(clampedIndex, 0, {
     ...song,
     sortOrder: clampedIndex,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   })
 
   songs.forEach((s, i) => {
     s.sortOrder = i
+    if (s.id !== songId) s.updatedAt = now
   })
 
   await db.transaction('rw', db.songs, async () => {
@@ -376,6 +394,11 @@ export async function reorderSongInColumn(
   })
 
   const updated = songs.find((s) => s.id === songId)!
+  for (const s of songs) {
+    if (s.id !== songId) {
+      await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+    }
+  }
   await enqueueSync('update', 'song', songId, {
     sortOrder: updated.sortOrder,
     updatedAt: updated.updatedAt,
@@ -399,12 +422,17 @@ export async function deleteSong(id: string) {
     (s) => s.id !== id,
   )
 
+  const now = new Date().toISOString()
   remaining.forEach((s, i) => {
     s.sortOrder = i
+    s.updatedAt = now
   })
   await db.transaction('rw', db.songs, async () => {
     for (const s of remaining) await db.songs.put(s)
   })
+  for (const s of remaining) {
+    await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+  }
 }
 
 export async function bulkMoveSongs(songIds: string[], targetColumnSlug: ColumnSlug) {
