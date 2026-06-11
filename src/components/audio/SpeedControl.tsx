@@ -4,11 +4,12 @@ import { PLAYBACK_RATES, type PlaybackRate } from '@/lib/constants'
 interface SpeedControlProps {
   value: PlaybackRate
   onChange: (rate: PlaybackRate) => void
+  className?: string
 }
 
-export function SpeedControl({ value, onChange }: SpeedControlProps) {
+export function SpeedControl({ value, onChange, className }: SpeedControlProps) {
   return (
-    <div className="flex gap-1 rounded-lg border border-border bg-bg-2 p-1">
+    <div className={cn('flex gap-1 rounded-lg border border-border bg-bg-2 p-1', className)}>
       {PLAYBACK_RATES.map((rate) => (
         <button
           key={rate}

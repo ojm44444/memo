@@ -108,7 +108,7 @@ export function ListenView() {
             <p className="listen-view-kbd-hint">
               {filteredOut
                 ? `${favouriteTotal ?? 0} starred songs hidden by filters · clear filters to listen`
-                : 'Double-click title to open · tap section for board'}
+                : 'Tap title to open · tap section for board'}
             </p>
           </div>
         </div>
@@ -161,7 +161,7 @@ export function ListenView() {
             ★ Favourites
           </h2>
           <p className="listen-view-sub">{favourites.length} songs</p>
-          <p className="listen-view-kbd-hint">Double-click title to open · tap section for board</p>
+          <p className="listen-view-kbd-hint">Tap title to open · tap section for board</p>
         </div>
         <div className="listen-view-actions">
           <button
@@ -271,7 +271,8 @@ function ListenRow({
           type="button"
           className="listen-view-song-title"
           onDoubleClick={onOpen}
-          aria-label={`${title}. Double-click to open song details`}
+          onPointerUp={(e) => { if (e.pointerType === 'touch') onOpen() }}
+          aria-label={`${title}. Double-click or tap to open song details`}
         >
           {title}
         </button>

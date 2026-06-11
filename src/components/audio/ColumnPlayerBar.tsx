@@ -322,7 +322,7 @@ export function ColumnPlayerBar() {
         </div>
 
         <PlayerLoopButton />
-        <SpeedControl value={playbackRate} onChange={setPlaybackRate} />
+        <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-speed" />
       </div>
       <PlayerQueueDrawer />
     </footer>

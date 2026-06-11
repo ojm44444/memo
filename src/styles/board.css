@@ -1315,6 +1315,23 @@ body.is-file-dragging * {
     max-width: 120px;
   }
 
+  /* Titlebar: hide decorative chrome so action buttons have room */
+  .board-dot,
+  .board-titlebar-text {
+    display: none;
+  }
+
+  .board-titlebar {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .board-titlebar-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   .board-workspace {
     padding: 0;
   }
@@ -1733,6 +1750,27 @@ body.is-file-dragging * {
   backdrop-filter: blur(12px);
   padding: 12px 20px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 600px) {
+  .player-bar {
+    padding: 8px 12px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
+  /* Speed + loop are in the expanded panel — hide in compact bar on phone */
+  .player-bar .player-bar-speed,
+  .player-bar .player-loop-btn {
+    display: none;
+  }
+
+  .player-bar-inner {
+    gap: 8px;
+  }
+
+  .player-bar-transport {
+    gap: 4px;
+  }
 }
 
 .player-bar--expanded {
@@ -2210,13 +2248,16 @@ body.is-file-dragging * {
 .app-shell {
   height: 100dvh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 57px; /* offset for fixed app-header */
 }
 
 .app-main {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  padding-top: 57px;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
 }
