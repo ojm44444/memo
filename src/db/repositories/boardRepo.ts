@@ -62,7 +62,7 @@ async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string)
   return db.songs
     .where('columnSlug')
     .equals(columnSlug)
-    .filter((s) => !s.deletedAt && s.projectId === scopeProjectId)
+    .filter((s) => !s.deletedAt && (s.projectId === scopeProjectId || s.projectId == null))
     .sortBy('sortOrder')
 }
 
