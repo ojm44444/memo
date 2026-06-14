@@ -93,7 +93,7 @@ export type ImportAudioResult = {
 
 async function findDuplicateImport(file: File): Promise<boolean> {
   const fileStem = file.name.replace(/\.[^.]+$/, '')
-  const blobs = await db.audioBlobs.where('size').equals(file.size).toArray()
+  const blobs = await db.audioBlobs.filter((b) => b.size === file.size).toArray()
 
   for (const blob of blobs) {
     const version = await db.audioVersions.where('localBlobId').equals(blob.id).first()
