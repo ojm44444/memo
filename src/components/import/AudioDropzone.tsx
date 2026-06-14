@@ -14,10 +14,15 @@ export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzone
   const [dragging, setDragging] = useState(false)
   const [importing, setImporting] = useState(false)
 
+  const AUDIO_EXTENSIONS = /\.(mp3|m4a|wav|aac|ogg|opus|flac|aiff|aif|webm|mp4|caf)$/i
+
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
       const audioFiles = Array.from(files).filter(
-        (f) => f.type.startsWith('audio/') || AUDIO_MIME_ALLOWLIST.includes(f.type),
+        (f) =>
+          f.type.startsWith('audio/') ||
+          AUDIO_MIME_ALLOWLIST.includes(f.type) ||
+          AUDIO_EXTENSIONS.test(f.name),
       )
       if (audioFiles.length === 0) return
 
