@@ -13,6 +13,7 @@ interface AudioDropzoneProps {
 export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzoneProps) {
   const [dragging, setDragging] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const AUDIO_EXTENSIONS = /\.(mp3|m4a|wav|aac|ogg|opus|flac|aiff|aif|webm|mp4|caf)$/i
 
@@ -24,12 +25,18 @@ export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzone
           AUDIO_MIME_ALLOWLIST.includes(f.type) ||
           AUDIO_EXTENSIONS.test(f.name),
       )
-      if (audioFiles.length === 0) return
+      if (audioFiles.length === 0) {
+        setError('No audio files recognised. Try mp3, m4a, wav.')
+        return
+      }
 
+      setError(null)
       setImporting(true)
       try {
         await importAudioFiles(audioFiles, columnSlug)
         scheduleFlush()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Import failed')
       } finally {
         setImporting(false)
       }
@@ -69,6 +76,9 @@ export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzone
       <label htmlFor="audio-import" className="cursor-pointer font-mono text-[0.65rem] text-muted">
         {importing ? 'Importing…' : '+ Drop audio files or tap to import'}
       </label>
+      {error && (
+        <p className="mt-1 font-mono text-[0.6rem] text-red-400">{error}</p>
+      )}
     </div>
   )
 }
