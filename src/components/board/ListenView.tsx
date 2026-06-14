@@ -186,13 +186,13 @@ export function ListenView() {
             songId={song.id}
             title={song.title}
             columnSlug={song.columnSlug}
-            projectName={scope === 'library' ? projectNameById.get(song.projectId) : undefined}
+            projectName={scope === 'library' ? projectNameById.get(song.projectId ?? '') : undefined}
             notes={song.notes}
             isFavourite
             isActive={currentSongId === song.id && isPlaying}
             onPlay={() => void playSong(song.id)}
             onOpen={() => openDrawer(song.id)}
-            onGoToColumn={() => void goToColumn(song.projectId, song.columnSlug)}
+            onGoToColumn={song.projectId ? () => void goToColumn(song.projectId!, song.columnSlug) : undefined}
           />
         ))}
       </ul>
@@ -250,7 +250,7 @@ function ListenRow({
   isActive: boolean
   onPlay: () => void
   onOpen: () => void
-  onGoToColumn: () => void
+  onGoToColumn?: () => void
 }) {
   const version = useLiveQuery(
     async () => {
@@ -293,7 +293,7 @@ function ListenRow({
             className="listen-view-column-link"
             onClick={(event) => {
               event.stopPropagation()
-              onGoToColumn()
+              onGoToColumn?.()
             }}
             aria-label={`Show ${columnSlug} on board`}
           >

@@ -123,7 +123,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
         <div className="scp-body">
           <SongProjectSelect
             songId={song.id}
-            projectId={song.projectId}
+            projectId={song.projectId ?? ''}
             readOnly={readOnly}
           />
 

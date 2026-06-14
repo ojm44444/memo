@@ -57,7 +57,7 @@ async function sortSongsForDisplay(songs: Song[], columnSlug?: ColumnSlug) {
   })
 }
 
-async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string) {
+async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string | null) {
   const scopeProjectId = projectId ?? (await getActiveProjectScope())
   return db.songs
     .where('columnSlug')
@@ -66,7 +66,7 @@ async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string)
     .sortBy('sortOrder')
 }
 
-async function getSongsInColumnScopeForDisplay(columnSlug: ColumnSlug, projectId?: string) {
+async function getSongsInColumnScopeForDisplay(columnSlug: ColumnSlug, projectId?: string | null) {
   const songs = await getSongsInColumnScope(columnSlug, projectId)
   const filtered: Song[] = []
   for (const song of songs) {
@@ -237,7 +237,10 @@ export async function createSong(input: {
   bpm?: number | null
   recordedAt?: string | null
 }) {
-  const projectId = input.projectId ?? (await getActiveProjectScope())
+  // Inbox songs have no project until the user tags them
+  const projectId = input.columnSlug === 'inbox' && !input.projectId
+    ? null
+    : (input.projectId ?? (await getActiveProjectScope()))
   const songsInColumn = await getSongsInColumnScope(input.columnSlug, projectId)
   const now = new Date().toISOString()
 

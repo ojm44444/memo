@@ -627,17 +627,17 @@ export async function searchLibrary(query: string) {
   const allSongs = await db.songs.filter((song) => !song.deletedAt).toArray()
 
   for (const song of allSongs) {
-    if (archivedIds.has(song.projectId)) continue
+    if (song.projectId && archivedIds.has(song.projectId)) continue
 
     const haystack = [song.title, song.notes, ...(song.tags ?? [])].join(' ').toLowerCase()
     if (!haystack.includes(trimmed)) continue
 
-    matchingProjectIds.add(song.projectId)
+    if (song.projectId) matchingProjectIds.add(song.projectId)
     songs.push({
       songId: song.id,
       title: song.title,
-      projectId: song.projectId,
-      projectName: projectNameById.get(song.projectId) ?? 'Project',
+      projectId: song.projectId ?? '',
+      projectName: song.projectId ? (projectNameById.get(song.projectId) ?? 'Project') : 'Inbox',
       columnSlug: song.columnSlug,
     })
   }

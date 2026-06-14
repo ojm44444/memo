@@ -4,7 +4,7 @@ export interface Song {
   id: string
   title: string
   columnSlug: ColumnSlug
-  projectId: string
+  projectId: string | null
   tags: string[]
   isFavourite: boolean
   /** Optional — set from file metadata or drawer; never auto-detected from audio */

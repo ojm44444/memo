@@ -256,7 +256,7 @@ export async function duplicateSong(
     columnSlug: song.columnSlug,
     notes: song.notes,
     tags: [...(song.tags ?? [])],
-    projectId: options?.projectId ?? song.projectId,
+    projectId: options?.projectId ?? song.projectId ?? undefined,
     musicalKey: song.musicalKey,
     bpm: song.bpm,
   })
