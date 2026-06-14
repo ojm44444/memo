@@ -1716,6 +1716,15 @@ body.is-file-dragging * {
   opacity: 0.6;
 }
 
+.song-card-offline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.song-card-offline-dot.is-cached { background: var(--audio-mint); }
+.song-card-offline-dot.is-cloud  { background: var(--text-muted); opacity: 0.45; }
+
 .song-card-play {
   display: flex;
   align-items: center;

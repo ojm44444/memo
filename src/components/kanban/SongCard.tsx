@@ -132,6 +132,13 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
           )}
         </div>
         <div className="flex items-center gap-2">
+          {primary && (
+            <span
+              className={cn('song-card-offline-dot', primary.localBlobId ? 'is-cached' : 'is-cloud')}
+              title={primary.localBlobId ? 'Available offline' : 'Requires internet'}
+              aria-label={primary.localBlobId ? 'Available offline' : 'Requires internet'}
+            />
+          )}
           <span className={cn('song-card-tag', tag.className)}>{tag.label}</span>
           <button
             type="button"
