@@ -29,7 +29,7 @@ const FEATURES = [
   {
     icon: '▦',
     title: 'A home for every idea',
-    desc: 'Inbox → Ideas → Demos → Done. Import from Voice Memos or any audio app, name it, tag it, and never lose track of where it\'s up to.',
+    desc: 'Inbox → Ideas → Half Finished → Finished Demo → Released. Import from Voice Memos or any audio app, name it, tag it, and never lose track of where it\'s up to.',
   },
   {
     icon: '⧉',
@@ -76,7 +76,7 @@ const COMPARE_ROWS = [
 
 const STEPS = [
   ['01', 'Import your recordings', 'Drag audio from your desktop, or import from the Files app on iPhone. Everything lands straight in your Inbox.'],
-  ['02', 'Land in Inbox', 'Audio hits your Inbox instantly — name it, stack takes, tag it, and drag it forward when it\'s ready.'],
+  ['02', 'Land in Inbox', 'Audio hits your Inbox instantly — name it, tag it, and drag it to Ideas, Half Finished, or wherever it belongs.'],
   ['03', 'Move at your own pace', 'Work through ideas when inspiration strikes. Nothing forces, nothing expires. Songs move forward when you decide they\'re ready.'],
   ['04', 'Share when ready', 'Send a listen link to your producer, bandmates, or A&R. Get timestamped feedback right on the waveform.'],
 ] as const
@@ -218,66 +218,71 @@ export function LandingPage() {
             </div>
             <div className="kanban-board">
               <div className="kanban-col">
-                <div className="col-header">Inbox <span className="col-count">3</span></div>
-                {['Voice Memo 214', 'Voice Memo 215', 'Voice Memo 216'].map((t) => (
-                  <div key={t} className="audio-card">
-                    <div className="card-title">{t}</div>
-                    <WaveBars />
-                    <div className="card-meta">
-                      <span className="card-time">0:42</span>
-                      <span className="card-tag tag-idea">Riff</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="kanban-col">
-                <div className="col-header">Ideas <span className="col-count">2</span></div>
-                <div className="audio-card featured">
-                  <div className="card-title">Midnight Call</div>
-                  <WaveBars playedFrac={0.45} />
-                  <div className="card-meta">
-                    <span className="card-time">2:34</span>
-                    <span className="card-tag tag-stack">3 versions</span>
-                  </div>
-                  <div className="card-tags-row">
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Vocal idea</span>
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#eab308,#84cc16)' }}>Lyrics drafted</span>
-                  </div>
-                </div>
+                <div className="col-header">Inbox <span className="col-count">254</span></div>
                 <div className="audio-card">
-                  <div className="card-title">The Bridge Thing</div>
+                  <div className="card-title">Folky guitar thing</div>
                   <WaveBars />
                   <div className="card-meta">
-                    <span className="card-time">1:12</span>
-                    <span className="card-tag tag-idea">Bridge</span>
+                    <span className="card-time">0:26</span>
+                    <span className="card-tag tag-idea">NEW</span>
                   </div>
-                  <div className="card-tags-row">
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#f59e0b,#f97316)' }}>Bridge</span>
+                </div>
+                <div className="audio-card">
+                  <div className="card-title">somebody home</div>
+                  <WaveBars />
+                  <div className="card-meta">
+                    <span className="card-time">7:21</span>
+                    <span className="card-tag tag-idea">NEW</span>
+                  </div>
+                </div>
+                <div className="audio-card">
+                  <div className="card-title">Maple Leaf Business Park 12</div>
+                  <WaveBars />
+                  <div className="card-meta">
+                    <span className="card-time">4:08</span>
+                    <span className="card-tag tag-idea">NEW</span>
                   </div>
                 </div>
               </div>
               <div className="kanban-col">
-                <div className="col-header">Demos <span className="col-count">1</span></div>
-                <div className="audio-card">
-                  <div className="card-title">Glass &amp; Smoke</div>
-                  <WaveBars playedFrac={0.2} />
+                <div className="col-header">Ideas / Inspiration <span className="col-count">0</span></div>
+                <div className="audio-card" style={{ opacity: 0.4, borderStyle: 'dashed' }}>
+                  <div className="card-title" style={{ color: 'var(--text-muted)' }}>Drop audio or drag a song here</div>
+                </div>
+              </div>
+              <div className="kanban-col">
+                <div className="col-header">Half Finished Songs <span className="col-count">2</span></div>
+                <div className="audio-card featured">
+                  <div className="card-title">Poem</div>
+                  <WaveBars playedFrac={0.45} />
                   <div className="card-meta">
-                    <span className="card-time">3:51</span>
+                    <span className="card-time">3:42</span>
                     <span className="card-tag tag-stack">2 versions</span>
                   </div>
                   <div className="card-tags-row">
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#6dffb8,#3b82f6)' }}>Lyrics finished</span>
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Lyrics drafted</span>
+                  </div>
+                </div>
+                <div className="audio-card">
+                  <div className="card-title">9 Wheelwrights Way 27</div>
+                  <WaveBars playedFrac={0.2} />
+                  <div className="card-meta">
+                    <span className="card-time">6:20</span>
+                    <span className="card-tag tag-idea">Full idea</span>
                   </div>
                 </div>
               </div>
               <div className="kanban-col">
-                <div className="col-header">Done <span className="col-count">1</span></div>
+                <div className="col-header">Finished Demos <span className="col-count">1</span></div>
                 <div className="audio-card">
-                  <div className="card-title">Frequency</div>
+                  <div className="card-title">TEZ - Strangers</div>
                   <WaveBars playedFrac={0.8} />
                   <div className="card-meta">
-                    <span className="card-time">3:22</span>
-                    <span className="card-tag tag-idea">Idea</span>
+                    <span className="card-time">3:33</span>
+                    <span className="card-tag tag-stack">TRACK</span>
+                  </div>
+                  <div className="card-tags-row">
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#6dffb8,#3b82f6)' }}>Full idea</span>
                   </div>
                 </div>
               </div>
