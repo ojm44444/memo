@@ -359,23 +359,13 @@ export async function moveSong(
 
   await db.songs.bulkPut([...sourceSongs, ...targetSongs])
 
-  // Fire sync queue writes in background — useLiveQuery already updated the UI above
+  // Only sync the moved song — sortOrder on siblings reconciles on next pull
   const moved = targetSongs.find((s) => s.id === songId)!
-  void (async () => {
-    for (const s of sourceSongs) {
-      await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
-    }
-    for (const s of targetSongs) {
-      if (s.id !== songId) {
-        await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
-      }
-    }
-    await enqueueSync('update', 'song', songId, {
-      columnSlug: moved.columnSlug,
-      sortOrder: moved.sortOrder,
-      updatedAt: moved.updatedAt,
-    })
-  })()
+  void enqueueSync('update', 'song', songId, {
+    columnSlug: moved.columnSlug,
+    sortOrder: moved.sortOrder,
+    updatedAt: moved.updatedAt,
+  })
 }
 
 export async function reorderSongInColumn(
@@ -410,19 +400,12 @@ export async function reorderSongInColumn(
 
   await db.songs.bulkPut(songs)
 
-  // Fire sync queue writes in background — useLiveQuery already updated the UI above
+  // Only sync the moved song — sortOrder on siblings reconciles on next pull
   const updated = songs.find((s) => s.id === songId)!
-  void (async () => {
-    for (const s of songs) {
-      if (s.id !== songId) {
-        await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
-      }
-    }
-    await enqueueSync('update', 'song', songId, {
-      sortOrder: updated.sortOrder,
-      updatedAt: updated.updatedAt,
-    })
-  })()
+  void enqueueSync('update', 'song', songId, {
+    sortOrder: updated.sortOrder,
+    updatedAt: updated.updatedAt,
+  })
 }
 
 export async function deleteSong(id: string) {
