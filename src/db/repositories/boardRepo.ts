@@ -316,96 +316,69 @@ export async function moveSongToProject(songId: string, targetProjectId: string)
   return updated
 }
 
+async function computeInsertSortOrder(
+  targetColumnSlug: ColumnSlug,
+  projectId: string | null,
+  beforeSongId: string | undefined,
+  excludeSongId: string,
+): Promise<number> {
+  if (beforeSongId) {
+    const beforeSong = await db.songs.get(beforeSongId)
+    if (beforeSong) {
+      // Find the song just before it in the column to compute a midpoint
+      const siblings = await db.songs
+        .where('columnSlug')
+        .equals(targetColumnSlug)
+        .filter((s) => !s.deletedAt && s.id !== excludeSongId && (s.projectId === projectId || s.projectId == null))
+        .sortBy('sortOrder')
+      const beforeIdx = siblings.findIndex((s) => s.id === beforeSongId)
+      const prev = beforeIdx > 0 ? siblings[beforeIdx - 1] : null
+      return prev
+        ? (prev.sortOrder + beforeSong.sortOrder) / 2
+        : beforeSong.sortOrder - 1024
+    }
+  }
+  // Append: count existing songs in target
+  const count = await db.songs
+    .where('columnSlug')
+    .equals(targetColumnSlug)
+    .filter((s) => !s.deletedAt && s.id !== excludeSongId && (s.projectId === projectId || s.projectId == null))
+    .count()
+  return count
+}
+
 export async function moveSong(
   songId: string,
   targetColumnSlug: ColumnSlug,
-  targetIndex: number,
+  _targetIndex: number,
   beforeSongId?: string,
 ) {
   const song = await db.songs.get(songId)
   if (!song || song.deletedAt) return
 
-  const sourceColumn = song.columnSlug
-  const sourceSongs = (await getSongsInColumnScope(sourceColumn, song.projectId)).filter(
-    (s) => s.id !== songId,
-  )
-
-  const targetSongs = (await getSongsInColumnScope(targetColumnSlug, song.projectId)).filter(
-    (s) => s.id !== songId,
-  )
-
   const now = new Date().toISOString()
-  sourceSongs.forEach((s, i) => {
-    s.sortOrder = i
-    s.updatedAt = now
-  })
+  const sortOrder = await computeInsertSortOrder(targetColumnSlug, song.projectId, beforeSongId, songId)
 
-  if (beforeSongId) {
-    const idx = targetSongs.findIndex((s) => s.id === beforeSongId)
-    if (idx >= 0) targetIndex = idx
-  }
-  const clampedIndex = Math.max(0, Math.min(targetIndex, targetSongs.length))
-  targetSongs.splice(clampedIndex, 0, {
-    ...song,
-    columnSlug: targetColumnSlug,
-    sortOrder: clampedIndex,
-    updatedAt: now,
-  })
-
-  targetSongs.forEach((s, i) => {
-    s.sortOrder = i
-    if (s.id !== songId) s.updatedAt = now
-  })
-
-  await db.songs.bulkPut([...sourceSongs, ...targetSongs])
-
-  // Only sync the moved song — sortOrder on siblings reconciles on next pull
-  const moved = targetSongs.find((s) => s.id === songId)!
-  void enqueueSync('update', 'song', songId, {
-    columnSlug: moved.columnSlug,
-    sortOrder: moved.sortOrder,
-    updatedAt: moved.updatedAt,
-  })
+  const updated: Song = { ...song, columnSlug: targetColumnSlug, sortOrder, updatedAt: now }
+  await db.songs.put(updated)
+  void enqueueSync('update', 'song', songId, { columnSlug: targetColumnSlug, sortOrder, updatedAt: now })
 }
 
 export async function reorderSongInColumn(
   songId: string,
   columnSlug: ColumnSlug,
-  newIndex: number,
+  _newIndex: number,
   beforeSongId?: string,
 ) {
   const song = await db.songs.get(songId)
   if (!song) return
 
-  const songs = (await getSongsInColumnScope(columnSlug, song.projectId)).filter(
-    (s) => s.id !== songId,
-  )
-
   const now = new Date().toISOString()
-  if (beforeSongId) {
-    const idx = songs.findIndex((s) => s.id === beforeSongId)
-    if (idx >= 0) newIndex = idx
-  }
-  const clampedIndex = Math.max(0, Math.min(newIndex, songs.length))
-  songs.splice(clampedIndex, 0, {
-    ...song,
-    sortOrder: clampedIndex,
-    updatedAt: now,
-  })
+  const sortOrder = await computeInsertSortOrder(columnSlug, song.projectId, beforeSongId, songId)
 
-  songs.forEach((s, i) => {
-    s.sortOrder = i
-    if (s.id !== songId) s.updatedAt = now
-  })
-
-  await db.songs.bulkPut(songs)
-
-  // Only sync the moved song — sortOrder on siblings reconciles on next pull
-  const updated = songs.find((s) => s.id === songId)!
-  void enqueueSync('update', 'song', songId, {
-    sortOrder: updated.sortOrder,
-    updatedAt: updated.updatedAt,
-  })
+  const updated: Song = { ...song, sortOrder, updatedAt: now }
+  await db.songs.put(updated)
+  void enqueueSync('update', 'song', songId, { sortOrder, updatedAt: now })
 }
 
 export async function deleteSong(id: string) {
