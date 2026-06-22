@@ -143,7 +143,7 @@ export async function sendBoardInviteEmail(options: {
 export function buildInviteMailto(link: string, boardName: string, inviteeEmail?: string) {
   const subject = encodeURIComponent(`Join ${boardName} on mem•`)
   const body = encodeURIComponent(
-    `Hey — I'm sharing our songwriting board on mem•.\n\nOpen this link and sign in to join:\n${link}\n\n— sent from mem•`,
+    `Hey — I'm sharing our songwriting board on memo.\n\nOpen this link and sign in to join:\n${link}\n\n— sent from memo`,
   )
   const to = inviteeEmail ? encodeURIComponent(inviteeEmail) : ''
   return `mailto:${to}?subject=${subject}&body=${body}`

@@ -1,7 +1,6 @@
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { supabase, supabaseConfigured } from '@/lib/supabase/client'
+import { Link } from 'react-router-dom'
+import { supabase } from '@/lib/supabase/client'
 import '@/styles/landing.css'
 
 const WAVE_HEIGHTS = [42, 68, 55, 82, 38, 71, 48, 90, 35, 64, 52, 78, 44, 86, 58, 72, 40, 66, 50, 84, 36, 74, 46, 80, 54, 70]
@@ -23,149 +22,190 @@ function WaveBars({ playedFrac = 0, count = 26 }: { playedFrac?: number; count?:
 
 const FEATURES = [
   {
+    icon: '✈',
+    title: 'Always with you, no signal needed',
+    desc: 'Fill your dead time with creativity. memo is local-first — your entire imported library lives on your device. On the tube, on a plane, in a field. Nothing stops you moving forward.',
+  },
+  {
     icon: '▦',
-    title: 'Kanban for songs',
-    desc: 'Inbox → Ideas → Demos → Finished. Every memo has a place on the board.',
+    title: 'A home for every idea',
+    desc: 'Inbox → Ideas → Demos → Done. Import from Voice Memos or any audio app, name it, tag it, and never lose track of where it\'s up to.',
   },
   {
     icon: '⧉',
-    title: 'Version stacking',
-    desc: 'Stack takes on one card. Hear how a song evolved without digging through folders.',
-  },
-  {
-    icon: '2×',
-    title: '2× playback speed',
-    desc: 'Skim your backlog fast. Jump between versions and find the keeper in minutes.',
-  },
-  {
-    icon: '↗',
-    title: 'Phone → Mac sync',
-    desc: 'Import on your phone, sign in with Google, and your memos pull down on desktop automatically.',
-  },
-  {
-    icon: '🔗',
-    title: 'Demo share links',
-    desc: 'Send a listen link with optional password. Listeners pin feedback to the waveform — no account needed.',
+    title: 'All your takes, one card',
+    desc: 'Got a second voice note for the same idea? A new riff? A bridge you just sang in the shower? Pin them all to one song card — hear how it evolved without hunting through folders.',
   },
   {
     icon: '◎',
-    title: 'Co-write',
-    desc: 'Invite bandmates as editors or viewers. Comment on songs, compare A/B takes, stay on one board.',
+    title: 'Adjustable playback speed',
+    desc: 'Dial from 0.75× to 2×. Slow down to catch a lyric, speed up to skim your backlog, fast-forward through the silence. Find the keeper take in minutes.',
+  },
+  {
+    icon: '↗',
+    title: 'Import anywhere, organise everywhere',
+    desc: 'Record in Voice Memos, GarageBand, or any audio app. Import when you\'re ready — your board stays in sync across phone, Mac, and PC automatically.',
+  },
+  {
+    icon: '↔',
+    title: 'Share with your people',
+    desc: 'Send a listen link to your producer, A&R, or bandmates. They leave timestamped comments pinned to the waveform — no account needed on their end.',
   },
 ] as const
 
-const STEPS = [
-  ['01', 'Save from Voice Memos', 'Share a memo to Files on your iPhone, then import it in mem•.'],
-  ['02', 'Land in Inbox', 'Audio shows up on your board — name it, stack versions, drag it forward.'],
-  ['03', 'Sign in to sync', 'Use Google on phone and Mac so the same board stays in sync.'],
-  ['04', 'Review on desktop', 'Open mem• on your Mac and every memo you captured is already there.'],
+function Tick({ val }: { val: boolean | 'partial' | string }) {
+  if (val === true) return <span className="tick tick--yes" aria-label="Yes">✓</span>
+  if (val === false) return <span className="tick tick--no" aria-label="No">✕</span>
+  if (val === 'partial') return <span className="tick tick--partial" aria-label="Partial">~</span>
+  return <span className="tick tick--price">{val}</span>
+}
+
+const COMPARE_ROWS = [
+  { feature: 'Kanban workflow for songs',       memo: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
+  { feature: 'Version stacking per song',       memo: true,  dubnote: false,    samply: 'partial', suonote: false,   tapeit: false },
+  { feature: 'Adjustable playback speed',       memo: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
+  { feature: 'Phone → Mac sync',               memo: true,  dubnote: false,    samply: true,     suonote: 'partial', tapeit: true },
+  { feature: 'Share demo links',               memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: 'partial' },
+  { feature: 'Timestamped listener feedback',  memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
+  { feature: 'Listener needs no account',      memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
+  { feature: 'Invite co-writers',              memo: true,  dubnote: true,     samply: true,     suonote: 'partial', tapeit: true },
+  { feature: 'Works fully offline',            memo: true,  dubnote: true,     samply: true,     suonote: true,     tapeit: true },
+  { feature: 'Built for songwriters',          memo: true,  dubnote: true,     samply: false,    suonote: true,     tapeit: true },
+  { feature: 'Price',                          memo: '£7/mo', dubnote: '$25/yr', samply: '$10/mo', suonote: 'free*', tapeit: 'free*' },
 ] as const
 
-export function LandingPage() {
+const STEPS = [
+  ['01', 'Import your recordings', 'Drag audio from your desktop, or import from the Files app on iPhone. Everything lands straight in your Inbox.'],
+  ['02', 'Land in Inbox', 'Audio hits your Inbox instantly — name it, stack takes, tag it, and drag it forward when it\'s ready.'],
+  ['03', 'Move at your own pace', 'Work through ideas when inspiration strikes. Nothing forces, nothing expires. Songs move forward when you decide they\'re ready.'],
+  ['04', 'Share when ready', 'Send a listen link to your producer, bandmates, or A&R. Get timestamped feedback right on the waveform.'],
+] as const
+
+const FAQS = [
+  {
+    q: 'Does it work without Wi-Fi?',
+    a: 'Fully offline. Everything you\'ve imported lives on your device — on the tube, on a plane, in a studio with no signal. Changes sync automatically the moment you\'re back online.',
+  },
+  {
+    q: 'What happens to a song if I never finish it?',
+    a: 'Nothing. It sits in whatever stage you left it, forever. memo doesn\'t nag, delete, or archive anything for you.',
+  },
+  {
+    q: 'Can I share demos with my producer, bandmates, or A&R?',
+    a: 'Yes. Send a listen link from any song — they click it, hear the audio, and leave timestamped comments pinned to the waveform. No account needed on their end.',
+  },
+  {
+    q: 'Does it work on my phone?',
+    a: 'You can import audio on iPhone via the Files app and use memo in your mobile browser. We\'re working towards a native App Store app for an even smoother experience.',
+  },
+  {
+    q: 'Is my music private?',
+    a: 'Yes. Your audio is stored locally on your device first, and only syncs to encrypted cloud storage you control. It\'s never shared, analysed, or accessed by anyone else.',
+  },
+  {
+    q: 'What happens to my music if I stop paying?',
+    a: 'Your audio stays on your device — memo is local-first, so cancelling doesn\'t delete anything. Cloud sync and sharing features pause until you resubscribe.',
+  },
+] as const
+
+function WaitlistForm({ className }: { className?: string }) {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState('')
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle')
 
-  const scrollToCta = () => {
-    document.getElementById('early-access')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  const joinWaitlist = async (event?: FormEvent) => {
-    event?.preventDefault()
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
     const trimmed = email.trim().toLowerCase()
     if (!trimmed) return
-
-    setStatus('loading')
-    setMessage('')
-
-    if (!supabaseConfigured || !supabase) {
-      setStatus('success')
-      setMessage("You're on the list! We'll be in touch.")
-      setEmail('')
-      return
-    }
-
-    const client = supabase
-    const { error } = await client.from('waitlist_leads').insert({ email: trimmed })
-
-    if (error) {
-      if (error.code === '23505') {
-        setStatus('success')
-        setMessage("You're already on the list — we'll be in touch.")
-        setEmail('')
-        return
+    setState('busy')
+    try {
+      if (supabase) {
+        await supabase.from('waitlist').upsert({ email: trimmed }, { onConflict: 'email' })
       }
-      setStatus('error')
-      setMessage(error.message)
-      return
+      if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).fbq) {
+        ;((window as unknown as Record<string, unknown>).fbq as (...args: unknown[]) => void)('track', 'Lead', { content_name: 'waitlist' })
+      }
+      setState('done')
+      setEmail('')
+    } catch {
+      setState('error')
     }
-
-    setStatus('success')
-    setMessage("You're on the list. We'll email you when early access opens.")
-    setEmail('')
   }
 
+  if (state === 'done') {
+    return (
+      <div className={`waitlist-done ${className ?? ''}`}>
+        <span className="waitlist-done-icon">✓</span>
+        You're on the list — we'll be in touch.
+      </div>
+    )
+  }
+
+  return (
+    <form className={`waitlist-form ${className ?? ''}`} onSubmit={(e) => void submit(e)}>
+      <input
+        type="email"
+        className="waitlist-input"
+        placeholder="your@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        disabled={state === 'busy'}
+      />
+      <button type="submit" className="waitlist-btn" disabled={state === 'busy'}>
+        {state === 'busy' ? 'Joining…' : 'Get early access'}
+      </button>
+      {state === 'error' && <p className="waitlist-error">Something went wrong — try again.</p>}
+    </form>
+  )
+}
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className={`faq-item${open ? ' is-open' : ''}`}>
+      <button type="button" className="faq-q" onClick={() => setOpen((v) => !v)}>
+        {q}
+        <span className="faq-chevron">{open ? '−' : '+'}</span>
+      </button>
+      {open && <p className="faq-a">{a}</p>}
+    </div>
+  )
+}
+
+export function LandingPage() {
   return (
     <div className="landing">
       <nav>
         <div className="logo">
-          mem<span>•</span>
+          mem<span>o</span>
         </div>
         <ul className="nav-links">
-          <li>
-            <a href="#features">Features</a>
-          </li>
-          <li>
-            <a href="#workflow">How it works</a>
-          </li>
-          <li>
-            <a href="#pricing">Pricing</a>
-          </li>
-          <li>
-            <a href="#early-access">Early access</a>
-          </li>
-          <li>
-            <Link to="/sign-in">Sign in</Link>
-          </li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#compare">Compare</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
         </ul>
-        <Link to="/sign-in" className="nav-cta nav-cta--app">
-          Sign in
-        </Link>
+        <div className="nav-right">
+          <Link to="/sign-in" className="nav-signin">Sign in</Link>
+          <a href="#get-started" className="nav-cta nav-cta--app">
+            Get early access
+          </a>
+        </div>
       </nav>
 
       <section className="hero">
         <div className="hero-left">
-          <div className="hero-tag">Studio minimal · local-first</div>
           <h1 className="hero-h1">
-            Stop losing your best ideas in the <em>Voice Memo black hole.</em>
+            Stop losing ideas.
+            {' '}<em>Start finishing songs.</em>
           </h1>
           <p className="hero-sub">
-            mem• is a charcoal-and-mint songwriting board for the memos you actually want to finish.
-            Capture from your phone, organise on a Kanban, and hear every version at 2× — without
-            losing another riff to the void.
+            Every songwriter has hundreds of voice memos they'll "get back to." Most never do.
+            memo is a Kanban board for your music — import your recordings, organise ideas by stage,
+            collaborate with bandmates, and keep everything moving forward.
           </p>
-          <div className="hero-actions">
-            <Link to="/sign-in" className="btn-primary">
-              Sign in to your board
-            </Link>
-            <button type="button" className="btn-ghost" onClick={scrollToCta}>
-              Get early access
-            </button>
-          </div>
-          <div className="hero-meta">
-            <div>
-              <span className="hero-stat-num">4</span>
-              <span className="hero-stat-label">Kanban stages</span>
-            </div>
-            <div>
-              <span className="hero-stat-num">2×</span>
-              <span className="hero-stat-label">playback speed</span>
-            </div>
-            <div>
-              <span className="hero-stat-num">Phone</span>
-              <span className="hero-stat-label">→ Mac sync</span>
-            </div>
-          </div>
+          <WaitlistForm />
+          <p className="hero-trial-note">Early access · no credit card · be first in</p>
         </div>
 
         <div className="hero-right">
@@ -174,35 +214,73 @@ export function LandingPage() {
               <div className="dot dot-r" />
               <div className="dot dot-y" />
               <div className="dot dot-g" />
-              <span className="app-titlebar-text">mem• — songwriting board</span>
+              <span className="app-titlebar-text">memo — songwriting board</span>
             </div>
             <div className="kanban-board">
-              {[
-                { title: 'Inbox', count: 3, cards: ['Voice Memo 147', 'Voice Memo 148', 'Voice Memo 149'] },
-                { title: 'Ideas', count: 2, cards: ['Midnight Call', 'Bridge idea'], featured: 0 },
-                { title: 'Demos', count: 1, cards: ['Glass & Smoke'] },
-                { title: 'Done', count: 1, cards: ['Frequency'] },
-              ].map((col, ci) => (
-                <div key={col.title} className="kanban-col">
-                  <div className="col-header">
-                    {col.title} <span className="col-count">{col.count}</span>
-                  </div>
-                  {col.cards.map((title, i) => (
-                    <div key={title} className={`audio-card${ci === 1 && i === 0 ? ' featured' : ''}`}>
-                      <div className="card-title">{title}</div>
-                      <WaveBars playedFrac={ci === 1 && i === 0 ? 0.45 : 0} />
-                      <div className="card-meta">
-                        <span className="card-time">2:34</span>
-                        {ci === 1 && i === 0 ? (
-                          <span className="card-tag tag-stack">3 versions</span>
-                        ) : (
-                          <span className="card-tag tag-idea">Idea</span>
-                        )}
-                      </div>
+              <div className="kanban-col">
+                <div className="col-header">Inbox <span className="col-count">3</span></div>
+                {['Voice Memo 214', 'Voice Memo 215', 'Voice Memo 216'].map((t) => (
+                  <div key={t} className="audio-card">
+                    <div className="card-title">{t}</div>
+                    <WaveBars />
+                    <div className="card-meta">
+                      <span className="card-time">0:42</span>
+                      <span className="card-tag tag-idea">Riff</span>
                     </div>
-                  ))}
+                  </div>
+                ))}
+              </div>
+              <div className="kanban-col">
+                <div className="col-header">Ideas <span className="col-count">2</span></div>
+                <div className="audio-card featured">
+                  <div className="card-title">Midnight Call</div>
+                  <WaveBars playedFrac={0.45} />
+                  <div className="card-meta">
+                    <span className="card-time">2:34</span>
+                    <span className="card-tag tag-stack">3 versions</span>
+                  </div>
+                  <div className="card-tags-row">
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Vocal idea</span>
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#eab308,#84cc16)' }}>Lyrics drafted</span>
+                  </div>
                 </div>
-              ))}
+                <div className="audio-card">
+                  <div className="card-title">The Bridge Thing</div>
+                  <WaveBars />
+                  <div className="card-meta">
+                    <span className="card-time">1:12</span>
+                    <span className="card-tag tag-idea">Bridge</span>
+                  </div>
+                  <div className="card-tags-row">
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#f59e0b,#f97316)' }}>Bridge</span>
+                  </div>
+                </div>
+              </div>
+              <div className="kanban-col">
+                <div className="col-header">Demos <span className="col-count">1</span></div>
+                <div className="audio-card">
+                  <div className="card-title">Glass &amp; Smoke</div>
+                  <WaveBars playedFrac={0.2} />
+                  <div className="card-meta">
+                    <span className="card-time">3:51</span>
+                    <span className="card-tag tag-stack">2 versions</span>
+                  </div>
+                  <div className="card-tags-row">
+                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#6dffb8,#3b82f6)' }}>Lyrics finished</span>
+                  </div>
+                </div>
+              </div>
+              <div className="kanban-col">
+                <div className="col-header">Done <span className="col-count">1</span></div>
+                <div className="audio-card">
+                  <div className="card-title">Frequency</div>
+                  <WaveBars playedFrac={0.8} />
+                  <div className="card-meta">
+                    <span className="card-time">3:22</span>
+                    <span className="card-tag tag-idea">Idea</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="preview-speed">
               <span className="preview-speed-label">Playback</span>
@@ -212,16 +290,17 @@ export function LandingPage() {
         </div>
       </section>
 
+
       <section className="features" id="features">
         <div className="section-label">Built for songwriters</div>
         <h2 className="section-h2">
-          Everything in the black hole,
+          The voice memo chaos,
           <br />
-          finally on a board.
+          finally organised.
         </h2>
         <p className="section-sub">
-          No bloated DAW. No lost folders. Just the workflow you already use — voice memos, versions,
-          and momentum — in one charcoal-and-mint workspace.
+          No more renaming files. No more scrolling through 400 untitled memos.
+          Just your ideas, organised and moving forward.
         </p>
         <div className="features-grid">
           {FEATURES.map(({ icon, title, desc }) => (
@@ -234,12 +313,92 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Offline spotlight */}
+      <section className="offline-section">
+        <div className="offline-inner">
+          <div className="offline-text">
+            <div className="section-label">Always with you</div>
+            <h2 className="section-h2">
+              No signal?<br /><em>No problem.</em>
+            </h2>
+            <p className="offline-sub">
+              Most tools fall apart the moment you lose connection. memo is local-first — your
+              entire library lives on your device. Open it on the tube, on a plane, in a field.
+              Listen, rate, move songs forward. Everything syncs when you're back online.
+            </p>
+            <ul className="offline-list">
+              <li>Full library access with no internet</li>
+              <li>Playback, speed control, and notes work offline</li>
+              <li>Automatic background sync when connection returns</li>
+              <li>Nothing lost if the app closes mid-session</li>
+            </ul>
+          </div>
+          <div className="offline-visual">
+            <div className="signal-card">
+              <div className="signal-bars">
+                <div className="signal-bar" style={{ height: '30%', opacity: 0.2 }} />
+                <div className="signal-bar" style={{ height: '50%', opacity: 0.2 }} />
+                <div className="signal-bar" style={{ height: '70%', opacity: 0.2 }} />
+                <div className="signal-bar" style={{ height: '100%', opacity: 0.2 }} />
+              </div>
+              <span className="signal-label">No signal</span>
+              <div className="signal-status">
+                <span className="signal-dot" />
+                memo still works
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="compare" id="compare">
+        <div className="section-label">vs. everything else</div>
+        <h2 className="section-h2">
+          Nothing else does
+          <br />
+          the whole thing.
+        </h2>
+        <p className="section-sub">
+          Tape.it records. Dubnote captures. Samply shares with clients. Suonote structures.
+          memo is the only tool built around the songwriter's actual workflow — from raw idea to finished demo, on one board.
+        </p>
+        <div className="compare-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr>
+                <th />
+                <th className="compare-col compare-col--memo">
+                  <span className="compare-logo">mem<span>o</span></span>
+                </th>
+                <th className="compare-col">Tape.it</th>
+                <th className="compare-col">Dubnote</th>
+                <th className="compare-col">Samply</th>
+                <th className="compare-col">Suonote</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARE_ROWS.map((row) => (
+                <tr key={row.feature}>
+                  <td className="compare-feature">{row.feature}</td>
+                  <td className="compare-cell compare-cell--memo"><Tick val={row.memo} /></td>
+                  <td className="compare-cell"><Tick val={row.tapeit} /></td>
+                  <td className="compare-cell"><Tick val={row.dubnote} /></td>
+                  <td className="compare-cell"><Tick val={row.samply} /></td>
+                  <td className="compare-cell"><Tick val={row.suonote} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="compare-footnote">* Suonote and Tape.it have free tiers. Samply from $10/mo. Dubnote $24.99/yr.</p>
+        </div>
+      </section>
+
       <section className="workflow" id="workflow">
         <div className="workflow-inner">
           <div>
-            <div className="section-label">Phone → Mac</div>
+            <div className="section-label">The process</div>
             <h2 className="section-h2">
-              From share sheet
+              From idea on your phone
               <br />
               to finished song.
             </h2>
@@ -271,7 +430,7 @@ export function LandingPage() {
               </div>
               <span className="scp-label">Version stack · 2× speed</span>
               <div className="scp-notes">
-                Share from Voice Memos on your walk home. Review at 2× on your Mac the next morning.
+                Captured on the walk home. Reviewed on Mac the next morning. Sent to the producer by Friday.
               </div>
             </div>
           </div>
@@ -280,85 +439,56 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        <h2 className="section-h2">Start free. Grow when you share.</h2>
+        <h2 className="section-h2">One plan. Everything included.</h2>
         <p className="section-sub">
-          mem• is local-first — your memos stay on your device. Cloud sync and sharing unlock when you
-          need them.
+          No tiers. No features locked away. Just memo — the full thing — for £7 a month.
         </p>
-        <div className="pricing-grid">
-          <div className="pricing-card pricing-card--featured">
-            <span className="pricing-tier">Solo</span>
-            <p className="pricing-price">Free</p>
+        <div className="pricing-single">
+          <div className="pricing-card pricing-card--featured pricing-card--solo">
+            <span className="pricing-tier">memo</span>
+            <p className="pricing-price">
+              £7 <span className="pricing-period">/ month</span>
+            </p>
             <ul className="pricing-features">
-              <li>Unlimited songs on your board</li>
-              <li>Version stacks + 2× playback</li>
-              <li>Google sign-in + cloud sync</li>
-              <li>Works offline on plane &amp; train</li>
-            </ul>
-            <Link to="/sign-in" className="btn-primary pricing-cta">
-              Open mem•
-            </Link>
-          </div>
-          <div className="pricing-card pricing-card--beta">
-            <span className="pricing-tier">Collab</span>
-            <p className="pricing-price">Early access</p>
-            <ul className="pricing-features">
-              <li>Invite bandmates (editor / viewer)</li>
-              <li>Song comments + A/B compare</li>
-              <li>Shared project boards</li>
-            </ul>
-            <Link to="/sign-in" className="pricing-cta pricing-cta--ghost">
-              Try with your band
-            </Link>
-          </div>
-          <div className="pricing-card pricing-card--beta">
-            <span className="pricing-tier">Share</span>
-            <p className="pricing-price">Early access</p>
-            <ul className="pricing-features">
-              <li>Password-protected demo links</li>
+              <li>Unlimited songs &amp; version stacks</li>
+              <li>Sync across phone, Mac &amp; PC</li>
+              <li>Adjustable playback speed</li>
               <li>Timestamped listener feedback</li>
-              <li>Original audio fidelity</li>
+              <li>Invite bandmates &amp; co-writers</li>
+              <li>Fully offline — works everywhere</li>
             </ul>
-            <Link to="/sign-in" className="pricing-cta pricing-cta--ghost">
-              Share a demo
-            </Link>
+            <a href="#get-started" className="btn-primary pricing-cta">
+              Join the waitlist
+            </a>
+            <p className="pricing-small">Early access. Be first to know when we open up.</p>
+            <p className="pricing-trust">Your music stays private · Cancel any time</p>
           </div>
         </div>
       </section>
 
-      <section className="cta-section" id="early-access">
+      <section className="faq-section" id="faq">
+        <div className="section-label">Questions</div>
+        <h2 className="section-h2">Things people ask</h2>
+        <div className="faq-list">
+          {FAQS.map(({ q, a }) => (
+            <FaqItem key={q} q={q} a={a} />
+          ))}
+        </div>
+      </section>
+
+      <section className="cta-section" id="get-started">
         <h2>
-          Get out of the
+          Your songs deserve
           <br />
-          <em>black hole.</em>
+          <em>a proper home.</em>
         </h2>
-        <p>Join early access. Be first when mem• opens to songwriters.</p>
-        <form className="waitlist-form" onSubmit={(e) => void joinWaitlist(e)}>
-          <input
-            className="waitlist-input"
-            type="email"
-            name="email"
-            autoComplete="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={status === 'loading'}
-            required
-          />
-          <button type="submit" className="btn-primary" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Saving…' : 'Get Early Access'}
-          </button>
-        </form>
-        {message && (
-          <p className={`waitlist-message waitlist-message--${status === 'error' ? 'error' : 'success'}`}>
-            {message}
-          </p>
-        )}
+        <p>Join the waitlist. Be first in when we open.</p>
+        <WaitlistForm className="cta-waitlist" />
       </section>
 
       <footer>
         <div className="footer-logo">
-          mem<span>•</span>
+          mem<span>o</span>
         </div>
         <span className="footer-text">CHARCOAL · MINT · LOCAL-FIRST</span>
       </footer>

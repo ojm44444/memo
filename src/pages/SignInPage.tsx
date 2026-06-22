@@ -50,7 +50,7 @@ export function SignInPage() {
       <div className="sign-in-page">
         <div className="sign-in-card">
           <h1>
-            mem<span>•</span>
+            mem<span>o</span>
           </h1>
           <p>Cloud sync isn&apos;t configured on this deployment.</p>
           <p className="sign-in-muted">Sign-in is required to use your board.</p>
@@ -104,11 +104,11 @@ export function SignInPage() {
     <div className="sign-in-page">
       <div className="sign-in-card">
         <Link to="/" className="sign-in-logo">
-          mem<span>•</span>
+          mem<span>o</span>
         </Link>
         <h2 className="sign-in-title">Sign in to your board</h2>
         <p className="sign-in-sub">
-          Sign in once. After that, mem• works offline on planes and trains — changes save on this
+          Sign in once. After that, memo works offline on planes and trains — changes save on this
           device and upload automatically when you&apos;re back online.
         </p>
 

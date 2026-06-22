@@ -16,37 +16,37 @@ async function getActiveProjectScope() {
   return getActiveProjectId()
 }
 
-async function matchesSharedFilters(song: Song) {
+type FilterContext = {
+  activeProjectId: string | null
+  activeTag: string | null
+  favouritesOnly: boolean
+  titleSearch: string | null
+  sortMode: string
+}
+
+async function getFilterContext(): Promise<FilterContext> {
+  const [activeProjectId, activeTag, favouritesOnly, titleSearch, sortMode] = await Promise.all([
+    getActiveProjectScope(),
+    getActiveTagFilter(),
+    getFavouritesOnlyFilter(),
+    getTitleSearchFilter(),
+    getSongSortMode(),
+  ])
+  return { activeProjectId, activeTag, favouritesOnly, titleSearch, sortMode }
+}
+
+function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
   if (song.deletedAt) return false
-
-  const activeTag = await getActiveTagFilter()
-  if (activeTag && !(song.tags ?? []).includes(activeTag)) return false
-
-  const favouritesOnly = await getFavouritesOnlyFilter()
-  if (favouritesOnly && !song.isFavourite) return false
-
-  const titleSearch = await getTitleSearchFilter()
-  if (titleSearch && !song.title.toLowerCase().includes(titleSearch.toLowerCase())) return false
-
+  if (ctx.activeTag && !(song.tags ?? []).includes(ctx.activeTag)) return false
+  if (ctx.favouritesOnly && !song.isFavourite) return false
+  if (ctx.titleSearch && !song.title.toLowerCase().includes(ctx.titleSearch.toLowerCase())) return false
+  if (song.projectId && song.projectId !== ctx.activeProjectId) return false
   return true
 }
 
-async function matchesBoardFilters(song: Song) {
-  if (!(await matchesSharedFilters(song))) return false
-
-  const activeProjectId = await getActiveProjectScope()
-  if (song.projectId && song.projectId !== activeProjectId) return false
-
-  return true
-}
-
-async function sortSongsForDisplay(songs: Song[], columnSlug?: ColumnSlug) {
-  const sortMode = await getSongSortMode()
+function sortSongsSync(songs: Song[], columnSlug: ColumnSlug | undefined, sortMode: string): Song[] {
   return [...songs].sort((a, b) => {
-    if (sortMode === 'recent') {
-      return b.updatedAt.localeCompare(a.updatedAt)
-    }
-    // Inbox always sorts by recording date desc so newest captures appear first
+    if (sortMode === 'recent') return b.updatedAt.localeCompare(a.updatedAt)
     if (columnSlug === 'inbox') {
       const ra = a.recordedAt ?? a.createdAt
       const rb = b.recordedAt ?? b.createdAt
@@ -67,12 +67,12 @@ async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string 
 }
 
 async function getSongsInColumnScopeForDisplay(columnSlug: ColumnSlug, projectId?: string | null) {
-  const songs = await getSongsInColumnScope(columnSlug, projectId)
-  const filtered: Song[] = []
-  for (const song of songs) {
-    if (await matchesBoardFilters(song)) filtered.push(song)
-  }
-  return sortSongsForDisplay(filtered, columnSlug)
+  const [songs, ctx] = await Promise.all([
+    getSongsInColumnScope(columnSlug, projectId),
+    getFilterContext(),
+  ])
+  const filtered = songs.filter((s) => songMatchesFilters(s, ctx))
+  return sortSongsSync(filtered, columnSlug, ctx.sortMode)
 }
 
 export async function getColumns() {
@@ -159,62 +159,58 @@ export async function getSongsByColumn(columnSlug: ColumnSlug) {
   return getSongsInColumnScopeForDisplay(columnSlug)
 }
 
+export async function getSongsInColumnForReorder(columnSlug: ColumnSlug) {
+  return getSongsInColumnScope(columnSlug)
+}
+
+export async function getColumnSongCounts(columnSlugs: string[]): Promise<Record<string, number>> {
+  const ctx = await getFilterContext()
+  const counts: Record<string, number> = {}
+  await Promise.all(
+    columnSlugs.map(async (slug) => {
+      const songs = await getSongsInColumnScope(slug as ColumnSlug)
+      counts[slug] = songs.filter((s) => songMatchesFilters(s, ctx)).length
+    }),
+  )
+  return counts
+}
+
 export async function getRecentSongsAcrossLibrary(limit = 6) {
-  const songs = await db.songs.filter((s) => !s.deletedAt).toArray()
-  return songs
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, limit)
+  const songs = await db.songs.orderBy('updatedAt').reverse().filter((s) => !s.deletedAt).limit(limit * 3).toArray()
+  return songs.slice(0, limit)
 }
 
 export async function getAllFavouriteSongs() {
-  const songs = await db.songs
-    .filter((s) => !s.deletedAt && s.isFavourite)
-    .toArray()
-
-  const filtered: Song[] = []
-  for (const song of songs) {
-    if (await matchesSharedFilters(song)) filtered.push(song)
-  }
-
-  return await sortSongsForDisplay(filtered)
+  const [songs, ctx] = await Promise.all([
+    db.songs.filter((s) => !s.deletedAt && s.isFavourite).toArray(),
+    getFilterContext(),
+  ])
+  const filtered = songs.filter((s) => songMatchesFilters(s, ctx))
+  return sortSongsSync(filtered, undefined, ctx.sortMode)
 }
 
 export async function getRecentSongs(limit = 6) {
-  const songs = await db.songs.filter((s) => !s.deletedAt).toArray()
-  const filtered: Song[] = []
-
-  for (const song of songs) {
-    if (await matchesBoardFilters(song)) filtered.push(song)
-  }
-
-  return filtered
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, limit)
+  const [songs, ctx] = await Promise.all([
+    db.songs.orderBy('updatedAt').reverse().filter((s) => !s.deletedAt).limit(limit * 5).toArray(),
+    getFilterContext(),
+  ])
+  return songs.filter((s) => songMatchesFilters(s, ctx)).slice(0, limit)
 }
 
 export async function getFavouriteSongs() {
-  const activeProjectId = await getActiveProjectScope()
-  const songs = await db.songs
-    .filter((s) => !s.deletedAt && s.isFavourite && s.projectId === activeProjectId)
-    .toArray()
-
-  const filtered: Song[] = []
-  for (const song of songs) {
-    if (await matchesBoardFilters(song)) filtered.push(song)
-  }
-
-  return await sortSongsForDisplay(filtered)
+  const [songs, ctx] = await Promise.all([
+    db.songs.filter((s) => !s.deletedAt && s.isFavourite).toArray(),
+    getFilterContext(),
+  ])
+  return sortSongsSync(songs.filter((s) => songMatchesFilters(s, ctx)), undefined, ctx.sortMode)
 }
 
 export async function getAllSongs() {
-  const songs = await db.songs.filter((s) => !s.deletedAt).sortBy('sortOrder')
-  const filtered: Song[] = []
-
-  for (const song of songs) {
-    if (await matchesBoardFilters(song)) filtered.push(song)
-  }
-
-  return await sortSongsForDisplay(filtered)
+  const [songs, ctx] = await Promise.all([
+    db.songs.filter((s) => !s.deletedAt).sortBy('sortOrder'),
+    getFilterContext(),
+  ])
+  return sortSongsSync(songs.filter((s) => songMatchesFilters(s, ctx)), undefined, ctx.sortMode)
 }
 
 export async function toggleSongFavourite(id: string) {
@@ -324,6 +320,7 @@ export async function moveSong(
   songId: string,
   targetColumnSlug: ColumnSlug,
   targetIndex: number,
+  beforeSongId?: string,
 ) {
   const song = await db.songs.get(songId)
   if (!song || song.deletedAt) return
@@ -343,6 +340,10 @@ export async function moveSong(
     s.updatedAt = now
   })
 
+  if (beforeSongId) {
+    const idx = targetSongs.findIndex((s) => s.id === beforeSongId)
+    if (idx >= 0) targetIndex = idx
+  }
   const clampedIndex = Math.max(0, Math.min(targetIndex, targetSongs.length))
   targetSongs.splice(clampedIndex, 0, {
     ...song,
@@ -356,31 +357,32 @@ export async function moveSong(
     if (s.id !== songId) s.updatedAt = now
   })
 
-  await db.transaction('rw', db.songs, async () => {
-    for (const s of sourceSongs) await db.songs.put(s)
-    for (const s of targetSongs) await db.songs.put(s)
-  })
+  await db.songs.bulkPut([...sourceSongs, ...targetSongs])
 
+  // Fire sync queue writes in background — useLiveQuery already updated the UI above
   const moved = targetSongs.find((s) => s.id === songId)!
-  for (const s of sourceSongs) {
-    await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
-  }
-  for (const s of targetSongs) {
-    if (s.id !== songId) {
+  void (async () => {
+    for (const s of sourceSongs) {
       await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
     }
-  }
-  await enqueueSync('update', 'song', songId, {
-    columnSlug: moved.columnSlug,
-    sortOrder: moved.sortOrder,
-    updatedAt: moved.updatedAt,
-  })
+    for (const s of targetSongs) {
+      if (s.id !== songId) {
+        await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+      }
+    }
+    await enqueueSync('update', 'song', songId, {
+      columnSlug: moved.columnSlug,
+      sortOrder: moved.sortOrder,
+      updatedAt: moved.updatedAt,
+    })
+  })()
 }
 
 export async function reorderSongInColumn(
   songId: string,
   columnSlug: ColumnSlug,
   newIndex: number,
+  beforeSongId?: string,
 ) {
   const song = await db.songs.get(songId)
   if (!song) return
@@ -390,6 +392,10 @@ export async function reorderSongInColumn(
   )
 
   const now = new Date().toISOString()
+  if (beforeSongId) {
+    const idx = songs.findIndex((s) => s.id === beforeSongId)
+    if (idx >= 0) newIndex = idx
+  }
   const clampedIndex = Math.max(0, Math.min(newIndex, songs.length))
   songs.splice(clampedIndex, 0, {
     ...song,
@@ -402,20 +408,21 @@ export async function reorderSongInColumn(
     if (s.id !== songId) s.updatedAt = now
   })
 
-  await db.transaction('rw', db.songs, async () => {
-    for (const s of songs) await db.songs.put(s)
-  })
+  await db.songs.bulkPut(songs)
 
+  // Fire sync queue writes in background — useLiveQuery already updated the UI above
   const updated = songs.find((s) => s.id === songId)!
-  for (const s of songs) {
-    if (s.id !== songId) {
-      await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+  void (async () => {
+    for (const s of songs) {
+      if (s.id !== songId) {
+        await enqueueSync('update', 'song', s.id, { sortOrder: s.sortOrder, updatedAt: now })
+      }
     }
-  }
-  await enqueueSync('update', 'song', songId, {
-    sortOrder: updated.sortOrder,
-    updatedAt: updated.updatedAt,
-  })
+    await enqueueSync('update', 'song', songId, {
+      sortOrder: updated.sortOrder,
+      updatedAt: updated.updatedAt,
+    })
+  })()
 }
 
 export async function deleteSong(id: string) {

@@ -66,6 +66,30 @@ export async function pullChanges(userId: string) {
 
   if (projectError) throw projectError
 
+  const remoteProjectIds = new Set((remoteProjects ?? []).map((p) => p.id))
+
+  if (remoteProjects && remoteProjects.length > 0) {
+    // If the server already has projects, remove any locally-created default project
+    // that hasn't been pushed yet (still in outbox). This prevents duplicate "My Project"
+    // entries when opening mem• on a new device that already has cloud data.
+    const localUnpushed = await db.syncQueue
+      .filter((item) => item.entityType === 'project' && item.op === 'create')
+      .toArray()
+
+    for (const entry of localUnpushed) {
+      if (remoteProjectIds.has(entry.entityId)) continue
+      const local = await db.projects.get(entry.entityId)
+      if (!local) continue
+      // Reassign any songs that landed under the phantom project to the first server project
+      const firstRemoteId = remoteProjects[0].id
+      await db.songs
+        .filter((s) => s.projectId === local.id && !s.deletedAt)
+        .modify({ projectId: firstRemoteId })
+      await db.syncQueue.delete(entry.id)
+      await db.projects.delete(entry.entityId)
+    }
+  }
+
   for (const remote of remoteProjects ?? []) {
     cursor = maxTimestamp(cursor, remote.updated_at)
     const local = await db.projects.get(remote.id)
@@ -97,7 +121,14 @@ export async function pullChanges(userId: string) {
     const remoteUpdated = new Date(remote.updated_at).getTime()
     const localUpdated = local ? new Date(local.updatedAt).getTime() : 0
 
-    if (local && !local.syncedAt && localUpdated > remoteUpdated) continue
+    // Never overwrite a local edit that's queued but not yet pushed
+    const pendingLocalEdit = await db.syncQueue
+      .where('entityId').equals(remote.id)
+      .filter((item) => item.entityType === 'song' && (item.op === 'update' || item.op === 'delete'))
+      .first()
+    if (pendingLocalEdit) continue
+
+    if (local && localUpdated > remoteUpdated) continue
 
     if (!local || remoteUpdated >= localUpdated) {
       const remoteTags = Array.isArray((remote as { tags?: string[] }).tags)
@@ -151,6 +182,12 @@ export async function pullChanges(userId: string) {
       const local = await db.audioVersions.get(remote.id)
       const remoteUpdated = new Date(remote.updated_at).getTime()
       const localUpdated = local?.syncedAt ? new Date(local.syncedAt).getTime() : 0
+
+      const pendingVersionEdit = await db.syncQueue
+        .where('entityId').equals(remote.id)
+        .filter((item) => item.entityType === 'audio_version' && item.op === 'update')
+        .first()
+      if (pendingVersionEdit) continue
 
       if (!local || remoteUpdated >= localUpdated) {
         const version: AudioVersion = {

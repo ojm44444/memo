@@ -141,15 +141,31 @@ export function SharePage() {
     setSubmitting(true)
     try {
       const atMs = pinMs ?? currentMs
+      const author = authorName.trim() || 'Guest'
       await addShareListenComment(token, {
         password: savedPasswordRef.current,
         timestampMs: atMs,
         body: draftBody,
-        authorName: authorName.trim() || 'Guest',
+        authorName: author,
       })
       setDraftBody('')
       setPinMs(null)
       await loadShare(savedPasswordRef.current)
+
+      // Fire-and-forget email notification to the song owner
+      void fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-share-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          record: {
+            id: crypto.randomUUID(),
+            share_token: token,
+            author_name: author,
+            body: draftBody,
+            timestamp_ms: atMs,
+          },
+        }),
+      }).catch(() => {/* non-critical — don't surface email errors to listener */})
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not post feedback')
     } finally {
@@ -180,7 +196,7 @@ export function SharePage() {
     <div className="share-page">
       <header className="share-header">
         <Link to="/" className="share-logo">
-          mem<span>•</span>
+          mem<span>o</span>
         </Link>
         <span className="share-badge">Demo listen</span>
       </header>

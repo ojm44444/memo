@@ -17,7 +17,8 @@ let pendingCount = 0
 let lastError: string | null = null
 let cloudSyncEnabled = false
 let syncLoopTimer: ReturnType<typeof setInterval> | null = null
-let retryLoopTimer: ReturnType<typeof setInterval> | null = null
+let retryTimer: ReturnType<typeof setTimeout> | null = null
+let consecutiveErrors = 0
 const listeners = new Set<() => void>()
 
 function notify() {
@@ -50,9 +51,9 @@ export function setCloudSyncEnabled(enabled: boolean) {
     clearInterval(syncLoopTimer)
     syncLoopTimer = null
   }
-  if (retryLoopTimer) {
-    clearInterval(retryLoopTimer)
-    retryLoopTimer = null
+  if (retryTimer) {
+    clearTimeout(retryTimer)
+    retryTimer = null
   }
 
   if (!enabled) return
@@ -62,10 +63,6 @@ export function setCloudSyncEnabled(enabled: boolean) {
   syncLoopTimer = setInterval(() => {
     if (navigator.onLine) void flush()
   }, 8_000)
-
-  retryLoopTimer = setInterval(() => {
-    if (navigator.onLine && pendingCount > 0) void flush()
-  }, 4_000)
 }
 
 export async function flush() {
@@ -117,6 +114,7 @@ export async function flush() {
     const itemError = await getFirstSyncError()
     const pendingHint = await getPendingHint()
 
+    const hasError = pendingCount > 0 || pullError || pushResult.lastFailure
     if (pendingCount > 0) {
       status = 'error'
       lastError = itemError ?? pushResult.lastFailure ?? pullError ?? pendingHint
@@ -126,6 +124,22 @@ export async function flush() {
     } else {
       status = 'idle'
       lastError = null
+    }
+
+    if (hasError && cloudSyncEnabled && navigator.onLine) {
+      consecutiveErrors++
+      const backoffMs = Math.min(4_000 * Math.pow(2, consecutiveErrors - 1), 60_000)
+      if (retryTimer) clearTimeout(retryTimer)
+      retryTimer = setTimeout(() => {
+        retryTimer = null
+        if (cloudSyncEnabled && navigator.onLine) void flush()
+      }, backoffMs)
+    } else {
+      consecutiveErrors = 0
+      if (retryTimer) {
+        clearTimeout(retryTimer)
+        retryTimer = null
+      }
     }
 
     notify()
@@ -167,6 +181,8 @@ export function initSyncEngine() {
   engineInitialized = true
 
   window.addEventListener('online', () => {
+    consecutiveErrors = 0
+    if (retryTimer) { clearTimeout(retryTimer); retryTimer = null }
     void flush()
   })
 

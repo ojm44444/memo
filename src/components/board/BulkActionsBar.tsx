@@ -9,6 +9,7 @@ import {
   getColumns,
   getSongIdsInActiveProject,
 } from '@/db/repositories/boardRepo'
+import { createPlaylistShare } from '@/db/repositories/playlistShareRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
@@ -77,6 +78,20 @@ export function BulkActionsBar() {
       const selected = new Set(selectedSongIds)
       const inverted = projectSongIds.filter((songId) => !selected.has(songId))
       replaceSelectedSongs(inverted)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const shareAsPlaylist = async () => {
+    if (selectedSongIds.length === 0) return
+    setBusy(true)
+    try {
+      const url = await createPlaylistShare(selectedSongIds)
+      await navigator.clipboard.writeText(url)
+      alert(`Playlist link copied!\n\n${url}`)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not create playlist link')
     } finally {
       setBusy(false)
     }
@@ -159,6 +174,10 @@ export function BulkActionsBar() {
 
       <button type="button" className="bulk-actions-danger" disabled={busy} onClick={() => void remove()}>
         Delete
+      </button>
+
+      <button type="button" className="bulk-actions-btn" disabled={busy} onClick={() => void shareAsPlaylist()}>
+        ↗ Share playlist
       </button>
 
       <button type="button" className="bulk-actions-btn" disabled={busy} onClick={clearSelectedSongs}>

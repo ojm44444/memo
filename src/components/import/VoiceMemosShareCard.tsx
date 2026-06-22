@@ -27,7 +27,7 @@ export function MobileImportCard() {
               <span>Watching {folderName ?? 'Voice Memos'}</span>
             </div>
             <p className="voice-memos-connect-copy">
-              New recordings appear in Inbox automatically when you open mem•.
+              New recordings appear in Inbox automatically when you open memo.
             </p>
             {lastImportCount > 0 && (
               <p className="voice-memos-connect-copy">
@@ -92,7 +92,7 @@ export function MobileImportCard() {
         <li>It lands in Inbox and syncs across your devices</li>
       </ol>
       <p className="voice-memos-share-note">
-        Add mem• to your Home Screen for offline access — import still works via Files.
+        Add memo to your Home Screen for offline access — import still works via Files.
       </p>
     </div>
   )

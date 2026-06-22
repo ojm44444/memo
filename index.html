@@ -13,15 +13,46 @@
     <meta name="apple-mobile-web-app-title" content="mem•" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- SEO -->
+    <title>memo — Finish more songs</title>
+    <meta name="description" content="Every songwriter has hundreds of voice memos they'll never finish. memo gives every idea a home, moves it forward at its own pace, and makes sure nothing gets buried." />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="memo — Finish more songs" />
+    <meta property="og:description" content="A Kanban board for your music. Capture voice memos, stack takes, share demos for feedback. Works offline. Your music stays private." />
+    <meta property="og:url" content="https://memo-ten-mu.vercel.app" />
+    <meta property="og:image" content="https://memo-ten-mu.vercel.app/pwa-512x512.png" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="memo — Finish more songs" />
+    <meta name="twitter:description" content="A Kanban board for your music. Capture voice memos, stack takes, share demos for feedback. Works offline. Your music stays private." />
+    <meta name="twitter:image" content="https://memo-ten-mu.vercel.app/pwa-512x512.png" />
+
+    <!-- Meta Pixel -->
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '2289145585190818');
+      fbq('track', 'PageView');
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Bricolage+Grotesque:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>mem• — Finish more songs</title>
   </head>
   <body>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=2289145585190818&ev=PageView&noscript=1"
+    /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

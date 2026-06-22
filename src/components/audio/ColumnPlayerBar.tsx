@@ -244,8 +244,11 @@ export function ColumnPlayerBar() {
             className="player-bar-wave player-bar-wave--expanded"
             onSeek={seekTo}
           />
-          <div className="player-bar-expanded-time">
-            {formatDuration(currentMs)} / {formatDuration(durationMs || version?.durationMs)}
+          <div className="player-bar-expanded-controls">
+            <div className="player-bar-expanded-time">
+              {formatDuration(currentMs)} / {formatDuration(durationMs || version?.durationMs)}
+            </div>
+            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-expanded-speed" />
           </div>
         </div>
       )}

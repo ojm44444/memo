@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/db/database'
 import { duplicateSong } from '@/db/repositories/audioRepo'
+import { usePlayerStore } from '@/stores/playerStore'
+import { SpeedControl } from '@/components/audio/SpeedControl'
+import { formatDuration } from '@/lib/audio-utils'
 import { deleteSong, getSong, updateSong } from '@/db/repositories/boardRepo'
+import { markFeedbackSeen } from '@/db/repositories/shareFeedbackRepo'
 import { SongStageSelect } from './SongStageSelect'
 import { SongProjectSelect } from './SongProjectSelect'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { useUiStore } from '@/stores/uiStore'
-import { usePlayerStore } from '@/stores/playerStore'
 import { NotesEditor } from './NotesEditor'
 import { ExternalLinks } from './ExternalLinks'
 import { AudioVersionStack } from './AudioVersionStack'
@@ -29,8 +33,9 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   )
 
   useEffect(() => {
-    if (!drawerOpen) setMergeOpen(false)
-  }, [drawerOpen])
+    if (!drawerOpen) { setMergeOpen(false); return }
+    if (selectedSongId) void markFeedbackSeen(selectedSongId)
+  }, [drawerOpen, selectedSongId])
 
   useEffect(() => {
     if (song) setTitleDraft(song.title)
@@ -45,6 +50,14 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     if (drawerOpen) window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [drawerOpen, closeDrawer])
+
+  const { currentSongId, isPlaying, setPlaying, playbackRate, setPlaybackRate, progress } = usePlayerStore()
+  const isThisSongPlaying = currentSongId === (song?.id ?? '')
+  const currentVersion = useLiveQuery(async () => {
+    if (!isThisSongPlaying || !song) return undefined
+    const versions = await db.audioVersions.where('songId').equals(song.id).sortBy('sortOrder')
+    return versions[0]
+  }, [isThisSongPlaying, song?.id])
 
   if (!drawerOpen || !song) return null
 
@@ -86,6 +99,9 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   return (
     <div className="song-drawer-overlay" onClick={closeDrawer}>
       <div className="song-drawer" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="song-drawer-handle" onClick={closeDrawer} aria-label="Close">
+          <span className="song-drawer-handle-pill" />
+        </button>
         <div className="scp-header">
           {readOnly ? (
             <h2 className="scp-title-input">{song.title}</h2>
@@ -181,9 +197,23 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
           )}
         </div>
 
-        <button type="button" onClick={closeDrawer} className="song-drawer-close" aria-label="Close">
-          ✕
-        </button>
+        {isThisSongPlaying && (
+          <div className="drawer-mini-player">
+            <button
+              type="button"
+              className="drawer-mini-play"
+              onClick={() => setPlaying(!isPlaying)}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? '❚❚' : '▶'}
+            </button>
+            <div className="drawer-mini-info">
+              <span className="drawer-mini-label">{currentVersion?.label ?? song.title}</span>
+              <span className="drawer-mini-time">{formatDuration((progress ?? 0) * (currentVersion?.durationMs ?? 0))}</span>
+            </div>
+            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="drawer-mini-speed" />
+          </div>
+        )}
       </div>
     </div>
   )

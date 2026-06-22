@@ -137,7 +137,7 @@ function AuthenticatedBoard() {
                 <span className="board-dot board-dot-y" />
                 <span className="board-dot board-dot-g" />
                 <BoardProjectAccent />
-                <span className="board-titlebar-text">mem• — songwriting board</span>
+                <span className="board-titlebar-text">memo — songwriting board</span>
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
                   <BoardSearch />

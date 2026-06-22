@@ -4,17 +4,18 @@ import {
   DragOverlay,
   PointerSensor,
   TouchSensor,
-  closestCorners,
+  closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   getColumns,
-  getSong,
-  getSongsByColumn,
+  getColumnSongCounts,
   moveSong,
   reorderSongInColumn,
 } from '@/db/repositories/boardRepo'
@@ -43,6 +44,10 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   const columnScrollSlug = useUiStore((state) => state.columnScrollSlug)
   const columnScrollNonce = useUiStore((state) => state.columnScrollNonce)
   const columns = useLiveQuery(() => getColumns())
+  const columnCounts = useLiveQuery<Record<string, number>>(
+    () => columns ? getColumnSongCounts(columns.map((c) => c.slug)) : Promise.resolve({}),
+    [columns],
+  )
   const activeProjectId = useLiveQuery(() => getActiveProjectId(), [])
   const accentHue = useLiveQuery(
     () => (activeProjectId ? getProjectAccentHue(activeProjectId) : Promise.resolve(null)),
@@ -68,8 +73,14 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 12 } }),
   )
+
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const pointer = pointerWithin(args)
+    if (pointer.length > 0) return pointer
+    return closestCenter(args)
+  }, [])
 
   const scrollToColumn = useCallback((index: number) => {
     const el = kanbanRef.current
@@ -123,44 +134,40 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     scrollToColumn(playingColumnIndex)
   }, [isPlaying, playingColumnIndex, activeColumnIndex, scrollToColumn])
 
-  const handleDragStart = async (event: DragStartEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
     if (readOnly || selectionMode) return
-    const song = await getSong(String(event.active.id))
+    const song = event.active.data.current?.song as Song | undefined
     setActiveSong(song ?? null)
   }
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
+    const song = activeSong
     setActiveSong(null)
-    if (readOnly || selectionMode) return
+    if (readOnly || selectionMode || !song) return
 
     const { active, over } = event
     if (!over) return
 
     const songId = String(active.id)
-    const song = await getSong(songId)
-    if (!song) return
-
     const overData = over.data.current
-    let targetColumn: ColumnSlug
-    let targetIndex: number
 
     if (overData?.type === 'column') {
-      targetColumn = overData.columnSlug as ColumnSlug
-      const songsInColumn = await getSongsByColumn(targetColumn)
-      targetIndex = songsInColumn.length
+      const targetColumn = overData.columnSlug as ColumnSlug
+      if (song.columnSlug === targetColumn) {
+        void reorderSongInColumn(songId, targetColumn, 999)
+      } else {
+        void moveSong(songId, targetColumn, 999)
+      }
     } else if (overData?.type === 'song') {
-      targetColumn = overData.columnSlug as ColumnSlug
-      const songsInColumn = await getSongsByColumn(targetColumn)
-      targetIndex = songsInColumn.findIndex((s) => s.id === over.id)
-      if (targetIndex < 0) targetIndex = songsInColumn.length
+      const targetColumn = overData.columnSlug as ColumnSlug
+      const beforeSongId = String(over.id)
+      if (song.columnSlug === targetColumn) {
+        void reorderSongInColumn(songId, targetColumn, 999, beforeSongId)
+      } else {
+        void moveSong(songId, targetColumn, 999, beforeSongId)
+      }
     } else {
       return
-    }
-
-    if (song.columnSlug === targetColumn) {
-      await reorderSongInColumn(songId, targetColumn, targetIndex)
-    } else {
-      await moveSong(songId, targetColumn, targetIndex)
     }
 
     scheduleFlush()
@@ -169,7 +176,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -208,6 +215,9 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
                   </span>
                 )}
                 {column.title}
+                {columnCounts && (columnCounts[column.slug] ?? 0) > 0 && (
+                  <span className="board-column-tab-count">{columnCounts[column.slug]}</span>
+                )}
               </button>
             )
           })}

@@ -50,7 +50,8 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
 
   const songs = useLiveQuery(() => getSongsByColumn(column.slug), [column.slug])
   const songIds = songs?.map((s) => s.id) ?? []
-  const isEmpty = (songs?.length ?? 0) === 0
+  const isEmpty = songs !== undefined && songs.length === 0
+  const isLoading = songs === undefined
   const allSelected =
     songIds.length > 0 && songIds.every((songId) => selectedSongIds.includes(songId))
 
@@ -83,6 +84,13 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
 
       <SortableContext items={songIds} strategy={verticalListSortingStrategy}>
         <div className="board-column-scroll">
+          {isLoading && (
+            <div className="board-column-loading">
+              <span className="board-column-loading-bar" />
+              <span className="board-column-loading-bar" style={{ width: '70%' }} />
+              <span className="board-column-loading-bar" style={{ width: '85%' }} />
+            </div>
+          )}
           {songs?.map((song) => (
             <SongCard key={song.id} song={song} columnSlug={column.slug} readOnly={readOnly} />
           ))}
@@ -93,7 +101,7 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
 
           {column.slug === 'inbox' && !readOnly && (
             <>
-              <MobileImportCard />
+              {isEmpty && <MobileImportCard />}
               <AddMemoButton />
             </>
           )}

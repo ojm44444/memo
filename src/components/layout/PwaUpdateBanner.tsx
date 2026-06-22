@@ -12,7 +12,7 @@ export function PwaUpdateBanner() {
 
   return (
     <div className="pwa-update-banner" role="status">
-      <span>A new version of mem• is ready.</span>
+      <span>A new version of memo is ready.</span>
       <button type="button" className="pwa-update-btn" onClick={() => applyPwaUpdate()}>
         Update now
       </button>

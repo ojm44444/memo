@@ -1,11 +1,11 @@
 :root {
-  --bg: #121214;
-  --bg-2: #18181b;
-  --bg-3: #1f1f23;
-  --surface: #232328;
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #f2f0ec;
-  --text-muted: #7a7780;
+  --bg: #0d0d0f;
+  --bg-2: #141417;
+  --bg-3: #1c1c21;
+  --surface: #26262d;
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #f5f3ef;
+  --text-muted: #9a97a4;
   --accent: #00ff9d;
   --accent-hover: #33ffb1;
   --accent-dim: rgba(0, 255, 157, 0.15);
@@ -18,3 +18,4 @@
   --font-sans: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
+

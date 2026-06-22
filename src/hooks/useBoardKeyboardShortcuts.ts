@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
-import { PLAYBACK_RATES, type PlaybackRate } from '@/lib/constants'
+import { PLAYBACK_RATES } from '@/lib/constants'
 import { setDefaultPlaybackRate } from '@/lib/preferences'
 import { usePlayerStore } from '@/stores/playerStore'
-import { useUiStore } from '@/stores/uiStore'
 
 function isTypingTarget(target: EventTarget | null) {
   return (
@@ -19,7 +18,6 @@ export function useBoardKeyboardShortcuts() {
       if (isTypingTarget(event.target)) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
 
-      const ui = useUiStore.getState()
       const player = usePlayerStore.getState()
 
       if (player.queueOpen && event.key === 'Escape') {
@@ -86,7 +84,6 @@ export function useBoardKeyboardShortcuts() {
 
       if (event.key === ' ') {
         if (!player.currentSongId) return
-        if (ui.drawerOpen && !player.queueOpen) return
         event.preventDefault()
         player.setPlaying(!player.isPlaying)
         return
@@ -120,8 +117,8 @@ export function useBoardKeyboardShortcuts() {
         return
       }
 
-      const rate = Number(event.key) as PlaybackRate
-      if (PLAYBACK_RATES.includes(rate)) {
+      const rate = Number(event.key)
+      if ((PLAYBACK_RATES as readonly number[]).includes(rate)) {
         event.preventDefault()
         player.setPlaybackRate(rate)
         void setDefaultPlaybackRate(rate)

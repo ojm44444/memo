@@ -41,6 +41,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
   const [shares, setShares] = useState<SongShareRow[]>([])
   const [feedback, setFeedback] = useState<SongShareFeedbackComment[]>([])
   const [loading, setLoading] = useState(false)
+  const [showOptions, setShowOptions] = useState(false)
   const [shareVersionId, setShareVersionId] = useState<string | null>(null)
   const [shareLabelFilter, setShareLabelFilter] = useState<string | null>(null)
   const [shareSort, setShareSort] = useState<'newest' | 'oldest' | 'plays' | 'label'>('newest')
@@ -339,66 +340,30 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
 
       {open && (
         <div className="song-share-panel">
+
+          {/* Primary action — one tap, no friction */}
+          <div className="song-share-instant">
+            <button
+              type="button"
+              className="song-share-instant-btn"
+              disabled={busy || !hasCloudAudio}
+              onClick={() => void createLink()}
+            >
+              {busy ? 'Creating…' : 'Copy link'}
+            </button>
+            <button
+              type="button"
+              className="song-share-options-toggle"
+              onClick={() => setShowOptions((v) => !v)}
+              aria-expanded={showOptions}
+            >
+              {showOptions ? 'Hide options' : 'Options'}
+            </button>
+          </div>
+
           <p className="song-share-sub">
-            Anyone with the link can listen in their browser — no mem• account needed.
+            Anyone with the link can listen — no account needed.
           </p>
-
-          {cloudVersions.length > 1 && (
-            <label className="song-share-field">
-              <span>Version to share</span>
-              <select
-                className="song-share-input"
-                value={effectiveShareVersionId ?? ''}
-                onChange={(e) => setShareVersionId(e.target.value)}
-              >
-                {cloudVersions.map((version) => (
-                  <option key={version.id} value={version.id}>
-                    {version.label} · {formatDuration(version.durationMs)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          <label className="song-share-field">
-            <span>Label (optional)</span>
-            <input
-              type="text"
-              className="song-share-input"
-              placeholder="Band feedback, label A&R…"
-              value={shareLabel}
-              onChange={(e) => setShareLabel(e.target.value)}
-            />
-          </label>
-
-          <label className="song-share-field">
-            <span>Password (optional)</span>
-            <input
-              type="text"
-              className="song-share-input"
-              placeholder="Leave blank for open link"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
-
-          <label className="song-share-check">
-            <input
-              type="checkbox"
-              checked={allowDownload}
-              onChange={(e) => setAllowDownload(e.target.checked)}
-            />
-            Allow download
-          </label>
-
-          <button
-            type="button"
-            className="song-share-create"
-            disabled={busy || !hasCloudAudio}
-            onClick={() => void createLink()}
-          >
-            {busy ? 'Creating…' : 'Create & copy link'}
-          </button>
 
           {uploadsPending && (
             <div className="song-share-uploading">
@@ -414,6 +379,58 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
 
           {!hasCloudAudio && !uploadsPending && (
             <p className="song-share-hint">Song must be in the cloud before sharing. Stay online.</p>
+          )}
+
+          {showOptions && (
+            <div className="song-share-options">
+              {cloudVersions.length > 1 && (
+                <label className="song-share-field">
+                  <span>Version</span>
+                  <select
+                    className="song-share-input"
+                    value={effectiveShareVersionId ?? ''}
+                    onChange={(e) => setShareVersionId(e.target.value)}
+                  >
+                    {cloudVersions.map((version) => (
+                      <option key={version.id} value={version.id}>
+                        {version.label} · {formatDuration(version.durationMs)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              <label className="song-share-field">
+                <span>Label</span>
+                <input
+                  type="text"
+                  className="song-share-input"
+                  placeholder="Band feedback, A&R…"
+                  value={shareLabel}
+                  onChange={(e) => setShareLabel(e.target.value)}
+                />
+              </label>
+
+              <label className="song-share-field">
+                <span>Password</span>
+                <input
+                  type="text"
+                  className="song-share-input"
+                  placeholder="Leave blank for open link"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
+
+              <label className="song-share-check">
+                <input
+                  type="checkbox"
+                  checked={allowDownload}
+                  onChange={(e) => setAllowDownload(e.target.checked)}
+                />
+                Allow download
+              </label>
+            </div>
           )}
 
           {error && <p className="song-share-error">{error}</p>}
@@ -656,7 +673,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
                               <span className="song-share-preview-label">{share.label}</span>
                             ) : null}
                             <span className="song-share-preview-desc">
-                              {share.label ? 'Shared demo link' : 'Listen on mem•'}
+                              {share.label ? 'Shared demo link' : 'Listen on memo'}
                             </span>
                             {((share.view_count ?? 0) > 0 || (share.listen_count ?? 0) > 0) && (
                               <span className="song-share-preview-meta">

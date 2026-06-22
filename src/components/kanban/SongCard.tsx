@@ -26,7 +26,7 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: song.id,
-    data: { type: 'song', columnSlug },
+    data: { type: 'song', columnSlug, song },
     disabled: readOnly || selectionMode,
   })
 

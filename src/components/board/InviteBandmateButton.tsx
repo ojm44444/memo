@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   buildInviteMailto,
   createBoardInvite,
@@ -13,12 +13,34 @@ import {
 import { db } from '@/db/database'
 import { useBoardRole } from '@/hooks/useBoardRole'
 import { getProjectName } from '@/db/repositories/projectRepo'
+import { useUiStore } from '@/stores/uiStore'
 
 type InviteRole = 'viewer' | 'editor'
 
 export function InviteBandmateButton() {
   const boardRole = useBoardRole()
   const [open, setOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const drawerOpen = useUiStore((s) => s.drawerOpen)
+
+  useEffect(() => {
+    if (drawerOpen) setOpen(false)
+  }, [drawerOpen])
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+  }, [open])
   const [role, setRole] = useState<InviteRole>('editor')
   const [email, setEmail] = useState('')
   const [copied, setCopied] = useState(false)
@@ -106,7 +128,7 @@ export function InviteBandmateButton() {
   if (boardRole !== 'owner') return null
 
   return (
-    <div className="invite-bandmate">
+    <div className="invite-bandmate" ref={panelRef}>
       <button
         type="button"
         className="invite-bandmate-btn"

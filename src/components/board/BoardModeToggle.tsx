@@ -14,7 +14,8 @@ export function BoardModeToggle() {
         className={boardMode === 'manage' ? 'board-mode-btn is-active' : 'board-mode-btn'}
         onClick={() => setMode('manage')}
       >
-        Manage
+        <span className="board-mode-label-full">Manage</span>
+        <span className="board-mode-label-short">▦</span>
       </button>
       <button
         type="button"
@@ -23,7 +24,8 @@ export function BoardModeToggle() {
         className={boardMode === 'listen' ? 'board-mode-btn is-active' : 'board-mode-btn'}
         onClick={() => setMode('listen')}
       >
-        Favourites
+        <span className="board-mode-label-full">Favourites</span>
+        <span className="board-mode-label-short">★</span>
       </button>
       <button
         type="button"
@@ -32,7 +34,8 @@ export function BoardModeToggle() {
         className={boardMode === 'library' ? 'board-mode-btn is-active' : 'board-mode-btn'}
         onClick={() => setMode('library')}
       >
-        Library
+        <span className="board-mode-label-full">Library</span>
+        <span className="board-mode-label-short">≡</span>
       </button>
     </div>
   )

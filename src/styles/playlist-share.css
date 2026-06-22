@@ -1,0 +1,136 @@
+.playlist-layout {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 20px 40px;
+}
+
+.playlist-player-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.playlist-now-playing {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--audio-mint);
+  margin: 0 0 8px;
+}
+
+.playlist-label {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.playlist-skip {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.playlist-skip:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.playlist-skip:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.playlist-tracklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.playlist-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.playlist-track:last-child {
+  border-bottom: none;
+}
+
+.playlist-track:hover:not(.is-loading) {
+  background: var(--bg-3);
+}
+
+.playlist-track.is-active {
+  background: var(--accent-dim);
+}
+
+.playlist-track.is-loading {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.playlist-track-index {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.playlist-track-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.playlist-track-title {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-track-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.playlist-track-dur {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.playlist-track-loading {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.playlist-track-playing {
+  color: var(--audio-mint);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}

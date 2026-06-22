@@ -7,24 +7,47 @@ interface SpeedControlProps {
   className?: string
 }
 
+const SLIDER_MIN = 0.75
+const SLIDER_MAX = 2
+const SLIDER_STEP = 0.05
+
 export function SpeedControl({ value, onChange, className }: SpeedControlProps) {
+  const pct = ((value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100
+
   return (
-    <div className={cn('flex gap-1 rounded-lg border border-border bg-bg-2 p-1', className)}>
-      {PLAYBACK_RATES.map((rate) => (
-        <button
-          key={rate}
-          type="button"
-          onClick={() => onChange(rate)}
-          className={cn(
-            'rounded-md px-2 py-1 font-mono text-[0.65rem] transition-colors',
-            value === rate
-              ? 'bg-audio-mint text-bg'
-              : 'text-muted hover:text-text',
-          )}
-        >
-          {rate}x
-        </button>
-      ))}
+    <div className={cn('speed-control', className)}>
+      {/* Preset buttons */}
+      <div className="speed-presets">
+        {PLAYBACK_RATES.map((rate) => (
+          <button
+            key={rate}
+            type="button"
+            onClick={() => onChange(rate)}
+            className={cn(
+              'speed-preset-btn',
+              value === rate && 'is-active',
+            )}
+          >
+            {rate}×
+          </button>
+        ))}
+      </div>
+
+      {/* Slider */}
+      <div className="speed-slider-wrap">
+        <input
+          type="range"
+          className="speed-slider"
+          min={SLIDER_MIN}
+          max={SLIDER_MAX}
+          step={SLIDER_STEP}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          aria-label="Playback speed"
+          style={{ '--speed-pct': `${pct}%` } as React.CSSProperties}
+        />
+        <span className="speed-readout">{value.toFixed(2).replace(/\.?0+$/, '')}×</span>
+      </div>
     </div>
   )
 }
