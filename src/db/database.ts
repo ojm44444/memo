@@ -12,6 +12,11 @@ export interface SyncMeta {
   value: string
 }
 
+export interface WaveformPeakRecord {
+  key: string // `${versionId}:${barCount}`
+  peaks: number[]
+}
+
 export class MemoDatabase extends Dexie {
   columns!: EntityTable<Column, 'id'>
   songs!: EntityTable<Song, 'id'>
@@ -24,6 +29,7 @@ export class MemoDatabase extends Dexie {
   syncMeta!: EntityTable<SyncMeta, 'key'>
   folderWatch!: EntityTable<FolderWatch, 'key'>
   importedSources!: EntityTable<ImportedSource, 'sourceKey'>
+  waveformPeaks!: EntityTable<WaveformPeakRecord, 'key'>
 
   constructor() {
     super('memo')
@@ -136,6 +142,21 @@ export class MemoDatabase extends Dexie {
       syncMeta: 'key',
       folderWatch: 'key',
       importedSources: 'sourceKey, importedAt',
+    })
+
+    this.version(7).stores({
+      columns: 'id, slug, sortOrder',
+      songs: 'id, columnSlug, projectId, isFavourite, sortOrder, updatedAt, deletedAt, recordedAt',
+      audioVersions: 'id, songId, sortOrder, localBlobId, storagePath, recordedAt',
+      audioBlobs: 'id',
+      songLinks: 'id, songId',
+      songComments: 'id, songId, userId, createdAt, deletedAt',
+      projects: 'id, sortOrder',
+      syncQueue: 'id, entityType, entityId, createdAt',
+      syncMeta: 'key',
+      folderWatch: 'key',
+      importedSources: 'sourceKey, importedAt',
+      waveformPeaks: 'key',
     })
 
     this.version(6).upgrade(async (tx) => {

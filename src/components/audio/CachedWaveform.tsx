@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getCachedPeaks } from '@/db/repositories/waveformRepo'
 import { decodeWaveformPeaks } from '@/lib/audio/decodeWaveformPeaks'
 import { resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { Waveform } from './Waveform'
@@ -29,6 +30,13 @@ export function CachedWaveform({
     let cancelled = false
 
     void (async () => {
+      // Fast path: IDB cache hit — no blob load or AudioContext needed
+      const cached = await getCachedPeaks(versionId, bars)
+      if (cached) {
+        if (!cancelled) setPeaks(cached)
+        return
+      }
+
       const url = await resolvePlaybackUrl(localBlobId, storagePath)
       if (!url || cancelled) return
 
