@@ -6,6 +6,7 @@ import type { Song, SongLink } from '@/types/song'
 import { db } from '../database'
 import { extractFileMetadata, type AudioFileMetadata } from '@/lib/audio/extractFileMetadata'
 import { smartTitleFromFileName } from '@/lib/audio/smartTitle'
+import { evictLocalUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { supabase } from '@/lib/supabase/client'
 import { createSong, getSong, updateSong } from './boardRepo'
 import { enqueueSync } from './outboxRepo'
@@ -331,7 +332,10 @@ export async function deleteAudioVersion(versionId: string) {
       .where('localBlobId')
       .equals(version.localBlobId)
       .count()
-    if (stillUsed === 0) await db.audioBlobs.delete(version.localBlobId)
+    if (stillUsed === 0) {
+      evictLocalUrl(version.localBlobId)
+      await db.audioBlobs.delete(version.localBlobId)
+    }
   }
 
   const remaining = versions.filter((entry) => entry.id !== versionId)

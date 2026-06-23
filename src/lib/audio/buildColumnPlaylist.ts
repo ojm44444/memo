@@ -10,18 +10,14 @@ export interface PlaylistItem {
 
 export async function buildColumnPlaylist(columnSlug: ColumnSlug): Promise<PlaylistItem[]> {
   const songs = await getSongsByColumn(columnSlug)
-  const playlist: PlaylistItem[] = []
 
-  for (const song of songs) {
-    const version = await getPrimaryVersionForSong(song.id)
-    if (version?.localBlobId || version?.storagePath) {
-      playlist.push({
-        songId: song.id,
-        audioVersionId: version.id,
-        songTitle: song.title,
-      })
-    }
-  }
+  const results = await Promise.all(
+    songs.map(async (song) => {
+      const version = await getPrimaryVersionForSong(song.id)
+      if (!version?.localBlobId && !version?.storagePath) return null
+      return { songId: song.id, audioVersionId: version.id, songTitle: song.title }
+    }),
+  )
 
-  return playlist
+  return results.filter((item): item is PlaylistItem => item !== null)
 }

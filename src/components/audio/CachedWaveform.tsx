@@ -26,7 +26,6 @@ export function CachedWaveform({
   const [peaks, setPeaks] = useState<number[] | null>(null)
 
   useEffect(() => {
-    let objectUrl: string | null = null
     let cancelled = false
 
     void (async () => {
@@ -37,10 +36,9 @@ export function CachedWaveform({
         return
       }
 
+      // resolvePlaybackUrl caches local object URLs — do NOT revoke them here
       const url = await resolvePlaybackUrl(localBlobId, storagePath)
       if (!url || cancelled) return
-
-      if (url.startsWith('blob:')) objectUrl = url
 
       try {
         const decoded = await decodeWaveformPeaks(url, bars, versionId)
@@ -52,7 +50,6 @@ export function CachedWaveform({
 
     return () => {
       cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [versionId, localBlobId, storagePath, bars])
 

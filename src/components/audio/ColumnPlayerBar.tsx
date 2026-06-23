@@ -18,6 +18,11 @@ export function ColumnPlayerBar() {
   const objectUrlRef = useRef<string | null>(null)
   const lastSavedMsRef = useRef(0)
   const resumeSeekRef = useRef<number | null>(null)
+  // Capture pendingSeekMs in a ref so the load effect can read it once
+  // without pendingSeekMs being in the deps array (which would cause a
+  // double-load: effect fires with seek value, clearPendingSeek() sets it
+  // to null, deps change, effect fires again and reloads the audio source).
+  const pendingSeekMsRef = useRef<number | null>(null)
   const [sourceReady, setSourceReady] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
@@ -53,6 +58,9 @@ export function ColumnPlayerBar() {
     clearPendingSeek,
   } = usePlayerStore()
 
+  // Keep ref in sync with store value so the load effect can consume it once
+  if (pendingSeekMs != null) pendingSeekMsRef.current = pendingSeekMs
+
   const version = useLiveQuery(
     () => (currentVersionId ? db.audioVersions.get(currentVersionId) : undefined),
     [currentVersionId],
@@ -69,6 +77,8 @@ export function ColumnPlayerBar() {
     setAudioUrl(null)
 
     async function loadSource() {
+      // Local blobs are now cached in resolvePlaybackUrl — no need to revoke
+      // previous objectUrlRef here unless it was a non-cached temporary URL.
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = null
@@ -76,14 +86,18 @@ export function ColumnPlayerBar() {
 
       if (!version || !audioRef.current || !currentSongId) return
 
-      if (pendingSeekMs != null) {
-        resumeSeekRef.current = pendingSeekMs
-        clearPendingSeek()
-      } else if (currentSongId) {
-        resumeSeekRef.current = await getPlaybackPositionMs(currentSongId)
-      }
+      // Consume pending seek once, then clear it. Running clearPendingSeek()
+      // here (outside the async body) avoids a dep-triggered double-load.
+      const seekMs = pendingSeekMsRef.current
+      pendingSeekMsRef.current = null
+      clearPendingSeek()
 
-      const url = await resolvePlaybackUrl(version.localBlobId, version.storagePath)
+      // Fetch saved position and resolve URL in parallel
+      const [savedMs, url] = await Promise.all([
+        seekMs != null ? Promise.resolve(seekMs) : getPlaybackPositionMs(currentSongId),
+        resolvePlaybackUrl(version.localBlobId, version.storagePath),
+      ])
+
       if (cancelled || !audioRef.current) return
 
       if (!url) {
@@ -91,19 +105,26 @@ export function ColumnPlayerBar() {
         return
       }
 
+      // Only track non-cached URLs for manual revocation on cleanup
       if (version.localBlobId) {
-        objectUrlRef.current = url
+        // URL is owned by the module cache — don't revoke on cleanup
+        objectUrlRef.current = null
       }
 
+      resumeSeekRef.current = savedMs > 0 ? savedMs : null
+
+      // Set src and wait — sourceReady is set by onCanPlay so play() is
+      // never called before the browser confirms it can decode the audio.
       audioRef.current.src = url
       setAudioUrl(url)
-      setSourceReady(true)
+      // sourceReady will be set true by the onCanPlay handler below
     }
 
     void loadSource()
 
     return () => {
       cancelled = true
+      // Only revoke if we held a non-cached temporary URL
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = null
@@ -114,7 +135,8 @@ export function ColumnPlayerBar() {
     version?.localBlobId,
     version?.storagePath,
     currentSongId,
-    pendingSeekMs,
+    // pendingSeekMs intentionally excluded — consumed via pendingSeekMsRef
+    // to prevent a double-load when clearPendingSeek() changes the store.
     clearPendingSeek,
     setPlaying,
   ])
@@ -206,6 +228,7 @@ export function ColumnPlayerBar() {
             setCurrentMs(resumeMs)
           }
         }}
+        onCanPlay={() => setSourceReady(true)}
         onTimeUpdate={(event) => {
           const element = event.currentTarget
           if (element.duration) {
