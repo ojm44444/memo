@@ -153,7 +153,7 @@ export async function deleteColumn(columnId: string) {
   }
 
   await db.columns.delete(columnId)
-  await enqueueSync('delete', 'column', columnId, { id: columnId })
+  await enqueueSync('delete', 'column', columnId, { id: columnId, slug: column.slug })
 }
 
 export async function getSongsByColumn(columnSlug: ColumnSlug) {

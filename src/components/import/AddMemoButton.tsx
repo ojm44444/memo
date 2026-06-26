@@ -1,9 +1,16 @@
 import { useRef } from 'react'
 import { useAudioImport } from '@/hooks/useAudioImport'
+import type { ColumnSlug } from '@/types/column'
 
-export function AddMemoButton() {
+interface AddMemoButtonProps {
+  columnSlug?: ColumnSlug
+  /** Renders as a small icon button for column headers */
+  compact?: boolean
+}
+
+export function AddMemoButton({ columnSlug = 'inbox', compact = false }: AddMemoButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { importing, importFiles } = useAudioImport('inbox')
+  const { importing, importFiles } = useAudioImport(columnSlug)
 
   return (
     <>
@@ -24,14 +31,27 @@ export function AddMemoButton() {
           })
         }}
       />
-      <button
-        type="button"
-        className="board-add-card w-full"
-        disabled={importing}
-        onClick={() => inputRef.current?.click()}
-      >
-        {importing ? 'Importing…' : '+ Import audio'}
-      </button>
+      {compact ? (
+        <button
+          type="button"
+          className="column-header-import-btn"
+          disabled={importing}
+          onClick={() => inputRef.current?.click()}
+          title={importing ? 'Importing…' : 'Import audio into this column'}
+          aria-label="Import audio"
+        >
+          {importing ? '…' : '+'}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="board-add-card w-full"
+          disabled={importing}
+          onClick={() => inputRef.current?.click()}
+        >
+          {importing ? 'Importing…' : '+ Import audio'}
+        </button>
+      )}
     </>
   )
 }

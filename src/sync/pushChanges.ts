@@ -215,7 +215,11 @@ async function processQueueItem(
       )
     } else if (item.op === 'delete') {
       await assertNoError(
-        await supabase!.from('columns').delete().eq('id', item.entityId),
+        await supabase!
+          .from('columns')
+          .delete()
+          .eq('board_id', boardId)
+          .eq('slug', payload.slug),
       )
     }
   }

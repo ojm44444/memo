@@ -1565,6 +1565,25 @@ body.is-file-dragging * {
   color: var(--text);
 }
 
+.column-title-label {
+  cursor: text;
+}
+
+.column-title-inline-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--audio-mint);
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  width: 100%;
+  min-width: 60px;
+  padding: 0;
+}
+
 .board-column-header {
   display: flex;
   align-items: center;
@@ -1592,6 +1611,28 @@ body.is-file-dragging * {
   background: var(--accent-dim);
   color: var(--audio-mint);
   font-size: 0.58rem;
+}
+
+.column-header-import-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.column-header-import-btn:hover {
+  background: var(--accent-dim);
+  color: var(--audio-mint);
+  border-color: var(--audio-mint);
 }
 
 .board-column-scroll {

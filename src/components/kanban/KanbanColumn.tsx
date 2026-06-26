@@ -1,9 +1,9 @@
-import { memo, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
-import { getSongsByColumn } from '@/db/repositories/boardRepo'
+import { getSongsByColumn, renameColumn } from '@/db/repositories/boardRepo'
 import { ColumnPlayButton } from '@/components/board/ColumnPlayButton'
 import { ColumnSectionMenu } from '@/components/board/ColumnSectionMenu'
 import { AddMemoButton } from '@/components/import/AddMemoButton'
@@ -12,6 +12,7 @@ import { getActiveProjectId, getProjectAccentHue } from '@/db/repositories/proje
 import { columnHeaderAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
+import { scheduleFlush } from '@/sync/syncEngine'
 import { SongCard } from './SongCard'
 import type { Column } from '@/types/column'
 
@@ -23,6 +24,25 @@ interface KanbanColumnProps {
 }
 
 export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
+  const [renamingTitle, setRenamingTitle] = useState(false)
+  const [draftTitle, setDraftTitle] = useState('')
+  const titleInputRef = useRef<HTMLInputElement>(null)
+
+  const startInlineRename = () => {
+    if (readOnly) return
+    setDraftTitle(column.title)
+    setRenamingTitle(true)
+    setTimeout(() => { titleInputRef.current?.select() }, 0)
+  }
+
+  const commitInlineRename = async () => {
+    setRenamingTitle(false)
+    const trimmed = draftTitle.trim()
+    if (!trimmed || trimmed === column.title) return
+    await renameColumn(column.id, trimmed)
+    scheduleFlush()
+  }
+
   const activeColumnId = usePlayerStore((state) => state.activeColumnId)
   const isPlaying = usePlayerStore((state) => state.isPlaying)
   const isActiveColumn = activeColumnId === column.slug && isPlaying
@@ -72,7 +92,29 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
         className={cn('board-column-header', isActiveColumn && 'is-active-column')}
         style={headerAccentStyle}
       >
-        <span style={titleAccentStyle}>{column.title}</span>
+        {renamingTitle ? (
+          <input
+            ref={titleInputRef}
+            className="column-title-inline-input"
+            value={draftTitle}
+            autoFocus
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onBlur={() => void commitInlineRename()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); void commitInlineRename() }
+              if (e.key === 'Escape') setRenamingTitle(false)
+            }}
+          />
+        ) : (
+          <span
+            style={titleAccentStyle}
+            className={!readOnly ? 'column-title-label' : undefined}
+            onDoubleClick={startInlineRename}
+            title={!readOnly ? 'Double-click to rename' : undefined}
+          >
+            {column.title}
+          </span>
+        )}
         <div className="board-column-header-actions">
           {selectionMode && !readOnly && songIds.length > 0 && (
             <button
@@ -85,6 +127,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
           )}
           <ColumnPlayButton columnSlug={column.slug} label={column.title} />
           <span className="board-column-count">{songs?.length ?? 0}</span>
+          {!readOnly && <AddMemoButton columnSlug={column.slug} compact />}
           {!readOnly && <ColumnSectionMenu column={column} />}
         </div>
       </div>
