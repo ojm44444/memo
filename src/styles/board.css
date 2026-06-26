@@ -2446,10 +2446,17 @@ html.light .interactive-waveform-bar.is-played {
   font-family: var(--font-mono);
   font-size: 0.5rem;
   text-transform: lowercase;
-  color: var(--audio-mint);
-  border: 1px solid var(--audio-mint-dim);
+  color: #fff;
   border-radius: 999px;
-  padding: 2px 6px;
+  padding: 2px 7px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.song-card-tag-overflow {
+  background: rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.5) !important;
 }
 
 .song-tags-editor {
@@ -2523,6 +2530,23 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 8px;
   padding: 6px 10px;
   font-size: 0.75rem;
+}
+
+.song-tags-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.song-tags-suggestions-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.3);
+  margin-right: 2px;
 }
 
 .app-shell {
@@ -4549,6 +4573,10 @@ html.light .interactive-waveform-bar.is-played {
 
 .version-stack-action--danger {
   color: #ff8a8a;
+}
+
+.version-stack-action--trim {
+  color: var(--audio-mint);
 }
 
 .version-clip-tags {

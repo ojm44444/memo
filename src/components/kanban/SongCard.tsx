@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
 import { getColumnTag } from '@/lib/column-tags'
+import { getTagGradient } from '@/lib/tagColors'
 import { db } from '@/db/database'
 import { getShareFeedbackCount } from '@/db/repositories/shareFeedbackRepo'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
@@ -142,10 +143,19 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
       {(song.tags?.length ?? 0) > 0 && (
         <div className="song-card-tags">
           {song.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="song-card-tag-pill">
+            <span
+              key={tag}
+              className="song-card-tag-pill"
+              style={{ background: getTagGradient(tag), border: 'none', color: '#fff' }}
+            >
               {tag}
             </span>
           ))}
+          {song.tags.length > 3 && (
+            <span className="song-card-tag-pill song-card-tag-overflow">
+              +{song.tags.length - 3}
+            </span>
+          )}
         </div>
       )}
       {primary && (

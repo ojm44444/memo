@@ -13,6 +13,8 @@ export interface AudioVersion {
   syncedAt: string | null
   /** Per-clip tags (e.g. "riff", "chorus", "demo"). Stored locally. */
   tags?: string[]
+  /** Playback start offset in ms — skips the silence/intro on play. */
+  trimStartMs?: number
 }
 
 export interface AudioBlob {

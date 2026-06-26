@@ -122,7 +122,10 @@ export function ColumnPlayerBar() {
         objectUrlRef.current = null
       }
 
-      resumeSeekRef.current = savedMs > 0 ? savedMs : null
+      // Prefer explicit seek > saved resume position > trim start offset
+      const effectiveStartMs =
+        savedMs > 0 ? savedMs : (version.trimStartMs ?? 0) > 0 ? version.trimStartMs! : 0
+      resumeSeekRef.current = effectiveStartMs > 0 ? effectiveStartMs : null
 
       // If playAudioImmediately() already set this src (gesture-handler fast
       // path), don't reset it — play() is async so paused may still be true

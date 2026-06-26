@@ -173,6 +173,13 @@ export async function renameAudioVersion(versionId: string, label: string) {
   return { ...version, label: trimmed }
 }
 
+export async function setAudioVersionTrimStart(versionId: string, trimStartMs: number | null) {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+  await db.audioVersions.update(versionId, { trimStartMs: trimStartMs ?? undefined })
+  return trimStartMs
+}
+
 export async function updateAudioVersionTags(versionId: string, tags: string[]) {
   const version = await db.audioVersions.get(versionId)
   if (!version) return null

@@ -12,6 +12,7 @@ import {
   renameAudioVersion,
   setPrimaryVersion,
   updateAudioVersionTags,
+  setAudioVersionTrimStart,
 } from '@/db/repositories/audioRepo'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
@@ -109,10 +110,21 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     }}
                   />
                 ) : (
-                  <div className="mb-1 truncate text-xs font-medium">
-                    {version.label}
-                    {isPrimary && <span className="version-stack-primary"> primary</span>}
-                  </div>
+                  (() => {
+                    // Hide redundant label: only one clip, or label matches song title
+                    const labelMatchesTitle =
+                      version.label.toLowerCase().trim() === song.title.toLowerCase().trim()
+                    const onlyOneClip = (versions?.length ?? 0) <= 1
+                    const showLabel = !onlyOneClip && !labelMatchesTitle
+                    return showLabel ? (
+                      <div className="mb-1 truncate text-xs font-medium">
+                        {version.label}
+                        {isPrimary && versions!.length > 1 && (
+                          <span className="version-stack-primary"> primary</span>
+                        )}
+                      </div>
+                    ) : null
+                  })()
                 )}
                 <CachedWaveform
                   versionId={version.id}
@@ -195,6 +207,31 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     Make primary
                   </button>
                 )}
+                {/* Trim start: capture current playback position when this clip is active */}
+                {currentVersionId === version.id ? (
+                  <button
+                    type="button"
+                    className="version-stack-action version-stack-action--trim"
+                    onClick={() => {
+                      const ms = Math.round(progress * version.durationMs)
+                      void setAudioVersionTrimStart(version.id, ms > 1000 ? ms : null)
+                    }}
+                    title="Start playback here every time"
+                  >
+                    {version.trimStartMs
+                      ? `▷ from ${(version.trimStartMs / 1000).toFixed(1)}s`
+                      : '▷ Set start'}
+                  </button>
+                ) : version.trimStartMs ? (
+                  <button
+                    type="button"
+                    className="version-stack-action version-stack-action--trim"
+                    onClick={() => void setAudioVersionTrimStart(version.id, null)}
+                    title="Clear start point"
+                  >
+                    ▷ {(version.trimStartMs / 1000).toFixed(1)}s ×
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="version-stack-action"

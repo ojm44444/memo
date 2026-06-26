@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { updateSong } from '@/db/repositories/boardRepo'
+import { useState, useMemo } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { updateSong, getAllSongs } from '@/db/repositories/boardRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { PRESET_TAGS, getTagGradient } from '@/lib/tagColors'
 
@@ -12,6 +13,19 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
   const [tags, setTags] = useState<string[]>(initialTags)
   const [draft, setDraft] = useState('')
 
+  // Collect all custom tags used across every song for suggestions
+  const allSongs = useLiveQuery(() => getAllSongs())
+  const suggestedCustomTags = useMemo(() => {
+    const seen = new Set<string>()
+    for (const song of allSongs ?? []) {
+      for (const t of song.tags ?? []) {
+        const isPreset = PRESET_TAGS.some((p) => p.toLowerCase() === t.toLowerCase())
+        if (!isPreset) seen.add(t)
+      }
+    }
+    return [...seen].sort()
+  }, [allSongs])
+
   const saveTags = async (next: string[]) => {
     setTags(next)
     await updateSong(songId, { tags: next })
@@ -19,6 +33,15 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
   }
 
   const togglePreset = async (tag: string) => {
+    const active = tags.some((t) => t.toLowerCase() === tag.toLowerCase())
+    if (active) {
+      await saveTags(tags.filter((t) => t.toLowerCase() !== tag.toLowerCase()))
+    } else {
+      await saveTags([...tags, tag])
+    }
+  }
+
+  const toggleCustom = async (tag: string) => {
     const active = tags.some((t) => t.toLowerCase() === tag.toLowerCase())
     if (active) {
       await saveTags(tags.filter((t) => t.toLowerCase() !== tag.toLowerCase()))
@@ -43,6 +66,13 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
 
   const customTags = tags.filter(
     (t) => !PRESET_TAGS.some((p) => p.toLowerCase() === t.toLowerCase()),
+  )
+
+  // Suggestions = your other custom tags not already on this song
+  const filteredSuggestions = suggestedCustomTags.filter(
+    (s) =>
+      !tags.some((t) => t.toLowerCase() === s.toLowerCase()) &&
+      (draft === '' || s.toLowerCase().includes(draft.toLowerCase())),
   )
 
   return (
@@ -83,10 +113,11 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
           )
         })}
       </div>
+
       <div className="song-tags-add">
         <input
           className="song-tags-input"
-          placeholder="Add custom tag…"
+          placeholder="Add tag…"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -97,6 +128,23 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
           Add
         </button>
       </div>
+
+      {filteredSuggestions.length > 0 && (
+        <div className="song-tags-suggestions">
+          <span className="song-tags-suggestions-label">your tags</span>
+          {filteredSuggestions.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className="song-tag-pill"
+              style={{ '--tag-gradient': getTagGradient(tag) } as React.CSSProperties}
+              onClick={() => void toggleCustom(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
