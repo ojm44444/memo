@@ -25,20 +25,41 @@ export function registerAudioEl(el: HTMLAudioElement | null) {
   audioEl = el
 }
 
+// Tiny silent WAV (44 bytes) — used to unlock iOS autoplay on first gesture.
+const SILENT =
+  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
+
+let audioUnlocked = false
+
 /**
  * Install a one-time listener that fires on the user's very first touch/click
- * and plays a silent audio to unlock iOS autoplay for the session.
- * After this, audio.play() works from anywhere — no gesture context needed.
+ * and plays the main audio element with a silent WAV to unlock iOS autoplay
+ * for the session. Unlocking the main element (not a temp one) ensures that
+ * subsequent play() calls on it are always granted.
  * Call once at app startup.
  */
 export function installAudioUnlock() {
   if (typeof window === 'undefined') return
-  // Tiny silent WAV (44 bytes)
-  const SILENT =
-    'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
   const unlock = () => {
-    const tmp = new Audio(SILENT)
-    void tmp.play().catch(() => {})
+    if (audioUnlocked) return
+    audioUnlocked = true
+    if (audioEl) {
+      // Unlock the main element directly — most reliable on iOS Safari
+      const prev = audioEl.src
+      audioEl.src = SILENT
+      void audioEl.play().then(() => {
+        audioEl!.pause()
+        // Restore previous src (or clear if none)
+        audioEl!.src = prev || ''
+        if (prev) srcSwitchPending = true
+      }).catch(() => {
+        audioEl!.src = prev || ''
+      })
+    } else {
+      // Main element not mounted yet — fall back to temp element
+      const tmp = new Audio(SILENT)
+      void tmp.play().catch(() => {})
+    }
   }
   window.addEventListener('pointerdown', unlock, { once: true, capture: true })
   window.addEventListener('touchstart', unlock, { once: true, capture: true })

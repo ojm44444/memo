@@ -29,15 +29,19 @@ export function CachedWaveform({
     let cancelled = false
 
     void (async () => {
-      // Fast path: IDB cache hit — no blob load or AudioContext needed
-      const cached = await getCachedPeaks(versionId, bars)
+      // Always resolve + cache the URL so playback is instant on tap,
+      // even when waveform peaks are already in IDB (the common case).
+      // resolvePlaybackUrl is idempotent — second call returns cached URL.
+      const [cached, url] = await Promise.all([
+        getCachedPeaks(versionId, bars),
+        resolvePlaybackUrl(localBlobId, storagePath),
+      ])
       if (cached) {
         if (!cancelled) setPeaks(cached)
         return
       }
 
       // resolvePlaybackUrl caches local object URLs — do NOT revoke them here
-      const url = await resolvePlaybackUrl(localBlobId, storagePath)
       if (!url || cancelled) return
 
       try {

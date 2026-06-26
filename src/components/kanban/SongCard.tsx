@@ -67,17 +67,21 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     transition,
   }
 
-  // Warm the URL cache. Local blobs resolve synchronously (just a createObjectURL),
-  // so use a minimal stagger per card to avoid flooding IDB on first render.
-  // Remote-only cards use a longer delay since they need a Supabase signed URL.
+  // Warm the URL cache as soon as the card renders so tapping play is instant.
+  // CachedWaveform also calls resolvePlaybackUrl but this fires first (no IDB peaks check).
   useEffect(() => {
     if (!primary) return
-    const delay = primary.localBlobId ? 50 : 400
-    const id = setTimeout(
-      () => void resolvePlaybackUrl(primary.localBlobId, primary.storagePath),
-      delay,
-    )
-    return () => clearTimeout(id)
+    // Local blobs: resolve immediately (createObjectURL is synchronous after the IDB read).
+    // Remote-only: short delay so we don't hammer Supabase on board load.
+    if (primary.localBlobId) {
+      void resolvePlaybackUrl(primary.localBlobId, null)
+    } else {
+      const id = setTimeout(
+        () => void resolvePlaybackUrl(null, primary.storagePath),
+        300,
+      )
+      return () => clearTimeout(id)
+    }
   }, [primary?.id, primary?.localBlobId, primary?.storagePath])
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
