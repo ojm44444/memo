@@ -1,3 +1,4 @@
+import { memo, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -14,12 +15,14 @@ import { useUiStore } from '@/stores/uiStore'
 import { SongCard } from './SongCard'
 import type { Column } from '@/types/column'
 
+const PAGE_SIZE = 50
+
 interface KanbanColumnProps {
   column: Column
   readOnly?: boolean
 }
 
-export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
   const activeColumnId = usePlayerStore((state) => state.activeColumnId)
   const isPlaying = usePlayerStore((state) => state.isPlaying)
   const isActiveColumn = activeColumnId === column.slug && isPlaying
@@ -49,7 +52,11 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
   })
 
   const songs = useLiveQuery(() => getSongsByColumn(column.slug), [column.slug])
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
   const songIds = songs?.map((s) => s.id) ?? []
+  const visibleSongs = songs?.slice(0, visibleCount) ?? []
+  const hiddenCount = (songs?.length ?? 0) - visibleCount
   const isEmpty = songs !== undefined && songs.length === 0
   const isLoading = songs === undefined
   const allSelected =
@@ -91,12 +98,30 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
               <span className="board-column-loading-bar" style={{ width: '85%' }} />
             </div>
           )}
-          {songs?.map((song) => (
+          {visibleSongs.map((song) => (
             <SongCard key={song.id} song={song} columnSlug={column.slug} readOnly={readOnly} />
           ))}
 
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              className="column-show-more"
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            >
+              Show {Math.min(hiddenCount, PAGE_SIZE)} more of {hiddenCount} songs
+            </button>
+          )}
+
           {isEmpty && column.slug !== 'inbox' && (
             <div className="board-empty-hint">Drop audio or drag a song here</div>
+          )}
+
+          {/* Always render a bottom drop zone so cards can be dropped into full columns */}
+          {!isEmpty && !readOnly && (
+            <div
+              className={cn('column-bottom-drop-zone', isOver && 'is-over')}
+              aria-hidden="true"
+            />
           )}
 
           {column.slug === 'inbox' && !readOnly && (
@@ -109,4 +134,4 @@ export function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
       </SortableContext>
     </div>
   )
-}
+})

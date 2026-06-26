@@ -11,6 +11,8 @@ export interface AudioVersion {
   recordedAt: string | null
   createdAt: string
   syncedAt: string | null
+  /** Per-clip tags (e.g. "riff", "chorus", "demo"). Stored locally. */
+  tags?: string[]
 }
 
 export interface AudioBlob {

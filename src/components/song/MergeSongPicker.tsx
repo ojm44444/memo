@@ -1,9 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getAllSongs, mergeSongsInto } from '@/db/repositories/boardRepo'
+import { getAllSongs, mergeSongsInto, getColumns } from '@/db/repositories/boardRepo'
 import { getAudioVersions } from '@/db/repositories/audioRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { cn } from '@/lib/cn'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 interface MergeSongPickerProps {
   targetSongId: string
@@ -13,8 +13,20 @@ interface MergeSongPickerProps {
 export function MergeSongPicker({ targetSongId, onClose }: MergeSongPickerProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [merging, setMerging] = useState(false)
+  const [search, setSearch] = useState('')
+  const [columnFilter, setColumnFilter] = useState('')
   const songs = useLiveQuery(() => getAllSongs())
-  const candidates = songs?.filter((s) => s.id !== targetSongId) ?? []
+  const columns = useLiveQuery(() => getColumns())
+
+  const candidates = useMemo(() => {
+    let list = songs?.filter((s) => s.id !== targetSongId) ?? []
+    if (columnFilter) list = list.filter((s) => s.columnSlug === columnFilter)
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      list = list.filter((s) => s.title.toLowerCase().includes(q))
+    }
+    return list
+  }, [songs, targetSongId, columnFilter, search])
 
   const toggle = (id: string) => {
     setSelected((prev) => {
@@ -48,9 +60,31 @@ export function MergeSongPicker({ targetSongId, onClose }: MergeSongPickerProps)
       <p className="mb-3 text-xs text-muted">
         Pick voice memos to combine. Audio stacks on this card; merged cards are removed.
       </p>
+
+      <div className="merge-picker-filters">
+        <input
+          className="merge-picker-search"
+          placeholder="Search by title…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="merge-picker-column-select"
+          value={columnFilter}
+          onChange={(e) => setColumnFilter(e.target.value)}
+        >
+          <option value="">All sections</option>
+          {columns?.map((col) => (
+            <option key={col.id} value={col.slug}>{col.title}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="mb-3 flex max-h-48 flex-col gap-2 overflow-y-auto">
         {candidates.length === 0 && (
-          <p className="text-xs text-muted">No other songs to merge yet.</p>
+          <p className="text-xs text-muted">
+            {search || columnFilter ? 'No songs match your filters.' : 'No other songs to merge yet.'}
+          </p>
         )}
         {candidates.map((song) => (
           <MergeCandidateRow
@@ -98,7 +132,7 @@ function MergeCandidateRow({
         'flex items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors',
         selected
           ? 'border-audio-mint/40 bg-audio-mint/8'
-          : 'border-border bg-surface hover:border-white/15',
+          : 'border-border bg-surface hover:border-text/20',
       )}
     >
       <span className="truncate font-medium">{title}</span>

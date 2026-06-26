@@ -3,12 +3,15 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
 import { playSongVersion } from '@/lib/playSongVersion'
+import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
 import { getSong } from '@/db/repositories/boardRepo'
 import {
   deleteAudioVersion,
   renameAudioVersion,
   setPrimaryVersion,
+  updateAudioVersionTags,
 } from '@/db/repositories/audioRepo'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
@@ -29,6 +32,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   const { currentVersionId, isPlaying, progress } = usePlayerStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftLabel, setDraftLabel] = useState('')
+  const [tagEditingId, setTagEditingId] = useState<string | null>(null)
+  const [tagDraft, setTagDraft] = useState('')
 
   if (!song) return null
 
@@ -65,7 +70,20 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
           >
             <button
               type="button"
-              onClick={() => void playSongVersion(song.columnSlug, songId, version.id)}
+              onClick={() => {
+                // If the URL is already cached, play instantly in the gesture
+                // handler before any await — this is the only way to guarantee
+                // iOS allows audio.play() without a second tap.
+                const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
+                const rate = usePlayerStore.getState().playbackRate
+                if (cachedUrl) {
+                  playAudioImmediately(cachedUrl, rate)
+                } else {
+                  // First load — keep gesture alive for the async play path
+                  unlockAudioEl()
+                }
+                void playSongVersion(song.columnSlug, songId, version.id)
+              }}
               className="scp-audio-item w-full text-left"
             >
               <span
@@ -109,6 +127,47 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
               <span className="scp-dur shrink-0">{formatDuration(version.durationMs)}</span>
             </button>
 
+            {/* Per-clip tags */}
+            {(version.tags && version.tags.length > 0) || tagEditingId === version.id ? (
+              <div className="version-clip-tags">
+                {version.tags?.map((tag) => (
+                  <span key={tag} className="version-clip-tag">
+                    {tag}
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        className="version-clip-tag-remove"
+                        onClick={() => {
+                          const next = (version.tags ?? []).filter((t) => t !== tag)
+                          void updateAudioVersionTags(version.id, next)
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {tagEditingId === version.id && (
+                  <input
+                    className="version-clip-tag-input"
+                    placeholder="tag…"
+                    value={tagDraft}
+                    autoFocus
+                    onChange={(e) => setTagDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && tagDraft.trim()) {
+                        void updateAudioVersionTags(version.id, [...(version.tags ?? []), tagDraft.trim()])
+                        setTagDraft('')
+                        setTagEditingId(null)
+                      }
+                      if (e.key === 'Escape') { setTagEditingId(null); setTagDraft('') }
+                    }}
+                    onBlur={() => { setTagEditingId(null); setTagDraft('') }}
+                  />
+                )}
+              </div>
+            ) : null}
+
             {!readOnly && (
               <div className="version-stack-actions">
                 <button
@@ -117,6 +176,13 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                   onClick={() => startRename(version.id, version.label)}
                 >
                   Rename
+                </button>
+                <button
+                  type="button"
+                  className="version-stack-action"
+                  onClick={() => { setTagEditingId(version.id); setTagDraft('') }}
+                >
+                  + Tag
                 </button>
                 {!isPrimary && (
                   <button

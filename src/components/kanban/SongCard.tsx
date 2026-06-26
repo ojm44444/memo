@@ -1,3 +1,5 @@
+import { memo, useEffect } from 'react'
+import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -10,8 +12,17 @@ import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
+import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl, resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import type { Song } from '@/types/song'
 import type { ColumnSlug } from '@/types/column'
+
+// Isolated so feedbackCount live query doesn't force the whole card to re-render
+const FeedbackBadge = memo(({ songId }: { songId: string }) => {
+  const count = useLiveQuery(() => getShareFeedbackCount(songId), [songId])
+  if (!count) return null
+  return <span className="song-card-feedback-badge" title="Listener feedback">{count}</span>
+})
 
 interface SongCardProps {
   song: Song
@@ -19,10 +30,18 @@ interface SongCardProps {
   readOnly?: boolean
 }
 
-export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) {
+export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) {
   const selectionMode = useUiStore((state) => state.selectionMode)
+  const draggingCardId = useUiStore((state) => state.draggingCardId)
   const isSelected = useUiStore((state) => state.selectedSongIds.includes(song.id))
   const toggleSongSelected = useUiStore((state) => state.toggleSongSelected)
+
+  const isMergeTarget = !readOnly && draggingCardId !== null && draggingCardId !== song.id
+  const { setNodeRef: setMergeNodeRef, isOver: isMergeOver } = useDroppable({
+    id: `merge:${song.id}`,
+    data: { type: 'song-merge', targetSongId: song.id },
+    disabled: !isMergeTarget,
+  })
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: song.id,
@@ -36,7 +55,6 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
   )
   const primary = versions?.[0]
   const mergeCount = (versions?.length ?? 0) - 1
-  const feedbackCount = useLiveQuery(() => getShareFeedbackCount(song.id), [song.id])
 
   const { currentSongId, progress, isPlaying } = usePlayerStore()
   const { openDrawer } = useUiStore()
@@ -48,7 +66,20 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
     transition,
   }
 
-  const handlePlay = async (e: { stopPropagation: () => void }) => {
+  // Warm the URL cache. Local blobs resolve synchronously (just a createObjectURL),
+  // so use a minimal stagger per card to avoid flooding IDB on first render.
+  // Remote-only cards use a longer delay since they need a Supabase signed URL.
+  useEffect(() => {
+    if (!primary) return
+    const delay = primary.localBlobId ? 50 : 400
+    const id = setTimeout(
+      () => void resolvePlaybackUrl(primary.localBlobId, primary.storagePath),
+      delay,
+    )
+    return () => clearTimeout(id)
+  }, [primary?.id, primary?.localBlobId, primary?.storagePath])
+
+  const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
     if (!primary) return
     const store = usePlayerStore.getState()
@@ -56,7 +87,15 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
       store.setPlaying(false)
       return
     }
-    await store.playAtVersion(columnSlug, song.id, primary.id)
+    // Play synchronously in the gesture handler so iOS doesn't block it.
+    const cachedUrl = getCachedUrl(primary.localBlobId, primary.storagePath)
+    const rate = store.playbackRate
+    if (cachedUrl) {
+      playAudioImmediately(cachedUrl, rate)
+    } else {
+      unlockAudioEl()
+    }
+    void store.playAtVersion(columnSlug, song.id, primary.id)
   }
 
   const handleCardClick = () => {
@@ -88,11 +127,7 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
           </span>
         )}
         <p className="song-card-title">{song.title}</p>
-        {(feedbackCount ?? 0) > 0 && (
-          <span className="song-card-feedback-badge" title="Listener feedback on share link">
-            {feedbackCount}
-          </span>
-        )}
+        <FeedbackBadge songId={song.id} />
         {!readOnly && (
           <FavouriteButton songId={song.id} isFavourite={song.isFavourite ?? false} />
         )}
@@ -151,6 +186,15 @@ export function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) 
         </div>
       </div>
       {mergeCount > 0 && <span className="song-card-merge">+{mergeCount} merged</span>}
+      {isMergeTarget && (
+        <div
+          ref={setMergeNodeRef}
+          className={cn('song-card-merge-zone', isMergeOver && 'is-over')}
+          aria-hidden="true"
+        >
+          <span className="song-card-merge-zone-label">⊕ merge here</span>
+        </div>
+      )}
     </div>
   )
-}
+})

@@ -45,11 +45,32 @@ export async function pullChanges(userId: string) {
 
   for (const remote of remoteColumns ?? []) {
     const local = await db.columns.where('slug').equals(remote.slug).first()
+
+    // Keep local title if:
+    // 1. There's an un-pushed rename in the outbox (push will reconcile), OR
+    // 2. The local rename timestamp is newer than the remote record (covers the
+    //    window after push clears the outbox but before Supabase propagates back).
+    const hasPendingRename = local
+      ? (await db.syncQueue
+          .where('entityId').equals(local.id)
+          .filter((item) => item.entityType === 'column' && item.op === 'update')
+          .count()) > 0
+      : false
+
+    const remoteUpdatedAt = (remote as Record<string, unknown>).updated_at as string | undefined
+    const localRenameIsNewer =
+      local?.renamedAt && remoteUpdatedAt
+        ? local.renamedAt > remoteUpdatedAt
+        : false
+
+    const keepLocalTitle = (hasPendingRename || localRenameIsNewer) && local
+
     const column: Column = {
       id: local?.id ?? remote.id,
       slug: remote.slug,
-      title: remote.title,
+      title: keepLocalTitle ? local!.title : remote.title,
       sortOrder: remote.position,
+      renamedAt: local?.renamedAt,
     }
     await db.columns.put(column)
     pulled++

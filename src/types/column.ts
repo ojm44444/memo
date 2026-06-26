@@ -8,4 +8,6 @@ export interface Column {
   slug: ColumnSlug
   title: string
   sortOrder: number
+  /** ISO timestamp set locally when a rename is saved. Prevents stale cloud pulls from overwriting a recent rename. */
+  renamedAt?: string
 }

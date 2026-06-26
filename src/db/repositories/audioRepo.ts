@@ -121,7 +121,11 @@ export async function importAudioFiles(
     }
 
     const metadata = await extractFileMetadata(file)
-    const title = metadata.title || smartTitleFromFileName(file.name)
+    // Prefer the filename as the song title — it reflects any rename the user
+    // made on their phone. The embedded ID3 tag may still carry the original
+    // auto-generated name (e.g. "Obermattliebweg 4") even after renaming.
+    const fileTitle = smartTitleFromFileName(file.name)
+    const title = fileTitle !== 'Untitled memo' ? fileTitle : (metadata.title || fileTitle)
     const song = await createSong({
       title,
       columnSlug,
@@ -167,6 +171,13 @@ export async function renameAudioVersion(versionId: string, label: string) {
     label: trimmed,
   })
   return { ...version, label: trimmed }
+}
+
+export async function updateAudioVersionTags(versionId: string, tags: string[]) {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+  await db.audioVersions.update(versionId, { tags })
+  return { ...version, tags }
 }
 
 export async function setPrimaryVersion(songId: string, versionId: string) {

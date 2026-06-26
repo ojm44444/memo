@@ -8,7 +8,9 @@ import {
   bulkMoveSongs,
   getColumns,
   getSongIdsInActiveProject,
+  mergeSongsInto,
 } from '@/db/repositories/boardRepo'
+import { db } from '@/db/database'
 import { createPlaylistShare } from '@/db/repositories/playlistShareRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { usePlayerStore } from '@/stores/playerStore'
@@ -24,6 +26,8 @@ export function BulkActionsBar() {
   const columns = useLiveQuery(() => getColumns(), [])
   const [tagDraft, setTagDraft] = useState('')
   const [busy, setBusy] = useState(false)
+  const [showMergePicker, setShowMergePicker] = useState(false)
+  const [masterId, setMasterId] = useState('')
 
   if (!selectionMode && selectedSongIds.length === 0) return null
 
@@ -97,6 +101,26 @@ export function BulkActionsBar() {
     }
   }
 
+  const openMergePicker = () => {
+    setMasterId(selectedSongIds[0] ?? '')
+    setShowMergePicker(true)
+  }
+
+  const executeMerge = async () => {
+    if (!masterId) return
+    const sources = selectedSongIds.filter((id) => id !== masterId)
+    if (sources.length === 0) return
+    setBusy(true)
+    try {
+      await mergeSongsInto(masterId, sources)
+      scheduleFlush()
+      clearSelection()
+      setShowMergePicker(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const remove = async () => {
     if (
       !confirm(
@@ -117,6 +141,17 @@ export function BulkActionsBar() {
   }
 
   return (
+    <>
+    {showMergePicker && (
+      <BulkMergeModal
+        songIds={selectedSongIds}
+        masterId={masterId}
+        busy={busy}
+        onChangeMaster={setMasterId}
+        onConfirm={() => void executeMerge()}
+        onCancel={() => setShowMergePicker(false)}
+      />
+    )}
     <div className="bulk-actions-bar" role="toolbar" aria-label="Bulk song actions">
       <span className="bulk-actions-count">
         {selectedSongIds.length} selected
@@ -172,6 +207,12 @@ export function BulkActionsBar() {
         ☆ Unstar
       </button>
 
+      {selectedSongIds.length >= 2 && (
+        <button type="button" className="bulk-actions-btn" disabled={busy} onClick={openMergePicker}>
+          Merge
+        </button>
+      )}
+
       <button type="button" className="bulk-actions-danger" disabled={busy} onClick={() => void remove()}>
         Delete
       </button>
@@ -187,6 +228,55 @@ export function BulkActionsBar() {
       <button type="button" className="bulk-actions-cancel" disabled={busy} onClick={clearSelection}>
         Done
       </button>
+    </div>
+    </>
+  )
+}
+
+interface BulkMergeModalProps {
+  songIds: string[]
+  masterId: string
+  busy: boolean
+  onChangeMaster: (id: string) => void
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+function BulkMergeModal({ songIds, masterId, busy, onChangeMaster, onConfirm, onCancel }: BulkMergeModalProps) {
+  const songs = useLiveQuery(
+    () => db.songs.where('id').anyOf(songIds).toArray(),
+    [songIds.join(',')],
+  )
+
+  return (
+    <div className="bulk-merge-overlay" role="dialog" aria-modal="true" aria-label="Merge songs">
+      <div className="bulk-merge-modal">
+        <p className="bulk-merge-title">Merge {songIds.length} songs</p>
+        <p className="bulk-merge-desc">
+          All audio clips will stack onto the master song. The others are removed.
+        </p>
+        <label className="bulk-merge-label">
+          Master song
+          <select
+            className="bulk-merge-select"
+            value={masterId}
+            disabled={busy}
+            onChange={(e) => onChangeMaster(e.target.value)}
+          >
+            {songs?.map((s) => (
+              <option key={s.id} value={s.id}>{s.title}</option>
+            ))}
+          </select>
+        </label>
+        <div className="bulk-merge-actions">
+          <button type="button" className="bulk-actions-btn" disabled={busy} onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="button" className="bulk-actions-danger" disabled={busy || !masterId} onClick={onConfirm}>
+            {busy ? 'Merging…' : 'Merge songs'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

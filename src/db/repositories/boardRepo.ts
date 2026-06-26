@@ -137,8 +137,9 @@ export async function renameColumn(columnId: string, title: string) {
   if (!column) throw new Error('Section not found')
   if (column.slug === INBOX_SLUG) throw new Error('Inbox cannot be renamed')
 
-  await db.columns.update(columnId, { title: trimmed })
-  await enqueueSync('update', 'column', columnId, { title: trimmed, sortOrder: column.sortOrder })
+  const renamedAt = new Date().toISOString()
+  await db.columns.update(columnId, { title: trimmed, renamedAt })
+  await enqueueSync('update', 'column', columnId, { title: trimmed, slug: column.slug, sortOrder: column.sortOrder })
 }
 
 export async function deleteColumn(columnId: string) {

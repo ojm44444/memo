@@ -1605,6 +1605,25 @@ body.is-file-dragging * {
   padding-bottom: 4px;
 }
 
+.column-show-more {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.column-show-more:hover {
+  color: var(--text);
+  border-color: var(--audio-mint);
+}
+
 .board-column-loading {
   display: flex;
   flex-direction: column;
@@ -1639,6 +1658,18 @@ body.is-file-dragging * {
   line-height: 1.5;
 }
 
+.column-bottom-drop-zone {
+  min-height: 40px;
+  border-radius: 6px;
+  transition: background 0.15s, border-color 0.15s;
+  border: 1px dashed transparent;
+}
+
+.column-bottom-drop-zone.is-over {
+  background: rgba(var(--accent-rgb, 90 255 160) / 0.06);
+  border-color: rgba(var(--accent-rgb, 90 255 160) / 0.3);
+}
+
 .board-add-card {
   border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: 8px;
@@ -1659,6 +1690,7 @@ body.is-file-dragging * {
 }
 
 .song-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1878,6 +1910,44 @@ body.is-file-dragging * {
   display: inline-block;
 }
 
+.song-card-merge-zone {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px dashed transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.12s, border-color 0.12s, background 0.12s;
+  pointer-events: all;
+  z-index: 10;
+}
+.song-card-merge-zone.is-over {
+  opacity: 1;
+  border-color: var(--accent);
+  background: rgba(200, 255, 87, 0.08);
+}
+.song-card:has(.song-card-merge-zone:not(.is-over)) .song-card-merge-zone {
+  opacity: 0.35;
+  border-color: var(--border);
+}
+.song-card-merge-zone-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--accent);
+  background: var(--bg-1);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 2px 7px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.song-card-merge-zone.is-over .song-card-merge-zone-label {
+  opacity: 1;
+}
+
 .player-bar {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
@@ -2023,6 +2093,14 @@ body.is-file-dragging * {
 
 .interactive-waveform-bar.is-played {
   background: rgba(255, 255, 255, 0.42);
+}
+
+html.light .interactive-waveform-bar {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+html.light .interactive-waveform-bar.is-played {
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .interactive-waveform-skeleton {
@@ -3100,32 +3178,53 @@ body.is-file-dragging * {
 .song-drawer-handle {
   display: none;
   width: 100%;
-  padding: 10px 0 6px;
+  padding: 12px 16px 10px;
   background: transparent;
   border: none;
   cursor: pointer;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   flex-shrink: 0;
 }
 
 .song-drawer-handle-pill {
-  width: 40px;
+  width: 36px;
   height: 4px;
   border-radius: 2px;
   background: var(--border);
   transition: background 0.15s;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 10px;
 }
 
-.song-drawer-handle:hover .song-drawer-handle-pill,
-.song-drawer-handle:active .song-drawer-handle-pill {
-  background: var(--text-muted);
+.song-drawer-handle-label {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.song-drawer-handle:active .song-drawer-handle-label {
+  background: var(--audio-mint);
+  color: var(--bg);
+  border-color: var(--audio-mint);
 }
 
 @media (max-width: 600px) {
   .song-drawer-close { display: none; }
-  .song-drawer-handle { display: flex; }
-  .song-drawer::before { display: none; } /* pill now on the handle button */
+  .song-drawer-handle { display: flex; position: relative; }
+  .song-drawer::before { display: none; }
 }
 
 /* Mini player shown inside drawer when audio is active */
@@ -3403,6 +3502,40 @@ body.is-file-dragging * {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.merge-picker-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.merge-picker-search {
+  flex: 1;
+  background: var(--surface, #111);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.78rem;
+  padding: 6px 9px;
+  outline: none;
+  min-width: 0;
+}
+
+.merge-picker-search:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.merge-picker-column-select {
+  background: var(--surface, #111);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 6px 8px;
+  outline: none;
+  cursor: pointer;
+  max-width: 130px;
 }
 
 .song-detail-danger {
@@ -3909,6 +4042,43 @@ body.is-file-dragging * {
   background: var(--bg-3);
 }
 
+/* Buffering spinner shown in play button while audio is loading */
+@keyframes player-spin {
+  to { transform: rotate(360deg); }
+}
+
+.player-bar-spinner {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: player-spin 0.75s linear infinite;
+}
+
+.player-bar-buffering {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Thin buffer-progress bar shown under the waveform while loading */
+.player-bar-buffer-track {
+  height: 2px;
+  margin-top: 3px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.player-bar-buffer-fill {
+  height: 100%;
+  background: var(--audio-mint);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+  min-width: 6px;
+}
+
 /* Library grid */
 .library-view {
   flex: 1;
@@ -4379,6 +4549,53 @@ body.is-file-dragging * {
 
 .version-stack-action--danger {
   color: #ff8a8a;
+}
+
+.version-clip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 0 2px;
+}
+
+.version-clip-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--audio-mint);
+  background: rgba(0, 255, 157, 0.08);
+  border: 1px solid rgba(0, 255, 157, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.version-clip-tag-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.version-clip-tag-remove:hover {
+  opacity: 1;
+}
+
+.version-clip-tag-input {
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 255, 157, 0.4);
+  color: var(--audio-mint);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  outline: none;
+  width: 80px;
+  padding: 1px 2px;
 }
 
 .version-stack-primary {
@@ -5300,6 +5517,68 @@ body.is-file-dragging * {
   color: var(--accent-2);
 }
 
+.bulk-merge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.bulk-merge-modal {
+  background: var(--surface-2, #1a1a1a);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  width: min(360px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bulk-merge-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.bulk-merge-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted, rgba(255,255,255,0.45));
+  line-height: 1.5;
+}
+
+.bulk-merge-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted, rgba(255,255,255,0.45));
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bulk-merge-select {
+  background: var(--surface, #111);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+.bulk-merge-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .song-card.is-selected {
   border-color: var(--audio-mint);
   box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.25);
@@ -5700,60 +5979,116 @@ body.is-file-dragging * {
 /* ── Light mode overrides ────────────────────────────────────────────────── */
 
 .board-theme-toggle {
-  border: none;
-  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
   color: var(--text-muted);
-  font-size: 0.88rem;
-  padding: 4px 6px;
-  border-radius: 6px;
+  font-size: 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  line-height: 1;
-  transition: color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
 }
 .board-theme-toggle:hover {
   color: var(--text);
+  border-color: var(--audio-mint);
 }
 
-html.light .import-error-toast-dismiss {
+/* Waveform bars — theme-aware */
+.waveform-bar-idle { background: rgba(255, 255, 255, 0.1); }
+.waveform-bar-played { background: rgba(255, 255, 255, 0.35); }
+html.light .waveform-bar-idle { background: rgba(0, 0, 0, 0.15); }
+html.light .waveform-bar-played { background: rgba(0, 0, 0, 0.4); }
+
+/* Light mode component overrides */
+html.light .app-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+html.light .song-card:hover {
   border-color: rgba(0, 0, 0, 0.14);
+  border-left-color: var(--audio-mint-dim);
 }
-html.light .import-error-toast-dismiss:hover {
-  border-color: rgba(0, 0, 0, 0.25);
+
+html.light .song-card.is-active {
+  border-color: rgba(0, 184, 107, 0.4);
+  box-shadow: 0 0 0 1px rgba(0, 184, 107, 0.1);
 }
-html.light .voice-memos-connect-ghost {
-  border-color: rgba(0, 0, 0, 0.12);
+
+html.light .drag-overlay-card {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 184, 107, 0.3);
 }
-html.light .sync-status-badge {
-  border-color: rgba(0, 0, 0, 0.12);
+
+html.light .board-drop-overlay.is-active {
+  background: rgba(240, 240, 244, 0.7);
 }
-html.light .board-column-tab-count {
-  background: rgba(0, 0, 0, 0.08);
+
+html.light .board-drop-banner {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 184, 107, 0.25);
 }
-html.light .board-empty-hint {
-  border-color: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.3);
+
+html.light .column-player-bar,
+html.light .player-bar {
+  background: rgba(255, 255, 255, 0.95);
+  border-top-color: rgba(0, 0, 0, 0.08);
 }
-html.light .board-add-card {
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.3);
+
+html.light .song-drawer-sheet {
+  background: var(--bg);
+}
+
+html.light .board-column-header {
+  background: transparent;
+}
+
+/* Light mode: fix white-on-white borders/shadows */
+html.light .board-tag-chip {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+html.light .song-tag-pill {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+  background-color: var(--bg-2);
+}
+html.light .player-bar-spinner {
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: currentColor;
+}
+
+/* Light mode: cards get a real shadow so they float on the gray board */
+html.light .song-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
 }
 html.light .song-card:hover {
-  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-html.light .interactive-waveform-bar {
-  background: rgba(0, 0, 0, 0.14);
+html.light .song-card.is-active {
+  box-shadow: 0 0 0 2px var(--audio-mint), 0 4px 12px rgba(0,0,0,0.08);
+  border-color: transparent;
 }
-html.light .interactive-waveform-bar.is-played {
-  background: rgba(0, 0, 0, 0.35);
+html.light .drag-overlay-card {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2), 0 0 0 2px var(--audio-mint);
 }
-html.light .sync-auth-google {
-  border-color: rgba(0, 0, 0, 0.14);
-  background: var(--surface);
-  color: var(--text);
+
+/* Light mode: column header pill badge */
+html.light .board-column-count {
+  background: rgba(0,0,0,0.06);
+  color: var(--text-muted);
 }
-html.light .player-bar {
-  background: rgba(240, 237, 232, 0.96);
-}
-html.light .board-workspace {
+
+/* Light mode: board background */
+html.light .board-scroll {
   background: var(--bg);
+}
+
+/* Light mode: pwa banner */
+html.light .pwa-update-banner {
+  background: #e8f5ee;
+  color: #1a4d2e;
+  border-color: rgba(0,184,107,0.3);
 }
