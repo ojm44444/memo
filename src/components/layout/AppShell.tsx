@@ -8,6 +8,7 @@ import { SyncStatusBadge } from './SyncStatusBadge'
 import { FeedbackBadge } from './FeedbackBadge'
 import { KeyboardShortcutsHelp } from '@/components/board/KeyboardShortcutsHelp'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { ThemeToggle } from '@/components/board/ThemeToggle'
 import type { ReactNode } from 'react'
 
 interface AppShellProps {
@@ -24,6 +25,7 @@ export function AppShell({ children }: AppShellProps) {
         <div className="app-header-actions">
           <BoardSwitcher />
           <InviteBandmateButton />
+          <ThemeToggle />
           <SettingsPanel />
           <SyncAuthButton />
           <FeedbackBadge />

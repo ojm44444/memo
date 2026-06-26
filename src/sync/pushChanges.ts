@@ -204,11 +204,14 @@ async function processQueueItem(
         ),
       )
     } else if (item.op === 'update') {
+      // Match by slug (stable) not id — local and server ids can diverge if
+      // the initial create was pushed via upsert on a different device.
       await assertNoError(
         await supabase!
           .from('columns')
           .update({ title: payload.title, position: payload.sortOrder })
-          .eq('id', item.entityId),
+          .eq('board_id', boardId)
+          .eq('slug', payload.slug),
       )
     } else if (item.op === 'delete') {
       await assertNoError(

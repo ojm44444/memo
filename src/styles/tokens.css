@@ -19,3 +19,20 @@
   --font-mono: 'DM Mono', monospace;
 }
 
+html.light {
+  --bg: #eeedf0;
+  --bg-2: #e6e5e9;
+  --bg-3: #dcdbe0;
+  --surface: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --text: #111113;
+  --text-muted: #6b6877;
+  --accent: #00b86b;
+  --accent-hover: #009959;
+  --accent-dim: rgba(0, 184, 107, 0.12);
+  --accent-glow: rgba(0, 184, 107, 0.08);
+  --audio-mint: #00b86b;
+  --audio-mint-dim: rgba(0, 184, 107, 0.18);
+  --audio-mint-glow: rgba(0, 184, 107, 0.1);
+}
+

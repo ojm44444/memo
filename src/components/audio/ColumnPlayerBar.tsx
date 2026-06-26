@@ -3,6 +3,7 @@ import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
 } from '@/lib/audio/playbackPosition'
+import { registerAudioEl, consumeSrcSwitchPending, markSrcSwitch } from '@/lib/audio/globalAudioEl'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
@@ -23,10 +24,17 @@ export function ColumnPlayerBar() {
   // double-load: effect fires with seek value, clearPendingSeek() sets it
   // to null, deps change, effect fires again and reloads the audio source).
   const pendingSeekMsRef = useRef<number | null>(null)
+  // Prevents the progress=0 reset effect from wiping a resume seek that
+  // was applied in onLoadedMetadata (which fires before onCanPlay/sourceReady).
+  const skipProgressResetRef = useRef(false)
+  // Distinguishes user-initiated pauses from system-triggered ones (iOS phone
+  // call, lock screen) so we can sync isPlaying when the OS pauses audio.
+  const programmaticPauseRef = useRef(false)
   const [sourceReady, setSourceReady] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
   const [currentMs, setCurrentMs] = useState(0)
+  const [bufferProgress, setBufferProgress] = useState(0)
 
   const {
     currentVersionId,
@@ -56,6 +64,8 @@ export function ColumnPlayerBar() {
     toggleQueueOpen,
     pendingSeekMs,
     clearPendingSeek,
+    buffering,
+    setBuffering,
   } = usePlayerStore()
 
   // Keep ref in sync with store value so the load effect can consume it once
@@ -75,6 +85,7 @@ export function ColumnPlayerBar() {
     let cancelled = false
     setSourceReady(false)
     setAudioUrl(null)
+    setBufferProgress(0)
 
     async function loadSource() {
       // Local blobs are now cached in resolvePlaybackUrl — no need to revoke
@@ -113,9 +124,14 @@ export function ColumnPlayerBar() {
 
       resumeSeekRef.current = savedMs > 0 ? savedMs : null
 
-      // Set src and wait — sourceReady is set by onCanPlay so play() is
-      // never called before the browser confirms it can decode the audio.
-      audioRef.current.src = url
+      // If playAudioImmediately() already set this src (gesture-handler fast
+      // path), don't reset it — play() is async so paused may still be true
+      // even though playback was initiated. Resetting src would cancel it.
+      const sameUrl = audioRef.current.src === url
+      if (!sameUrl) {
+        markSrcSwitch()
+        audioRef.current.src = url
+      }
       setAudioUrl(url)
       // sourceReady will be set true by the onCanPlay handler below
     }
@@ -143,6 +159,13 @@ export function ColumnPlayerBar() {
 
   useEffect(() => {
     if (progress === 0 && audioRef.current && sourceReady) {
+      // Skip if onLoadedMetadata already seeked to a resume position —
+      // onLoadedMetadata fires before onCanPlay so the seek lands first,
+      // then sourceReady becomes true and this effect would reset it to 0.
+      if (skipProgressResetRef.current) {
+        skipProgressResetRef.current = false
+        return
+      }
       audioRef.current.currentTime = 0
       setCurrentMs(0)
     }
@@ -159,6 +182,7 @@ export function ColumnPlayerBar() {
     if (isPlaying) {
       void audio.play().catch(() => setPlaying(false))
     } else {
+      programmaticPauseRef.current = true
       audio.pause()
     }
   }, [isPlaying, sourceReady, currentVersionId, setPlaying])
@@ -215,7 +239,7 @@ export function ColumnPlayerBar() {
   return (
     <footer className={expanded ? 'player-bar player-bar--expanded' : 'player-bar'}>
       <audio
-        ref={audioRef}
+        ref={(el) => { audioRef.current = el; registerAudioEl(el) }}
         onLoadedMetadata={(event) => {
           const element = event.currentTarget
           setDurationMs(element.duration * 1000)
@@ -226,9 +250,31 @@ export function ColumnPlayerBar() {
             element.currentTime = resumeMs / 1000
             setProgress(resumeMs / (element.duration * 1000))
             setCurrentMs(resumeMs)
+            // Tell the progress=0 reset effect to skip its next run — it fires
+            // after onCanPlay sets sourceReady=true and would otherwise undo this seek.
+            skipProgressResetRef.current = true
           }
         }}
-        onCanPlay={() => setSourceReady(true)}
+        onCanPlay={(event) => {
+          setSourceReady(true)
+          setBuffering(false)
+          // Call play() directly from the browser event rather than waiting
+          // for the sourceReady state change to propagate through React —
+          // this eliminates a render cycle and works more reliably on mobile.
+          if (usePlayerStore.getState().isPlaying) {
+            void event.currentTarget.play().catch((err: Error) => {
+              if (err?.name !== 'AbortError') setPlaying(false)
+            })
+          }
+        }}
+        onWaiting={() => setBuffering(true)}
+        onPlaying={() => setBuffering(false)}
+        onProgress={(event) => {
+          const el = event.currentTarget
+          if (el.buffered.length > 0 && el.duration) {
+            setBufferProgress(el.buffered.end(el.buffered.length - 1) / el.duration)
+          }
+        }}
         onTimeUpdate={(event) => {
           const element = event.currentTarget
           if (element.duration) {
@@ -246,6 +292,13 @@ export function ColumnPlayerBar() {
           if (currentSongId && audioRef.current) {
             void setPlaybackPositionMs(currentSongId, audioRef.current.currentTime * 1000)
           }
+          // Ignore pause events caused by switching to a new src (song switch).
+          // Programmatic pauses (user clicked pause) set programmaticPauseRef first.
+          if (consumeSrcSwitchPending()) return
+          if (!programmaticPauseRef.current) {
+            setPlaying(false)
+          }
+          programmaticPauseRef.current = false
         }}
         onEnded={() => void handleEnded()}
       />
@@ -289,11 +342,11 @@ export function ColumnPlayerBar() {
           </button>
           <button
             type="button"
-            onClick={() => setPlaying(!isPlaying)}
-            className="song-card-play h-9 w-9 text-xs"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+            className={`song-card-play h-9 w-9 text-xs${buffering ? ' player-bar-buffering' : ''}`}
+            aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
           >
-            {isPlaying ? '❚❚' : '▶'}
+            {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
           </button>
           <button
             type="button"
@@ -338,12 +391,20 @@ export function ColumnPlayerBar() {
             <InteractiveWaveform
               audioUrl={audioUrl}
               progress={progress}
-              active={isPlaying}
+              active={isPlaying && !buffering}
               barCount={32}
               height={24}
               className="mt-1.5"
               onSeek={seekTo}
             />
+            {buffering && (
+              <div className="player-bar-buffer-track">
+                <div
+                  className="player-bar-buffer-fill"
+                  style={{ width: `${Math.round(bufferProgress * 100)}%` }}
+                />
+              </div>
+            )}
           </div>
         </div>
 

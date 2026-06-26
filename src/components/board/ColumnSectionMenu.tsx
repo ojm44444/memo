@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { deleteColumn, renameColumn } from '@/db/repositories/boardRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { INBOX_SLUG, type Column } from '@/types/column'
@@ -12,6 +12,12 @@ export function ColumnSectionMenu({ column }: ColumnSectionMenuProps) {
   const [renaming, setRenaming] = useState(false)
   const [title, setTitle] = useState(column.title)
   const [error, setError] = useState('')
+
+  // Reset local title state when the column prop changes externally (e.g. sync pull)
+  // so reopening the rename field always shows the current saved title.
+  useEffect(() => {
+    if (!renaming) setTitle(column.title)
+  }, [column.title, renaming])
 
   if (column.slug === INBOX_SLUG) return null
 

@@ -12,6 +12,8 @@ interface UiState {
   selectedSongIds: string[]
   columnScrollSlug: ColumnSlug | null
   columnScrollNonce: number
+  draggingCardId: string | null
+  setDraggingCardId: (id: string | null) => void
   selectSong: (id: string | null) => void
   openDrawer: (songId: string) => void
   closeDrawer: () => void
@@ -36,6 +38,9 @@ export const useUiStore = create<UiState>((set) => ({
   selectedSongIds: [],
   columnScrollSlug: null,
   columnScrollNonce: 0,
+  draggingCardId: null,
+
+  setDraggingCardId: (id) => set({ draggingCardId: id }),
 
   selectSong: (id) => set({ selectedSongId: id }),
 

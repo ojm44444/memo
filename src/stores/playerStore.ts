@@ -25,6 +25,7 @@ interface PlayerState {
   currentIndex: number
   playbackRate: PlaybackRate
   isPlaying: boolean
+  buffering: boolean
   progress: number
   currentSongId: string | null
   currentVersionId: string | null
@@ -68,6 +69,7 @@ interface PlayerState {
   clearPendingSeek: () => void
   setPlaybackRate: (rate: PlaybackRate) => void
   setPlaying: (playing: boolean) => void
+  setBuffering: (buffering: boolean) => void
   setProgress: (progress: number) => void
   playNextInColumn: () => PlaylistItem | null
   playPreviousInColumn: () => PlaylistItem | null
@@ -107,6 +109,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentIndex: 0,
   playbackRate: 1,
   isPlaying: false,
+  buffering: false,
   progress: 0,
   currentSongId: null,
   currentVersionId: null,
@@ -143,22 +146,26 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   playAtVersion: async (columnSlug, songId, versionId) => {
-    const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
-    const playlist = await buildColumnPlaylist(columnSlug)
-    const index = playlist.findIndex((p) => p.songId === songId)
-    if (index < 0) return
+    // Set playing state eagerly so ColumnPlayerBar starts loading the audio
+    // source before the async playlist build completes. This is critical on
+    // iOS where audio.play() must be called as close to the user gesture as
+    // possible (gesture context expires after ~1 s across await boundaries).
     set({
       activeColumnId: columnSlug,
       playlistSource: 'column',
       favouritesScope: null,
-      playlist,
-      currentIndex: index,
       currentSongId: songId,
       currentVersionId: versionId,
       pendingSeekMs: null,
       progress: 0,
       isPlaying: true,
+      buffering: true,
     })
+    const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
+    const playlist = await buildColumnPlaylist(columnSlug)
+    const index = playlist.findIndex((p) => p.songId === songId)
+    // Update playlist/index once available; leave isPlaying untouched
+    set({ playlist, currentIndex: Math.max(0, index) })
   },
 
   playSongAtTimestamp: async (columnSlug, songId, versionId, timestampMs) => {
@@ -189,7 +196,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setPlaybackRate: (rate) => set({ playbackRate: rate }),
 
   setPlaying: (playing) => set({ isPlaying: playing }),
-
+  setBuffering: (buffering) => set({ buffering }),
   setProgress: (progress) => set({ progress }),
 
   setExpanded: (expanded) => set({ expanded }),

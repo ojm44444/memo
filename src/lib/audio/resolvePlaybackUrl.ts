@@ -1,10 +1,10 @@
 import { getAudioBlob } from '@/db/repositories/audioRepo'
 import { supabase } from '@/lib/supabase/client'
 
-// Cache object URLs for local blobs so repeated plays skip the IDB read.
-// Object URLs are cheap pointers — revoking doesn't free the underlying blob,
-// which IDB holds anyway. Safe to keep alive for the session.
+// Cache object URLs for local blobs and signed URLs for cloud paths.
+// Both are safe to keep for the session — signed URLs are valid for 1 hour.
 const localUrlCache = new Map<string, string>()
+const signedUrlCache = new Map<string, string>()
 
 export async function resolvePlaybackUrl(
   localBlobId: string | null,
@@ -23,10 +23,29 @@ export async function resolvePlaybackUrl(
   }
 
   if (storagePath && supabase) {
+    const cached = signedUrlCache.get(storagePath)
+    if (cached) return cached
     const { data } = await supabase.storage.from('audio').createSignedUrl(storagePath, 3600)
-    return data?.signedUrl ?? null
+    if (data?.signedUrl) {
+      signedUrlCache.set(storagePath, data.signedUrl)
+      return data.signedUrl
+    }
+    return null
   }
 
+  return null
+}
+
+/**
+ * Synchronously returns a cached URL for the version (local or signed),
+ * or null if the URL hasn't been resolved yet.
+ */
+export function getCachedUrl(
+  localBlobId: string | null,
+  storagePath: string | null,
+): string | null {
+  if (localBlobId) return localUrlCache.get(localBlobId) ?? null
+  if (storagePath) return signedUrlCache.get(storagePath) ?? null
   return null
 }
 

@@ -16,6 +16,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   getColumns,
   getColumnSongCounts,
+  mergeSongsInto,
   moveSong,
   reorderSongInColumn,
 } from '@/db/repositories/boardRepo'
@@ -41,6 +42,7 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   const selectionMode = useUiStore((state) => state.selectionMode)
+  const setDraggingCardId = useUiStore((state) => state.setDraggingCardId)
   const columnScrollSlug = useUiStore((state) => state.columnScrollSlug)
   const columnScrollNonce = useUiStore((state) => state.columnScrollNonce)
   const columns = useLiveQuery(() => getColumns())
@@ -73,7 +75,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 12 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 20 } }),
   )
 
   const collisionDetection: CollisionDetection = useCallback((args) => {
@@ -138,11 +140,13 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     if (readOnly || selectionMode) return
     const song = event.active.data.current?.song as Song | undefined
     setActiveSong(song ?? null)
+    if (song) setDraggingCardId(song.id)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const song = activeSong
     setActiveSong(null)
+    setDraggingCardId(null)
     if (readOnly || selectionMode || !song) return
 
     const { active, over } = event
@@ -151,13 +155,20 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     const songId = String(active.id)
     const overData = over.data.current
 
-    if (overData?.type === 'column') {
+    if (overData?.type === 'song-merge') {
+      const targetSongId = overData.targetSongId as string
+      if (targetSongId !== songId) {
+        void mergeSongsInto(targetSongId, [songId])
+        scheduleFlush()
+      }
+    } else if (overData?.type === 'column') {
       const targetColumn = overData.columnSlug as ColumnSlug
       if (song.columnSlug === targetColumn) {
         void reorderSongInColumn(songId, targetColumn, 999)
       } else {
         void moveSong(songId, targetColumn, 999)
       }
+      scheduleFlush()
     } else if (overData?.type === 'song') {
       const targetColumn = overData.columnSlug as ColumnSlug
       const beforeSongId = String(over.id)
@@ -166,11 +177,8 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       } else {
         void moveSong(songId, targetColumn, 999, beforeSongId)
       }
-    } else {
-      return
+      scheduleFlush()
     }
-
-    scheduleFlush()
   }
 
   return (

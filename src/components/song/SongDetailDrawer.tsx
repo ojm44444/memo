@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { duplicateSong } from '@/db/repositories/audioRepo'
+import { resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { formatDuration } from '@/lib/audio-utils'
@@ -37,6 +38,20 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     if (selectedSongId) void markFeedbackSeen(selectedSongId)
   }, [drawerOpen, selectedSongId])
 
+  // Preload audio URLs as soon as the drawer opens so getCachedLocalUrl()
+  // returns synchronously when the user taps play — making play() callable
+  // inside the gesture handler with no await before it (required by iOS).
+  useEffect(() => {
+    if (!drawerOpen || !selectedSongId) return
+    void (async () => {
+      const versions = await db.audioVersions
+        .where('songId').equals(selectedSongId).sortBy('sortOrder')
+      for (const v of versions) {
+        void resolvePlaybackUrl(v.localBlobId, v.storagePath)
+      }
+    })()
+  }, [drawerOpen, selectedSongId])
+
   useEffect(() => {
     if (song) setTitleDraft(song.title)
   }, [song?.id, song?.title])
@@ -51,13 +66,20 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [drawerOpen, closeDrawer])
 
-  const { currentSongId, isPlaying, setPlaying, playbackRate, setPlaybackRate, progress } = usePlayerStore()
+  const { currentSongId, isPlaying, buffering, setPlaying, playbackRate, setPlaybackRate, progress } = usePlayerStore()
   const isThisSongPlaying = currentSongId === (song?.id ?? '')
   const currentVersion = useLiveQuery(async () => {
     if (!isThisSongPlaying || !song) return undefined
     const versions = await db.audioVersions.where('songId').equals(song.id).sortBy('sortOrder')
     return versions[0]
   }, [isThisSongPlaying, song?.id])
+
+  // Swipe down to close on mobile
+  const touchStartY = useRef(0)
+  const onTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.changedTouches[0].clientY - touchStartY.current > 80) closeDrawer()
+  }
 
   if (!drawerOpen || !song) return null
 
@@ -98,9 +120,10 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
   return (
     <div className="song-drawer-overlay" onClick={closeDrawer}>
-      <div className="song-drawer" onClick={(e) => e.stopPropagation()}>
+      <div className="song-drawer" onClick={(e) => e.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <button type="button" className="song-drawer-handle" onClick={closeDrawer} aria-label="Close">
           <span className="song-drawer-handle-pill" />
+          <span className="song-drawer-handle-label">✕ Close</span>
         </button>
         <div className="scp-header">
           {readOnly ? (
@@ -201,11 +224,11 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
           <div className="drawer-mini-player">
             <button
               type="button"
-              className="drawer-mini-play"
-              onClick={() => setPlaying(!isPlaying)}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+              className={`drawer-mini-play${buffering ? ' player-bar-buffering' : ''}`}
+              onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+              aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
             >
-              {isPlaying ? '❚❚' : '▶'}
+              {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
             </button>
             <div className="drawer-mini-info">
               <span className="drawer-mini-label">{currentVersion?.label ?? song.title}</span>

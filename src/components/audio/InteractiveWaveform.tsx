@@ -73,7 +73,13 @@ export function InteractiveWaveform({
   const onPointerDown = (event: React.PointerEvent) => {
     event.preventDefault()
     const el = containerRef.current
-    el?.setPointerCapture(event.pointerId)
+    if (el) {
+      try {
+        el.setPointerCapture(event.pointerId)
+      } catch {
+        // Some mobile browsers throw if the pointer is already released
+      }
+    }
     seekFromClientX(event.clientX)
   }
 

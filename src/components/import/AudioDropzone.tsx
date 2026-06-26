@@ -47,7 +47,7 @@ export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzone
   return (
     <div
       className={cn(
-        'rounded-lg border border-dashed border-white/10 p-4 text-center transition-colors',
+        'rounded-lg border border-dashed border-border p-4 text-center transition-colors',
         dragging && 'border-audio-mint/40 bg-audio-mint/5',
         className,
       )}

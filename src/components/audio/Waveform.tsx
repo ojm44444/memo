@@ -39,10 +39,10 @@ export function Waveform({
             index < playedCount
               ? active
                 ? 'bg-audio-mint'
-                : 'bg-white/35'
+                : 'waveform-bar-played'
               : active
                 ? 'bg-audio-mint-dim'
-                : 'bg-white/10',
+                : 'waveform-bar-idle',
           )}
           style={{ height: `${height}%` }}
         />
