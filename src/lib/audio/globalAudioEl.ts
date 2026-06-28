@@ -35,10 +35,15 @@ function unlockMainEl(el: HTMLAudioElement) {
   el.src = SILENT
   void el.play().then(() => {
     el.pause()
-    el.src = prev || ''
-    if (prev) srcSwitchPending = true
+    // Only restore if nothing else changed the src while we were playing SILENT.
+    // If playAudioImmediately() fired during the gesture and already set the
+    // real URL, leave it alone — restoring prev would wipe the real audio.
+    if (el.src === SILENT || el.src.endsWith(SILENT)) {
+      el.src = prev || ''
+      if (prev) srcSwitchPending = true
+    }
   }).catch(() => {
-    el.src = prev || ''
+    if (el.src === SILENT || el.src.endsWith(SILENT)) el.src = prev || ''
   })
 }
 
