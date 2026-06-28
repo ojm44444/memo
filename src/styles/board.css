@@ -5720,7 +5720,7 @@ html.light .interactive-waveform-bar.is-played {
 
 .bulk-merge-desc {
   font-size: 0.75rem;
-  color: var(--text-muted, rgba(255,255,255,0.45));
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -5729,7 +5729,7 @@ html.light .interactive-waveform-bar.is-played {
   flex-direction: column;
   gap: 6px;
   font-size: 0.72rem;
-  color: var(--text-muted, rgba(255,255,255,0.45));
+  color: var(--text-muted);
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -6264,6 +6264,19 @@ html.light .pwa-update-banner {
   background: #e8f5ee;
   color: #1a4d2e;
   border-color: rgba(0,184,107,0.3);
+}
+
+/* ─── Light mode: remaining hardcoded-white fixes ─── */
+
+html.light .board-tag-chip {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+html.light .song-tag-pill {
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}
+html.light .bulk-merge-desc,
+html.light .bulk-merge-label {
+  color: var(--text-muted);
 }
 
 /* ─── Light mode: fix white-on-white & invisible elements ─── */

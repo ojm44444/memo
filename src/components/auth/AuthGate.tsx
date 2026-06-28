@@ -55,10 +55,9 @@ export function AuthGate({ children }: AuthGateProps) {
     if (!navigator.onLine) {
       return (
         <div className="auth-gate-loading">
-          <p>You&apos;re offline and need to sign in again when you have Wi‑Fi.</p>
+          <p>You&apos;re offline.</p>
           <p className="auth-gate-loading-sub">
-            If you&apos;ve used mem• on this device before, try opening the app again once
-            you&apos;re online — your memos should still be here.
+            Your memos are saved on this device. Sign in when you&apos;re back online to sync.
           </p>
         </div>
       )

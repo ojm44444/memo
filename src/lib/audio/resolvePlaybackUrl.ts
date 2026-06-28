@@ -25,6 +25,7 @@ export async function resolvePlaybackUrl(
   if (storagePath && supabase) {
     const cached = signedUrlCache.get(storagePath)
     if (cached) return cached
+    if (!navigator.onLine) return null
     const { data } = await supabase.storage.from('audio').createSignedUrl(storagePath, 3600)
     if (data?.signedUrl) {
       signedUrlCache.set(storagePath, data.signedUrl)

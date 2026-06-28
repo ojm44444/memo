@@ -255,7 +255,10 @@ export async function pushChanges(userId: string): Promise<PushResult> {
     }
   }
 
-  await supabase.auth.getSession()
+  // Skip session refresh when offline — resolveBoardAuth() already validated.
+  if (navigator.onLine) {
+    await supabase.auth.getSession()
+  }
 
   let boardId: string | null = null
 

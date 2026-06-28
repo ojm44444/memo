@@ -85,7 +85,14 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
     ? rawSongs.filter((s) => s.id !== optimisticHideSongId)
     : rawSongs
 
-  const songIds = songs?.map((s) => s.id) ?? []
+  const optimisticExtra =
+    optimisticShowSong && !rawSongs?.find((s) => s.id === optimisticShowSong.id)
+      ? optimisticShowSong
+      : null
+  const songIds = [
+    ...(optimisticExtra ? [optimisticExtra.id] : []),
+    ...(songs?.map((s) => s.id) ?? []),
+  ]
   const visibleSongs = songs?.slice(0, visibleCount) ?? []
   const hiddenCount = (songs?.length ?? 0) - visibleCount
   const isEmpty = songs !== undefined && songs.length === 0
@@ -152,10 +159,10 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
               <span className="board-column-loading-bar" style={{ width: '85%' }} />
             </div>
           )}
-          {optimisticShowSong && !rawSongs?.find((s) => s.id === optimisticShowSong.id) && (
+          {optimisticExtra && (
             <SongCard
-              key={`opt-${optimisticShowSong.id}`}
-              song={{ ...optimisticShowSong, columnSlug: column.slug }}
+              key={optimisticExtra.id}
+              song={{ ...optimisticExtra, columnSlug: column.slug }}
               columnSlug={column.slug}
               readOnly={readOnly}
             />
