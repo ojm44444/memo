@@ -209,8 +209,7 @@ async function processQueueItem(
       await assertNoError(
         await supabase!
           .from('columns')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .update({ title: payload.title, position: payload.sortOrder, updated_at: new Date().toISOString() } as any)
+          .update({ title: payload.title, position: payload.sortOrder })
           .eq('board_id', boardId)
           .eq('slug', payload.slug),
       )
