@@ -92,14 +92,17 @@ async function processQueueItem(
 
       await uploadAudioVersion(item.entityId, userId, boardId, payload)
     } else if (item.op === 'update') {
+      const patch: Record<string, unknown> = {
+        label: payload.label,
+        position: payload.sortOrder,
+        updated_at: new Date().toISOString(),
+      }
+      // song_id changes from merge operations
+      if (payload.songId !== undefined) patch.song_id = payload.songId
       await assertNoError(
         await supabase!
           .from('audio_versions')
-          .update({
-            label: payload.label,
-            position: payload.sortOrder,
-            updated_at: new Date().toISOString(),
-          })
+          .update(patch)
           .eq('id', item.entityId),
       )
     } else if (item.op === 'delete') {

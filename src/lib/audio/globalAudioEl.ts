@@ -30,20 +30,28 @@ let audioUnlocked = false
 // unlock the main element as soon as it registers.
 let pendingMainUnlock = false
 
+// Set by playAudioImmediately() to signal that the real src is now loaded.
+// unlockMainEl checks this before restoring the prev src after pausing SILENT.
+let realSrcSet = false
+
 function unlockMainEl(el: HTMLAudioElement) {
   const prev = el.src
+  realSrcSet = false
   el.src = SILENT
   void el.play().then(() => {
+    // Mark as a programmatic src-change so onPause won't call setPlaying(false).
+    srcSwitchPending = true
     el.pause()
-    // Only restore if nothing else changed the src while we were playing SILENT.
-    // If playAudioImmediately() fired during the gesture and already set the
-    // real URL, leave it alone — restoring prev would wipe the real audio.
-    if (el.src === SILENT || el.src.endsWith(SILENT)) {
+    if (realSrcSet) {
+      // playAudioImmediately() already changed the src to real audio and called
+      // play() — our pause() above may have interrupted it. Restart it.
+      void el.play().catch(() => {})
+    } else {
+      // Nothing played yet — restore prev src so the element is in a clean state.
       el.src = prev || ''
-      if (prev) srcSwitchPending = true
     }
   }).catch(() => {
-    if (el.src === SILENT || el.src.endsWith(SILENT)) el.src = prev || ''
+    if (!realSrcSet) el.src = prev || ''
   })
 }
 
@@ -89,6 +97,7 @@ export function registerAudioEl(el: HTMLAudioElement | null) {
  */
 export function playAudioImmediately(url: string, playbackRate: number): boolean {
   if (!audioEl) return false
+  realSrcSet = true  // signal to unlockMainEl that real audio is in control
   if (audioEl.src !== url) srcSwitchPending = true
   audioEl.src = url
   audioEl.playbackRate = playbackRate

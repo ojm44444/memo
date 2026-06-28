@@ -188,7 +188,10 @@ export async function pullChanges(userId: string) {
     }
   }
 
-  const songIds = (await db.songs.toArray()).map((s) => s.id)
+  // Only fetch versions for non-deleted songs. Deleted source songs from
+  // merges still sit in IndexedDB with deletedAt set — including them would
+  // let the server pull their orphaned versions back to the old song_id.
+  const songIds = (await db.songs.filter((s) => !s.deletedAt).toArray()).map((s) => s.id)
   if (songIds.length > 0) {
     const { data: remoteVersions, error: versionError } = await supabase
       .from('audio_versions')

@@ -493,9 +493,16 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
 
     const versions = await db.audioVersions.where('songId').equals(sourceId).sortBy('sortOrder')
     for (const version of versions) {
+      const newSortOrder = versionOffset++
       await db.audioVersions.update(version.id, {
         songId: targetSongId,
-        sortOrder: versionOffset++,
+        sortOrder: newSortOrder,
+      })
+      // Push song_id change to server so pull doesn't move the version back
+      void enqueueSync('update', 'audio_version', version.id, {
+        songId: targetSongId,
+        sortOrder: newSortOrder,
+        label: version.label,
       })
     }
 

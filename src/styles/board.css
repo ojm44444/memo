@@ -6363,3 +6363,69 @@ html.light .player-bar-song-title {
 html.light .board-column-scroll {
   scrollbar-color: rgba(0,0,0,0.15) transparent;
 }
+
+/* ─── Light mode: audio items & version stack visibility ─── */
+
+/* Audio clip rows: hover border should use light-mode mint */
+html.light .scp-audio-item:hover {
+  border-color: rgba(0, 184, 107, 0.35);
+}
+
+/* Song card hover border: white-on-white fix */
+html.light .song-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+  border-left-color: rgba(0, 184, 107, 0.35);
+}
+
+/* Active version stack item border */
+html.light .version-stack-item--active {
+  border-color: rgba(0, 184, 107, 0.3);
+}
+
+/* Version clip tags: use light-mode mint */
+html.light .version-clip-tag {
+  color: var(--audio-mint);
+  background: rgba(0, 184, 107, 0.08);
+  border-color: rgba(0, 184, 107, 0.2);
+}
+
+html.light .version-clip-tag-pick-btn {
+  background: rgba(0, 184, 107, 0.1);
+  border-color: rgba(0, 184, 107, 0.3);
+  color: var(--audio-mint);
+}
+
+html.light .version-clip-tag-pick-btn:hover {
+  background: rgba(0, 184, 107, 0.2);
+}
+
+html.light .version-clip-tag-input {
+  color: var(--text);
+  border-bottom-color: rgba(0, 184, 107, 0.4);
+}
+
+/* "primary" label next to primary clip */
+html.light .version-stack-primary {
+  color: var(--audio-mint);
+}
+
+/* Song drawer close button hover */
+html.light .song-drawer-close:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+/* scp-status badge (if used) */
+html.light .scp-status {
+  background: rgba(0, 184, 107, 0.08);
+  border-color: rgba(0, 184, 107, 0.2);
+}
+
+/* Waveform bars: make idle bars more visible on white song-cards */
+html.light .waveform-bar-idle { background: rgba(0, 0, 0, 0.2); }
+html.light .waveform-bar-played { background: rgba(0, 0, 0, 0.45); }
+
+/* Player queue focused item */
+html.light .player-queue-item.is-focused:not(.is-current) {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
