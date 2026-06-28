@@ -126,12 +126,16 @@ export async function importAudioFiles(
     // auto-generated name (e.g. "Obermattliebweg 4") even after renaming.
     const fileTitle = smartTitleFromFileName(file.name)
     const title = fileTitle !== 'Untitled memo' ? fileTitle : (metadata.title || fileTitle)
+    // If the ID3 title differs from the filename (e.g. iPhone location name
+    // like "Obermattliebweg 4"), keep it as a subtitle shown under the card title.
+    const locationName = metadata.title && metadata.title !== title ? metadata.title : null
     const song = await createSong({
       title,
       columnSlug,
       musicalKey: metadata.musicalKey,
       bpm: metadata.bpm,
       recordedAt: metadata.recordedAt,
+      locationName,
     })
     const version = await addAudioVersionToSong(song.id, file, undefined, metadata)
     versions.push(version)

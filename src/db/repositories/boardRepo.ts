@@ -233,6 +233,7 @@ export async function createSong(input: {
   musicalKey?: string | null
   bpm?: number | null
   recordedAt?: string | null
+  locationName?: string | null
 }) {
   // Inbox songs have no project until the user tags them
   const projectId = input.columnSlug === 'inbox' && !input.projectId
@@ -251,6 +252,7 @@ export async function createSong(input: {
     musicalKey: input.musicalKey ?? null,
     bpm: input.bpm ?? null,
     recordedAt: input.recordedAt ?? null,
+    locationName: input.locationName ?? null,
     sortOrder: songsInColumn.length,
     notes: input.notes ?? '',
     createdAt: now,

@@ -132,6 +132,9 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
           </span>
         )}
         <p className="song-card-title">{song.title}</p>
+        {song.locationName && (
+          <p className="song-card-location">{song.locationName}</p>
+        )}
         <FeedbackBadge songId={song.id} />
         {!readOnly && (
           <FavouriteButton songId={song.id} isFavourite={song.isFavourite ?? false} />

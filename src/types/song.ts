@@ -14,6 +14,9 @@ export interface Song {
   notes: string
   /** When the audio was originally recorded (from file.lastModified or ID3 tag). */
   recordedAt: string | null
+  /** Original ID3 title (e.g. iPhone location name like "Obermattliebweg 4") when it
+   *  differs from the filename. Shown as a subtitle under the card title. */
+  locationName?: string | null
   createdAt: string
   updatedAt: string
   syncedAt: string | null
