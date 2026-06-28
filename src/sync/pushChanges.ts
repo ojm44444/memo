@@ -305,6 +305,9 @@ export async function pushChanges(userId: string): Promise<PushResult> {
 
   for (const item of [...metadataItems, ...audioItems]) {
     if (item.attempts >= MAX_SYNC_ATTEMPTS) {
+      // Permanently failed — remove from queue so it doesn't block the badge
+      // or subsequent items indefinitely. The local data is untouched.
+      await removeSyncItem(item.id)
       failed++
       lastFailure = item.lastError ?? 'Max retries exceeded'
       continue

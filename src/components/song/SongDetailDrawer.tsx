@@ -119,8 +119,8 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   }
 
   return (
-    <div className="song-drawer-overlay" onClick={closeDrawer}>
-      <div className="song-drawer" onClick={(e) => e.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="song-drawer-overlay" role="button" tabIndex={-1} aria-label="Close" onClick={closeDrawer} onKeyDown={(e) => e.key === 'Escape' && closeDrawer()}>
+      <div className="song-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <button type="button" className="song-drawer-handle" onClick={closeDrawer} aria-label="Close">
           <span className="song-drawer-handle-pill" />
           <span className="song-drawer-handle-label">✕ Close</span>

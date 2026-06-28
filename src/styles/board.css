@@ -1470,7 +1470,7 @@ body.is-file-dragging * {
     height: 16px;
     padding: 0 4px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--border);
     font-size: 0.52rem;
     line-height: 1;
     margin-left: 4px;
@@ -3219,6 +3219,11 @@ html.light .interactive-waveform-bar.is-played {
   padding-top: 48px;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.song-drawer-overlay > .song-drawer {
+  cursor: default;
 }
 
 .song-drawer {
@@ -4165,7 +4170,7 @@ html.light .interactive-waveform-bar.is-played {
   display: block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid var(--border);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: player-spin 0.75s linear infinite;

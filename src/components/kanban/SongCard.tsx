@@ -74,9 +74,12 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     if (primary.localBlobId) {
       void resolvePlaybackUrl(primary.localBlobId, null)
     } else {
+      // Stagger cloud URL resolution so cards don't all hit Supabase at once
+      // on board load, but keep the delay short so tapping play works on iOS.
+      const delay = 80 + Math.random() * 120
       const id = setTimeout(
         () => void resolvePlaybackUrl(null, primary.storagePath),
-        300,
+        delay,
       )
       return () => clearTimeout(id)
     }
