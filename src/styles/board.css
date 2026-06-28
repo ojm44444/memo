@@ -4704,6 +4704,30 @@ html.light .interactive-waveform-bar.is-played {
   opacity: 1;
 }
 
+.version-clip-tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.version-clip-tag-pick-btn {
+  background: rgba(0, 255, 157, 0.12);
+  border: 1px solid rgba(0, 255, 157, 0.35);
+  border-radius: 20px;
+  color: var(--audio-mint);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.version-clip-tag-pick-btn:hover {
+  background: rgba(0, 255, 157, 0.25);
+}
+
 .version-clip-tag-input {
   background: none;
   border: none;
@@ -4712,7 +4736,7 @@ html.light .interactive-waveform-bar.is-played {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   outline: none;
-  width: 80px;
+  width: 90px;
   padding: 1px 2px;
 }
 

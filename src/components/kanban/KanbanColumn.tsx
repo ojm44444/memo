@@ -15,6 +15,7 @@ import { useUiStore } from '@/stores/uiStore'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { SongCard } from './SongCard'
 import type { Column } from '@/types/column'
+import type { Song } from '@/types/song'
 
 const PAGE_SIZE = 50
 
@@ -23,9 +24,11 @@ interface KanbanColumnProps {
   readOnly?: boolean
   /** Song ID to hide from this column (it's optimistically moving away) */
   optimisticHideSongId?: string | null
+  /** Song to show at the top of this column immediately on drop */
+  optimisticShowSong?: Song | null
 }
 
-export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId, optimisticShowSong }: KanbanColumnProps) {
   const [renamingTitle, setRenamingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -148,6 +151,14 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
               <span className="board-column-loading-bar" style={{ width: '70%' }} />
               <span className="board-column-loading-bar" style={{ width: '85%' }} />
             </div>
+          )}
+          {optimisticShowSong && !rawSongs?.find((s) => s.id === optimisticShowSong.id) && (
+            <SongCard
+              key={`opt-${optimisticShowSong.id}`}
+              song={{ ...optimisticShowSong, columnSlug: column.slug }}
+              columnSlug={column.slug}
+              readOnly={readOnly}
+            />
           )}
           {visibleSongs.map((song) => (
             <SongCard key={song.id} song={song} columnSlug={column.slug} readOnly={readOnly} />

@@ -159,24 +159,45 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     )}
                   </span>
                 ))}
-                {tagEditingId === version.id && (
-                  <input
-                    className="version-clip-tag-input"
-                    placeholder="tag…"
-                    value={tagDraft}
-                    autoFocus
-                    onChange={(e) => setTagDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && tagDraft.trim()) {
-                        void updateAudioVersionTags(version.id, [...(version.tags ?? []), tagDraft.trim()])
-                        setTagDraft('')
-                        setTagEditingId(null)
-                      }
-                      if (e.key === 'Escape') { setTagEditingId(null); setTagDraft('') }
-                    }}
-                    onBlur={() => { setTagEditingId(null); setTagDraft('') }}
-                  />
-                )}
+                {tagEditingId === version.id && (() => {
+                  // Song-level tags that aren't already on this clip
+                  const available = (song?.tags ?? []).filter(
+                    (t) => !(version.tags ?? []).includes(t)
+                  )
+                  const addTag = (t: string) => {
+                    void updateAudioVersionTags(version.id, [...(version.tags ?? []), t])
+                    setTagEditingId(null)
+                    setTagDraft('')
+                  }
+                  return (
+                    <div className="version-clip-tag-picker">
+                      {available.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          className="version-clip-tag-pick-btn"
+                          onMouseDown={(e) => { e.preventDefault(); addTag(t) }}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                      <input
+                        className="version-clip-tag-input"
+                        placeholder="or type new…"
+                        value={tagDraft}
+                        autoFocus
+                        onChange={(e) => setTagDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && tagDraft.trim()) {
+                            addTag(tagDraft.trim())
+                          }
+                          if (e.key === 'Escape') { setTagEditingId(null); setTagDraft('') }
+                        }}
+                        onBlur={() => { setTagEditingId(null); setTagDraft('') }}
+                      />
+                    </div>
+                  )
+                })()}
               </div>
             ) : null}
 

@@ -73,7 +73,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   const [activeColumnIndex, setActiveColumnIndex] = useState(0)
   // Optimistic move: track a pending column change so the card visually
   // moves immediately on drop, before Dexie confirms the write.
-  const [optimisticMove, setOptimisticMove] = useState<{ songId: string; toColumn: ColumnSlug } | null>(null)
+  const [optimisticMove, setOptimisticMove] = useState<{ songId: string; song: Song; toColumn: ColumnSlug } | null>(null)
   const kanbanRef = useRef<HTMLDivElement>(null)
 
   const sensors = useSensors(
@@ -167,7 +167,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     } else if (overData?.type === 'column') {
       const targetColumn = overData.columnSlug as ColumnSlug
       if (song.columnSlug !== targetColumn) {
-        setOptimisticMove({ songId, toColumn: targetColumn })
+        setOptimisticMove({ songId, song, toColumn: targetColumn })
         void moveSong(songId, targetColumn, 999).then(() => setOptimisticMove(null))
       } else {
         void reorderSongInColumn(songId, targetColumn, 999)
@@ -177,7 +177,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       const targetColumn = overData.columnSlug as ColumnSlug
       const beforeSongId = String(over.id)
       if (song.columnSlug !== targetColumn) {
-        setOptimisticMove({ songId, toColumn: targetColumn })
+        setOptimisticMove({ songId, song, toColumn: targetColumn })
         void moveSong(songId, targetColumn, 999, beforeSongId).then(() => setOptimisticMove(null))
       } else {
         void reorderSongInColumn(songId, targetColumn, 999, beforeSongId)
@@ -254,6 +254,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
             column={column}
             readOnly={readOnly}
             optimisticHideSongId={optimisticMove?.toColumn !== column.slug ? (optimisticMove?.songId ?? null) : null}
+            optimisticShowSong={optimisticMove?.toColumn === column.slug ? optimisticMove.song : null}
           />
         ))}
       </div>
