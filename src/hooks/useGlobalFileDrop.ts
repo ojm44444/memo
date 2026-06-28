@@ -37,6 +37,12 @@ export function useGlobalFileDrop({
   useEffect(() => {
     if (!enabled) return
 
+    // Depth counter: dragenter fires when entering each child element,
+    // dragleave fires when leaving each child. Count must reach 0 before
+    // clearing the active state to avoid flickering as the cursor moves
+    // between elements inside the window.
+    let depth = 0
+
     const setDragState = (active: boolean) => {
       document.body.classList.toggle('is-file-dragging', active)
       onDragStateRef.current?.(active, active ? FILE_DROP_TARGET : null)
@@ -53,17 +59,24 @@ export function useGlobalFileDrop({
 
     const onDragEnter = (event: DragEvent) => {
       if (!allowDrop(event)) return
-      setDragState(true)
+      depth++
+      if (depth === 1) setDragState(true)
     }
 
     const onDragOver = (event: DragEvent) => {
-      if (!allowDrop(event)) return
-      setDragState(true)
+      allowDrop(event)
+    }
+
+    const onDragLeave = (event: DragEvent) => {
+      if (!isFileDragEvent(event)) return
+      depth = Math.max(0, depth - 1)
+      if (depth === 0) setDragState(false)
     }
 
     const onDrop = (event: DragEvent) => {
       event.preventDefault()
       event.stopPropagation()
+      depth = 0
       setDragState(false)
 
       const dt = event.dataTransfer
@@ -92,22 +105,25 @@ export function useGlobalFileDrop({
       })()
     }
 
-    const onDragEnd = () => setDragState(false)
+    const onDragEnd = () => { depth = 0; setDragState(false) }
 
     const targets: EventTarget[] = [window, document, document.body]
 
     for (const target of targets) {
       target.addEventListener('dragenter', onDragEnter as EventListener, true)
       target.addEventListener('dragover', onDragOver as EventListener, true)
+      target.addEventListener('dragleave', onDragLeave as EventListener, true)
       target.addEventListener('drop', onDrop as EventListener, true)
     }
     window.addEventListener('dragend', onDragEnd, true)
 
     return () => {
       document.body.classList.remove('is-file-dragging')
+      depth = 0
       for (const target of targets) {
         target.removeEventListener('dragenter', onDragEnter as EventListener, true)
         target.removeEventListener('dragover', onDragOver as EventListener, true)
+        target.removeEventListener('dragleave', onDragLeave as EventListener, true)
         target.removeEventListener('drop', onDrop as EventListener, true)
       }
       window.removeEventListener('dragend', onDragEnd, true)

@@ -1989,6 +1989,25 @@ body.is-file-dragging * {
   opacity: 1;
 }
 
+.player-bar-song-title {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
+.player-bar-song-title:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .player-bar {
   flex-shrink: 0;
   border-top: 1px solid var(--border);

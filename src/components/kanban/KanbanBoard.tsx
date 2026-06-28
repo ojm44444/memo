@@ -71,6 +71,9 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
 
   const [activeSong, setActiveSong] = useState<Song | null>(null)
   const [activeColumnIndex, setActiveColumnIndex] = useState(0)
+  // Optimistic move: track a pending column change so the card visually
+  // moves immediately on drop, before Dexie confirms the write.
+  const [optimisticMove, setOptimisticMove] = useState<{ songId: string; toColumn: ColumnSlug } | null>(null)
   const kanbanRef = useRef<HTMLDivElement>(null)
 
   const sensors = useSensors(
@@ -163,19 +166,21 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       }
     } else if (overData?.type === 'column') {
       const targetColumn = overData.columnSlug as ColumnSlug
-      if (song.columnSlug === targetColumn) {
-        void reorderSongInColumn(songId, targetColumn, 999)
+      if (song.columnSlug !== targetColumn) {
+        setOptimisticMove({ songId, toColumn: targetColumn })
+        void moveSong(songId, targetColumn, 999).then(() => setOptimisticMove(null))
       } else {
-        void moveSong(songId, targetColumn, 999)
+        void reorderSongInColumn(songId, targetColumn, 999)
       }
       scheduleFlush()
     } else if (overData?.type === 'song') {
       const targetColumn = overData.columnSlug as ColumnSlug
       const beforeSongId = String(over.id)
-      if (song.columnSlug === targetColumn) {
-        void reorderSongInColumn(songId, targetColumn, 999, beforeSongId)
+      if (song.columnSlug !== targetColumn) {
+        setOptimisticMove({ songId, toColumn: targetColumn })
+        void moveSong(songId, targetColumn, 999, beforeSongId).then(() => setOptimisticMove(null))
       } else {
-        void moveSong(songId, targetColumn, 999, beforeSongId)
+        void reorderSongInColumn(songId, targetColumn, 999, beforeSongId)
       }
       scheduleFlush()
     }
@@ -244,7 +249,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
         style={{ '--column-count': columns?.length ?? 1 } as CSSProperties}
       >
         {columns?.map((column) => (
-          <KanbanColumn key={column.id} column={column} readOnly={readOnly} />
+          <KanbanColumn
+            key={column.id}
+            column={column}
+            readOnly={readOnly}
+            optimisticHideSongId={optimisticMove?.toColumn !== column.slug ? (optimisticMove?.songId ?? null) : null}
+          />
         ))}
       </div>
 

@@ -21,9 +21,11 @@ const PAGE_SIZE = 50
 interface KanbanColumnProps {
   column: Column
   readOnly?: boolean
+  /** Song ID to hide from this column (it's optimistically moving away) */
+  optimisticHideSongId?: string | null
 }
 
-export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId }: KanbanColumnProps) {
   const [renamingTitle, setRenamingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -71,8 +73,14 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
     disabled: readOnly,
   })
 
-  const songs = useLiveQuery(() => getSongsByColumn(column.slug), [column.slug])
+  const rawSongs = useLiveQuery(() => getSongsByColumn(column.slug), [column.slug])
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
+  // Optimistically hide a song that is moving away from this column so it
+  // doesn't flicker back while Dexie commits the write.
+  const songs = rawSongs && optimisticHideSongId
+    ? rawSongs.filter((s) => s.id !== optimisticHideSongId)
+    : rawSongs
 
   const songIds = songs?.map((s) => s.id) ?? []
   const visibleSongs = songs?.slice(0, visibleCount) ?? []

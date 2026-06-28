@@ -9,6 +9,7 @@ import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
 import { resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useUiStore } from '@/stores/uiStore'
 import { SpeedControl } from './SpeedControl'
 import { PlayerLoopButton } from './PlayerLoopButton'
 import { PlayerQueueDrawer } from './PlayerQueueDrawer'
@@ -67,6 +68,8 @@ export function ColumnPlayerBar() {
     buffering,
     setBuffering,
   } = usePlayerStore()
+
+  const openDrawer = useUiStore((s) => s.openDrawer)
 
   // Keep ref in sync with store value so the load effect can consume it once
   if (pendingSeekMs != null) pendingSeekMsRef.current = pendingSeekMs
@@ -183,7 +186,7 @@ export function ColumnPlayerBar() {
     if (!audio || !sourceReady) return
 
     if (isPlaying) {
-      void audio.play().catch(() => setPlaying(false))
+      void audio.play().catch((err: Error) => { if (err?.name !== 'AbortError') setPlaying(false) })
     } else {
       programmaticPauseRef.current = true
       audio.pause()
@@ -309,7 +312,14 @@ export function ColumnPlayerBar() {
       {expanded && (
         <div className="player-bar-expanded-panel">
           <div className="player-bar-expanded-header">
-            <span className="player-bar-expanded-title">{song.title}</span>
+            <button
+              type="button"
+              className="player-bar-expanded-title player-bar-song-title"
+              onClick={() => { setExpanded(false); if (currentSongId) openDrawer(currentSongId) }}
+              title="Open song"
+            >
+              {song.title}
+            </button>
             <button type="button" className="player-bar-expand-close" onClick={() => setExpanded(false)}>
               Close
             </button>
@@ -363,7 +373,14 @@ export function ColumnPlayerBar() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{song.title}</div>
+          <button
+            type="button"
+            className="player-bar-song-title truncate text-sm font-semibold"
+            onClick={() => currentSongId && openDrawer(currentSongId)}
+            title="Open song"
+          >
+            {song.title}
+          </button>
           <div className="truncate font-mono text-[0.65rem] text-muted">
             {version?.label}
             {playlist.length > 1 && (

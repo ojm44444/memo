@@ -7,7 +7,6 @@ import {
   bulkUnfavouriteSongs,
   bulkMoveSongs,
   getColumns,
-  getSongIdsInActiveProject,
   mergeSongsInto,
 } from '@/db/repositories/boardRepo'
 import { db } from '@/db/database'
@@ -20,7 +19,6 @@ import type { ColumnSlug } from '@/types/column'
 export function BulkActionsBar() {
   const selectionMode = useUiStore((state) => state.selectionMode)
   const selectedSongIds = useUiStore((state) => state.selectedSongIds)
-  const replaceSelectedSongs = useUiStore((state) => state.replaceSelectedSongs)
   const clearSelection = useUiStore((state) => state.clearSelection)
   const clearSelectedSongs = useUiStore((state) => state.clearSelectedSongs)
   const columns = useLiveQuery(() => getColumns(), [])
@@ -70,18 +68,6 @@ export function BulkActionsBar() {
     try {
       await bulkUnfavouriteSongs(selectedSongIds)
       scheduleFlush()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const invert = async () => {
-    setBusy(true)
-    try {
-      const projectSongIds = await getSongIdsInActiveProject()
-      const selected = new Set(selectedSongIds)
-      const inverted = projectSongIds.filter((songId) => !selected.has(songId))
-      replaceSelectedSongs(inverted)
     } finally {
       setBusy(false)
     }
@@ -194,10 +180,6 @@ export function BulkActionsBar() {
           Tag
         </button>
       </div>
-
-      <button type="button" className="bulk-actions-btn" disabled={busy} onClick={() => void invert()}>
-        Invert
-      </button>
 
       <button type="button" className="bulk-actions-btn" disabled={busy} onClick={() => void favourite()}>
         ★ Favourite
