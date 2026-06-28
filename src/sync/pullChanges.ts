@@ -226,6 +226,9 @@ export async function pullChanges(userId: string) {
           recordedAt: local?.recordedAt ?? null,
           createdAt: local?.createdAt ?? remote.updated_at,
           syncedAt: new Date().toISOString(),
+          // Local-only fields — server has no column for these, preserve them
+          ...(local?.trimStartMs != null ? { trimStartMs: local.trimStartMs } : {}),
+          ...(local?.tags?.length ? { tags: local.tags } : {}),
         }
         await db.audioVersions.put(version)
         pulled++

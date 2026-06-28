@@ -2,9 +2,11 @@ import { getAudioBlob } from '@/db/repositories/audioRepo'
 import { supabase } from '@/lib/supabase/client'
 
 // Cache object URLs for local blobs and signed URLs for cloud paths.
-// Both are safe to keep for the session — signed URLs are valid for 1 hour.
 const localUrlCache = new Map<string, string>()
+// Signed URLs expire after 3600s — evict after 55 min so we never serve stale ones.
 const signedUrlCache = new Map<string, string>()
+const signedUrlTimestamps = new Map<string, number>()
+const SIGNED_URL_TTL_MS = 55 * 60 * 1000
 
 export async function resolvePlaybackUrl(
   localBlobId: string | null,
@@ -24,11 +26,18 @@ export async function resolvePlaybackUrl(
 
   if (storagePath && supabase) {
     const cached = signedUrlCache.get(storagePath)
-    if (cached) return cached
+    const cachedAt = signedUrlTimestamps.get(storagePath) ?? 0
+    if (cached && Date.now() - cachedAt < SIGNED_URL_TTL_MS) return cached
+    // Evict expired entry
+    if (cached) {
+      signedUrlCache.delete(storagePath)
+      signedUrlTimestamps.delete(storagePath)
+    }
     if (!navigator.onLine) return null
     const { data } = await supabase.storage.from('audio').createSignedUrl(storagePath, 3600)
     if (data?.signedUrl) {
       signedUrlCache.set(storagePath, data.signedUrl)
+      signedUrlTimestamps.set(storagePath, Date.now())
       return data.signedUrl
     }
     return null

@@ -6429,3 +6429,34 @@ html.light .player-queue-item.is-focused:not(.is-current) {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.12);
 }
+
+/* ─── Light mode: remaining white-rgba elements ─── */
+
+html.light .sync-status-badge {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+html.light .sync-auth-google,
+html.light .sync-auth-btn {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+html.light .invite-bandmate-btn:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+html.light .library-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+html.light .bulk-merge-modal {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+html.light .bulk-merge-select {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+html.light .song-share-label-input {
+  background: rgba(0, 0, 0, 0.03);
+}
+html.light .import-error-toast-dismiss {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+html.light .voice-memos-connect-ghost {
+  border-color: rgba(0, 0, 0, 0.1);
+}

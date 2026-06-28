@@ -195,7 +195,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setPlaybackRate: (rate) => set({ playbackRate: rate }),
 
-  setPlaying: (playing) => set({ isPlaying: playing }),
+  setPlaying: (playing) => set({ isPlaying: playing, ...(playing ? {} : { buffering: false }) }),
   setBuffering: (buffering) => set({ buffering }),
   setProgress: (progress) => set({ progress }),
 
