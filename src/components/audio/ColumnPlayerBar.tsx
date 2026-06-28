@@ -89,11 +89,9 @@ export function ColumnPlayerBar() {
     setSourceReady(false)
     setAudioUrl(null)
     setBufferProgress(0)
-    lastSavedMsRef.current = 0  // reset so position saves from the start of the new track
+    lastSavedMsRef.current = 0
 
     async function loadSource() {
-      // Local blobs are now cached in resolvePlaybackUrl — no need to revoke
-      // previous objectUrlRef here unless it was a non-cached temporary URL.
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = null
@@ -101,13 +99,10 @@ export function ColumnPlayerBar() {
 
       if (!version || !audioRef.current || !currentSongId) return
 
-      // Consume pending seek once, then clear it. Running clearPendingSeek()
-      // here (outside the async body) avoids a dep-triggered double-load.
       const seekMs = pendingSeekMsRef.current
       pendingSeekMsRef.current = null
       clearPendingSeek()
 
-      // Fetch saved position and resolve URL in parallel
       const [savedMs, url] = await Promise.all([
         seekMs != null ? Promise.resolve(seekMs) : getPlaybackPositionMs(currentSongId),
         resolvePlaybackUrl(version.localBlobId, version.storagePath),
@@ -120,34 +115,26 @@ export function ColumnPlayerBar() {
         return
       }
 
-      // Only track non-cached URLs for manual revocation on cleanup
       if (version.localBlobId) {
-        // URL is owned by the module cache — don't revoke on cleanup
         objectUrlRef.current = null
       }
 
-      // Prefer explicit seek > saved resume position > trim start offset
       const effectiveStartMs =
         savedMs > 0 ? savedMs : (version.trimStartMs ?? 0) > 0 ? version.trimStartMs! : 0
       resumeSeekRef.current = effectiveStartMs > 0 ? effectiveStartMs : null
 
-      // If playAudioImmediately() already set this src (gesture-handler fast
-      // path), don't reset it — play() is async so paused may still be true
-      // even though playback was initiated. Resetting src would cancel it.
       const sameUrl = audioRef.current.src === url
       if (!sameUrl) {
         markSrcSwitch()
         audioRef.current.src = url
       }
       setAudioUrl(url)
-      // sourceReady will be set true by the onCanPlay handler below
     }
 
     void loadSource()
 
     return () => {
       cancelled = true
-      // Only revoke if we held a non-cached temporary URL
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
         objectUrlRef.current = null
@@ -158,17 +145,12 @@ export function ColumnPlayerBar() {
     version?.localBlobId,
     version?.storagePath,
     currentSongId,
-    // pendingSeekMs intentionally excluded — consumed via pendingSeekMsRef
-    // to prevent a double-load when clearPendingSeek() changes the store.
     clearPendingSeek,
     setPlaying,
   ])
 
   useEffect(() => {
     if (progress === 0 && audioRef.current && sourceReady) {
-      // Skip if onLoadedMetadata already seeked to a resume position —
-      // onLoadedMetadata fires before onCanPlay so the seek lands first,
-      // then sourceReady becomes true and this effect would reset it to 0.
       if (skipProgressResetRef.current) {
         skipProgressResetRef.current = false
         return
@@ -241,10 +223,14 @@ export function ColumnPlayerBar() {
     setCurrentMs(audio.currentTime * 1000)
   }
 
-  if (!currentVersionId || !song) return null
+  // The <audio> element is ALWAYS rendered so it is never unmounted between
+  // track changes. Unmounting would lose the iOS gesture-unlock state on the
+  // element and force a new unlock cycle on every song tap.
+  // Only the visible player bar footer is conditional.
+  const showBar = Boolean(currentVersionId && song)
 
   return (
-    <footer className={expanded ? 'player-bar player-bar--expanded' : 'player-bar'}>
+    <>
       <audio
         ref={(el) => { audioRef.current = el; registerAudioEl(el) }}
         onLoadedMetadata={(event) => {
@@ -257,17 +243,12 @@ export function ColumnPlayerBar() {
             element.currentTime = resumeMs / 1000
             setProgress(resumeMs / (element.duration * 1000))
             setCurrentMs(resumeMs)
-            // Tell the progress=0 reset effect to skip its next run — it fires
-            // after onCanPlay sets sourceReady=true and would otherwise undo this seek.
             skipProgressResetRef.current = true
           }
         }}
         onCanPlay={(event) => {
           setSourceReady(true)
           setBuffering(false)
-          // Call play() directly from the browser event rather than waiting
-          // for the sourceReady state change to propagate through React —
-          // this eliminates a render cycle and works more reliably on mobile.
           if (usePlayerStore.getState().isPlaying) {
             void event.currentTarget.play().catch((err: Error) => {
               if (err?.name !== 'AbortError') setPlaying(false)
@@ -275,8 +256,6 @@ export function ColumnPlayerBar() {
           }
         }}
         onError={() => {
-          // Audio failed to load (bad URL, network error, expired signed URL).
-          // Clear buffering and stop so the player doesn't hang on the spinner.
           setBuffering(false)
           setPlaying(false)
         }}
@@ -305,8 +284,6 @@ export function ColumnPlayerBar() {
           if (currentSongId && audioRef.current) {
             void setPlaybackPositionMs(currentSongId, audioRef.current.currentTime * 1000)
           }
-          // Ignore pause events caused by switching to a new src (song switch).
-          // Programmatic pauses (user clicked pause) set programmaticPauseRef first.
           if (consumeSrcSwitchPending()) return
           if (!programmaticPauseRef.current) {
             setPlaying(false)
@@ -316,129 +293,133 @@ export function ColumnPlayerBar() {
         onEnded={() => void handleEnded()}
       />
 
-      {expanded && (
-        <div className="player-bar-expanded-panel">
-          <div className="player-bar-expanded-header">
-            <button
-              type="button"
-              className="player-bar-expanded-title player-bar-song-title"
-              onClick={() => { setExpanded(false); if (currentSongId) openDrawer(currentSongId) }}
-              title="Open song"
-            >
-              {song.title}
-            </button>
-            <button type="button" className="player-bar-expand-close" onClick={() => setExpanded(false)}>
-              Close
-            </button>
-          </div>
-          <InteractiveWaveform
-            audioUrl={audioUrl}
-            progress={progress}
-            active={isPlaying}
-            barCount={180}
-            height={120}
-            className="player-bar-wave player-bar-wave--expanded"
-            onSeek={seekTo}
-          />
-          <div className="player-bar-expanded-controls">
-            <div className="player-bar-expanded-time">
-              {formatDuration(currentMs)} / {formatDuration(durationMs || version?.durationMs)}
+      {showBar && (
+        <footer className={expanded ? 'player-bar player-bar--expanded' : 'player-bar'}>
+          {expanded && (
+            <div className="player-bar-expanded-panel">
+              <div className="player-bar-expanded-header">
+                <button
+                  type="button"
+                  className="player-bar-expanded-title player-bar-song-title"
+                  onClick={() => { setExpanded(false); if (currentSongId) openDrawer(currentSongId) }}
+                  title="Open song"
+                >
+                  {song!.title}
+                </button>
+                <button type="button" className="player-bar-expand-close" onClick={() => setExpanded(false)}>
+                  Close
+                </button>
+              </div>
+              <InteractiveWaveform
+                audioUrl={audioUrl}
+                progress={progress}
+                active={isPlaying}
+                barCount={180}
+                height={120}
+                className="player-bar-wave player-bar-wave--expanded"
+                onSeek={seekTo}
+              />
+              <div className="player-bar-expanded-controls">
+                <div className="player-bar-expanded-time">
+                  {formatDuration(currentMs)} / {formatDuration(durationMs || version?.durationMs)}
+                </div>
+                <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-expanded-speed" />
+              </div>
             </div>
-            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-expanded-speed" />
-          </div>
-        </div>
-      )}
+          )}
 
-      <div className="player-bar-inner">
-        <div className="player-bar-transport">
-          <button
-            type="button"
-            className="player-bar-skip"
-            disabled={playlist.length === 0}
-            onClick={() => playPreviousInColumn()}
-            aria-label="Previous"
-          >
-            ⏮
-          </button>
-          <button
-            type="button"
-            onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
-            className={`song-card-play h-9 w-9 text-xs${buffering ? ' player-bar-buffering' : ''}`}
-            aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
-          >
-            {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
-          </button>
-          <button
-            type="button"
-            className="player-bar-skip"
-            disabled={playlist.length === 0 || currentIndex >= playlist.length - 1}
-            onClick={() => playNextInColumn()}
-            aria-label="Next"
-          >
-            ⏭
-          </button>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <button
-            type="button"
-            className="player-bar-song-title truncate text-sm font-semibold"
-            onClick={() => currentSongId && openDrawer(currentSongId)}
-            title="Open song"
-          >
-            {song.title}
-          </button>
-          <div className="truncate font-mono text-[0.65rem] text-muted">
-            {version?.label}
-            {playlist.length > 1 && (
+          <div className="player-bar-inner">
+            <div className="player-bar-transport">
               <button
                 type="button"
-                className="player-bar-queue"
-                onClick={() => toggleQueueOpen()}
-                aria-expanded={queueOpen}
-                aria-controls="player-queue-panel"
-                aria-label={`${queueOpen ? 'Close' : 'Open'} play queue, track ${currentIndex + 1} of ${playlist.length}`}
+                className="player-bar-skip"
+                disabled={playlist.length === 0}
+                onClick={() => playPreviousInColumn()}
+                aria-label="Previous"
               >
-                {' '}
-                · {playlistSource === 'favourites' ? '★ ' : ''}
-                {currentIndex + 1}/{playlist.length}
+                ⏮
               </button>
-            )}
-          </div>
-          <div
-            className="player-bar-wave-hit"
-            onClick={() => setExpanded(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') setExpanded(true)
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Open waveform"
-          >
-            <InteractiveWaveform
-              audioUrl={audioUrl}
-              progress={progress}
-              active={isPlaying && !buffering}
-              barCount={32}
-              height={24}
-              className="mt-1.5"
-              onSeek={seekTo}
-            />
-            {buffering && (
-              <div className="player-bar-buffer-track">
-                <div
-                  className="player-bar-buffer-fill"
-                  style={{ width: `${Math.round(bufferProgress * 100)}%` }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+              <button
+                type="button"
+                onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+                className={`song-card-play h-9 w-9 text-xs${buffering ? ' player-bar-buffering' : ''}`}
+                aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
+              >
+                {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
+              </button>
+              <button
+                type="button"
+                className="player-bar-skip"
+                disabled={playlist.length === 0 || currentIndex >= playlist.length - 1}
+                onClick={() => playNextInColumn()}
+                aria-label="Next"
+              >
+                ⏭
+              </button>
+            </div>
 
-        <PlayerLoopButton />
-        <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-speed" />
-      </div>
-      <PlayerQueueDrawer />
-    </footer>
+            <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                className="player-bar-song-title truncate text-sm font-semibold"
+                onClick={() => currentSongId && openDrawer(currentSongId)}
+                title="Open song"
+              >
+                {song!.title}
+              </button>
+              <div className="truncate font-mono text-[0.65rem] text-muted">
+                {version?.label}
+                {playlist.length > 1 && (
+                  <button
+                    type="button"
+                    className="player-bar-queue"
+                    onClick={() => toggleQueueOpen()}
+                    aria-expanded={queueOpen}
+                    aria-controls="player-queue-panel"
+                    aria-label={`${queueOpen ? 'Close' : 'Open'} play queue, track ${currentIndex + 1} of ${playlist.length}`}
+                  >
+                    {' '}
+                    · {playlistSource === 'favourites' ? '★ ' : ''}
+                    {currentIndex + 1}/{playlist.length}
+                  </button>
+                )}
+              </div>
+              <div
+                className="player-bar-wave-hit"
+                onClick={() => setExpanded(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setExpanded(true)
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Open waveform"
+              >
+                <InteractiveWaveform
+                  audioUrl={audioUrl}
+                  progress={progress}
+                  active={isPlaying && !buffering}
+                  barCount={32}
+                  height={24}
+                  className="mt-1.5"
+                  onSeek={seekTo}
+                />
+                {buffering && (
+                  <div className="player-bar-buffer-track">
+                    <div
+                      className="player-bar-buffer-fill"
+                      style={{ width: `${Math.round(bufferProgress * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <PlayerLoopButton />
+            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-speed" />
+          </div>
+          <PlayerQueueDrawer />
+        </footer>
+      )}
+    </>
   )
 }
