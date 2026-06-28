@@ -5,7 +5,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
-import { getColumnTag } from '@/lib/column-tags'
 import { getTagGradient } from '@/lib/tagColors'
 import { db } from '@/db/database'
 import { getShareFeedbackCount } from '@/db/repositories/shareFeedbackRepo'
@@ -60,7 +59,6 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   const { currentSongId, progress, isPlaying } = usePlayerStore()
   const { openDrawer } = useUiStore()
   const isActive = currentSongId === song.id && isPlaying
-  const tag = getColumnTag(columnSlug)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -191,7 +189,6 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
               aria-label={primary.localBlobId ? 'Available offline' : 'Requires internet'}
             />
           )}
-          <span className={cn('song-card-tag', tag.className)}>{tag.label}</span>
           <button
             type="button"
             onClick={handlePlay}
