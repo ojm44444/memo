@@ -3201,7 +3201,9 @@ html.light .interactive-waveform-bar.is-played {
   inset: 0;
   z-index: 50;
   display: flex;
-  justify-content: flex-end;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 48px;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
 }
@@ -3209,36 +3211,40 @@ html.light .interactive-waveform-bar.is-played {
 .song-drawer {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  height: 100%;
+  max-width: 680px;
+  max-height: calc(100dvh - 80px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--bg-3);
-  border-left: 1px solid var(--border);
-  animation: slideIn 0.25s ease;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: modalIn 0.18s ease;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.97) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @media (max-width: 600px) {
   .song-drawer-overlay {
     align-items: flex-end;
     justify-content: stretch;
+    padding-top: 0;
   }
 
   .song-drawer {
     width: 100%;
     max-width: 100%;
-    height: calc(100dvh - 44px - env(safe-area-inset-top));
+    max-height: calc(100dvh - 44px - env(safe-area-inset-top));
     border-left: none;
     border-top: 1px solid var(--border);
     border-radius: 16px 16px 0 0;
     animation: slideUp 0.28s ease;
     padding-top: 0;
     padding-bottom: 0;
+    box-shadow: none;
   }
 
   @keyframes slideUp {
