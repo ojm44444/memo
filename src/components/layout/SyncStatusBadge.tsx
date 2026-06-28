@@ -15,14 +15,14 @@ export function SyncStatusBadge() {
   const offline = !state.online
   const synced = !offline && state.pendingCount === 0 && state.status === 'idle'
 
+  const isUploading = state.status === 'syncing' && state.pendingCount > 0
+
   const label = offline
     ? state.pendingCount > 0
       ? `Offline · ${state.pendingCount} saved locally`
       : 'Offline'
-    : state.status === 'syncing'
-      ? state.pendingCount > 0
-        ? `Uploading…`
-        : 'Syncing…'
+    : isUploading
+      ? 'Uploading…'
       : state.status === 'error'
         ? state.lastError ?? 'Sync failed'
         : state.pendingCount > 0
