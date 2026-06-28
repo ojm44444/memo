@@ -21,15 +21,26 @@ export function markSrcSwitch() {
   srcSwitchPending = true
 }
 
-export function registerAudioEl(el: HTMLAudioElement | null) {
-  audioEl = el
-}
-
 // Tiny silent WAV (44 bytes) — used to unlock iOS autoplay on first gesture.
 const SILENT =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
 
 let audioUnlocked = false
+// True when the gesture fired before the main element mounted — we need to
+// unlock the main element as soon as it registers.
+let pendingMainUnlock = false
+
+function unlockMainEl(el: HTMLAudioElement) {
+  const prev = el.src
+  el.src = SILENT
+  void el.play().then(() => {
+    el.pause()
+    el.src = prev || ''
+    if (prev) srcSwitchPending = true
+  }).catch(() => {
+    el.src = prev || ''
+  })
+}
 
 /**
  * Install a one-time listener that fires on the user's very first touch/click
@@ -44,25 +55,26 @@ export function installAudioUnlock() {
     if (audioUnlocked) return
     audioUnlocked = true
     if (audioEl) {
-      // Unlock the main element directly — most reliable on iOS Safari
-      const prev = audioEl.src
-      audioEl.src = SILENT
-      void audioEl.play().then(() => {
-        audioEl!.pause()
-        // Restore previous src (or clear if none)
-        audioEl!.src = prev || ''
-        if (prev) srcSwitchPending = true
-      }).catch(() => {
-        audioEl!.src = prev || ''
-      })
+      unlockMainEl(audioEl)
     } else {
-      // Main element not mounted yet — fall back to temp element
+      // Main element not mounted yet — unlock it the moment it registers.
+      pendingMainUnlock = true
+      // Also play a temp element to keep the gesture context alive across
+      // the async gap until the main element mounts.
       const tmp = new Audio(SILENT)
       void tmp.play().catch(() => {})
     }
   }
   window.addEventListener('pointerdown', unlock, { once: true, capture: true })
   window.addEventListener('touchstart', unlock, { once: true, capture: true })
+}
+
+export function registerAudioEl(el: HTMLAudioElement | null) {
+  audioEl = el
+  if (el && pendingMainUnlock) {
+    pendingMainUnlock = false
+    unlockMainEl(el)
+  }
 }
 
 /**

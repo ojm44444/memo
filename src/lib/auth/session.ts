@@ -13,8 +13,11 @@ export type BoardAuth = {
 /** Read cached session only — works offline (no network validation). */
 export async function getCachedUser(): Promise<User | null> {
   if (!supabase) return null
-  const { data } = await supabase.auth.getSession()
-  return data.session?.user ?? null
+  // Race getSession against a 3-second timeout so a stale/slow network
+  // doesn't block the app from loading from local data.
+  const sessionPromise = supabase.auth.getSession().then((r) => r.data.session?.user ?? null)
+  const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+  return Promise.race([sessionPromise, timeoutPromise])
 }
 
 /**
@@ -22,9 +25,7 @@ export async function getCachedUser(): Promise<User | null> {
  * Offline + expired JWT is NOT game over — we trust lastUserId until explicit sign-out.
  */
 export async function resolveBoardAuth(): Promise<BoardAuth | null> {
-  const cached = await getCachedUser()
-  if (cached) return { user: cached, offlineGrace: false }
-
+  // If offline, skip the network call entirely and use the cached identity.
   if (!navigator.onLine) {
     const lastUserId = (await db.syncMeta.get('lastUserId'))?.value
     if (lastUserId) {
@@ -34,7 +35,11 @@ export async function resolveBoardAuth(): Promise<BoardAuth | null> {
         offlineGrace: true,
       }
     }
+    return null
   }
+
+  const cached = await getCachedUser()
+  if (cached) return { user: cached, offlineGrace: false }
 
   return null
 }
