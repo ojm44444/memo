@@ -273,6 +273,12 @@ export function ColumnPlayerBar() {
             })
           }
         }}
+        onError={() => {
+          // Audio failed to load (bad URL, network error, expired signed URL).
+          // Clear buffering and stop so the player doesn't hang on the spinner.
+          setBuffering(false)
+          setPlaying(false)
+        }}
         onWaiting={() => setBuffering(true)}
         onPlaying={() => setBuffering(false)}
         onProgress={(event) => {
