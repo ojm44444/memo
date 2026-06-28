@@ -89,6 +89,7 @@ export function ColumnPlayerBar() {
     setSourceReady(false)
     setAudioUrl(null)
     setBufferProgress(0)
+    lastSavedMsRef.current = 0  // reset so position saves from the start of the new track
 
     async function loadSource() {
       // Local blobs are now cached in resolvePlaybackUrl — no need to revoke
