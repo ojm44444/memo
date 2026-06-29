@@ -4,6 +4,7 @@ export interface SongComment {
   userId: string
   authorLabel: string
   body: string
+  timestampMs: number | null
   createdAt: string
   updatedAt: string
   syncedAt: string | null

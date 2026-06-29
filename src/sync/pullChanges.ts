@@ -281,6 +281,7 @@ export async function pullChanges(userId: string) {
           userId: remote.user_id,
           authorLabel: remote.author_label,
           body: remote.body,
+          timestampMs: (remote as Record<string, unknown>).timestamp_ms as number | null ?? null,
           createdAt: remote.created_at,
           updatedAt: remote.updated_at,
           syncedAt: new Date().toISOString(),

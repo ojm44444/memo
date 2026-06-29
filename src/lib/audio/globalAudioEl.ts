@@ -110,6 +110,12 @@ export function playAudioImmediately(url: string, playbackRate: number): boolean
  * across an upcoming async boundary. Only acts when audio is paused —
  * if it's already playing, it's already unlocked.
  */
+export function seekAudioTo(ms: number): boolean {
+  if (!audioEl || !audioEl.duration) return false
+  audioEl.currentTime = ms / 1000
+  return true
+}
+
 export function unlockAudioEl() {
   if (!audioEl || !audioEl.paused) return
   void audioEl.play().catch(() => {})

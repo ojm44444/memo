@@ -3,10 +3,12 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
 import { playSongVersion } from '@/lib/playSongVersion'
-import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
-import { getCachedUrl } from '@/lib/audio/resolvePlaybackUrl'
+import { playSongAtTimestamp } from '@/lib/playSongVersion'
+import { playAudioImmediately, unlockAudioEl, seekAudioTo } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl, resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
 import { getSong } from '@/db/repositories/boardRepo'
+import { getCommentsForSong } from '@/db/repositories/commentRepo'
 import {
   deleteAudioVersion,
   renameAudioVersion,
@@ -16,7 +18,7 @@ import {
 } from '@/db/repositories/audioRepo'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
-import { CachedWaveform } from '@/components/audio/CachedWaveform'
+import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
 import { cn } from '@/lib/cn'
 
 interface AudioVersionStackProps {
@@ -30,11 +32,25 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
     [songId],
   )
   const song = useLiveQuery(() => getSong(songId), [songId])
-  const { currentVersionId, isPlaying, progress } = usePlayerStore()
+  const comments = useLiveQuery(() => getCommentsForSong(songId), [songId])
+  const { currentVersionId, isPlaying, progress, setProgress } = usePlayerStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftLabel, setDraftLabel] = useState('')
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
   const [tagDraft, setTagDraft] = useState('')
+  const [audioUrls, setAudioUrls] = useState<Record<string, string>>({})
+
+  // Resolve audio URLs so InteractiveWaveform can decode peaks
+  useLiveQuery(async () => {
+    if (!versions) return
+    const entries = await Promise.all(
+      versions.map(async (v) => {
+        const url = await resolvePlaybackUrl(v.localBlobId, v.storagePath)
+        return [v.id, url] as const
+      })
+    )
+    setAudioUrls(Object.fromEntries(entries.filter(([, url]) => url != null) as [string, string][]))
+  }, [versions?.map(v => v.id).join(',')])
 
   if (!song) return null
 
@@ -126,14 +142,27 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     ) : null
                   })()
                 )}
-                <CachedWaveform
-                  versionId={version.id}
-                  localBlobId={version.localBlobId}
-                  storagePath={version.storagePath}
-                  active={isActive}
+                <InteractiveWaveform
+                  audioUrl={audioUrls[version.id] ?? null}
                   progress={isActive ? progress : 0}
-                  bars={32}
-                  className="h-5"
+                  active={isActive}
+                  barCount={32}
+                  height={20}
+                  markers={(comments ?? [])
+                    .filter(c => c.timestampMs != null && version.durationMs > 0)
+                    .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs }))}
+                  onSeek={(fraction) => {
+                    const ms = fraction * (version.durationMs || 0)
+                    if (isActive) {
+                      seekAudioTo(ms)
+                      setProgress(fraction)
+                    } else {
+                      const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
+                      if (cachedUrl) playAudioImmediately(cachedUrl, usePlayerStore.getState().playbackRate)
+                      else unlockAudioEl()
+                      void playSongAtTimestamp(song.columnSlug, songId, version.id, ms)
+                    }
+                  }}
                 />
               </div>
               <span className="scp-dur shrink-0">{formatDuration(version.durationMs)}</span>
