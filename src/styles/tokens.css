@@ -20,6 +20,7 @@
 }
 
 html.light {
+  color-scheme: light;
   --bg: #eeedf0;
   --bg-2: #e6e5e9;
   --bg-3: #dcdbe0;

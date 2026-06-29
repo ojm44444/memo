@@ -6363,7 +6363,12 @@ html.light .board-column-scroll {
 
 /* ─── Light mode: audio items & version stack visibility ─── */
 
-/* Audio clip rows: hover border should use light-mode mint */
+/* Audio clip rows */
+html.light .scp-audio-item {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 html.light .scp-audio-item:hover {
   border-color: rgba(0, 184, 107, 0.35);
 }
