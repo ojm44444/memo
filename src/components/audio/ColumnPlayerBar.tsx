@@ -84,6 +84,12 @@ export function ColumnPlayerBar() {
     [currentSongId],
   )
 
+  // Keep the last known song so the player bar never flashes away during
+  // background syncs or the brief undefined window when useLiveQuery reruns.
+  const lastSongRef = useRef<typeof song>(undefined)
+  if (song) lastSongRef.current = song
+  const displaySong = song ?? lastSongRef.current
+
   useEffect(() => {
     let cancelled = false
     setSourceReady(false)
@@ -227,7 +233,7 @@ export function ColumnPlayerBar() {
   // track changes. Unmounting would lose the iOS gesture-unlock state on the
   // element and force a new unlock cycle on every song tap.
   // Only the visible player bar footer is conditional.
-  const showBar = Boolean(currentVersionId && song)
+  const showBar = Boolean(currentVersionId && displaySong)
 
   return (
     <>
@@ -304,7 +310,7 @@ export function ColumnPlayerBar() {
                   onClick={() => { setExpanded(false); if (currentSongId) openDrawer(currentSongId) }}
                   title="Open song"
                 >
-                  {song!.title}
+                  {displaySong!.title}
                 </button>
                 <button type="button" className="player-bar-expand-close" onClick={() => setExpanded(false)}>
                   Close
@@ -365,7 +371,7 @@ export function ColumnPlayerBar() {
                 onClick={() => currentSongId && openDrawer(currentSongId)}
                 title="Open song"
               >
-                {song!.title}
+                {displaySong!.title}
               </button>
               <div className="truncate font-mono text-[0.65rem] text-muted">
                 {version?.label}
