@@ -102,7 +102,7 @@ async function processQueueItem(
       await assertNoError(
         await supabase!
           .from('audio_versions')
-          .update(patch)
+          .update(patch as any)
           .eq('id', item.entityId),
       )
     } else if (item.op === 'delete') {

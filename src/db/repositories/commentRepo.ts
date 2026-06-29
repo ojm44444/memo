@@ -25,6 +25,7 @@ export async function addSongComment(songId: string, body: string) {
     userId: auth.user.id,
     authorLabel,
     body: trimmed,
+    timestampMs: null,
     createdAt: now,
     updatedAt: now,
     syncedAt: null,
