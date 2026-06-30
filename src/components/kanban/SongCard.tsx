@@ -30,13 +30,16 @@ interface SongCardProps {
   readOnly?: boolean
 }
 
+const isTouchOnlyDevice =
+  typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches
+
 export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) {
   const selectionMode = useUiStore((state) => state.selectionMode)
   const draggingCardId = useUiStore((state) => state.draggingCardId)
   const isSelected = useUiStore((state) => state.selectedSongIds.includes(song.id))
   const toggleSongSelected = useUiStore((state) => state.toggleSongSelected)
 
-  const isMergeTarget = !readOnly && draggingCardId !== null && draggingCardId !== song.id
+  const isMergeTarget = !readOnly && !isTouchOnlyDevice && draggingCardId !== null && draggingCardId !== song.id
   const { setNodeRef: setMergeNodeRef, isOver: isMergeOver } = useDroppable({
     id: `merge:${song.id}`,
     data: { type: 'song-merge', targetSongId: song.id },

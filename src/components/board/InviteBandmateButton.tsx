@@ -41,7 +41,7 @@ export function InviteBandmateButton() {
       document.removeEventListener('touchstart', handler)
     }
   }, [open])
-  const [role, setRole] = useState<InviteRole>('editor')
+  const [role, setRole] = useState<InviteRole>('viewer')
   const [email, setEmail] = useState('')
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -164,8 +164,8 @@ export function InviteBandmateButton() {
               onChange={(e) => setRole(e.target.value as InviteRole)}
               className="invite-bandmate-select"
             >
-              <option value="editor">Editor — can comment & view</option>
-              <option value="viewer">Viewer — view only</option>
+              <option value="viewer">Viewer — read only, can't edit</option>
+              <option value="editor">Editor — can reorder & edit</option>
             </select>
           </label>
 
