@@ -5,9 +5,11 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { ensureSeeded } from '@/db/seed'
 import { initPwa } from '@/lib/pwa/register'
 import { installAudioUnlock } from '@/lib/audio/globalAudioEl'
+import { backfillSongTitlesFromVersionLabels } from '@/db/migrations/backfillSongTitlesFromVersionLabels'
 import '@/styles/globals.css'
 
 void ensureSeeded()
+void backfillSongTitlesFromVersionLabels()
 initPwa()
 installAudioUnlock()
 
