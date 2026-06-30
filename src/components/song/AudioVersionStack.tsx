@@ -15,7 +15,16 @@ import {
   setPrimaryVersion,
   updateAudioVersionTags,
   setAudioVersionTrimStart,
+  setAudioVersionTrimEnd,
 } from '@/db/repositories/audioRepo'
+import { unmergeSong } from '@/db/repositories/boardRepo'
+import {
+  getMarkersForVersion,
+  addMarker,
+  updateMarker,
+  deleteMarker,
+} from '@/db/repositories/markerRepo'
+import type { AudioMarker } from '@/types/audio-marker'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
@@ -39,6 +48,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
   const [tagDraft, setTagDraft] = useState('')
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({})
+  const [markersByVersion, setMarkersByVersion] = useState<Record<string, AudioMarker[]>>({})
 
   // Resolve audio URLs so InteractiveWaveform can decode peaks
   useLiveQuery(async () => {
@@ -50,6 +60,18 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
       })
     )
     setAudioUrls(Object.fromEntries(entries.filter(([, url]) => url != null) as [string, string][]))
+  }, [versions?.map(v => v.id).join(',')])
+
+  // Load markers for all versions
+  useLiveQuery(async () => {
+    if (!versions) return
+    const entries = await Promise.all(
+      versions.map(async (v) => {
+        const markers = await getMarkersForVersion(v.id)
+        return [v.id, markers] as const
+      })
+    )
+    setMarkersByVersion(Object.fromEntries(entries))
   }, [versions?.map(v => v.id).join(',')])
 
   if (!song) return null
@@ -148,9 +170,22 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                   active={isActive}
                   barCount={32}
                   height={20}
-                  markers={(comments ?? [])
-                    .filter(c => c.timestampMs != null && version.durationMs > 0)
-                    .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs }))}
+                  markers={[
+                    ...(comments ?? [])
+                      .filter(c => c.timestampMs != null && version.durationMs > 0)
+                      .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs })),
+                    ...(markersByVersion[version.id] ?? [])
+                      .filter(() => version.durationMs > 0)
+                      .map(m => ({
+                        id: m.id,
+                        progress: m.ms / version.durationMs,
+                        color: m.type === 'start'
+                          ? 'var(--audio-mint)'
+                          : m.type === 'end'
+                          ? '#ef4444'
+                          : '#eab308',
+                      })),
+                  ]}
                   onSeek={(fraction) => {
                     const ms = fraction * (version.durationMs || 0)
                     if (isActive) {
@@ -282,6 +317,46 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     ▷ {(version.trimStartMs / 1000).toFixed(1)}s ×
                   </button>
                 ) : null}
+                {/* Trim end: capture current playback position when this clip is active */}
+                {currentVersionId === version.id ? (
+                  <button
+                    type="button"
+                    className="version-stack-action version-stack-action--trim"
+                    onClick={() => {
+                      const ms = Math.round(progress * version.durationMs)
+                      void setAudioVersionTrimEnd(version.id, ms < version.durationMs - 500 ? ms : null)
+                    }}
+                    title="Stop playback here every time"
+                  >
+                    {version.trimEndMs
+                      ? `⬛ at ${(version.trimEndMs / 1000).toFixed(1)}s`
+                      : '⬛ Set end'}
+                  </button>
+                ) : version.trimEndMs ? (
+                  <button
+                    type="button"
+                    className="version-stack-action version-stack-action--trim"
+                    onClick={() => void setAudioVersionTrimEnd(version.id, null)}
+                    title="Clear end point"
+                  >
+                    ⬛ {(version.trimEndMs / 1000).toFixed(1)}s ×
+                  </button>
+                ) : null}
+                {/* Add marker at current position */}
+                {currentVersionId === version.id && (
+                  <button
+                    type="button"
+                    className="version-stack-action"
+                    onClick={async () => {
+                      const ms = Math.round(progress * version.durationMs)
+                      await addMarker(version.id, ms)
+                      scheduleFlush()
+                    }}
+                    title="Add marker at current position"
+                  >
+                    + Marker
+                  </button>
+                )}
                 <button
                   type="button"
                   className="version-stack-action"
@@ -289,6 +364,18 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                 >
                   Export
                 </button>
+                {(versions?.length ?? 0) > 1 && isSecondary && (
+                  <button
+                    type="button"
+                    className="version-stack-action"
+                    onClick={() => {
+                      void unmergeSong(version.id).then(() => scheduleFlush())
+                    }}
+                    title="Move this clip to its own song card"
+                  >
+                    Unmerge
+                  </button>
+                )}
                 {(versions?.length ?? 0) > 1 && (
                   <button
                     type="button"
@@ -301,6 +388,45 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     Remove
                   </button>
                 )}
+              </div>
+            )}
+            {/* Markers list */}
+            {(markersByVersion[version.id] ?? []).length > 0 && (
+              <div className="version-markers-list">
+                {(markersByVersion[version.id] ?? []).map((marker) => (
+                  <div key={marker.id} className="version-marker-row">
+                    <button
+                      type="button"
+                      className="version-marker-jump"
+                      onClick={() => {
+                        const frac = version.durationMs > 0 ? marker.ms / version.durationMs : 0
+                        seekAudioTo(marker.ms)
+                        setProgress(frac)
+                      }}
+                      title="Jump to marker"
+                    >
+                      {marker.type === 'start' ? '▷' : marker.type === 'end' ? '⬛' : '◆'}
+                    </button>
+                    <span className="version-marker-time">
+                      {(marker.ms / 1000).toFixed(1)}s
+                    </span>
+                    <input
+                      className="version-marker-label"
+                      value={marker.label}
+                      placeholder="label…"
+                      onChange={(e) => void updateMarker(marker.id, { label: e.target.value })}
+                    />
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        className="version-marker-delete"
+                        onClick={() => void deleteMarker(marker.id)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

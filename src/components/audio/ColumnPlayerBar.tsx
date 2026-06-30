@@ -280,6 +280,12 @@ export function ColumnPlayerBar() {
             setProgress(element.currentTime / element.duration)
             setCurrentMs(ms)
 
+            // Stop at trimEndMs if set
+            if (version?.trimEndMs && ms >= version.trimEndMs) {
+              void handleEnded()
+              return
+            }
+
             if (currentSongId && ms - lastSavedMsRef.current > 2000) {
               lastSavedMsRef.current = ms
               void setPlaybackPositionMs(currentSongId, ms)

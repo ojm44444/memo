@@ -174,6 +174,18 @@ export async function renameAudioVersion(versionId: string, label: string) {
     ...version,
     label: trimmed,
   })
+
+  // If this song has only one audio version, also update the song title to match
+  const allVersions = await db.audioVersions.where('songId').equals(version.songId).count()
+  if (allVersions === 1) {
+    const { updateSong } = await import('@/db/repositories/boardRepo')
+    await updateSong(version.songId, { title: trimmed })
+    await enqueueSync('update', 'song', version.songId, {
+      title: trimmed,
+      updatedAt: new Date().toISOString(),
+    })
+  }
+
   return { ...version, label: trimmed }
 }
 
@@ -182,6 +194,13 @@ export async function setAudioVersionTrimStart(versionId: string, trimStartMs: n
   if (!version) return null
   await db.audioVersions.update(versionId, { trimStartMs: trimStartMs ?? undefined })
   return trimStartMs
+}
+
+export async function setAudioVersionTrimEnd(versionId: string, trimEndMs: number | null) {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+  await db.audioVersions.update(versionId, { trimEndMs: trimEndMs ?? undefined })
+  return trimEndMs
 }
 
 export async function updateAudioVersionTags(versionId: string, tags: string[]) {

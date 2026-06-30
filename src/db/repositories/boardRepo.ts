@@ -529,3 +529,57 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
     })
   }
 }
+
+export async function unmergeSong(versionId: string) {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+
+  const parentSong = await db.songs.get(version.songId)
+  if (!parentSong) return null
+
+  // Can't unmerge if this is the only version
+  const versionCount = await db.audioVersions.where('songId').equals(version.songId).count()
+  if (versionCount <= 1) return null
+
+  const now = new Date().toISOString()
+  const newSongId = createId()
+
+  const newSong: Song = {
+    id: newSongId,
+    title: version.label,
+    columnSlug: parentSong.columnSlug,
+    projectId: parentSong.projectId,
+    tags: [],
+    isFavourite: false,
+    musicalKey: null,
+    bpm: null,
+    recordedAt: version.recordedAt ?? null,
+    sortOrder: parentSong.sortOrder + 0.5,
+    notes: '',
+    createdAt: now,
+    updatedAt: now,
+    syncedAt: null,
+    deletedAt: null,
+  }
+
+  await db.songs.put(newSong)
+  await db.audioVersions.update(versionId, { songId: newSongId, sortOrder: 0 })
+
+  // Renumber remaining versions in the parent song
+  const remaining = await db.audioVersions
+    .where('songId')
+    .equals(version.songId)
+    .sortBy('sortOrder')
+  for (let i = 0; i < remaining.length; i++) {
+    await db.audioVersions.update(remaining[i].id, { sortOrder: i })
+  }
+
+  void enqueueSync('create', 'song', newSongId, newSong)
+  void enqueueSync('update', 'audio_version', versionId, {
+    songId: newSongId,
+    sortOrder: 0,
+    label: version.label,
+  })
+
+  return newSong
+}

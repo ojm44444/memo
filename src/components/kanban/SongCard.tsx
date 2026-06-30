@@ -116,7 +116,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     <div
       ref={setNodeRef}
       style={style}
-      {...(readOnly || selectionMode ? {} : { ...attributes, ...listeners })}
+      {...(readOnly || selectionMode ? {} : { ...attributes })}
       onClick={handleCardClick}
       className={cn(
         'song-card',
@@ -126,6 +126,15 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         selectionMode && isSelected && 'is-selected',
       )}
     >
+      {!readOnly && !selectionMode && (
+        <div
+          className="song-card-drag-handle"
+          {...listeners}
+          aria-label="Drag to reorder"
+        >
+          ⠿
+        </div>
+      )}
       <div className="song-card-title-row">
         {selectionMode && (
           <span className={cn('song-card-select', isSelected && 'is-checked')} aria-hidden="true">

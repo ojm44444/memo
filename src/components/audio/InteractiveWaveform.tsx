@@ -5,6 +5,7 @@ import { decodeWaveformPeaks } from '@/lib/audio/decodeWaveformPeaks'
 export interface WaveformMarker {
   id: string
   progress: number
+  color?: string
 }
 
 interface InteractiveWaveformProps {
@@ -127,7 +128,10 @@ export function InteractiveWaveform({
           key={marker.id}
           type="button"
           className="interactive-waveform-marker"
-          style={{ left: `${marker.progress * 100}%` }}
+          style={{
+            left: `${marker.progress * 100}%`,
+            ...(marker.color ? { backgroundColor: marker.color } : {}),
+          }}
           onClick={(event) => {
             event.stopPropagation()
             onMarkerClick?.(marker.id)

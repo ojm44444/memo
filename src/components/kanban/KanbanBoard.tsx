@@ -78,7 +78,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 20 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 25 } }),
   )
 
   const collisionDetection: CollisionDetection = useCallback((args) => {

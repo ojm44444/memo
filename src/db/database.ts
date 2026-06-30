@@ -5,6 +5,7 @@ import type { FolderWatch, ImportedSource } from '@/types/folder-watch'
 import type { Project } from '@/types/project'
 import type { SongComment } from '@/types/song-comment'
 import type { Song, SongLink } from '@/types/song'
+import type { AudioMarker } from '@/types/audio-marker'
 import type { SyncQueueItem } from '@/types/sync'
 
 export interface SyncMeta {
@@ -30,6 +31,7 @@ export class MemoDatabase extends Dexie {
   folderWatch!: EntityTable<FolderWatch, 'key'>
   importedSources!: EntityTable<ImportedSource, 'sourceKey'>
   waveformPeaks!: EntityTable<WaveformPeakRecord, 'key'>
+  audioMarkers!: EntityTable<AudioMarker, 'id'>
 
   constructor() {
     super('memo')
@@ -166,6 +168,22 @@ export class MemoDatabase extends Dexie {
       await tx.table('audioVersions').toCollection().modify((version) => {
         if (!('recordedAt' in version)) version.recordedAt = null
       })
+    })
+
+    this.version(8).stores({
+      columns: 'id, slug, sortOrder',
+      songs: 'id, columnSlug, projectId, isFavourite, sortOrder, updatedAt, deletedAt, recordedAt',
+      audioVersions: 'id, songId, sortOrder, localBlobId, storagePath, recordedAt',
+      audioBlobs: 'id',
+      songLinks: 'id, songId',
+      songComments: 'id, songId, userId, createdAt, deletedAt',
+      projects: 'id, sortOrder',
+      syncQueue: 'id, entityType, entityId, createdAt',
+      syncMeta: 'key',
+      folderWatch: 'key',
+      importedSources: 'sourceKey, importedAt',
+      waveformPeaks: 'key',
+      audioMarkers: 'id, versionId, ms',
     })
   }
 }

@@ -15,6 +15,8 @@ export interface AudioVersion {
   tags?: string[]
   /** Playback start offset in ms — skips the silence/intro on play. */
   trimStartMs?: number
+  /** Playback end offset in ms — stops playback early when set. */
+  trimEndMs?: number
 }
 
 export interface AudioBlob {
