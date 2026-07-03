@@ -170,6 +170,41 @@ export function ColumnPlayerBar() {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate
   }, [playbackRate])
 
+  // Media Session API — lock screen / AirPods / CarPlay controls
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    if (!displaySong) return
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: displaySong.title,
+      artist: 'mem•',
+      album: version?.label ?? undefined,
+    })
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
+
+    const store = usePlayerStore.getState
+    navigator.mediaSession.setActionHandler('play', () => setPlaying(true))
+    navigator.mediaSession.setActionHandler('pause', () => setPlaying(false))
+    navigator.mediaSession.setActionHandler('stop', () => setPlaying(false))
+    navigator.mediaSession.setActionHandler('nexttrack', () => store().playNextInColumn())
+    navigator.mediaSession.setActionHandler('previoustrack', () => store().playPreviousInColumn())
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      const audio = audioRef.current
+      if (!audio || !details.seekTime) return
+      audio.currentTime = details.seekTime
+      setProgress(details.seekTime / audio.duration)
+    })
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null)
+      navigator.mediaSession.setActionHandler('pause', null)
+      navigator.mediaSession.setActionHandler('stop', null)
+      navigator.mediaSession.setActionHandler('nexttrack', null)
+      navigator.mediaSession.setActionHandler('previoustrack', null)
+      navigator.mediaSession.setActionHandler('seekto', null)
+    }
+  }, [displaySong?.title, version?.label, isPlaying, setPlaying, setProgress])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio || !sourceReady) return
