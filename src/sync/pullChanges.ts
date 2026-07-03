@@ -31,7 +31,8 @@ export async function pullChanges(userId: string) {
   }
 
   const lastPulledMeta = await db.syncMeta.get('lastPulledAt')
-  let cursor = lastPulledMeta?.value ?? new Date(0).toISOString()
+  const since = lastPulledMeta?.value ?? new Date(0).toISOString()
+  let cursor = since
 
   const { data: remoteColumns, error: columnError } = await supabase
     .from('columns')
@@ -132,6 +133,7 @@ export async function pullChanges(userId: string) {
     .from('songs')
     .select('*')
     .eq('board_id', boardId)
+    .gt('updated_at', since)
 
   if (error) throw error
 
@@ -197,6 +199,7 @@ export async function pullChanges(userId: string) {
       .from('audio_versions')
       .select('*')
       .in('song_id', songIds)
+      .gt('updated_at', since)
 
     if (versionError) throw versionError
 
@@ -258,6 +261,7 @@ export async function pullChanges(userId: string) {
       .from('song_comments')
       .select('*')
       .eq('board_id', boardId)
+      .gt('updated_at', since)
 
     if (commentError) throw commentError
 
