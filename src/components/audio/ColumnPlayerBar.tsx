@@ -431,25 +431,24 @@ export function ColumnPlayerBar() {
                   </button>
                 )}
               </div>
-              <div
-                className="player-bar-wave-hit"
-                onClick={() => setExpanded(true)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') setExpanded(true)
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label="Open waveform"
-              >
+              <div className="player-bar-wave-row">
                 <InteractiveWaveform
                   audioUrl={audioUrl}
                   progress={progress}
                   active={isPlaying && !buffering}
                   barCount={32}
                   height={24}
-                  className="mt-1.5"
+                  className="mt-1.5 flex-1"
                   onSeek={seekTo}
                 />
+                <button
+                  type="button"
+                  className="player-bar-expand-btn"
+                  onClick={() => setExpanded(true)}
+                  aria-label="Open waveform"
+                >
+                  ⌃
+                </button>
                 {buffering && (
                   <div className="player-bar-buffer-track">
                     <div

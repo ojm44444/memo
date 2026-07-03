@@ -94,7 +94,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   return (
     <div className="flex flex-col gap-2">
       {versions?.map((version, i) => {
-        const isActive = currentVersionId === version.id && isPlaying
+        const isCurrent = currentVersionId === version.id
+        const isActive = isCurrent && isPlaying
         const isSecondary = i > 0
         const isPrimary = i === 0
 
@@ -166,10 +167,10 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                 )}
                 <InteractiveWaveform
                   audioUrl={audioUrls[version.id] ?? null}
-                  progress={isActive ? progress : 0}
+                  progress={isCurrent ? progress : 0}
                   active={isActive}
-                  barCount={32}
-                  height={20}
+                  barCount={isCurrent ? 60 : 32}
+                  height={isCurrent ? 36 : 20}
                   markers={[
                     ...(comments ?? [])
                       .filter(c => c.timestampMs != null && version.durationMs > 0)
@@ -188,7 +189,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                   ]}
                   onSeek={(fraction) => {
                     const ms = fraction * (version.durationMs || 0)
-                    if (isActive) {
+                    if (isCurrent) {
+                      // Seek without restarting whether playing or paused
                       seekAudioTo(ms)
                       setProgress(fraction)
                     } else {
