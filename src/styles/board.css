@@ -2118,7 +2118,11 @@ body.is-file-dragging * {
   align-items: center;
   gap: 6px;
   width: 100%;
-  position: relative;
+}
+
+.player-bar-wave-col {
+  flex: 1;
+  min-width: 0;
 }
 
 .player-bar-expand-btn {

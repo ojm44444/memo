@@ -175,15 +175,12 @@ export async function renameAudioVersion(versionId: string, label: string) {
     label: trimmed,
   })
 
-  // If this song has only one audio version, also update the song title to match
+  // If this song has only one audio version, also update the song title to match.
+  // updateSong already enqueues sync internally — no manual enqueueSync needed here.
   const allVersions = await db.audioVersions.where('songId').equals(version.songId).count()
   if (allVersions === 1) {
     const { updateSong } = await import('@/db/repositories/boardRepo')
     await updateSong(version.songId, { title: trimmed })
-    await enqueueSync('update', 'song', version.songId, {
-      title: trimmed,
-      updatedAt: new Date().toISOString(),
-    })
   }
 
   return { ...version, label: trimmed }
@@ -368,6 +365,7 @@ export async function deleteAudioVersion(versionId: string) {
   if (versions.length <= 1) throw new Error('Keep at least one clip on this song')
 
   await db.audioVersions.delete(versionId)
+  await db.audioMarkers.where('versionId').equals(versionId).delete()
   if (version.localBlobId) {
     const stillUsed = await db.audioVersions
       .where('localBlobId')

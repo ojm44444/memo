@@ -190,7 +190,7 @@ export function ColumnPlayerBar() {
     navigator.mediaSession.setActionHandler('previoustrack', () => store().playPreviousInColumn())
     navigator.mediaSession.setActionHandler('seekto', (details) => {
       const audio = audioRef.current
-      if (!audio || !details.seekTime) return
+      if (!audio || details.seekTime == null) return
       audio.currentTime = details.seekTime
       setProgress(details.seekTime / audio.duration)
     })
@@ -432,15 +432,25 @@ export function ColumnPlayerBar() {
                 )}
               </div>
               <div className="player-bar-wave-row">
-                <InteractiveWaveform
-                  audioUrl={audioUrl}
-                  progress={progress}
-                  active={isPlaying && !buffering}
-                  barCount={32}
-                  height={24}
-                  className="mt-1.5 flex-1"
-                  onSeek={seekTo}
-                />
+                <div className="player-bar-wave-col">
+                  <InteractiveWaveform
+                    audioUrl={audioUrl}
+                    progress={progress}
+                    active={isPlaying && !buffering}
+                    barCount={32}
+                    height={24}
+                    className="mt-1.5"
+                    onSeek={seekTo}
+                  />
+                  {buffering && (
+                    <div className="player-bar-buffer-track">
+                      <div
+                        className="player-bar-buffer-fill"
+                        style={{ width: `${Math.round(bufferProgress * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   className="player-bar-expand-btn"
@@ -449,14 +459,6 @@ export function ColumnPlayerBar() {
                 >
                   ⌃
                 </button>
-                {buffering && (
-                  <div className="player-bar-buffer-track">
-                    <div
-                      className="player-bar-buffer-fill"
-                      style={{ width: `${Math.round(bufferProgress * 100)}%` }}
-                    />
-                  </div>
-                )}
               </div>
             </div>
 

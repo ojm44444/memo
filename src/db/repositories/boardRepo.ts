@@ -397,6 +397,12 @@ export async function deleteSong(id: string) {
   await db.songs.put(deleted)
   await enqueueSync('delete', 'song', id, { id })
 
+  // Clean up markers for all versions belonging to this song
+  const versionIds = (await db.audioVersions.where('songId').equals(id).primaryKeys()) as string[]
+  for (const vid of versionIds) {
+    await db.audioMarkers.where('versionId').equals(vid).delete()
+  }
+
   const remaining = (await getSongsInColumnScope(song.columnSlug, song.projectId)).filter(
     (s) => s.id !== id,
   )
