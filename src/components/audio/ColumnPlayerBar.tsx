@@ -131,8 +131,9 @@ export function ColumnPlayerBar() {
         objectUrlRef.current = null
       }
 
+      // trimStartMs always wins — "start here every time" overrides saved position
       const effectiveStartMs =
-        savedMs > 0 ? savedMs : (version.trimStartMs ?? 0) > 0 ? version.trimStartMs! : 0
+        (version.trimStartMs ?? 0) > 0 ? version.trimStartMs! : savedMs > 0 ? savedMs : 0
       resumeSeekRef.current = effectiveStartMs > 0 ? effectiveStartMs : null
 
       const sameUrl = audioRef.current.src === url
