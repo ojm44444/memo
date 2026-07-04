@@ -10,9 +10,9 @@ export interface WaveformMarker {
 
 interface InteractiveWaveformProps {
   audioUrl: string | null
+  cacheKey?: string
   progress: number
   active?: boolean
-  barCount?: number
   height?: number
   className?: string
   markers?: WaveformMarker[]
@@ -22,9 +22,9 @@ interface InteractiveWaveformProps {
 
 export function InteractiveWaveform({
   audioUrl,
+  cacheKey,
   progress,
   active = false,
-  barCount = 120,
   height = 40,
   className,
   markers = [],
@@ -34,6 +34,19 @@ export function InteractiveWaveform({
   const containerRef = useRef<HTMLDivElement>(null)
   const [peaks, setPeaks] = useState<number[]>([])
   const [loading, setLoading] = useState(false)
+  const [barCount, setBarCount] = useState(120)
+
+  // Auto-size barCount from container width: 1 bar per ~2.5px (bar + gap)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width
+      if (w > 0) setBarCount(Math.max(40, Math.floor(w / 2.5)))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   useEffect(() => {
     if (!audioUrl) {
@@ -44,7 +57,7 @@ export function InteractiveWaveform({
     let cancelled = false
     setLoading(true)
 
-    void decodeWaveformPeaks(audioUrl, barCount)
+    void decodeWaveformPeaks(audioUrl, barCount, cacheKey)
       .then((decoded) => {
         if (!cancelled) setPeaks(decoded)
       })
@@ -58,7 +71,7 @@ export function InteractiveWaveform({
     return () => {
       cancelled = true
     }
-  }, [audioUrl, barCount])
+  }, [audioUrl, barCount, cacheKey])
 
   const seekFromClientX = useCallback(
     (clientX: number) => {
@@ -119,7 +132,7 @@ export function InteractiveWaveform({
               'interactive-waveform-bar',
               index < playedCount ? 'is-played' : undefined,
             )}
-            style={{ height: `${Math.max(12, peak * 100)}%` }}
+            style={{ height: `${Math.max(8, peak * 100)}%` }}
           />
         ))
       )}
@@ -137,7 +150,7 @@ export function InteractiveWaveform({
             onMarkerClick?.(marker.id)
             onSeek(marker.progress)
           }}
-          title="Jump to comment"
+          title="Jump to marker"
         />
       ))}
     </div>

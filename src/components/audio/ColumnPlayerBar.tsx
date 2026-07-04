@@ -359,9 +359,9 @@ export function ColumnPlayerBar() {
               </div>
               <InteractiveWaveform
                 audioUrl={audioUrl}
+                cacheKey={currentVersionId ?? undefined}
                 progress={progress}
                 active={isPlaying}
-                barCount={180}
                 height={120}
                 className="player-bar-wave player-bar-wave--expanded"
                 onSeek={seekTo}
@@ -435,9 +435,9 @@ export function ColumnPlayerBar() {
                 <div className="player-bar-wave-col">
                   <InteractiveWaveform
                     audioUrl={audioUrl}
+                    cacheKey={currentVersionId ?? undefined}
                     progress={progress}
                     active={isPlaying && !buffering}
-                    barCount={32}
                     height={24}
                     className="mt-1.5"
                     onSeek={seekTo}

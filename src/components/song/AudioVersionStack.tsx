@@ -104,7 +104,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
             key={version.id}
             className={cn(
               'version-stack-item',
-              isSecondary && !isActive && 'version-stack-item--muted',
+              isSecondary && !isCurrent && 'version-stack-item--muted',
+              isCurrent && !isActive && 'version-stack-item--current',
               isActive && 'version-stack-item--active',
             )}
           >
@@ -129,10 +130,10 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
               <span
                 className={cn(
                   'scp-play shrink-0',
-                  !isActive && isSecondary && 'scp-play-muted',
+                  !isCurrent && isSecondary && 'scp-play-muted',
                 )}
               >
-                ▶
+                {isActive ? '❚❚' : '▶'}
               </span>
               <div className="min-w-0 flex-1">
                 {editingId === version.id ? (
@@ -167,10 +168,10 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                 )}
                 <InteractiveWaveform
                   audioUrl={audioUrls[version.id] ?? null}
+                  cacheKey={version.id}
                   progress={isCurrent ? progress : 0}
                   active={isActive}
-                  barCount={isCurrent ? 60 : 32}
-                  height={isCurrent ? 36 : 20}
+                  height={isCurrent ? 64 : 24}
                   markers={[
                     ...(comments ?? [])
                       .filter(c => c.timestampMs != null && version.durationMs > 0)

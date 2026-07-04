@@ -2201,7 +2201,7 @@ body.is-file-dragging * {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1.5px;
+  gap: 1px;
   width: 100%;
   cursor: pointer;
   touch-action: none;
@@ -2230,8 +2230,9 @@ body.is-file-dragging * {
 
 .interactive-waveform-bar {
   flex: 1;
-  min-width: 2px;
-  border-radius: 2px;
+  min-width: 1px;
+  max-width: 3px;
+  border-radius: 1px;
   background: rgba(255, 255, 255, 0.18);
   align-self: center;
   transition: background 0.1s ease;
@@ -4706,6 +4707,10 @@ html.light .interactive-waveform-bar.is-played {
 
 .version-stack-item--muted {
   opacity: 0.75;
+}
+
+.version-stack-item--current {
+  border-color: rgba(0, 255, 157, 0.12);
 }
 
 .version-stack-item--active {
