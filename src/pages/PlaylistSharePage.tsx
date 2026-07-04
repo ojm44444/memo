@@ -190,7 +190,6 @@ export function PlaylistSharePage() {
                     audioUrl={currentTrack.objectUrl ?? ''}
                     progress={progress}
                     active={isPlaying}
-                    barCount={80}
                     height={72}
                     className="share-waveform"
                     markers={[]}

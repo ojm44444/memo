@@ -287,7 +287,6 @@ export function SharePage() {
               audioUrl={audioUrl}
               progress={progress}
               active={isPlaying}
-              barCount={120}
               height={96}
               className="share-waveform"
               markers={commentMarkers}
