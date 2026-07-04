@@ -27,7 +27,7 @@ import {
 import type { AudioMarker } from '@/types/audio-marker'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
-import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
+import { InteractiveWaveform, type WaveformRegion } from '@/components/audio/InteractiveWaveform'
 import { cn } from '@/lib/cn'
 
 interface AudioVersionStackProps {
@@ -177,7 +177,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                       .filter(c => c.timestampMs != null && version.durationMs > 0)
                       .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs })),
                     ...(markersByVersion[version.id] ?? [])
-                      .filter(() => version.durationMs > 0)
+                      .filter(m => version.durationMs > 0 && m.type !== 'skip-start' && m.type !== 'skip-end')
                       .map(m => ({
                         id: m.id,
                         progress: m.ms / version.durationMs,
@@ -188,6 +188,19 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                           : '#eab308',
                       })),
                   ]}
+                  regions={(() => {
+                    const vMarkers = markersByVersion[version.id] ?? []
+                    const skipStarts = vMarkers.filter(m => m.type === 'skip-start').sort((a, b) => a.ms - b.ms)
+                    const skipEnds = vMarkers.filter(m => m.type === 'skip-end').sort((a, b) => a.ms - b.ms)
+                    const regions: WaveformRegion[] = []
+                    for (const s of skipStarts) {
+                      const e = skipEnds.find(en => en.ms > s.ms)
+                      if (e && version.durationMs > 0) {
+                        regions.push({ id: s.id, startProgress: s.ms / version.durationMs, endProgress: e.ms / version.durationMs })
+                      }
+                    }
+                    return regions
+                  })()}
                   onSeek={(fraction) => {
                     const ms = fraction * (version.durationMs || 0)
                     if (isCurrent) {
@@ -360,6 +373,80 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     + Marker
                   </button>
                 )}
+                {/* Skip-start marker */}
+                {(() => {
+                  const existing = (markersByVersion[version.id] ?? []).find(m => m.type === 'skip-start')
+                  if (currentVersionId === version.id) {
+                    return (
+                      <button
+                        type="button"
+                        className="version-stack-action version-stack-action--trim"
+                        onClick={async () => {
+                          if (existing) {
+                            await deleteMarker(existing.id)
+                          } else {
+                            const ms = Math.round(progress * version.durationMs)
+                            await addMarker(version.id, ms, '', 'skip-start')
+                          }
+                          scheduleFlush()
+                        }}
+                        title={existing ? 'Clear skip start' : 'Mark skip start here'}
+                      >
+                        {existing ? `⤼ skip from ${(existing.ms / 1000).toFixed(1)}s ×` : '⤼ Skip from here'}
+                      </button>
+                    )
+                  }
+                  if (existing) {
+                    return (
+                      <button
+                        type="button"
+                        className="version-stack-action version-stack-action--trim"
+                        onClick={async () => { await deleteMarker(existing.id); scheduleFlush() }}
+                        title="Clear skip start"
+                      >
+                        ⤼ {(existing.ms / 1000).toFixed(1)}s ×
+                      </button>
+                    )
+                  }
+                  return null
+                })()}
+                {/* Skip-end marker */}
+                {(() => {
+                  const existing = (markersByVersion[version.id] ?? []).find(m => m.type === 'skip-end')
+                  if (currentVersionId === version.id) {
+                    return (
+                      <button
+                        type="button"
+                        className="version-stack-action version-stack-action--trim"
+                        onClick={async () => {
+                          if (existing) {
+                            await deleteMarker(existing.id)
+                          } else {
+                            const ms = Math.round(progress * version.durationMs)
+                            await addMarker(version.id, ms, '', 'skip-end')
+                          }
+                          scheduleFlush()
+                        }}
+                        title={existing ? 'Clear skip end' : 'Mark skip end here'}
+                      >
+                        {existing ? `⤼ skip to ${(existing.ms / 1000).toFixed(1)}s ×` : '⤼ Skip to here'}
+                      </button>
+                    )
+                  }
+                  if (existing) {
+                    return (
+                      <button
+                        type="button"
+                        className="version-stack-action version-stack-action--trim"
+                        onClick={async () => { await deleteMarker(existing.id); scheduleFlush() }}
+                        title="Clear skip end"
+                      >
+                        ⤼ to {(existing.ms / 1000).toFixed(1)}s ×
+                      </button>
+                    )
+                  }
+                  return null
+                })()}
                 <button
                   type="button"
                   className="version-stack-action"

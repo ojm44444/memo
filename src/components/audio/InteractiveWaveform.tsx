@@ -8,6 +8,13 @@ export interface WaveformMarker {
   color?: string
 }
 
+export interface WaveformRegion {
+  id: string
+  startProgress: number
+  endProgress: number
+  color?: string
+}
+
 interface InteractiveWaveformProps {
   audioUrl: string | null
   cacheKey?: string
@@ -16,6 +23,7 @@ interface InteractiveWaveformProps {
   height?: number
   className?: string
   markers?: WaveformMarker[]
+  regions?: WaveformRegion[]
   onSeek: (progress: number) => void
   onMarkerClick?: (markerId: string) => void
 }
@@ -28,6 +36,7 @@ export function InteractiveWaveform({
   height = 40,
   className,
   markers = [],
+  regions = [],
   onSeek,
   onMarkerClick,
 }: InteractiveWaveformProps) {
@@ -136,6 +145,17 @@ export function InteractiveWaveform({
           />
         ))
       )}
+      {regions.map((region) => (
+        <div
+          key={region.id}
+          className="interactive-waveform-region"
+          style={{
+            left: `${region.startProgress * 100}%`,
+            width: `${(region.endProgress - region.startProgress) * 100}%`,
+            background: region.color ?? 'rgba(239, 68, 68, 0.18)',
+          }}
+        />
+      ))}
       {markers.map((marker) => (
         <button
           key={marker.id}

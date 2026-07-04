@@ -2209,6 +2209,16 @@ body.is-file-dragging * {
   padding: 4px 0;
 }
 
+.interactive-waveform-region {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-left: 1.5px solid rgba(239, 68, 68, 0.6);
+  border-right: 1.5px solid rgba(239, 68, 68, 0.6);
+  z-index: 1;
+}
+
 .interactive-waveform-marker {
   position: absolute;
   top: 2px;

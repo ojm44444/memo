@@ -3,5 +3,5 @@ export interface AudioMarker {
   versionId: string
   ms: number
   label: string
-  type: 'start' | 'end' | 'marker'
+  type: 'start' | 'end' | 'marker' | 'skip-start' | 'skip-end'
 }

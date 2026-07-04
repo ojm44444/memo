@@ -14,6 +14,7 @@ import { SpeedControl } from './SpeedControl'
 import { PlayerLoopButton } from './PlayerLoopButton'
 import { PlayerQueueDrawer } from './PlayerQueueDrawer'
 import { InteractiveWaveform } from './InteractiveWaveform'
+import { getMarkersForVersion } from '@/db/repositories/markerRepo'
 
 export function ColumnPlayerBar() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -76,6 +77,11 @@ export function ColumnPlayerBar() {
 
   const version = useLiveQuery(
     () => (currentVersionId ? db.audioVersions.get(currentVersionId) : undefined),
+    [currentVersionId],
+  )
+
+  const markers = useLiveQuery(
+    () => (currentVersionId ? getMarkersForVersion(currentVersionId) : Promise.resolve([])),
     [currentVersionId],
   )
 
@@ -319,6 +325,19 @@ export function ColumnPlayerBar() {
             if (version?.trimEndMs && ms >= version.trimEndMs) {
               void handleEnded()
               return
+            }
+
+            // Skip over any skip regions (skip-start → skip-end)
+            if (markers && markers.length > 0) {
+              const skipStarts = markers.filter(m => m.type === 'skip-start').sort((a, b) => a.ms - b.ms)
+              const skipEnds = markers.filter(m => m.type === 'skip-end').sort((a, b) => a.ms - b.ms)
+              for (const start of skipStarts) {
+                const end = skipEnds.find(e => e.ms > start.ms)
+                if (end && ms >= start.ms && ms < end.ms) {
+                  element.currentTime = end.ms / 1000
+                  return
+                }
+              }
             }
 
             if (currentSongId && ms - lastSavedMsRef.current > 2000) {
