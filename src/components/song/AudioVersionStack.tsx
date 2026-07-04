@@ -42,7 +42,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   )
   const song = useLiveQuery(() => getSong(songId), [songId])
   const comments = useLiveQuery(() => getCommentsForSong(songId), [songId])
-  const { currentVersionId, isPlaying, progress, setProgress } = usePlayerStore()
+  const { currentVersionId, isPlaying, progress, setProgress, setPlaying } = usePlayerStore()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftLabel, setDraftLabel] = useState('')
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
@@ -112,6 +112,11 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
             <button
               type="button"
               onClick={() => {
+                // If already the current clip, just toggle play/pause
+                if (isCurrent) {
+                  setPlaying(!isPlaying)
+                  return
+                }
                 // If the URL is already cached, play instantly in the gesture
                 // handler before any await — this is the only way to guarantee
                 // iOS allows audio.play() without a second tap.

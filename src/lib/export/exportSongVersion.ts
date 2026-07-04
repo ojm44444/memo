@@ -27,6 +27,8 @@ export async function exportSongVersion(versionId: string) {
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = fileName
+  document.body.appendChild(anchor)
   anchor.click()
-  URL.revokeObjectURL(url)
+  document.body.removeChild(anchor)
+  setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
