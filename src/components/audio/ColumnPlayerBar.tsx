@@ -217,10 +217,21 @@ export function ColumnPlayerBar() {
     if (!audio || !sourceReady) return
 
     if (isPlaying) {
-      void audio.play().catch((err: Error) => { if (err?.name !== 'AbortError') setPlaying(false) })
+      // Fade in from 0 over ~30ms to eliminate the pop on play start
+      audio.volume = 0
+      void audio.play().then(() => {
+        let v = 0
+        const step = () => {
+          v = Math.min(1, v + 0.08)
+          audio.volume = v
+          if (v < 1) requestAnimationFrame(step)
+        }
+        requestAnimationFrame(step)
+      }).catch((err: Error) => { if (err?.name !== 'AbortError') setPlaying(false) })
     } else {
       programmaticPauseRef.current = true
       audio.pause()
+      audio.volume = 1
     }
   }, [isPlaying, sourceReady, currentVersionId, setPlaying])
 

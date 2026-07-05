@@ -9,6 +9,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
   type CollisionDetection,
 } from '@dnd-kit/core'
@@ -146,10 +147,33 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     if (song) setDraggingCardId(song.id)
   }
 
+  // Live preview: update optimisticMove as the card crosses into a new column
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    if (readOnly || selectionMode) return
+    const song = event.active.data.current?.song as Song | undefined
+    if (!song) return
+    const overData = event.over?.data.current
+    if (!overData) return
+    const targetColumn =
+      overData.type === 'column' ? (overData.columnSlug as ColumnSlug)
+      : overData.type === 'song' ? (overData.columnSlug as ColumnSlug)
+      : null
+    if (!targetColumn || targetColumn === song.columnSlug) {
+      setOptimisticMove(null)
+      return
+    }
+    setOptimisticMove((prev) =>
+      prev?.songId === song.id && prev.toColumn === targetColumn
+        ? prev
+        : { songId: song.id, song, toColumn: targetColumn },
+    )
+  }, [readOnly, selectionMode])
+
   const handleDragEnd = (event: DragEndEvent) => {
     const song = activeSong
     setActiveSong(null)
     setDraggingCardId(null)
+    setOptimisticMove(null)
     if (readOnly || selectionMode || !song) return
 
     const { active, over } = event
@@ -191,6 +215,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       sensors={sensors}
       collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       {columns && columns.length > 0 && (
