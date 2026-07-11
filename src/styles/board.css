@@ -1750,8 +1750,9 @@ body.is-file-dragging * {
   border-radius: 8px;
   padding: 10px;
   cursor: default;
-  transition: all 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
   touch-action: auto;
+  will-change: transform;
 }
 
 .song-card:active {
@@ -2064,8 +2065,9 @@ body.is-file-dragging * {
 .player-bar {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
-  background: rgba(20, 20, 22, 0.95);
-  backdrop-filter: blur(12px);
+  background: var(--bg-2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 12px 20px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }

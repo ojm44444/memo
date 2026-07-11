@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
@@ -32,6 +32,7 @@ export function ColumnPlayerBar() {
   // Distinguishes user-initiated pauses from system-triggered ones (iOS phone
   // call, lock screen) so we can sync isPlaying when the OS pauses audio.
   const programmaticPauseRef = useRef(false)
+  const skipRegionsRef = useRef<Array<{ start: number; end: number }>>([])
   const [sourceReady, setSourceReady] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
@@ -84,6 +85,18 @@ export function ColumnPlayerBar() {
     () => (currentVersionId ? getMarkersForVersion(currentVersionId) : Promise.resolve([])),
     [currentVersionId],
   )
+
+  // Pre-compute skip regions so onTimeUpdate doesn't allocate arrays every tick
+  const skipRegions = useMemo(() => {
+    if (!markers || markers.length === 0) return []
+    const starts = markers.filter(m => m.type === 'skip-start').sort((a, b) => a.ms - b.ms)
+    const ends = markers.filter(m => m.type === 'skip-end').sort((a, b) => a.ms - b.ms)
+    return starts.flatMap(s => {
+      const end = ends.find(e => e.ms > s.ms)
+      return end ? [{ start: s.ms, end: end.ms }] : []
+    })
+  }, [markers])
+  skipRegionsRef.current = skipRegions
 
   const song = useLiveQuery(
     () => (currentSongId ? db.songs.get(currentSongId) : undefined),
@@ -217,9 +230,11 @@ export function ColumnPlayerBar() {
     if (!audio || !sourceReady) return
 
     if (isPlaying) {
-      // Fade in from 0 over ~30ms to eliminate the pop on play start
-      audio.volume = 0
+      const wasPaused = audio.paused
+      if (wasPaused) audio.volume = 0
       void audio.play().then(() => {
+        if (!wasPaused) return
+        // Fade in from 0 over ~30ms to eliminate the pop on play start
         let v = 0
         const step = () => {
           v = Math.min(1, v + 0.08)
@@ -227,7 +242,10 @@ export function ColumnPlayerBar() {
           if (v < 1) requestAnimationFrame(step)
         }
         requestAnimationFrame(step)
-      }).catch((err: Error) => { if (err?.name !== 'AbortError') setPlaying(false) })
+      }).catch((err: Error) => {
+        audio.volume = 1
+        if (err?.name !== 'AbortError') setPlaying(false)
+      })
     } else {
       programmaticPauseRef.current = true
       audio.pause()
@@ -339,16 +357,11 @@ export function ColumnPlayerBar() {
               return
             }
 
-            // Skip over any skip regions (skip-start → skip-end)
-            if (markers && markers.length > 0) {
-              const skipStarts = markers.filter(m => m.type === 'skip-start').sort((a, b) => a.ms - b.ms)
-              const skipEnds = markers.filter(m => m.type === 'skip-end').sort((a, b) => a.ms - b.ms)
-              for (const start of skipStarts) {
-                const end = skipEnds.find(e => e.ms > start.ms)
-                if (end && ms >= start.ms && ms < end.ms) {
-                  element.currentTime = end.ms / 1000
-                  return
-                }
+            // Skip over any skip regions (pre-computed, no allocations per tick)
+            for (const region of skipRegionsRef.current) {
+              if (ms >= region.start && ms < region.end) {
+                element.currentTime = region.end / 1000
+                return
               }
             }
 

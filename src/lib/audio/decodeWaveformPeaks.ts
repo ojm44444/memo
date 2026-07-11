@@ -30,8 +30,11 @@ export async function decodeWaveformPeaks(
   barCount = 120,
   cacheKey?: string,
 ): Promise<number[]> {
+  // Round barCount to nearest 40 so minor container-resize variations
+  // (e.g. 198 vs 202) share the same cache bucket instead of missing every time
+  const normCount = Math.round(barCount / 40) * 40 || barCount
   const cacheId = cacheKey ?? url
-  const memKey = `${cacheId}:${barCount}`
+  const memKey = `${cacheId}:${normCount}`
 
   // 1. Memory cache (fastest)
   const memCached = memPeakCache.get(memKey)
@@ -39,7 +42,7 @@ export async function decodeWaveformPeaks(
 
   // 2. IDB cache — only when we have a stable key (versionId), avoids blob load entirely
   if (cacheKey) {
-    const idbCached = await getCachedPeaks(cacheKey, barCount)
+    const idbCached = await getCachedPeaks(cacheKey, normCount)
     if (idbCached) {
       memPeakCache.set(memKey, idbCached)
       return idbCached
@@ -55,10 +58,10 @@ export async function decodeWaveformPeaks(
     try {
       const audioBuffer = await audioContext.decodeAudioData(buffer.slice(0))
       const channel = audioBuffer.getChannelData(0)
-      const samplesPerBar = Math.max(1, Math.floor(channel.length / barCount))
+      const samplesPerBar = Math.max(1, Math.floor(channel.length / normCount))
       const peaks: number[] = []
 
-      for (let i = 0; i < barCount; i++) {
+      for (let i = 0; i < normCount; i++) {
         const start = i * samplesPerBar
         const end = Math.min(start + samplesPerBar, channel.length)
         let peak = 0
@@ -73,7 +76,7 @@ export async function decodeWaveformPeaks(
       const normalized = peaks.map((p) => p / max)
 
       memPeakCache.set(memKey, normalized)
-      if (cacheKey) void setCachedPeaks(cacheKey, barCount, normalized)
+      if (cacheKey) void setCachedPeaks(cacheKey, normCount, normalized)
 
       return normalized
     } finally {
