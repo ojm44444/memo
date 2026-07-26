@@ -32,12 +32,12 @@ export function Waveform({
   const playedCount = Math.floor(bars * progress)
 
   return (
-    <div className={cn('flex items-center gap-[1.5px]', className)} style={height ? { height } : { height: 24 }}>
+    <div className={cn('flex items-center gap-[1.5px]', !peaks && 'waveform-loading', className)} style={height ? { height } : { height: 24 }}>
       {heights.map((height, index) => (
         <div
           key={index}
           className={cn(
-            'flex-1 rounded-[1px]',
+            'flex-1 rounded-[2px]',
             index < playedCount
               ? active
                 ? 'bg-audio-mint'

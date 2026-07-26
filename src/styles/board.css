@@ -3730,11 +3730,12 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-detail-label {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   color: var(--text-muted);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .song-detail-link {
@@ -6820,4 +6821,123 @@ html.light .voice-memos-connect-secondary {
 }
 html.light .voice-memos-connect-primary.is-busy {
   background: rgba(0, 184, 107, 0.15);
+}
+
+/* ═══════════════════════════════════════════════
+   DESIGN POLISH — Apple-like refinements
+   ═══════════════════════════════════════════════ */
+
+/* Waveform shimmer for unloaded peaks */
+@keyframes waveform-shimmer {
+  0%   { opacity: 0.35; }
+  50%  { opacity: 0.65; }
+  100% { opacity: 0.35; }
+}
+.waveform-loading .waveform-bar-idle {
+  animation: waveform-shimmer 1.6s ease-in-out infinite;
+}
+.waveform-loading .waveform-bar-idle:nth-child(2n)   { animation-delay: 0.2s; }
+.waveform-loading .waveform-bar-idle:nth-child(3n)   { animation-delay: 0.4s; }
+.waveform-loading .waveform-bar-idle:nth-child(5n)   { animation-delay: 0.1s; }
+
+/* Light mode: drawer → clean white sheet */
+html.light .song-drawer {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode: drawer body sections need more breathing room */
+html.light .scp-body {
+  gap: 20px;
+  padding: 20px 24px 28px;
+}
+
+/* Light mode: header border lighter */
+html.light .scp-header {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode: audio item row sits on white, needs lighter border */
+html.light .scp-audio-item {
+  background: rgba(0, 0, 0, 0.025);
+  border-color: rgba(0, 0, 0, 0.07);
+}
+html.light .scp-audio-item:hover {
+  background: rgba(0, 184, 107, 0.04);
+  border-color: rgba(0, 184, 107, 0.2);
+}
+
+/* Light mode: waveform bars on white drawer — slightly more tinted */
+html.light .scp-audio-item .waveform-bar-idle,
+html.light .scp-audio-item .interactive-waveform-bar {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* Light mode: cards — remove border in normal state, shadow only */
+html.light .song-card {
+  border-color: transparent;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07), 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+html.light .song-card:hover {
+  border-color: transparent;
+  border-left-color: transparent;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+html.light .song-card.is-active {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--audio-mint), 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+html.light .song-card.is-favourite {
+  border-color: transparent;
+  box-shadow: 0 0 0 1.5px rgba(245, 166, 35, 0.4), 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Light mode: input/textarea focus ring — replace browser yellow with accent green */
+html.light .scp-body textarea:focus,
+html.light .scp-body input[type="text"]:focus,
+html.light .song-note-input:focus {
+  outline: 2px solid rgba(0, 184, 107, 0.5);
+  outline-offset: 1px;
+  border-color: rgba(0, 184, 107, 0.4) !important;
+}
+
+/* Light mode: song-comments textarea */
+html.light .song-comments-input:focus {
+  outline: 2px solid rgba(0, 184, 107, 0.4);
+  outline-offset: 1px;
+  border-color: rgba(0, 184, 107, 0.35) !important;
+}
+
+/* Drawer handle/close: cleaner on white */
+html.light .song-drawer-close {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.4);
+}
+html.light .song-drawer-close:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Version stack actions: cleaner on white */
+html.light .version-stack-action {
+  color: rgba(0, 0, 0, 0.4);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+html.light .version-stack-action:hover {
+  color: rgba(0, 0, 0, 0.75);
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Light mode: card title slightly heavier weight for legibility */
+html.light .song-card-title {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+html.light .song-card-time {
+  color: rgba(0, 0, 0, 0.35);
 }
