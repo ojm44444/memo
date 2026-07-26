@@ -5205,10 +5205,11 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-stage-label {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
   color: var(--text-muted);
 }
 
@@ -5229,10 +5230,11 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-project-label {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
   color: var(--text-muted);
 }
 
