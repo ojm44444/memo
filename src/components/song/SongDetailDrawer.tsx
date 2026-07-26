@@ -184,6 +184,8 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
           <AudioVersionStack songId={song.id} readOnly={readOnly} />
 
+          <SongComments songId={song.id} readOnly={readOnly} />
+
           <VersionCompare songId={song.id} />
 
           {!readOnly && mergeOpen && (
@@ -200,8 +202,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               <ExternalLinks songId={song.id} />
             </>
           )}
-
-          <SongComments songId={song.id} />
 
           {!readOnly && (
             <div className="mt-4 border-t border-border pt-4 song-detail-footer-actions">

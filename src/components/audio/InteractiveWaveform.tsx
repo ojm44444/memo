@@ -43,15 +43,23 @@ export function InteractiveWaveform({
   const containerRef = useRef<HTMLDivElement>(null)
   const [peaks, setPeaks] = useState<number[]>([])
   const [loading, setLoading] = useState(false)
-  const [barCount, setBarCount] = useState(120)
+  // Use a ref for barCount so ResizeObserver doesn't trigger decode cancellation
+  // on every pixel change — only commit a new decode when the bucket changes.
+  const barCountRef = useRef(120)
+  const [barBucket, setBarBucket] = useState(120)
 
-  // Auto-size barCount from container width: 1 bar per ~2.5px (bar + gap)
+  // Auto-size: 1 bar per ~2.5px, normalised to nearest 40 so minor resizes
+  // don't cancel an in-flight decode.
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width
-      if (w > 0) setBarCount(Math.max(40, Math.floor(w / 2.5)))
+      if (w <= 0) return
+      const raw = Math.max(40, Math.floor(w / 2.5))
+      barCountRef.current = raw
+      const bucket = Math.round(raw / 40) * 40 || raw
+      setBarBucket((prev) => (prev === bucket ? prev : bucket))
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -66,7 +74,7 @@ export function InteractiveWaveform({
     let cancelled = false
     setLoading(true)
 
-    void decodeWaveformPeaks(audioUrl, barCount, cacheKey)
+    void decodeWaveformPeaks(audioUrl, barBucket, cacheKey)
       .then((decoded) => {
         if (!cancelled) setPeaks(decoded)
       })
@@ -80,7 +88,7 @@ export function InteractiveWaveform({
     return () => {
       cancelled = true
     }
-  }, [audioUrl, barCount, cacheKey])
+  }, [audioUrl, barBucket, cacheKey])
 
   const seekFromClientX = useCallback(
     (clientX: number) => {

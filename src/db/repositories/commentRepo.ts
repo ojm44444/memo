@@ -9,7 +9,7 @@ export async function getCommentsForSong(songId: string) {
   return comments.filter((c) => !c.deletedAt)
 }
 
-export async function addSongComment(songId: string, body: string) {
+export async function addSongComment(songId: string, body: string, timestampMs?: number) {
   const trimmed = body.trim()
   if (!trimmed) throw new Error('Comment cannot be empty')
 
@@ -25,7 +25,7 @@ export async function addSongComment(songId: string, body: string) {
     userId: auth.user.id,
     authorLabel,
     body: trimmed,
-    timestampMs: null,
+    timestampMs: timestampMs ?? null,
     createdAt: now,
     updatedAt: now,
     syncedAt: null,

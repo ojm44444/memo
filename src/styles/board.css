@@ -3203,6 +3203,34 @@ html.light .interactive-waveform-bar.is-played {
   cursor: default;
 }
 
+.song-comment-timestamp {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.song-comments-stamp-btn {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.song-comments-stamp-btn.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
 .board-collaborator-banner,
 .board-viewer-banner {
   margin: 0;
