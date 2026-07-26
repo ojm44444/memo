@@ -433,7 +433,7 @@ export function ColumnPlayerBar() {
               <button
                 type="button"
                 onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
-                className={`song-card-play h-9 w-9 text-xs${buffering ? ' player-bar-buffering' : ''}`}
+                className={`player-bar-play${buffering ? ' player-bar-buffering' : ''}`}
                 aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
               >
                 {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
@@ -482,7 +482,7 @@ export function ColumnPlayerBar() {
                     cacheKey={currentVersionId ?? undefined}
                     progress={progress}
                     active={isPlaying && !buffering}
-                    height={24}
+                    height={32}
                     className="mt-1.5"
                     onSeek={seekTo}
                   />

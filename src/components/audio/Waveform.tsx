@@ -7,6 +7,7 @@ interface WaveformProps {
   progress?: number
   active?: boolean
   className?: string
+  height?: number
 }
 
 export function Waveform({
@@ -15,6 +16,7 @@ export function Waveform({
   progress = 0,
   active = false,
   className,
+  height,
 }: WaveformProps) {
   const heights = useMemo(() => {
     if (peaks?.length) {
@@ -30,7 +32,7 @@ export function Waveform({
   const playedCount = Math.floor(bars * progress)
 
   return (
-    <div className={cn('flex h-6 items-center gap-[1.5px]', className)}>
+    <div className={cn('flex items-center gap-[1.5px]', className)} style={height ? { height } : { height: 24 }}>
       {heights.map((height, index) => (
         <div
           key={index}

@@ -1181,9 +1181,9 @@ body.is-file-dragging * {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(var(--column-count, 1), minmax(220px, 1fr));
-  gap: 10px;
-  padding: 14px;
+  grid-template-columns: repeat(var(--column-count, 1), minmax(240px, 1fr));
+  gap: 12px;
+  padding: 16px;
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -1601,10 +1601,10 @@ body.is-file-dragging * {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px;
+  padding: 6px 4px 8px;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -1653,7 +1653,7 @@ body.is-file-dragging * {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: 4px;
@@ -1747,12 +1747,15 @@ body.is-file-dragging * {
   position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 12px 12px 10px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
   touch-action: auto;
   will-change: transform;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .song-card:active {
@@ -1760,47 +1763,83 @@ body.is-file-dragging * {
 }
 
 .song-card-drag-handle {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 20px;
-  height: 20px;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: grab;
   touch-action: none;
   opacity: 0;
   transition: opacity 0.15s;
-  z-index: 1;
 }
 
 .song-card:hover .song-card-drag-handle,
 .song-card:focus-within .song-card-drag-handle {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 @media (hover: none) {
   .song-card-drag-handle {
-    opacity: 0.4;
+    opacity: 0.35;
   }
 }
 
 .song-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  border-left-color: var(--audio-mint-dim);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .song-card.is-active {
-  border-color: rgba(0, 255, 157, 0.35);
-  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08);
+  border-color: rgba(0, 255, 157, 0.4);
+  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08), 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 .song-card.is-dragging {
   opacity: 0.3;
   border-style: dashed;
+}
+
+/* Card layout */
+.song-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.song-card-title-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.song-card-waveform {
+  margin: 0 -2px;
+}
+
+.song-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.song-card-footer-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.song-card-footer-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .drag-overlay-card {
@@ -1815,12 +1854,12 @@ body.is-file-dragging * {
   border-color: rgba(245, 166, 35, 0.25);
 }
 
+/* legacy — keep in case anything else references it */
 .song-card-title-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 6px;
-  margin-bottom: 4px;
 }
 
 .song-card-feedback-badge {
@@ -1840,14 +1879,13 @@ body.is-file-dragging * {
 }
 
 .song-card-title {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 0;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
-  min-width: 0;
+  line-height: 1.3;
 }
 
 .song-card-location {
@@ -1900,7 +1938,7 @@ body.is-file-dragging * {
   font-size: 0.62rem;
   color: var(--text-muted);
   line-height: 1.35;
-  margin-bottom: 6px;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1911,7 +1949,6 @@ body.is-file-dragging * {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-bottom: 4px;
 }
 
 .song-card-meta-pill {
@@ -1929,7 +1966,7 @@ body.is-file-dragging * {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .song-card-time-row {
@@ -1938,17 +1975,21 @@ body.is-file-dragging * {
   gap: 1px;
 }
 
+/* duration shown in the header row */
 .song-card-time {
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .song-card-recorded-date {
   font-family: var(--font-mono);
   font-size: 0.52rem;
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.55;
+  white-space: nowrap;
 }
 
 .song-card-offline-dot {
@@ -1964,19 +2005,25 @@ body.is-file-dragging * {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--audio-mint);
   color: var(--bg);
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   border: none;
   flex-shrink: 0;
-  transition: opacity 0.1s;
+  transition: opacity 0.1s, transform 0.1s;
+  cursor: pointer;
+}
+
+.song-card-play:hover {
+  opacity: 0.88;
+  transform: scale(1.06);
 }
 
 .song-card-play.is-playing {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .song-card-tag {
@@ -1994,7 +2041,6 @@ body.is-file-dragging * {
 .song-card-tag-out { background: rgba(200, 255, 87, 0.12); color: var(--accent); }
 
 .song-card-merge {
-  margin-top: 6px;
   font-family: var(--font-mono);
   font-size: 0.5rem;
   background: var(--bg-3);
@@ -2003,6 +2049,7 @@ body.is-file-dragging * {
   padding: 2px 5px;
   color: var(--text-muted);
   display: inline-block;
+  align-self: flex-start;
 }
 
 .song-card-merge-zone {
@@ -2066,10 +2113,11 @@ body.is-file-dragging * {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-2);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 12px 20px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 14px 20px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.04);
 }
 
 @media (max-width: 600px) {
@@ -4239,23 +4287,45 @@ html.light .interactive-waveform-bar.is-played {
 .player-bar-transport {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
+.player-bar-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--audio-mint);
+  color: var(--bg);
+  font-size: 0.65rem;
+  border: none;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.1s, transform 0.1s;
+}
+
+.player-bar-play:hover {
+  opacity: 0.88;
+  transform: scale(1.05);
+}
+
 .player-bar-skip {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   cursor: pointer;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .player-bar-skip:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
 }
 

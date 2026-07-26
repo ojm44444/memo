@@ -129,81 +129,13 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         selectionMode && isSelected && 'is-selected',
       )}
     >
-      {!readOnly && !selectionMode && (
-        <div
-          className="song-card-drag-handle"
-          {...listeners}
-          aria-label="Drag to reorder"
-        >
-          ⠿
-        </div>
-      )}
-      <div className="song-card-title-row">
-        {selectionMode && (
+      {/* Header row: play btn + title + duration + fav */}
+      <div className="song-card-header">
+        {selectionMode ? (
           <span className={cn('song-card-select', isSelected && 'is-checked')} aria-hidden="true">
             {isSelected ? '✓' : ''}
           </span>
-        )}
-        <p className="song-card-title">{song.title}</p>
-        {song.locationName && (
-          <p className="song-card-location">{song.locationName}</p>
-        )}
-        <FeedbackBadge songId={song.id} />
-        {!readOnly && (
-          <FavouriteButton songId={song.id} isFavourite={song.isFavourite ?? false} />
-        )}
-      </div>
-      {song.notes.trim() && <p className="song-card-notes-snippet">{song.notes.trim()}</p>}
-      {(song.musicalKey || song.bpm) && (
-        <div className="song-card-meta-pills">
-          {song.musicalKey && <span className="song-card-meta-pill">{song.musicalKey}</span>}
-          {song.bpm && <span className="song-card-meta-pill">{song.bpm} bpm</span>}
-        </div>
-      )}
-      {(song.tags?.length ?? 0) > 0 && (
-        <div className="song-card-tags">
-          {song.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="song-card-tag-pill"
-              style={{ background: getTagGradient(tag), border: 'none', color: '#fff' }}
-            >
-              {tag}
-            </span>
-          ))}
-          {song.tags.length > 3 && (
-            <span className="song-card-tag-pill song-card-tag-overflow">
-              +{song.tags.length - 3}
-            </span>
-          )}
-        </div>
-      )}
-      {primary && (
-        <CachedWaveform
-          versionId={primary.id}
-          localBlobId={primary.localBlobId}
-          storagePath={primary.storagePath}
-          progress={isActive ? progress : 0}
-          active={isActive}
-        />
-      )}
-      <div className="song-card-meta">
-        <div className="song-card-time-row">
-          <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
-          {song.recordedAt && (
-            <span className="song-card-recorded-date">
-              {new Date(song.recordedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {primary && (
-            <span
-              className={cn('song-card-offline-dot', primary.localBlobId ? 'is-cached' : 'is-cloud')}
-              title={primary.localBlobId ? 'Available offline' : 'Requires internet'}
-              aria-label={primary.localBlobId ? 'Available offline' : 'Requires internet'}
-            />
-          )}
+        ) : (
           <button
             type="button"
             onClick={handlePlay}
@@ -212,9 +144,88 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
           >
             {isActive ? '❚❚' : '▶'}
           </button>
+        )}
+        <div className="song-card-title-group">
+          <p className="song-card-title">{song.title}</p>
+          {song.locationName && (
+            <p className="song-card-location">{song.locationName}</p>
+          )}
         </div>
+        <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
+        <FeedbackBadge songId={song.id} />
+        {!readOnly && (
+          <FavouriteButton songId={song.id} isFavourite={song.isFavourite ?? false} />
+        )}
+        {!readOnly && !selectionMode && (
+          <div
+            className="song-card-drag-handle"
+            {...listeners}
+            aria-label="Drag to reorder"
+          >
+            ⠿
+          </div>
+        )}
       </div>
-      {mergeCount > 0 && <span className="song-card-merge">+{mergeCount} merged</span>}
+
+      {/* Waveform — hero */}
+      {primary && (
+        <CachedWaveform
+          versionId={primary.id}
+          localBlobId={primary.localBlobId}
+          storagePath={primary.storagePath}
+          progress={isActive ? progress : 0}
+          active={isActive}
+          className="song-card-waveform"
+        />
+      )}
+
+      {/* Footer: tags / meta / offline */}
+      {((song.tags?.length ?? 0) > 0 || song.notes.trim() || (song.musicalKey || song.bpm) || primary || mergeCount > 0) && (
+        <div className="song-card-footer">
+          <div className="song-card-footer-left">
+            {song.notes.trim() && <p className="song-card-notes-snippet">{song.notes.trim()}</p>}
+            {(song.musicalKey || song.bpm) && (
+              <div className="song-card-meta-pills">
+                {song.musicalKey && <span className="song-card-meta-pill">{song.musicalKey}</span>}
+                {song.bpm && <span className="song-card-meta-pill">{song.bpm} bpm</span>}
+              </div>
+            )}
+            {(song.tags?.length ?? 0) > 0 && (
+              <div className="song-card-tags">
+                {song.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className="song-card-tag-pill"
+                    style={{ background: getTagGradient(tag), border: 'none', color: '#fff' }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {song.tags.length > 3 && (
+                  <span className="song-card-tag-pill song-card-tag-overflow">
+                    +{song.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+            {mergeCount > 0 && <span className="song-card-merge">+{mergeCount} merged</span>}
+          </div>
+          <div className="song-card-footer-right">
+            {song.recordedAt && (
+              <span className="song-card-recorded-date">
+                {new Date(song.recordedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+            {primary && (
+              <span
+                className={cn('song-card-offline-dot', primary.localBlobId ? 'is-cached' : 'is-cloud')}
+                title={primary.localBlobId ? 'Available offline' : 'Cloud only'}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {isMergeTarget && (
         <div
           ref={setMergeNodeRef}

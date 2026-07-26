@@ -9,6 +9,7 @@ interface CachedWaveformProps {
   localBlobId: string | null
   storagePath: string | null
   bars?: number
+  height?: number
   progress?: number
   active?: boolean
   className?: string
@@ -18,7 +19,8 @@ export function CachedWaveform({
   versionId,
   localBlobId,
   storagePath,
-  bars = 26,
+  bars = 40,
+  height = 36,
   progress = 0,
   active = false,
   className,
@@ -63,6 +65,7 @@ export function CachedWaveform({
       peaks={peaks}
       progress={progress}
       active={active}
+      height={height}
       className={className}
     />
   )
