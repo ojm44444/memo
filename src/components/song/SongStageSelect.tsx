@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getColumns, moveSong } from '@/db/repositories/boardRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 import type { ColumnSlug } from '@/types/column'
 
 interface SongStageSelectProps {
@@ -23,20 +24,18 @@ export function SongStageSelect({ songId, columnSlug, readOnly = false }: SongSt
     return <span className="song-stage-readonly">{column?.title ?? columnSlug}</span>
   }
 
+  const options = (columns ?? []).map((c) => ({ value: c.slug, label: c.title }))
+
   return (
     <label className="song-stage-select">
       <span className="song-stage-label">Stage</span>
-      <select
-        className="song-stage-input"
+      <CustomSelect
         value={columnSlug}
-        onChange={(e) => void onChange(e.target.value)}
-      >
-        {columns?.map((column) => (
-          <option key={column.id} value={column.slug}>
-            {column.title}
-          </option>
-        ))}
-      </select>
+        options={options}
+        onChange={(slug) => void onChange(slug)}
+        className="song-stage-custom-select"
+        popoverClassName="song-stage-popover"
+      />
     </label>
   )
 }

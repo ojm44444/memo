@@ -6976,3 +6976,101 @@ html.light .song-card-title {
 html.light .song-card-time {
   color: rgba(0, 0, 0, 0.35);
 }
+
+/* ── Custom Select (Stage + Project) ─────────────────────── */
+.custom-select {
+  position: relative;
+}
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg-3);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.custom-select-trigger:hover {
+  background: var(--bg-hover, color-mix(in srgb, var(--bg-3) 85%, var(--text) 15%));
+}
+.custom-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-select-chevron {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.5;
+  transform: rotate(90deg);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.custom-select-chevron--open {
+  transform: rotate(-90deg);
+}
+.custom-select-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  min-width: 200px;
+  max-width: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding: 4px;
+}
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.custom-select-option:hover {
+  background: var(--bg-3);
+}
+.custom-select-option--active {
+  color: var(--audio-mint);
+  font-weight: 600;
+}
+.custom-select-check {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* Light mode overrides */
+html.light .custom-select-trigger {
+  background: rgba(0, 0, 0, 0.07);
+}
+html.light .custom-select-trigger:hover {
+  background: rgba(0, 0, 0, 0.11);
+}
+html.light .custom-select-popover {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+html.light .custom-select-option:hover {
+  background: #f2f2f7;
+}

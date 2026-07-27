@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getProjects, createProject } from '@/db/repositories/projectRepo'
 import { moveSongToProject } from '@/db/repositories/boardRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
+import { CustomSelect } from '@/components/ui/CustomSelect'
 
 interface SongProjectSelectProps {
   songId: string
@@ -31,6 +32,8 @@ export function SongProjectSelect({ songId, projectId, readOnly = false }: SongP
     setCreating(false)
   }
 
+  const options = (projects ?? []).map((p) => ({ value: p.id, label: p.name }))
+
   return (
     <div className="song-project-select">
       <span className="song-project-label">Project</span>
@@ -56,17 +59,14 @@ export function SongProjectSelect({ songId, projectId, readOnly = false }: SongP
         </div>
       ) : (
         <div className="song-project-row">
-          <select
-            className="song-project-input"
+          <CustomSelect
             value={projectId}
-            onChange={(e) => void moveSongToProject(songId, e.target.value)}
-          >
-            {(projects ?? []).map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
+            options={options}
+            onChange={(id) => {
+              void moveSongToProject(songId, id).then(() => scheduleFlush())
+            }}
+            className="song-project-custom-select"
+          />
           <button
             type="button"
             className="song-project-new-btn"
