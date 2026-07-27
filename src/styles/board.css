@@ -5929,8 +5929,9 @@ html.light .project-switcher-panel {
   background: transparent;
   color: var(--text-muted);
   padding: 2px 8px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -5946,8 +5947,9 @@ html.light .project-switcher-panel {
   background: transparent;
   color: var(--text-muted);
   padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -5970,8 +5972,9 @@ html.light .project-switcher-panel {
 }
 
 .bulk-actions-count {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--audio-mint);
 }
 
@@ -5982,8 +5985,8 @@ html.light .project-switcher-panel {
   background: var(--surface);
   color: var(--text);
   padding: 6px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
 }
 
 .bulk-actions-tag {
@@ -5999,8 +6002,9 @@ html.light .project-switcher-panel {
   background: transparent;
   color: var(--text-muted);
   padding: 6px 12px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -6016,8 +6020,9 @@ html.light .project-switcher-panel {
   background: transparent;
   color: rgba(255, 107, 53, 0.85);
   padding: 6px 12px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
