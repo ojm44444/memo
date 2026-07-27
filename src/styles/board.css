@@ -1435,10 +1435,9 @@ body.is-file-dragging * {
     border-radius: 999px;
     background: transparent;
     color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 500;
     padding: 6px 12px;
     cursor: pointer;
   }
@@ -1531,9 +1530,10 @@ body.is-file-dragging * {
 
   .mobile-import-eyebrow {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.08em;
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--audio-mint);
   }
@@ -1541,8 +1541,8 @@ body.is-file-dragging * {
   .mobile-import-steps {
     margin: 0;
     padding-left: 18px;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
     line-height: 1.5;
     color: var(--text-muted);
   }
@@ -1554,8 +1554,8 @@ body.is-file-dragging * {
 
   .mobile-import-note {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.54rem;
+    font-family: var(--font-sans);
+    font-size: 0.70rem;
     line-height: 1.45;
     color: var(--text-muted);
   }
