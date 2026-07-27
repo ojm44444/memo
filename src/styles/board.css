@@ -1155,9 +1155,8 @@ body.is-file-dragging * {
 
 .board-titlebar-text {
   margin-left: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 
@@ -1254,8 +1253,8 @@ body.is-file-dragging * {
 
 .board-add-section-error {
   width: 100%;
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: #ff8a8a;
 }
 
@@ -3133,8 +3132,8 @@ html.light .interactive-waveform-bar.is-played {
 
 .invite-bandmate-member-date {
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
 }
 
 .invite-bandmate-pending {
@@ -3162,8 +3161,8 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .invite-bandmate-pending-role {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
 }
 
@@ -3183,8 +3182,8 @@ html.light .interactive-waveform-bar.is-played {
 
 .invite-bandmate-error {
   margin: 8px 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
   color: #ffb4a8;
 }
 
@@ -5144,17 +5143,18 @@ html.light .project-switcher-panel {
 }
 
 .recent-songs-title {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--audio-mint);
   opacity: 0.7;
 }
 
 .recent-songs-hint {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
   opacity: 0.7;
 }
@@ -5197,8 +5197,8 @@ html.light .project-switcher-panel {
 }
 
 .recent-song-chip-meta {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -5659,9 +5659,10 @@ html.light .project-switcher-panel {
 
 .onboarding-tour-step {
   margin: 0 0 8px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -5707,9 +5708,10 @@ html.light .project-switcher-panel {
 .onboarding-tour-next {
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 8px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  padding: 8px 18px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -5756,9 +5758,10 @@ html.light .project-switcher-panel {
 }
 
 .board-activity-title {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--audio-mint);
   opacity: 0.7;
@@ -5770,8 +5773,8 @@ html.light .project-switcher-panel {
 }
 
 .board-activity-hint {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
   opacity: 0.7;
 }
@@ -5827,8 +5830,8 @@ html.light .project-switcher-panel {
 }
 
 .board-activity-detail {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -5837,8 +5840,8 @@ html.light .project-switcher-panel {
 
 .board-activity-time {
   flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
 }
 
