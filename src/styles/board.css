@@ -2040,6 +2040,7 @@ html.light .song-card:hover {
 
 .song-card-play.is-playing {
   opacity: 0.9;
+  animation: npPlayGlow 2.4s ease-in-out infinite;
 }
 
 .song-card-tag {
