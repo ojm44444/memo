@@ -163,9 +163,10 @@ body.is-file-dragging * {
 
 .voice-memos-share-eyebrow {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--audio-mint);
 }
@@ -174,8 +175,8 @@ body.is-file-dragging * {
 .voice-memos-share-ready,
 .voice-memos-share-note {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   line-height: 1.45;
   color: var(--text-muted);
 }
@@ -194,18 +195,17 @@ body.is-file-dragging * {
   border-radius: 8px;
   background: rgba(0, 255, 157, 0.12);
   color: var(--audio-mint);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .voice-memos-share-steps {
   margin: 0;
   padding-left: 18px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   line-height: 1.5;
   color: var(--text-muted);
 }
@@ -256,8 +256,8 @@ body.is-file-dragging * {
 .voice-memos-connect-path,
 .voice-memos-connect-warning {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   line-height: 1.45;
   color: var(--text-muted);
 }
@@ -277,8 +277,8 @@ body.is-file-dragging * {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--text);
 }
 
@@ -299,10 +299,11 @@ body.is-file-dragging * {
 .voice-memos-connect-secondary,
 .voice-memos-connect-ghost {
   flex: 1;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
