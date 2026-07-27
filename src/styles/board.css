@@ -3759,8 +3759,9 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-detail-link {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--audio-mint);
   background: none;
   border: none;
@@ -4900,9 +4901,17 @@ html.light .project-switcher-panel {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+.version-stack-action:hover {
+  color: var(--text);
+  background: var(--bg-3);
 }
 
 .version-stack-action--danger {
