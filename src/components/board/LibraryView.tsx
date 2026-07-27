@@ -604,7 +604,8 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
           </div>
         </section>
       )}
-      </></> {/* closes projects tab conditional */}
+      </>)}
+
     </div>
   )
 }
