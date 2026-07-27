@@ -408,7 +408,7 @@ function NowPlayingBanner() {
           </span>
           <button
             type="button"
-            className={cn('listen-now-playing-play', buffering && 'listen-now-playing-play--buffering')}
+            className={cn('listen-now-playing-play', buffering && 'listen-now-playing-play--buffering', isPlaying && !buffering && 'is-playing')}
             onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
@@ -479,10 +479,11 @@ function ListenRow({
     },
     [songId],
   )
+  const { progress } = usePlayerStore()
 
   return (
     <li className={cn('listen-view-row', isActive && 'is-active')}>
-      <span className="listen-view-index">{index}</span>
+      <span className="listen-view-index">{isActive ? '▶' : index}</span>
       <button type="button" className="listen-view-play" onClick={onPlay} aria-label={`Play ${title}`}>
         {isActive ? '❚❚' : '▶'}
       </button>
@@ -496,7 +497,19 @@ function ListenRow({
         >
           {title}
         </button>
-        {notes.trim() ? (
+        {version && (
+          <CachedWaveform
+            versionId={version.id}
+            localBlobId={version.localBlobId}
+            storagePath={version.storagePath}
+            bars={60}
+            height={22}
+            progress={isActive ? (progress ?? 0) : 0}
+            active={isActive}
+            className="listen-row-waveform"
+          />
+        )}
+        {!version && notes.trim() ? (
           <button type="button" className="listen-view-song-notes" onClick={onOpen}>
             {notes.trim()}
           </button>

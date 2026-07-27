@@ -2854,9 +2854,15 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+.board-switcher-trigger:hover {
+  color: var(--text);
+  border-color: rgba(255,255,255,0.18);
 }
 
 .board-switcher-panel {
@@ -4132,16 +4138,16 @@ html.light .project-switcher-panel {
 }
 
 .listen-view-sub {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
   color: var(--text-muted);
   margin-top: 4px;
 }
 
 .listen-view-kbd-hint {
   margin: 4px 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
   color: var(--text-muted);
 }
 
@@ -4200,13 +4206,21 @@ html.light .project-switcher-panel {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.listen-view-row:hover {
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.14);
 }
 
 .listen-view-row.is-active {
-  border-color: rgba(0, 255, 157, 0.35);
+  border-color: rgba(0, 255, 157, 0.4);
+  background: rgba(0, 255, 157, 0.04);
+  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08), 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .listen-view-index {
@@ -4472,8 +4486,8 @@ html.light .project-switcher-panel {
 }
 
 .library-view-sub {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
   color: var(--text-muted);
   margin-top: 4px;
 }
@@ -4808,8 +4822,8 @@ html.light .project-switcher-panel {
 
 .library-card-meta,
 .library-card-time {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
   color: var(--text-muted);
 }
 
@@ -8007,6 +8021,13 @@ html.light .listen-now-playing-inner {
 }
 .listen-now-playing-play:hover { opacity: 0.85; transform: scale(1.06); }
 .listen-now-playing-play--buffering { opacity: 0.6; cursor: default; }
+.listen-now-playing-play.is-playing {
+  animation: npPlayGlow 2.4s ease-in-out infinite;
+}
+@keyframes npPlayGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,157,0); }
+  50%       { box-shadow: 0 0 0 6px rgba(0,255,157,0.18); }
+}
 
 /* ── Listen mode tabs ────────────────────────────────────── */
 .listen-tab-bar {
