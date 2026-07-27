@@ -5357,12 +5357,13 @@ html.light .project-switcher-panel {
 
 .song-project-new-btn {
   flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--audio-mint);
   border: 1px solid var(--audio-mint-dim);
-  border-radius: 6px;
-  padding: 4px 8px;
+  border-radius: 999px;
+  padding: 4px 10px;
   background: transparent;
   cursor: pointer;
   white-space: nowrap;
@@ -5389,13 +5390,14 @@ html.light .project-switcher-panel {
 }
 
 .song-project-create-confirm {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--bg);
   background: var(--audio-mint);
   border: none;
-  border-radius: 6px;
-  padding: 5px 10px;
+  border-radius: 999px;
+  padding: 5px 12px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -5410,19 +5412,20 @@ html.light .project-switcher-panel {
 }
 
 .song-project-readonly {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--text-muted);
   margin-bottom: 14px;
 }
 
 .song-stage-readonly {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 4px 12px;
 }
 
 /* External links form */
