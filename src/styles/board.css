@@ -1747,7 +1747,7 @@ body.is-file-dragging * {
   position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 12px 10px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
@@ -1756,6 +1756,10 @@ body.is-file-dragging * {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+html.light .song-card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.04);
 }
 
 .song-card:active {
@@ -1790,6 +1794,11 @@ body.is-file-dragging * {
 
 .song-card:hover {
   border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+html.light .song-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border-color: rgba(0,0,0,0.1);
 }
 
 .song-card.is-active {
@@ -2005,21 +2014,23 @@ body.is-file-dragging * {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--audio-mint);
-  color: var(--bg);
-  font-size: 0.55rem;
+  color: #000;
+  font-size: 0.6rem;
   border: none;
   flex-shrink: 0;
-  transition: opacity 0.1s, transform 0.1s;
+  transition: opacity 0.1s, transform 0.12s, box-shadow 0.12s;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,255,157,0.25);
 }
 
 .song-card-play:hover {
   opacity: 0.88;
-  transform: scale(1.06);
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0,255,157,0.35);
 }
 
 .song-card-play.is-playing {
@@ -4076,7 +4087,8 @@ html.light .project-switcher-panel {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .listen-view-header {
@@ -4085,6 +4097,7 @@ html.light .project-switcher-panel {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  padding: 16px 20px 0;
 }
 
 .listen-view-header.has-project-accent {
@@ -4123,35 +4136,43 @@ html.light .project-switcher-panel {
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  padding: 8px 14px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  padding: 7px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
 }
+.listen-view-shuffle:hover { color: var(--text); }
 
 .listen-view-shuffle.is-active {
-  border-color: var(--audio-mint-dim);
+  border-color: var(--audio-mint);
   color: var(--audio-mint);
   background: rgba(0, 255, 157, 0.08);
 }
 
 .listen-view-play-all {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.75rem;
-  padding: 8px 14px;
+  background: var(--audio-mint);
+  color: #000;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 8px 18px;
   border-radius: 999px;
   cursor: pointer;
+  transition: opacity 0.12s;
 }
+.listen-view-play-all:hover { opacity: 0.85; }
 
 .listen-view-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 
 .listen-view-row {
