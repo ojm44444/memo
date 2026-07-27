@@ -75,9 +75,8 @@
 
 .board-drop-banner-sub {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.03em;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
   color: var(--text-muted);
   line-height: 1.45;
 }
@@ -118,21 +117,22 @@ body.is-file-dragging * {
 
 .import-error-toast-message {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   line-height: 1.5;
   color: var(--text-muted);
 }
 
 .import-error-toast-dismiss {
   flex-shrink: 0;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
