@@ -5301,8 +5301,8 @@ html.light .project-switcher-panel {
 
 .shortcuts-footnote {
   margin: 14px 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
@@ -5878,8 +5878,9 @@ html.light .project-switcher-panel {
   background: transparent;
   color: var(--text-muted);
   padding: 2px 8px;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -6086,9 +6087,8 @@ html.light .project-switcher-panel {
   gap: 6px;
   font-size: 0.72rem;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+  font-weight: 500;
 }
 
 .bulk-merge-select {
