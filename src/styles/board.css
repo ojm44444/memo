@@ -1194,16 +1194,20 @@ body.is-file-dragging * {
 
 .board-add-section {
   flex-shrink: 0;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: 1px dashed rgba(0, 255, 157, 0.35);
-  border-radius: 8px;
+  border-radius: 20px;
   background: transparent;
   color: var(--audio-mint);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.board-add-section:hover {
+  background: rgba(0,255,157,0.06);
+  border-color: rgba(0,255,157,0.55);
 }
 
 .board-add-section-form {
@@ -1218,19 +1222,22 @@ body.is-file-dragging * {
   width: 140px;
   padding: 6px 10px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 0.8rem;
+  outline: none;
 }
+.board-add-section-input:focus { border-color: var(--audio-mint); }
 
 .board-add-section-save,
 .board-add-section-cancel {
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -2230,11 +2237,14 @@ html.light .song-card:hover {
   background: transparent;
   color: var(--text-muted);
   border-radius: 999px;
-  padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
+  padding: 5px 12px;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.1s;
 }
+.player-bar-expand-close:hover { color: var(--text); }
 
 .player-bar-expanded-controls {
   display: flex;
