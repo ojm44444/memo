@@ -3707,26 +3707,35 @@ html.light .interactive-waveform-bar.is-played {
   gap: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px 14px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .scp-audio-item:hover {
-  border-color: rgba(0, 255, 157, 0.25);
+  border-color: rgba(0, 255, 157, 0.3);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
 .scp-play {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: var(--audio-mint);
   border-radius: 50%;
-  font-size: 0.6rem;
-  color: var(--bg);
+  font-size: 0.62rem;
+  color: #000;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,255,157,0.25);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.scp-audio-item:hover .scp-play {
+  transform: scale(1.06);
+  box-shadow: 0 3px 12px rgba(0,255,157,0.35);
 }
 
 .scp-play-muted {
@@ -6657,11 +6666,13 @@ html.light .board-column-scroll {
 /* Audio clip rows */
 html.light .scp-audio-item {
   background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 3px 10px rgba(0,0,0,0.04);
 }
 
 html.light .scp-audio-item:hover {
   border-color: rgba(0, 184, 107, 0.35);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
 }
 
 /* Active version stack item border */
