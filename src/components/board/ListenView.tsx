@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/db/repositories/projectRepo'
 import { listenViewAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
+import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { formatDuration } from '@/lib/audio-utils'
 import { buildFavouritesPlaylist } from '@/lib/audio/buildFavouritesPlaylist'
 import { usePlayerStore } from '@/stores/playerStore'
@@ -112,6 +113,7 @@ export function ListenView() {
             </p>
           </div>
         </div>
+        <NowPlayingBanner />
         <div className="listen-view-empty" role={filteredOut ? 'status' : undefined}>
           {filteredOut && (
             <p className="sr-only" aria-atomic="true">
@@ -178,6 +180,8 @@ export function ListenView() {
         </div>
       </div>
 
+      <NowPlayingBanner />
+
       <ul className="listen-view-list">
         {favourites.map((song, index) => (
           <ListenRow
@@ -196,6 +200,62 @@ export function ListenView() {
           />
         ))}
       </ul>
+    </div>
+  )
+}
+
+function NowPlayingBanner() {
+  const { currentSongId, currentVersionId, isPlaying, buffering, progress, setPlaying } = usePlayerStore()
+  const { openDrawer } = useUiStore()
+
+  const song = useLiveQuery(
+    () => (currentSongId ? db.songs.get(currentSongId) : undefined),
+    [currentSongId],
+  )
+  const version = useLiveQuery(
+    () => (currentVersionId ? db.audioVersions.get(currentVersionId) : undefined),
+    [currentVersionId],
+  )
+
+  if (!currentSongId || !song) return null
+
+  return (
+    <div className="listen-now-playing">
+      <div className="listen-now-playing-inner">
+        <div className="listen-now-playing-info" onClick={() => openDrawer(song.id)}>
+          <span className="listen-now-playing-label">Now playing</span>
+          <span className="listen-now-playing-title">{song.title}</span>
+          {version && (
+            <span className="listen-now-playing-version">{version.label}</span>
+          )}
+        </div>
+        <div className="listen-now-playing-wave">
+          {version && (
+            <CachedWaveform
+              versionId={version.id}
+              localBlobId={version.localBlobId}
+              storagePath={version.storagePath}
+              bars={80}
+              height={36}
+              progress={progress ?? 0}
+              active={isPlaying}
+            />
+          )}
+        </div>
+        <div className="listen-now-playing-controls">
+          <span className="listen-now-playing-time">
+            {formatDuration((progress ?? 0) * (version?.durationMs ?? 0))}
+          </span>
+          <button
+            type="button"
+            className={cn('listen-now-playing-play', buffering && 'listen-now-playing-play--buffering')}
+            onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+          >
+            {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

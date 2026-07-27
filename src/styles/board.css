@@ -7864,3 +7864,91 @@ html.light .playlists-row:hover {
   font-size: 0.85rem;
   line-height: 1.8;
 }
+
+/* ── Listen mode: Now Playing banner ─────────────────────── */
+.listen-now-playing {
+  padding: 8px 16px 4px;
+}
+.listen-now-playing-inner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+html.light .listen-now-playing-inner {
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.listen-now-playing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex-shrink: 0;
+  max-width: 130px;
+  cursor: pointer;
+}
+.listen-now-playing-label {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--audio-mint);
+}
+.listen-now-playing-title {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.listen-now-playing-version {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.listen-now-playing-wave {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.listen-now-playing-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.listen-now-playing-time {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  min-width: 32px;
+  text-align: right;
+}
+.listen-now-playing-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--audio-mint);
+  color: #000;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.12s, transform 0.1s;
+}
+.listen-now-playing-play:hover { opacity: 0.85; transform: scale(1.06); }
+.listen-now-playing-play--buffering { opacity: 0.6; cursor: default; }
