@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import {
@@ -15,7 +15,7 @@ import {
   setActiveProjectId,
 } from '@/db/repositories/projectRepo'
 import { getPlaylists, getPlaylistSongs, removeSongFromPlaylist } from '@/db/repositories/playlistRepo'
-import { listenViewAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
+import { listenViewAccentStyle } from '@/lib/projectAccent'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { formatDuration } from '@/lib/audio-utils'
@@ -50,10 +50,7 @@ export function ListenView() {
   const headerAccentStyle = showProjectAccent
     ? listenViewAccentStyle(activeProjectId!, accentHue ?? null)
     : undefined
-  const titleAccentStyle = showProjectAccent
-    ? projectAccentTextStyle(activeProjectId!, accentHue ?? null)
-    : undefined
-  const favouriteTotal = useLiveQuery(async () => {
+const favouriteTotal = useLiveQuery(async () => {
     if (scope === 'library') {
       return db.songs.filter((song) => !song.deletedAt && song.isFavourite).count()
     }

@@ -7,7 +7,6 @@ import {
   removeSongFromPlaylist,
   renamePlaylist,
   deletePlaylist,
-  reorderPlaylistSong,
 } from '@/db/repositories/playlistRepo'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { usePlayerStore } from '@/stores/playerStore'
@@ -28,7 +27,7 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
 
   const playlist = useLiveQuery(() => getPlaylist(playlistId), [playlistId])
   const rows = useLiveQuery(() => getPlaylistSongs(playlistId), [playlistId])
-  const { currentVersionId, currentSongId, isPlaying, setPlaying } = usePlayerStore()
+  const { currentSongId, isPlaying, setPlaying } = usePlayerStore()
   const openDrawer = useUiStore(s => s.openDrawer)
 
   // Resolve song + primary version for each row

@@ -7366,9 +7366,6 @@ html.dark .song-detail-notes,
   border-radius: 10px;
 }
 
-/* ── Card waveforms — taller, more Samply-like ───────────── */
-.song-card .waveform-container,
-.song-card > div > [class*="waveform"],
 /* Card waveform height is already 36px from CachedWaveform default — don't override */
 
 /* ── Mobile — player bar safe area + titlebar ────────────── */
