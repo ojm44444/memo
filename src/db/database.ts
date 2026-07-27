@@ -18,6 +18,22 @@ export interface WaveformPeakRecord {
   peaks: number[]
 }
 
+export interface PlaylistRecord {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+  sortOrder: number
+}
+
+export interface PlaylistSongRecord {
+  id: string       // uuid for this row
+  playlistId: string
+  songId: string
+  position: number
+  addedAt: number
+}
+
 export class MemoDatabase extends Dexie {
   columns!: EntityTable<Column, 'id'>
   songs!: EntityTable<Song, 'id'>
@@ -32,6 +48,8 @@ export class MemoDatabase extends Dexie {
   importedSources!: EntityTable<ImportedSource, 'sourceKey'>
   waveformPeaks!: EntityTable<WaveformPeakRecord, 'key'>
   audioMarkers!: EntityTable<AudioMarker, 'id'>
+  playlists!: EntityTable<PlaylistRecord, 'id'>
+  playlistSongs!: EntityTable<PlaylistSongRecord, 'id'>
 
   constructor() {
     super('memo')
@@ -184,6 +202,24 @@ export class MemoDatabase extends Dexie {
       importedSources: 'sourceKey, importedAt',
       waveformPeaks: 'key',
       audioMarkers: 'id, versionId, ms',
+    })
+
+    this.version(9).stores({
+      columns: 'id, slug, sortOrder',
+      songs: 'id, columnSlug, projectId, isFavourite, sortOrder, updatedAt, deletedAt, recordedAt',
+      audioVersions: 'id, songId, sortOrder, localBlobId, storagePath, recordedAt',
+      audioBlobs: 'id',
+      songLinks: 'id, songId',
+      songComments: 'id, songId, userId, createdAt, deletedAt',
+      projects: 'id, sortOrder',
+      syncQueue: 'id, entityType, entityId, createdAt',
+      syncMeta: 'key',
+      folderWatch: 'key',
+      importedSources: 'sourceKey, importedAt',
+      waveformPeaks: 'key',
+      audioMarkers: 'id, versionId, ms',
+      playlists: 'id, sortOrder, createdAt',
+      playlistSongs: 'id, playlistId, songId, position',
     })
   }
 }

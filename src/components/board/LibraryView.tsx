@@ -37,6 +37,7 @@ import { useUiStore } from '@/stores/uiStore'
 import { useCallback, useState } from 'react'
 import { LibrarySearch } from './LibrarySearch'
 import { RecentSongsRow } from './RecentSongsRow'
+import { PlaylistsView } from '@/components/playlists/PlaylistsView'
 
 function formatRelativeTime(iso: string | null) {
   if (!iso) return 'No songs yet'
@@ -53,6 +54,7 @@ interface LibraryViewProps {
 }
 
 export function LibraryView({ readOnly = false }: LibraryViewProps) {
+  const [libraryTab, setLibraryTab] = useState<'projects' | 'playlists'>('projects')
   const [searchQuery, setSearchQuery] = useState('')
   const handleSearchChange = useCallback((value: string) => setSearchQuery(value), [])
   const libraryResults = useLiveQuery(() => searchLibrary(searchQuery), [searchQuery])
@@ -215,7 +217,28 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
 
   return (
     <div className="library-view">
-      <div
+      {/* Tab bar: Projects / Playlists */}
+      <div className="library-tab-bar">
+        <button
+          type="button"
+          className={`library-tab-btn${libraryTab === 'projects' ? ' library-tab-btn--active' : ''}`}
+          onClick={() => setLibraryTab('projects')}
+        >
+          Projects
+        </button>
+        <button
+          type="button"
+          className={`library-tab-btn${libraryTab === 'playlists' ? ' library-tab-btn--active' : ''}`}
+          onClick={() => setLibraryTab('playlists')}
+        >
+          Playlists
+        </button>
+      </div>
+
+      {libraryTab === 'playlists' ? (
+        <PlaylistsView />
+      ) : (
+      <><div
         className={activeProjectId ? 'library-view-header has-project-accent' : 'library-view-header'}
         style={headerAccentStyle}
       >
@@ -581,6 +604,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
           </div>
         </section>
       )}
+      </></> {/* closes projects tab conditional */}
     </div>
   )
 }

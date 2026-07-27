@@ -21,6 +21,7 @@ import { FavouriteButton } from './FavouriteButton'
 import { SongTagsEditor } from './SongTagsEditor'
 import { SongComments } from './SongComments'
 import { SongSharePanel } from './SongSharePanel'
+import { AddToPlaylistModal } from './AddToPlaylistModal'
 import { VersionCompare } from './VersionCompare'
 
 export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
@@ -28,6 +29,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   const [mergeOpen, setMergeOpen] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
+  const [playlistOpen, setPlaylistOpen] = useState(false)
   const song = useLiveQuery(
     () => (selectedSongId ? getSong(selectedSongId) : undefined),
     [selectedSongId],
@@ -196,6 +198,13 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
           {!readOnly && (
             <>
+              <button
+                type="button"
+                className="song-detail-playlist-btn"
+                onClick={() => setPlaylistOpen(true)}
+              >
+                + Add to playlist
+              </button>
               <SongSharePanel songId={song.id} />
               <SongTagsEditor songId={song.id} initialTags={song.tags ?? []} />
               <NotesEditor songId={song.id} initialNotes={song.notes} />
@@ -219,6 +228,10 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
             </div>
           )}
         </div>
+
+        {playlistOpen && (
+          <AddToPlaylistModal songId={song.id} onClose={() => setPlaylistOpen(false)} />
+        )}
 
         {isThisSongPlaying && (
           <div className="drawer-mini-player">
