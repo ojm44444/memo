@@ -33,6 +33,8 @@ export function SongProjectSelect({ songId, projectId, readOnly = false }: SongP
   }
 
   const options = (projects ?? []).map((p) => ({ value: p.id, label: p.name }))
+  // Don't render the picker until projects are loaded — avoids showing raw UUID
+  if (!projects) return null
 
   return (
     <div className="song-project-select">
