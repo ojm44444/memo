@@ -123,6 +123,9 @@ export function ListenView() {
         >
           ♫ Playlists
         </button>
+        {tab === 'favourites' && (
+          <ListenScopeToggle scope={scope} onChange={setScope} />
+        )}
       </div>
 
       {tab === 'playlists' ? (
@@ -141,7 +144,6 @@ export function ListenView() {
             style={headerAccentStyle}
           >
             <div>
-              <ListenScopeToggle scope={scope} onChange={setScope} />
               {favourites?.length ? (
                 <>
                   <p className="listen-view-sub">{favourites.length} songs</p>
