@@ -14,20 +14,28 @@ import {
   hasActiveBoardFilters,
   setActiveProjectId,
 } from '@/db/repositories/projectRepo'
+import { getPlaylists, getPlaylistSongs, removeSongFromPlaylist } from '@/db/repositories/playlistRepo'
 import { listenViewAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { formatDuration } from '@/lib/audio-utils'
 import { buildFavouritesPlaylist } from '@/lib/audio/buildFavouritesPlaylist'
+import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl } from '@/lib/audio/resolvePlaybackUrl'
+import { playSongVersion } from '@/lib/playSongVersion'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
 import { cn } from '@/lib/cn'
 import type { ColumnSlug } from '@/types/column'
+
 type ListenScope = 'project' | 'library'
+type ListenTab = 'favourites' | 'playlists'
 
 export function ListenView() {
+  const [tab, setTab] = useState<ListenTab>('favourites')
   const [scope, setScope] = useState<ListenScope>('project')
   const [shuffle, setShuffle] = useState(false)
+  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
   const favourites = useLiveQuery(
     () => (scope === 'library' ? getAllFavouriteSongs() : getFavouriteSongs()),
     [scope],
@@ -93,112 +101,262 @@ export function ListenView() {
     await usePlayerStore.getState().playFavourites(scope, 0, undefined, shuffle)
   }
 
-  if (!favourites?.length) {
-    const filteredOut = (favouriteTotal ?? 0) > 0 && filtersActive
-    return (
-      <div className="listen-view">
-        <div
-          className={cn('listen-view-header', showProjectAccent && 'has-project-accent')}
-          style={headerAccentStyle}
+  const filteredOut = !favourites?.length && (favouriteTotal ?? 0) > 0 && filtersActive
+
+  return (
+    <div className="listen-view">
+      <NowPlayingBanner />
+
+      {/* Tab bar */}
+      <div className="listen-tab-bar">
+        <button
+          type="button"
+          className={cn('listen-tab-btn', tab === 'favourites' && 'listen-tab-btn--active')}
+          onClick={() => setTab('favourites')}
         >
-          <div>
-            <ListenScopeToggle scope={scope} onChange={setScope} />
-            <h2 className="listen-view-title" style={titleAccentStyle}>
-              ★ Favourites
-            </h2>
-            <p className="listen-view-kbd-hint">
-              {filteredOut
-                ? `${favouriteTotal ?? 0} starred songs hidden by filters · clear filters to listen`
-                : 'Tap title to open · tap section for board'}
-            </p>
+          ★ Favourites
+        </button>
+        <button
+          type="button"
+          className={cn('listen-tab-btn', tab === 'playlists' && 'listen-tab-btn--active')}
+          onClick={() => { setTab('playlists'); setActivePlaylistId(null) }}
+        >
+          ♫ Playlists
+        </button>
+      </div>
+
+      {tab === 'playlists' ? (
+        activePlaylistId ? (
+          <ListenPlaylistDetail
+            playlistId={activePlaylistId}
+            onBack={() => setActivePlaylistId(null)}
+          />
+        ) : (
+          <ListenPlaylistList onOpen={setActivePlaylistId} />
+        )
+      ) : (
+        <>
+          <div
+            className={cn('listen-view-header', showProjectAccent && 'has-project-accent')}
+            style={headerAccentStyle}
+          >
+            <div>
+              <ListenScopeToggle scope={scope} onChange={setScope} />
+              {favourites?.length ? (
+                <>
+                  <p className="listen-view-sub">{favourites.length} songs</p>
+                  <p className="listen-view-kbd-hint">Tap title to open · tap section for board</p>
+                </>
+              ) : (
+                <p className="listen-view-kbd-hint">
+                  {filteredOut
+                    ? `${favouriteTotal ?? 0} starred songs hidden by filters`
+                    : 'Star songs on the board to build your listening queue'}
+                </p>
+              )}
+            </div>
+            {!!favourites?.length && (
+              <div className="listen-view-actions">
+                <button
+                  type="button"
+                  className={shuffle ? 'listen-view-shuffle is-active' : 'listen-view-shuffle'}
+                  onClick={() => setShuffle((value) => !value)}
+                  aria-pressed={shuffle}
+                >
+                  Shuffle
+                </button>
+                <button type="button" className="listen-view-play-all" onClick={() => void playAll()}>
+                  Play all
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-        <NowPlayingBanner />
-        <div className="listen-view-empty" role={filteredOut ? 'status' : undefined}>
-          {filteredOut && (
-            <p className="sr-only" aria-atomic="true">
-              {(favouriteTotal ?? 0)} starred {(favouriteTotal ?? 0) === 1 ? 'song' : 'songs'} hidden
-              by filters. Clear filters to listen.
-            </p>
+
+          {!favourites?.length ? (
+            <div className="listen-view-empty">
+              {filteredOut && (
+                <button
+                  type="button"
+                  className="listen-view-clear-filters"
+                  onClick={() => void clearAllBoardFilters()}
+                >
+                  Clear filters ({favouriteTotal ?? 0})
+                </button>
+              )}
+              <p className="listen-view-empty-title">
+                {filteredOut ? 'No favourites match your filters' : 'No favourites yet'}
+              </p>
+              <p className="listen-view-empty-sub">
+                {filteredOut
+                  ? 'Clear search or filters to see your starred songs.'
+                  : 'Tap ★ on any song card to add it here.'}
+              </p>
+            </div>
+          ) : (
+            <ul className="listen-view-list">
+              {favourites.map((song, index) => (
+                <ListenRow
+                  key={song.id}
+                  index={index + 1}
+                  songId={song.id}
+                  title={song.title}
+                  columnSlug={song.columnSlug}
+                  projectName={scope === 'library' ? projectNameById.get(song.projectId ?? '') : undefined}
+                  notes={song.notes}
+                  isFavourite
+                  isActive={currentSongId === song.id && isPlaying}
+                  onPlay={() => void playSong(song.id)}
+                  onOpen={() => openDrawer(song.id)}
+                  onGoToColumn={song.projectId ? () => void goToColumn(song.projectId!, song.columnSlug) : undefined}
+                />
+              ))}
+            </ul>
           )}
-          <p className="listen-view-empty-title">
-            {filteredOut ? 'No favourites match your filters' : 'No favourites yet'}
-          </p>
-          {filteredOut && (
-            <p className="listen-view-empty-count" aria-hidden="true">
-              {favouriteTotal ?? 0} starred {(favouriteTotal ?? 0) === 1 ? 'song' : 'songs'} hidden
-            </p>
-          )}
-          <p className="listen-view-empty-sub">
-            {filteredOut
-              ? 'Clear search or filters to see your starred songs again.'
-              : 'Star songs on the board, then come back here to skim your keepers.'}
-          </p>
-          {filteredOut && (
-            <button
-              type="button"
-              className="listen-view-clear-filters"
-              onClick={() => void clearAllBoardFilters()}
-              aria-label={`Clear filters and show ${favouriteTotal ?? 0} starred ${
-                (favouriteTotal ?? 0) === 1 ? 'song' : 'songs'
-              }`}
-            >
-              Clear filters ({favouriteTotal ?? 0})
-            </button>
-          )}
-        </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function ListenPlaylistList({ onOpen }: { onOpen: (id: string) => void }) {
+  const playlists = useLiveQuery(() => getPlaylists(), [])
+  const counts = useLiveQuery(async () => {
+    if (!playlists) return {} as Record<string, number>
+    const entries = await Promise.all(
+      playlists.map(async (pl) => {
+        const songs = await getPlaylistSongs(pl.id)
+        return [pl.id, songs.length] as const
+      })
+    )
+    return Object.fromEntries(entries) as Record<string, number>
+  }, [playlists?.map((p) => p.id).join(',')])
+
+  if (!playlists?.length) {
+    return (
+      <div className="listen-view-empty">
+        <p className="listen-view-empty-title">No playlists yet</p>
+        <p className="listen-view-empty-sub">Open any song and tap "+ Add to playlist" to create one.</p>
       </div>
     )
   }
 
   return (
-    <div className="listen-view">
-      <div
-        className={cn('listen-view-header', showProjectAccent && 'has-project-accent')}
-        style={headerAccentStyle}
-      >
-        <div>
-          <ListenScopeToggle scope={scope} onChange={setScope} />
-          <h2 className="listen-view-title" style={titleAccentStyle}>
-            ★ Favourites
-          </h2>
-          <p className="listen-view-sub">{favourites.length} songs</p>
-          <p className="listen-view-kbd-hint">Tap title to open · tap section for board</p>
+    <div className="listen-playlist-list">
+      {playlists.map((pl) => (
+        <button key={pl.id} type="button" className="listen-playlist-row" onClick={() => onOpen(pl.id)}>
+          <div className="listen-playlist-icon">♫</div>
+          <div className="listen-playlist-info">
+            <span className="listen-playlist-name">{pl.name}</span>
+            <span className="listen-playlist-count">{counts?.[pl.id] ?? 0} songs</span>
+          </div>
+          <span className="listen-playlist-chevron">›</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ListenPlaylistDetail({ playlistId, onBack }: { playlistId: string; onBack: () => void }) {
+  const { currentSongId, isPlaying, setPlaying, progress } = usePlayerStore()
+  const { openDrawer } = useUiStore()
+
+  const rows = useLiveQuery(() => getPlaylistSongs(playlistId), [playlistId])
+  const playlist = useLiveQuery(() => db.playlists.get(playlistId), [playlistId])
+
+  const songData = useLiveQuery(async () => {
+    if (!rows) return []
+    const results = await Promise.all(rows.map(async (row) => {
+      const song = await db.songs.get(row.songId)
+      if (!song) return null
+      const versions = await db.audioVersions.where('songId').equals(row.songId).sortBy('sortOrder')
+      return { row, song, primary: versions[0] ?? null }
+    }))
+    return results.filter(Boolean) as NonNullable<(typeof results)[number]>[]
+  }, [rows?.map((r) => r.id).join(',')])
+
+  const handlePlay = (songId: string, columnSlug: string, versionId: string, url: string | null) => {
+    if (currentSongId === songId) { setPlaying(!isPlaying); return }
+    if (url) playAudioImmediately(url, usePlayerStore.getState().playbackRate)
+    else unlockAudioEl()
+    void playSongVersion(columnSlug as ColumnSlug, songId, versionId)
+  }
+
+  const handlePlayAll = () => {
+    if (!songData?.length) return
+    const first = songData[0]
+    if (!first.primary) return
+    const url = getCachedUrl(first.primary.localBlobId, first.primary.storagePath)
+    handlePlay(first.song.id, first.song.columnSlug, first.primary.id, url)
+  }
+
+  return (
+    <div className="listen-playlist-detail">
+      <div className="listen-playlist-detail-header">
+        <button type="button" className="listen-playlist-back" onClick={onBack}>‹ Playlists</button>
+        <div className="listen-playlist-detail-title-row">
+          <span className="listen-playlist-detail-name">{playlist?.name ?? '…'}</span>
+          <span className="listen-playlist-detail-count">{songData?.length ?? 0} songs</span>
         </div>
-        <div className="listen-view-actions">
-          <button
-            type="button"
-            className={shuffle ? 'listen-view-shuffle is-active' : 'listen-view-shuffle'}
-            onClick={() => setShuffle((value) => !value)}
-            aria-pressed={shuffle}
-          >
-            Shuffle
-          </button>
-          <button type="button" className="listen-view-play-all" onClick={() => void playAll()}>
-            Play all
-          </button>
-        </div>
+        <button
+          type="button"
+          className="listen-playlist-play-all"
+          disabled={!songData?.length}
+          onClick={handlePlayAll}
+        >
+          ▶ Play all
+        </button>
       </div>
 
-      <NowPlayingBanner />
-
       <ul className="listen-view-list">
-        {favourites.map((song, index) => (
-          <ListenRow
-            key={song.id}
-            index={index + 1}
-            songId={song.id}
-            title={song.title}
-            columnSlug={song.columnSlug}
-            projectName={scope === 'library' ? projectNameById.get(song.projectId ?? '') : undefined}
-            notes={song.notes}
-            isFavourite
-            isActive={currentSongId === song.id && isPlaying}
-            onPlay={() => void playSong(song.id)}
-            onOpen={() => openDrawer(song.id)}
-            onGoToColumn={song.projectId ? () => void goToColumn(song.projectId!, song.columnSlug) : undefined}
-          />
-        ))}
+        {songData?.map(({ row, song, primary }, idx) => {
+          const isCurrent = currentSongId === song.id
+          const isActive = isCurrent && isPlaying
+          const url = primary ? getCachedUrl(primary.localBlobId, primary.storagePath) : null
+          return (
+            <li key={row.id} className={cn('listen-view-row', isActive && 'is-active')}>
+              <span className="listen-view-index">{isActive ? '▶' : idx + 1}</span>
+              <button
+                type="button"
+                className="listen-view-play"
+                onClick={() => primary && handlePlay(song.id, song.columnSlug, primary.id, url)}
+                aria-label={`Play ${song.title}`}
+              >
+                {isActive ? '❚❚' : '▶'}
+              </button>
+              <div className="listen-view-meta">
+                <button
+                  type="button"
+                  className="listen-view-song-title"
+                  onDoubleClick={() => openDrawer(song.id)}
+                  onPointerUp={(e) => { if (e.pointerType === 'touch') openDrawer(song.id) }}
+                >
+                  {song.title}
+                </button>
+                {primary && (
+                  <CachedWaveform
+                    versionId={primary.id}
+                    localBlobId={primary.localBlobId}
+                    storagePath={primary.storagePath}
+                    bars={60}
+                    height={24}
+                    progress={isCurrent ? (progress ?? 0) : 0}
+                    active={isActive}
+                    className="listen-row-waveform"
+                  />
+                )}
+              </div>
+              <span className="listen-view-duration">{formatDuration(primary?.durationMs)}</span>
+              <button
+                type="button"
+                className="listen-row-remove"
+                title="Remove from playlist"
+                onClick={() => void removeSongFromPlaylist(playlistId, song.id)}
+              >
+                ×
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

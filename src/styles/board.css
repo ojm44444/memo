@@ -7952,3 +7952,176 @@ html.light .listen-now-playing-inner {
 }
 .listen-now-playing-play:hover { opacity: 0.85; transform: scale(1.06); }
 .listen-now-playing-play--buffering { opacity: 0.6; cursor: default; }
+
+/* ── Listen mode tabs ────────────────────────────────────── */
+.listen-tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 10px 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.listen-tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s;
+}
+.listen-tab-btn--active {
+  color: var(--text);
+  border-bottom-color: var(--audio-mint);
+}
+.listen-tab-btn:hover:not(.listen-tab-btn--active) { color: var(--text); }
+
+/* ── Listen playlist list ────────────────────────────────── */
+.listen-playlist-list {
+  padding: 12px 16px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+.listen-playlist-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  background: var(--surface);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: box-shadow 0.1s, background 0.1s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.listen-playlist-row:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.14); }
+.listen-playlist-icon {
+  width: 42px;
+  height: 42px;
+  background: rgba(0,255,157,0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.listen-playlist-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.listen-playlist-name {
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.listen-playlist-count {
+  font-family: var(--font-sans);
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+.listen-playlist-chevron {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+html.light .listen-playlist-row {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.04);
+}
+
+/* ── Listen playlist detail ──────────────────────────────── */
+.listen-playlist-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.listen-playlist-detail-header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.listen-playlist-back {
+  border: none;
+  background: transparent;
+  color: var(--audio-mint);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+  display: block;
+}
+.listen-playlist-back:hover { text-decoration: underline; }
+.listen-playlist-detail-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.listen-playlist-detail-name {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.listen-playlist-detail-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+.listen-playlist-play-all {
+  background: var(--audio-mint);
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.listen-playlist-play-all:hover { opacity: 0.85; }
+.listen-playlist-play-all:disabled { opacity: 0.35; cursor: default; }
+
+/* waveform in listen rows */
+.listen-row-waveform {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  opacity: 0.55;
+}
+.listen-view-row.is-active .listen-row-waveform { opacity: 1; }
+
+/* remove button */
+.listen-row-remove {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.1s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.listen-view-row:hover .listen-row-remove { opacity: 1; }
+.listen-row-remove:hover { color: #ff6b6b; }

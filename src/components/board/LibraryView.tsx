@@ -238,7 +238,8 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
       {libraryTab === 'playlists' ? (
         <PlaylistsView />
       ) : (
-      <><div
+        <>
+        <div
         className={activeProjectId ? 'library-view-header has-project-accent' : 'library-view-header'}
         style={headerAccentStyle}
       >
@@ -604,8 +605,8 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
           </div>
         </section>
       )}
-      </>)}
-
+        </>
+      )}
     </div>
   )
 }
