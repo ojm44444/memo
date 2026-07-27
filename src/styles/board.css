@@ -233,10 +233,9 @@ body.is-file-dragging * {
   border-radius: 8px;
   background: rgba(0, 255, 157, 0.12);
   color: var(--audio-mint);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1712,8 +1711,8 @@ body.is-file-dragging * {
   border-radius: 8px;
   padding: 20px 12px;
   text-align: center;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.18);
   line-height: 1.5;
 }
@@ -2355,10 +2354,9 @@ html.light .interactive-waveform-bar.is-played {
   color: var(--text-muted);
   border-radius: 999px;
   padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 .board-filter-trigger.is-active {
@@ -2431,8 +2429,8 @@ html.light .interactive-waveform-bar.is-played {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   cursor: pointer;
   text-align: left;
   padding: 4px 0 0;
@@ -2501,10 +2499,11 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .board-filter-label {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
@@ -2770,10 +2769,11 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-tags-suggestions-label {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: rgba(255,255,255,0.3);
   margin-right: 2px;
 }
@@ -2915,10 +2915,10 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .board-switcher-role {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 500;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 .app-header-actions {
