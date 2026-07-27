@@ -391,9 +391,8 @@ body.is-file-dragging * {
 
 .offline-grace-banner {
   padding: 8px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   text-align: center;
   color: var(--text-muted);
   background: rgba(245, 166, 35, 0.08);
@@ -3312,8 +3311,8 @@ html.light .interactive-waveform-bar.is-played {
 .board-viewer-banner {
   margin: 0;
   padding: 10px 14px 0;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -3327,8 +3326,8 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 10px;
   border: 1px solid rgba(0, 255, 157, 0.35);
   background: rgba(12, 28, 22, 0.96);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--audio-mint);
   pointer-events: none;
 }
@@ -3376,9 +3375,9 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 8px;
   background: var(--audio-mint);
   color: var(--bg);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
