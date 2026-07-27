@@ -102,7 +102,7 @@ export async function flush() {
 
     try {
       await pullChanges(userId)
-      void cachePendingRemoteAudio({ limit: 4 })
+      await cachePendingRemoteAudio({ limit: 4 })
     } catch (err) {
       pullError = err instanceof Error ? err.message : 'Could not download updates'
     }

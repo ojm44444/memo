@@ -14,6 +14,12 @@ function maxTimestamp(current: string, candidate: string) {
   return candidate > current ? candidate : current
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
 export async function pullChanges(userId: string) {
   if (!supabase) return { pulled: 0 }
 
@@ -195,66 +201,74 @@ export async function pullChanges(userId: string) {
   // let the server pull their orphaned versions back to the old song_id.
   const songIds = (await db.songs.filter((s) => !s.deletedAt).toArray()).map((s) => s.id)
   if (songIds.length > 0) {
-    const { data: remoteVersions, error: versionError } = await supabase
-      .from('audio_versions')
-      .select('*')
-      .in('song_id', songIds)
-      .gt('updated_at', since)
+    // Chunk to avoid URL length limits in PostgREST .in() queries (>~200 IDs
+    // causes the GET URL to exceed browser/server limits and silently fail).
+    const songIdChunks = chunk(songIds, 100)
 
-    if (versionError) throw versionError
+    for (const idChunk of songIdChunks) {
+      const { data: remoteVersions, error: versionError } = await supabase
+        .from('audio_versions')
+        .select('*')
+        .in('song_id', idChunk)
+        .gt('updated_at', since)
 
-    for (const remote of remoteVersions ?? []) {
-      cursor = maxTimestamp(cursor, remote.updated_at)
+      if (versionError) throw versionError
 
-      const local = await db.audioVersions.get(remote.id)
-      const remoteUpdated = new Date(remote.updated_at).getTime()
-      const localUpdated = local?.syncedAt ? new Date(local.syncedAt).getTime() : 0
+      for (const remote of remoteVersions ?? []) {
+        cursor = maxTimestamp(cursor, remote.updated_at)
 
-      const pendingVersionEdit = await db.syncQueue
-        .where('entityId').equals(remote.id)
-        .filter((item) => item.entityType === 'audio_version' && item.op === 'update')
-        .first()
-      if (pendingVersionEdit) continue
+        const local = await db.audioVersions.get(remote.id)
+        const remoteUpdated = new Date(remote.updated_at).getTime()
+        const localUpdated = local?.syncedAt ? new Date(local.syncedAt).getTime() : 0
 
-      if (!local || remoteUpdated >= localUpdated) {
-        const version: AudioVersion = {
-          id: remote.id,
-          songId: remote.song_id,
-          label: remote.label,
-          durationMs: remote.duration_ms,
-          mimeType: local?.mimeType ?? 'audio/mpeg',
-          sortOrder: remote.position,
-          localBlobId: local?.localBlobId ?? null,
-          storagePath: remote.storage_path,
-          recordedAt: local?.recordedAt ?? null,
-          createdAt: local?.createdAt ?? remote.updated_at,
-          syncedAt: new Date().toISOString(),
-          // Local-only fields — server has no column for these, preserve them
-          ...(local?.trimStartMs != null ? { trimStartMs: local.trimStartMs } : {}),
-          ...(local?.tags?.length ? { tags: local.tags } : {}),
+        const pendingVersionEdit = await db.syncQueue
+          .where('entityId').equals(remote.id)
+          .filter((item) => item.entityType === 'audio_version' && item.op === 'update')
+          .first()
+        if (pendingVersionEdit) continue
+
+        if (!local || remoteUpdated >= localUpdated) {
+          const version: AudioVersion = {
+            id: remote.id,
+            songId: remote.song_id,
+            label: remote.label,
+            durationMs: remote.duration_ms,
+            mimeType: local?.mimeType ?? 'audio/mpeg',
+            sortOrder: remote.position,
+            localBlobId: local?.localBlobId ?? null,
+            storagePath: remote.storage_path,
+            recordedAt: local?.recordedAt ?? null,
+            createdAt: local?.createdAt ?? remote.updated_at,
+            syncedAt: new Date().toISOString(),
+            // Local-only fields — server has no column for these, preserve them
+            ...(local?.trimStartMs != null ? { trimStartMs: local.trimStartMs } : {}),
+            ...(local?.tags?.length ? { tags: local.tags } : {}),
+          }
+          await db.audioVersions.put(version)
+          pulled++
         }
-        await db.audioVersions.put(version)
-        pulled++
       }
     }
 
-    const { data: remoteLinks, error: linkError } = await supabase
-      .from('external_links')
-      .select('*')
-      .in('song_id', songIds)
+    for (const idChunk of songIdChunks) {
+      const { data: remoteLinks, error: linkError } = await supabase
+        .from('external_links')
+        .select('*')
+        .in('song_id', idChunk)
 
-    if (linkError) throw linkError
+      if (linkError) throw linkError
 
-    for (const remote of remoteLinks ?? []) {
-      const link: SongLink = {
-        id: remote.id,
-        songId: remote.song_id,
-        url: remote.url,
-        label: remote.label ?? '',
-        createdAt: new Date().toISOString(),
+      for (const remote of remoteLinks ?? []) {
+        const link: SongLink = {
+          id: remote.id,
+          songId: remote.song_id,
+          url: remote.url,
+          label: remote.label ?? '',
+          createdAt: new Date().toISOString(),
+        }
+        await db.songLinks.put(link)
+        pulled++
       }
-      await db.songLinks.put(link)
-      pulled++
     }
 
     const { data: remoteComments, error: commentError } = await supabase

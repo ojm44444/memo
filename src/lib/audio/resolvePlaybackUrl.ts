@@ -2,6 +2,9 @@ import { getAudioBlob } from '@/db/repositories/audioRepo'
 import { supabase } from '@/lib/supabase/client'
 
 // Cache object URLs for local blobs and signed URLs for cloud paths.
+// Capped at MAX_LOCAL_CACHE entries (insertion-order LRU) to avoid holding
+// unlimited blobs in memory during long sessions.
+const MAX_LOCAL_CACHE = 40
 const localUrlCache = new Map<string, string>()
 // Signed URLs expire after 3600s — evict after 55 min so we never serve stale ones.
 const signedUrlCache = new Map<string, string>()
@@ -19,6 +22,14 @@ export async function resolvePlaybackUrl(
     const record = await getAudioBlob(localBlobId)
     if (record) {
       const url = URL.createObjectURL(record.blob)
+      // Evict oldest entry if at capacity (Map preserves insertion order)
+      if (localUrlCache.size >= MAX_LOCAL_CACHE) {
+        const oldest = localUrlCache.keys().next().value
+        if (oldest) {
+          URL.revokeObjectURL(localUrlCache.get(oldest)!)
+          localUrlCache.delete(oldest)
+        }
+      }
       localUrlCache.set(localBlobId, url)
       return url
     }

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { getAudioBlob } from '@/db/repositories/audioRepo'
-import { db } from '@/db/database'
 import { supabase } from '@/lib/supabase/client'
 import { usePlayerStore } from '@/stores/playerStore'
 import { SpeedControl } from './SpeedControl'
@@ -131,17 +130,3 @@ export function AudioPlayer({
   )
 }
 
-// Preload helper for column queue
-export async function resolveAudioUrl(versionId: string): Promise<string | null> {
-  const version = await db.audioVersions.get(versionId)
-  if (!version) return null
-  if (version.localBlobId) {
-    const blob = await getAudioBlob(version.localBlobId)
-    return blob ? URL.createObjectURL(blob.blob) : null
-  }
-  if (version.storagePath && supabase) {
-    const { data } = await supabase.storage.from('audio').createSignedUrl(version.storagePath, 3600)
-    return data?.signedUrl ?? null
-  }
-  return null
-}
