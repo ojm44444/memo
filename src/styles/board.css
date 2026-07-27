@@ -2936,8 +2936,9 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -2974,12 +2975,12 @@ html.light .interactive-waveform-bar.is-played {
   width: 100%;
   padding: 8px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--audio-mint);
   color: var(--bg);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -2999,9 +3000,9 @@ html.light .interactive-waveform-bar.is-played {
   border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -6196,8 +6197,8 @@ html.light .project-switcher-panel {
 }
 
 .library-song-match-meta {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
 }
 
@@ -6256,8 +6257,8 @@ html.light .project-switcher-panel {
 
 .player-queue-kbd-hint {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
   color: var(--text-muted);
 }
 
