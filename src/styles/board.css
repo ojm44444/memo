@@ -3499,9 +3499,9 @@ html.light .interactive-waveform-bar.is-played {
 
 .song-drawer-handle-label {
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--text);
   background: var(--bg-3);
   border: 1px solid var(--border);
@@ -3510,7 +3510,6 @@ html.light .interactive-waveform-bar.is-played {
   min-height: 44px;
   display: flex;
   align-items: center;
-  font-weight: 600;
 }
 
 .song-drawer-handle:active .song-drawer-handle-label {
@@ -8167,9 +8166,9 @@ html.light .listen-playlist-row {
   margin-bottom: 10px;
 }
 .listen-playlist-detail-name {
-  font-family: var(--font-sans);
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 .listen-playlist-detail-count {
   font-size: 0.75rem;
