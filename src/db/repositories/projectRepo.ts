@@ -136,10 +136,9 @@ async function resolveActiveProjectId() {
 
 export async function getActiveProjectId() {
   const resolved = await resolveActiveProjectId()
-  const meta = await db.syncMeta.get(ACTIVE_PROJECT_KEY)
-  if (meta?.value !== resolved) {
-    await db.syncMeta.put({ key: ACTIVE_PROJECT_KEY, value: resolved })
-  }
+  // Intentionally NOT writing here — this function is called inside useLiveQuery
+  // read transactions where writes are forbidden. The correction write happens in
+  // setActiveProjectId or on explicit project changes instead.
   return resolved
 }
 
