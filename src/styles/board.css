@@ -1089,8 +1089,8 @@ body.is-file-dragging * {
 
 .song-share-qr-hint {
   margin: 4px 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--text-muted);
   text-align: center;
 }
@@ -1280,10 +1280,9 @@ body.is-file-dragging * {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
   background: transparent;
   color: inherit;
@@ -1341,9 +1340,9 @@ body.is-file-dragging * {
   align-items: center;
   gap: 10px;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 .sync-auth-divider::before,
@@ -4296,11 +4295,10 @@ html.light .project-switcher-panel {
 
 .listen-view-song-col {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 500;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   margin-top: 2px;
 }
 
@@ -5553,9 +5551,10 @@ html.light .project-switcher-panel {
 }
 
 .settings-section-title {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 6px;
@@ -5607,8 +5606,8 @@ html.light .project-switcher-panel {
 
 .settings-import-result {
   margin-top: 10px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
   color: var(--audio-mint);
 }
 
@@ -5625,8 +5624,8 @@ html.light .project-switcher-panel {
 
 .settings-progress-label {
   margin-top: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
@@ -6164,9 +6163,10 @@ html.light .project-switcher-panel {
 
 .library-song-matches-title {
   margin: 0 0 8px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -6348,8 +6348,9 @@ html.light .project-switcher-panel {
 }
 
 .player-queue-now-badge {
-  font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--audio-mint);
@@ -6461,11 +6462,12 @@ html.light .project-switcher-panel {
 }
 
 .feedback-dropdown-label {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   padding: 4px 8px 8px;
 }
 
