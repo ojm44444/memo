@@ -61,7 +61,13 @@ export async function decodeWaveformPeaks(
       const samplesPerBar = Math.max(1, Math.floor(channel.length / normCount))
       const peaks: number[] = []
 
+      // Yield every 20 bars so the main thread stays responsive.
+      // Without this, large files (10+ min) freeze the browser tab.
+      const CHUNK = 20
       for (let i = 0; i < normCount; i++) {
+        if (i > 0 && i % CHUNK === 0) {
+          await new Promise<void>((r) => setTimeout(r, 0))
+        }
         const start = i * samplesPerBar
         const end = Math.min(start + samplesPerBar, channel.length)
         let peak = 0
