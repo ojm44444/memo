@@ -509,7 +509,7 @@ function ListenRow({
             className="listen-row-waveform"
           />
         )}
-        {!version && notes.trim() ? (
+        {notes.trim() && !version ? (
           <button type="button" className="listen-view-song-notes" onClick={onOpen}>
             {notes.trim()}
           </button>
