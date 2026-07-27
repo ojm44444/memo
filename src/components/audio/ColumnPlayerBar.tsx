@@ -33,6 +33,7 @@ export function ColumnPlayerBar() {
   // call, lock screen) so we can sync isPlaying when the OS pauses audio.
   const programmaticPauseRef = useRef(false)
   const skipRegionsRef = useRef<Array<{ start: number; end: number }>>([])
+  const endedRef = useRef(false)
   const [sourceReady, setSourceReady] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
@@ -115,6 +116,7 @@ export function ColumnPlayerBar() {
     setAudioUrl(null)
     setBufferProgress(0)
     lastSavedMsRef.current = 0
+    endedRef.current = false
 
     async function loadSource() {
       if (objectUrlRef.current) {
@@ -254,6 +256,8 @@ export function ColumnPlayerBar() {
   }, [isPlaying, sourceReady, currentVersionId, setPlaying])
 
   const handleEnded = async () => {
+    if (endedRef.current) return
+    endedRef.current = true
     const queueRepeat = usePlayerStore.getState().queueRepeat
     if (queueRepeat) {
       setProgress(0)
@@ -351,8 +355,10 @@ export function ColumnPlayerBar() {
             setProgress(element.currentTime / element.duration)
             setCurrentMs(ms)
 
-            // Stop at trimEndMs if set
+            // Stop at trimEndMs if set — pause immediately so the native
+            // ended event doesn't also fire and call handleEnded twice
             if (version?.trimEndMs && ms >= version.trimEndMs) {
+              element.pause()
               void handleEnded()
               return
             }

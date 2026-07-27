@@ -107,7 +107,11 @@ export async function flush() {
       pullError = err instanceof Error ? err.message : 'Could not download updates'
     }
 
-    pushResult = await pushChanges(userId)
+    try {
+      pushResult = await pushChanges(userId)
+    } catch (err) {
+      pushResult = { pushed: 0, failed: 0, lastFailure: err instanceof Error ? err.message : 'Push failed' }
+    }
 
     await refreshPendingCount()
 

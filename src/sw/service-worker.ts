@@ -6,7 +6,9 @@ import { handleShareTargetPost } from './share-target'
 declare let self: ServiceWorkerGlobalScope
 
 self.addEventListener('install', () => {
-  self.skipWaiting()
+  // Don't skip waiting here — let the update banner control activation.
+  // Calling skipWaiting() on install causes old tabs to 404 on cached chunk
+  // URLs after an update, which produces a white screen.
 })
 
 self.addEventListener('activate', (event) => {

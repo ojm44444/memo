@@ -164,8 +164,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
     const playlist = await buildColumnPlaylist(columnSlug)
     const index = playlist.findIndex((p) => p.songId === songId)
-    // Update playlist/index once available; leave isPlaying untouched
-    set({ playlist, currentIndex: Math.max(0, index) })
+    // Guard: only apply if the user hasn't tapped a different song while we awaited
+    if (get().currentSongId === songId) {
+      set({ playlist, currentIndex: Math.max(0, index) })
+    }
   },
 
   playSongAtTimestamp: async (columnSlug, songId, versionId, timestampMs) => {

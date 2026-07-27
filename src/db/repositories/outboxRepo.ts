@@ -24,34 +24,36 @@ export async function enqueueSync(
   // - update + update → merge (latest payload wins)
   // - update + delete → promote to delete (no point uploading then deleting)
   // - delete + delete → deduplicate
-  if (op === 'update' || op === 'delete') {
-    const existing = await db.syncQueue
-      .where('entityId')
-      .equals(entityId)
-      .filter((item) => item.entityType === entityType && (item.op === 'update' || item.op === 'delete'))
-      .first()
+  await db.transaction('rw', db.syncQueue, async () => {
+    if (op === 'update' || op === 'delete') {
+      const existing = await db.syncQueue
+        .where('entityId')
+        .equals(entityId)
+        .filter((item) => item.entityType === entityType && (item.op === 'update' || item.op === 'delete'))
+        .first()
 
-    if (existing) {
-      await db.syncQueue.update(existing.id, {
-        op,
-        payload: JSON.stringify(payload),
-        createdAt: new Date().toISOString(),
-        attempts: 0,
-        lastError: null,
-      })
-      return
+      if (existing) {
+        await db.syncQueue.update(existing.id, {
+          op,
+          payload: JSON.stringify(payload),
+          createdAt: new Date().toISOString(),
+          attempts: 0,
+          lastError: null,
+        })
+        return
+      }
     }
-  }
 
-  await db.syncQueue.add({
-    id: createId(),
-    op,
-    entityType,
-    entityId,
-    payload: JSON.stringify(payload),
-    createdAt: new Date().toISOString(),
-    attempts: 0,
-    lastError: null,
+    await db.syncQueue.add({
+      id: createId(),
+      op,
+      entityType,
+      entityId,
+      payload: JSON.stringify(payload),
+      createdAt: new Date().toISOString(),
+      attempts: 0,
+      lastError: null,
+    })
   })
 }
 
