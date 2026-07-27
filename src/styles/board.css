@@ -1670,12 +1670,12 @@ body.is-file-dragging * {
   width: 100%;
   padding: 8px;
   border: 1px dashed var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
   flex-shrink: 0;
@@ -3790,9 +3790,9 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-detail-action {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid rgba(0, 255, 157, 0.3);
@@ -3847,8 +3847,9 @@ html.light .interactive-waveform-bar.is-played {
 }
 
 .song-detail-danger {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
   color: rgba(255, 107, 53, 0.8);
   background: none;
   border: none;
@@ -5012,13 +5013,14 @@ html.light .project-switcher-panel {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
   color: var(--audio-mint);
   background: rgba(0, 255, 157, 0.08);
   border: 1px solid rgba(0, 255, 157, 0.2);
-  border-radius: 4px;
-  padding: 2px 6px;
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .version-clip-tag-remove {
@@ -5049,9 +5051,10 @@ html.light .project-switcher-panel {
   border: 1px solid rgba(0, 255, 157, 0.35);
   border-radius: 20px;
   color: var(--audio-mint);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 2px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 3px 10px;
   cursor: pointer;
   transition: background 0.15s;
 }
