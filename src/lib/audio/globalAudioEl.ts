@@ -39,18 +39,19 @@ function unlockMainEl(el: HTMLAudioElement) {
   realSrcSet = false
   el.src = SILENT
   void el.play().then(() => {
-    // Mark as a programmatic src-change so onPause won't call setPlaying(false).
+    if (realSrcSet) {
+      // playAudioImmediately() fired while SILENT was playing and already
+      // changed the src to real audio. Don't touch it — just ensure play()
+      // is running (it already called play(), so nothing to do here).
+      return
+    }
+    // SILENT finished and nothing took over — restore the element to a clean state.
     srcSwitchPending = true
     el.pause()
-    if (realSrcSet) {
-      // playAudioImmediately() already changed the src to real audio and called
-      // play() — our pause() above may have interrupted it. Restart it.
-      void el.play().catch(() => {})
-    } else {
-      // Nothing played yet — restore prev src so the element is in a clean state.
-      el.src = prev || ''
-    }
+    el.src = prev || ''
   }).catch(() => {
+    // Play was interrupted (e.g. src changed by playAudioImmediately mid-flight).
+    // If real audio is now in control, leave it alone.
     if (!realSrcSet) el.src = prev || ''
   })
 }

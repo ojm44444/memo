@@ -108,11 +108,16 @@ export async function pullChanges(userId: string) {
       if (remoteProjectIds.has(entry.entityId)) continue
       const local = await db.projects.get(entry.entityId)
       if (!local) continue
-      // Reassign any songs that landed under the phantom project to the first server project
-      const firstRemoteId = remoteProjects[0].id
-      await db.songs
-        .filter((s) => s.projectId === local.id && !s.deletedAt)
-        .modify({ projectId: firstRemoteId })
+
+      // Only reassign songs when the destination is unambiguous (single remote project).
+      // With multiple remote projects we can't safely guess which one to use — silently
+      // moving songs to the wrong project is worse than leaving them as-is.
+      if (remoteProjects.length === 1) {
+        await db.songs
+          .filter((s) => s.projectId === local.id && !s.deletedAt)
+          .modify({ projectId: remoteProjects[0].id })
+      }
+
       await db.syncQueue.delete(entry.id)
       await db.projects.delete(entry.entityId)
     }

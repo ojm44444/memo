@@ -364,7 +364,7 @@ export async function moveSong(
 
   const updated: Song = { ...song, columnSlug: targetColumnSlug, sortOrder, updatedAt: now }
   await db.songs.put(updated)
-  void enqueueSync('update', 'song', songId, { columnSlug: targetColumnSlug, sortOrder, updatedAt: now })
+  await enqueueSync('update', 'song', songId, { columnSlug: targetColumnSlug, sortOrder, updatedAt: now })
 }
 
 export async function reorderSongInColumn(
@@ -381,7 +381,7 @@ export async function reorderSongInColumn(
 
   const updated: Song = { ...song, sortOrder, updatedAt: now }
   await db.songs.put(updated)
-  void enqueueSync('update', 'song', songId, { sortOrder, updatedAt: now })
+  await enqueueSync('update', 'song', songId, { sortOrder, updatedAt: now })
 }
 
 export async function deleteSong(id: string) {
@@ -505,7 +505,7 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
         sortOrder: newSortOrder,
       })
       // Push song_id change to server so pull doesn't move the version back
-      void enqueueSync('update', 'audio_version', version.id, {
+      await enqueueSync('update', 'audio_version', version.id, {
         songId: targetSongId,
         sortOrder: newSortOrder,
         label: version.label,
@@ -580,8 +580,8 @@ export async function unmergeSong(versionId: string) {
     await db.audioVersions.update(remaining[i].id, { sortOrder: i })
   }
 
-  void enqueueSync('create', 'song', newSongId, newSong)
-  void enqueueSync('update', 'audio_version', versionId, {
+  await enqueueSync('create', 'song', newSongId, newSong)
+  await enqueueSync('update', 'audio_version', versionId, {
     songId: newSongId,
     sortOrder: 0,
     label: version.label,
