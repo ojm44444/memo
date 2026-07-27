@@ -482,8 +482,7 @@ export function ColumnPlayerBar() {
                     cacheKey={currentVersionId ?? undefined}
                     progress={progress}
                     active={isPlaying && !buffering}
-                    height={32}
-                    className="mt-1.5"
+                    height={44}
                     onSeek={seekTo}
                   />
                   {buffering && (
@@ -495,14 +494,17 @@ export function ColumnPlayerBar() {
                     </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="player-bar-expand-btn"
-                  onClick={() => setExpanded(true)}
-                  aria-label="Open waveform"
-                >
-                  ⌃
-                </button>
+                <div className="player-bar-time-stack">
+                  <span className="player-bar-time">{formatDuration(currentMs)}</span>
+                  <button
+                    type="button"
+                    className="player-bar-expand-btn"
+                    onClick={() => setExpanded(true)}
+                    aria-label="Open waveform"
+                  >
+                    ⌃
+                  </button>
+                </div>
               </div>
             </div>
 
