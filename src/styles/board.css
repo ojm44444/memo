@@ -2463,9 +2463,10 @@ html.light .interactive-waveform-bar.is-played {
   border: 1px solid var(--border);
   background: transparent;
   color: var(--audio-mint);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 6px 12px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 6px 14px;
   border-radius: 999px;
   cursor: pointer;
 }
@@ -2524,9 +2525,9 @@ html.light .interactive-waveform-bar.is-played {
   color: var(--text-muted);
   border-radius: 999px;
   padding: 5px 12px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 .board-filter-inline-form {
