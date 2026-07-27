@@ -19,12 +19,17 @@ export function SongStageSelect({ songId, columnSlug, readOnly = false }: SongSt
     scheduleFlush()
   }
 
+  const toDisplayTitle = (title: string) =>
+    title
+      .replace(/[-_]+/g, ' ')
+      .replace(/\b\w/g, (ch) => ch.toUpperCase())
+
   if (readOnly) {
     const column = columns?.find((entry) => entry.slug === columnSlug)
-    return <span className="song-stage-readonly">{column?.title ?? columnSlug}</span>
+    return <span className="song-stage-readonly">{toDisplayTitle(column?.title ?? columnSlug)}</span>
   }
 
-  const options = (columns ?? []).map((c) => ({ value: c.slug, label: c.title }))
+  const options = (columns ?? []).map((c) => ({ value: c.slug, label: toDisplayTitle(c.title) }))
 
   return (
     <label className="song-stage-select">

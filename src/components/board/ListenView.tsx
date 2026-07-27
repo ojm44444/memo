@@ -297,7 +297,7 @@ function ListenRow({
             }}
             aria-label={`Show ${columnSlug} on board`}
           >
-            {columnSlug}
+            {columnSlug.replace(/[-_]+/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase())}
           </button>
         </span>
       </div>

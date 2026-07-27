@@ -3892,7 +3892,7 @@ html.light .interactive-waveform-bar.is-played {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 2px;
+  padding: 3px;
   gap: 2px;
 }
 
@@ -3900,17 +3900,24 @@ html.light .interactive-waveform-bar.is-played {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.03em;
-  padding: 4px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 5px 13px;
   border-radius: 999px;
   cursor: pointer;
+  transition: color 0.12s;
 }
+.board-mode-btn:hover { color: var(--text); }
 
 .board-mode-btn.is-active {
   background: var(--surface);
   color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+html.light .board-mode-btn.is-active {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 /* Project switcher */
@@ -3941,39 +3948,53 @@ html.light .interactive-waveform-bar.is-played {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.12s;
 }
+.project-switcher-trigger:hover { background: var(--bg-3); }
 
 .project-switcher-caret {
   font-size: 0.65rem;
   color: var(--text-muted);
+  transition: transform 0.15s;
 }
+.project-switcher[data-open] .project-switcher-caret { transform: rotate(180deg); }
 
 .project-switcher-panel {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
   z-index: 40;
-  min-width: 200px;
-  background: var(--bg-3);
+  min-width: 220px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+html.light .project-switcher-panel {
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.07);
 }
 
 .project-switcher-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
   text-align: left;
   border: none;
   background: transparent;
   color: var(--text);
-  font-size: 0.82rem;
-  padding: 8px 10px;
-  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  padding: 9px 10px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background 0.1s;
 }
 
 .project-switcher-label,
@@ -3986,7 +4007,7 @@ html.light .interactive-waveform-bar.is-played {
 
 .project-switcher-item.is-active,
 .project-switcher-item:hover {
-  background: var(--surface);
+  background: var(--bg-3);
 }
 
 .project-switcher-item.is-active .project-switcher-item-name {
@@ -3999,29 +4020,38 @@ html.light .interactive-waveform-bar.is-played {
   border: none;
   background: transparent;
   color: var(--audio-mint);
-  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
   padding: 8px 10px;
   cursor: pointer;
   text-align: left;
+  border-radius: 8px;
+  transition: background 0.1s;
 }
+.project-switcher-add:hover { background: rgba(0,255,157,0.07); }
 
 .project-switcher-inline-form {
   display: flex;
   gap: 6px;
-  padding: 6px;
+  padding: 4px 4px 2px;
 }
 
 .project-switcher-input,
 .project-switcher-rename-input {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background: var(--bg-3);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text);
-  font-size: 0.78rem;
-  padding: 6px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  padding: 7px 10px;
+  outline: none;
 }
+.project-switcher-input:focus,
+.project-switcher-rename-input:focus { border-color: var(--audio-mint); }
 
 .project-switcher-rename {
   display: block;
@@ -4032,11 +4062,12 @@ html.light .interactive-waveform-bar.is-played {
 
 .project-switcher-rename-label {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 4px;
-  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
