@@ -164,11 +164,11 @@ a.nav-cta {
   font-family: 'DM Mono', monospace;
   font-size: 0.72rem;
   letter-spacing: 0.1em;
-  color: var(--accent);
+  color: rgba(255,255,255,0.45);
   text-transform: uppercase;
   margin-bottom: 28px;
-  background: var(--accent-dim);
-  border: 1px solid rgba(0, 255, 157, 0.25);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
   padding: 6px 14px;
   border-radius: 100px;
   width: fit-content;
@@ -551,7 +551,7 @@ a.nav-cta {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: rgba(255,255,255,0.35);
   margin-bottom: 16px;
 }
 
@@ -608,11 +608,12 @@ a.nav-cta {
 }
 
 /* Give each feature card a different accent so the grid has colour variety */
-.features-grid .feature-card:nth-child(2) .feature-icon { background: var(--amber-dim); color: var(--amber); }
-.features-grid .feature-card:nth-child(3) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
+.features-grid .feature-card:nth-child(1) .feature-icon { background: var(--amber-dim); color: var(--amber); }
+.features-grid .feature-card:nth-child(2) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
+.features-grid .feature-card:nth-child(3) .feature-icon { background: var(--accent-dim); color: var(--accent); }
 .features-grid .feature-card:nth-child(4) .feature-icon { background: rgba(200,130,255,0.1); color: #c482ff; }
 .features-grid .feature-card:nth-child(5) .feature-icon { background: rgba(255,107,53,0.1); color: #ff7b50; }
-.features-grid .feature-card:nth-child(6) .feature-icon { background: var(--amber-dim); color: var(--amber); }
+.features-grid .feature-card:nth-child(6) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
 
 .fi-green { background: var(--accent-dim); }
 .fi-orange { background: rgba(255,107,53,0.1); }
@@ -654,7 +655,7 @@ a.nav-cta {
 .step-num {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
-  color: var(--accent);
+  color: var(--amber);
   letter-spacing: 0.06em;
   min-width: 28px;
   padding-top: 3px;
@@ -684,9 +685,9 @@ a.nav-cta {
 .scp-status {
   font-family: 'DM Mono', monospace;
   font-size: 0.62rem;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid rgba(0, 255, 157, 0.25);
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245, 168, 90, 0.25);
   padding: 4px 10px;
   border-radius: 100px;
   letter-spacing: 0.06em;
@@ -958,7 +959,7 @@ a.nav-cta {
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--accent);
+  color: var(--amber);
   font-size: 0.8rem;
 }
 
@@ -1117,9 +1118,9 @@ a.nav-cta {
 }
 
 .compare-col--memo {
-  background: rgba(0, 255, 157, 0.04);
-  border-bottom: 2px solid rgba(0, 255, 157, 0.4);
-  color: var(--accent);
+  background: rgba(245, 168, 90, 0.04);
+  border-bottom: 2px solid rgba(245, 168, 90, 0.4);
+  color: var(--amber);
 }
 
 .compare-logo {
@@ -1153,7 +1154,7 @@ a.nav-cta {
 }
 
 .compare-cell--memo {
-  background: rgba(0, 255, 157, 0.03);
+  background: rgba(245, 168, 90, 0.025);
 }
 
 .tick {
@@ -1276,7 +1277,7 @@ a.nav-cta {
 
 .pricing-features li::before {
   content: '· ';
-  color: var(--accent);
+  color: var(--amber);
 }
 
 .pricing-cta {
