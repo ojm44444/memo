@@ -95,21 +95,21 @@ nav {
 .nav-signin:hover { color: var(--text); }
 
 .nav-cta {
-  background: var(--text);
-  color: #0d0d0f;
+  background: var(--accent);
+  color: #0a0c10;
   border: none;
-  padding: 10px 22px;
+  padding: 9px 20px;
   border-radius: 999px;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 0.85rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0;
+  letter-spacing: 0.03em;
   transition: all 0.2s;
   white-space: nowrap;
 }
 
-.nav-cta:hover { transform: translateY(-1px); opacity: 0.9; }
+.nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
 
 a.nav-cta {
   text-decoration: none;
@@ -131,10 +131,10 @@ a.nav-cta {
 
 /* HERO */
 .hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 140px 60px 0;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 80px;
   position: relative;
   overflow: hidden;
 }
@@ -143,18 +143,16 @@ a.nav-cta {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(0, 255, 157, 0.045) 0%, transparent 60%),
-              radial-gradient(ellipse 70% 50% at 85% 30%, rgba(0, 200, 180, 0.03) 0%, transparent 65%);
+  background: radial-gradient(ellipse 60% 55% at 72% 38%, var(--accent-glow) 0%, transparent 65%),
+              radial-gradient(ellipse 50% 55% at 8% 65%, var(--warm-glow) 0%, transparent 65%);
   pointer-events: none;
 }
 
 .hero-left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  max-width: 1100px;
-  padding: 0 0 72px;
+  justify-content: center;
+  padding: 80px 60px;
   position: relative;
   z-index: 2;
 }
@@ -190,37 +188,33 @@ a.nav-cta {
 }
 
 .hero-h1 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(2.9rem, 7vw, 5.6rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  margin-bottom: 28px;
-  font-weight: 700;
-  max-width: 16ch;
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2.8rem, 4.5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  font-weight: 400;
 }
 
-.hero-h1 em {
-  font-style: normal;
-  color: var(--muted);
-}
+.hero-h1 em { font-style: italic; color: var(--amber); }
 
 .hero-sub {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--muted);
-  max-width: 480px;
-  line-height: 1.6;
-  margin-bottom: 36px;
-  font-weight: 400;
+  max-width: 440px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+  font-weight: 300;
 }
 
 .hero-actions { display: flex; gap: 14px; align-items: center; }
 
 .btn-primary {
-  background: var(--text);
-  color: #0d0d0f;
+  background: var(--accent);
+  color: #121214;
   border: none;
   padding: 14px 28px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
@@ -228,7 +222,7 @@ a.nav-cta {
   transition: all 0.2s;
 }
 
-.btn-primary:hover { transform: translateY(-2px); opacity: 0.92; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 255, 157, 0.22); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-ghost {
@@ -256,19 +250,18 @@ a.nav-cta {
 .waitlist-form {
   display: flex;
   gap: 8px;
-  margin-top: 0;
-  max-width: 440px;
+  margin-top: 20px;
+  max-width: 400px;
 }
 
 .waitlist-input {
   flex: 1;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
   color: var(--text);
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 0.92rem;
-  padding: 14px 20px;
+  font-size: 0.9rem;
+  padding: 11px 14px;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -283,19 +276,16 @@ a.nav-cta {
 
 .waitlist-btn {
   border: none;
-  border-radius: 999px;
-  background: var(--text);
-  color: #0d0d0f;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 0.92rem;
-  font-weight: 600;
-  padding: 14px 26px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #0a0c10;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 11px 18px;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s, opacity 0.15s;
+  transition: opacity 0.15s;
 }
-
-.waitlist-btn:hover:not(:disabled) { transform: translateY(-1px); }
 
 .waitlist-btn:disabled {
   opacity: 0.6;
@@ -352,21 +342,21 @@ a.nav-cta {
 /* APP PREVIEW */
 .hero-right {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 1100px;
+  padding: 80px 40px 80px 20px;
   position: relative;
   z-index: 2;
 }
 
 .app-preview {
   width: 100%;
+  max-width: 520px;
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 -20px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
   animation: fadeInUp 0.7s ease 0.3s both;
 }
 
@@ -566,15 +556,12 @@ a.nav-cta {
 }
 
 .section-h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(2rem, 4.2vw, 3.2rem);
-  line-height: 1.06;
-  letter-spacing: -0.03em;
-  margin-bottom: 18px;
-  font-weight: 700;
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  margin-bottom: 16px;
+  font-weight: 400;
 }
-
-.section-h2 em { font-style: normal; color: var(--muted); }
 
 .section-sub {
   color: var(--muted);
@@ -693,7 +680,7 @@ a.nav-cta {
   justify-content: space-between;
 }
 
-.scp-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
+.scp-title { font-family: 'Instrument Serif', serif; font-size: 1.2rem; font-style: italic; }
 
 .scp-status {
   font-family: 'DM Mono', monospace;
@@ -824,17 +811,15 @@ a.nav-cta {
 }
 
 .cta-section h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(2.4rem, 6vw, 4.4rem);
-  line-height: 1.03;
-  letter-spacing: -0.035em;
-  font-weight: 700;
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1.1;
   margin-bottom: 24px;
   position: relative;
   z-index: 1;
 }
 
-.cta-section h2 em { font-style: normal; color: var(--muted); }
+.cta-section h2 em { font-style: italic; color: var(--amber); }
 
 .cta-section p {
   color: var(--muted);
@@ -846,7 +831,7 @@ a.nav-cta {
   z-index: 1;
 }
 
-.cta-section .waitlist-form {
+.waitlist-form {
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -855,12 +840,12 @@ a.nav-cta {
   z-index: 1;
 }
 
-.cta-section .waitlist-input {
+.waitlist-input {
   background: var(--bg2);
   border: 1px solid var(--border);
   color: var(--text);
   padding: 14px 20px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 0.9rem;
   width: 280px;
@@ -1273,10 +1258,8 @@ a.nav-cta {
 }
 
 .pricing-price {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
   margin: 8px 0 16px;
 }
 
@@ -1368,24 +1351,17 @@ footer {
   }
 
   .hero {
-    padding: 96px 20px 0;
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 72px;
   }
 
   .hero-left {
-    padding: 0 0 40px;
+    padding: 40px 20px 24px;
   }
 
   .hero-right {
-    display: flex;
-  }
-
-  .app-preview {
-    border-radius: 12px 12px 0 0;
-  }
-
-  .kanban-board {
-    grid-template-columns: repeat(2, 1fr);
-    min-height: 220px;
+    display: none;
   }
 
   .hero-actions {
