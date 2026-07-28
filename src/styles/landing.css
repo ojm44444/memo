@@ -11,13 +11,18 @@
   --border: rgba(255,255,255,0.09);
   --text: #f0ede8;
   --muted: #a8a5b0;
+  /* One accent only. Green is the brand mark and appears on the logo,
+     the played waveform and confirmation ticks. Nothing else. */
   --accent: #7ee7a8;
   --accent-hover: #9bf0bd;
-  --accent-dim: rgba(126, 231, 168, 0.12);
-  --accent-glow: rgba(126, 231, 168, 0.07);
-  --amber: #f5a85a;
-  --amber-dim: rgba(245, 168, 90, 0.12);
-  --warm-glow: rgba(245, 140, 60, 0.07);
+  --accent-dim: rgba(126, 231, 168, 0.1);
+  --accent-glow: rgba(126, 231, 168, 0.05);
+  /* Buttons and emphasis use warm bone, not a second hue. */
+  --cta: #f0ede8;
+  --cta-hover: #ffffff;
+  --amber: #ded6c9;
+  --amber-dim: rgba(222, 214, 201, 0.08);
+  --warm-glow: rgba(222, 214, 201, 0.03);
   --card1: #1e1e27;
 }
 
@@ -95,7 +100,7 @@ nav {
 .nav-signin:hover { color: var(--text); }
 
 .nav-cta {
-  background: var(--accent);
+  background: var(--cta);
   color: #0a0c10;
   border: none;
   padding: 9px 20px;
@@ -109,7 +114,7 @@ nav {
   white-space: nowrap;
 }
 
-.nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.nav-cta:hover { background: var(--cta-hover); transform: translateY(-1px); }
 
 a.nav-cta {
   text-decoration: none;
@@ -210,7 +215,7 @@ a.nav-cta {
 .hero-actions { display: flex; gap: 14px; align-items: center; }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--cta);
   color: #121214;
   border: none;
   padding: 14px 28px;
@@ -222,7 +227,7 @@ a.nav-cta {
   transition: all 0.2s;
 }
 
-.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(126, 231, 168, 0.22); }
+.btn-primary:hover { background: var(--cta-hover); transform: translateY(-2px); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-ghost {
@@ -267,7 +272,7 @@ a.nav-cta {
 }
 
 .waitlist-input:focus {
-  border-color: var(--accent);
+  border-color: rgba(255,255,255,0.32);
 }
 
 .waitlist-input::placeholder {
@@ -277,7 +282,7 @@ a.nav-cta {
 .waitlist-btn {
   border: none;
   border-radius: 10px;
-  background: var(--accent);
+  background: var(--cta);
   color: #0a0c10;
   font-size: 0.85rem;
   font-weight: 700;
@@ -298,7 +303,7 @@ a.nav-cta {
   gap: 10px;
   margin-top: 20px;
   font-size: 0.9rem;
-  color: var(--accent);
+  color: var(--cta);
   font-weight: 500;
 }
 
@@ -462,7 +467,7 @@ a.nav-cta {
   text-transform: uppercase;
 }
 
-.tag-idea { background: rgba(245,166,35,0.15); color: var(--amber); }
+.tag-idea { background: rgba(255,255,255,0.07); color: var(--muted); }
 .tag-riff { background: rgba(255,107,53,0.15); color: var(--accent2); }
 .tag-stack { background: var(--accent-dim); color: var(--accent); }
 .tag-lyric { background: var(--accent-dim); color: var(--accent); }
@@ -482,7 +487,9 @@ a.nav-cta {
   letter-spacing: 0.03em;
   padding: 2px 7px;
   border-radius: 999px;
-  color: #fff;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--muted);
 }
 
 .card-merges { margin-top: 4px; }
@@ -603,21 +610,16 @@ a.nav-cta {
   font-size: 0.95rem;
   font-weight: 500;
   margin-bottom: 20px;
-  background: var(--accent-dim);
-  color: var(--accent);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: var(--text);
 }
 
-/* Give each feature card a different accent so the grid has colour variety */
-.features-grid .feature-card:nth-child(1) .feature-icon { background: var(--amber-dim); color: var(--amber); }
-.features-grid .feature-card:nth-child(2) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
-.features-grid .feature-card:nth-child(3) .feature-icon { background: var(--accent-dim); color: var(--accent); }
-.features-grid .feature-card:nth-child(4) .feature-icon { background: rgba(200,130,255,0.1); color: #c482ff; }
-.features-grid .feature-card:nth-child(5) .feature-icon { background: rgba(255,107,53,0.1); color: #ff7b50; }
-.features-grid .feature-card:nth-child(6) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
+
 
 .fi-green { background: var(--accent-dim); }
 .fi-orange { background: rgba(255,107,53,0.1); }
-.fi-amber { background: rgba(245,166,35,0.1); }
+.fi-amber { background: rgba(255,255,255,0.05); }
 .fi-blue { background: rgba(100,180,255,0.1); }
 .fi-purple { background: rgba(180,100,255,0.1); }
 .fi-pink { background: rgba(255,100,180,0.1); }
@@ -853,7 +855,7 @@ a.nav-cta {
   transition: border-color 0.2s;
 }
 
-.waitlist-input:focus { border-color: rgba(126, 231, 168, 0.45); }
+.waitlist-input:focus { border-color: rgba(255,255,255,0.32); }
 .waitlist-input:disabled { opacity: 0.6; }
 .waitlist-input::placeholder { color: var(--muted); }
 
@@ -898,7 +900,7 @@ a.nav-cta {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--text);
   letter-spacing: -0.02em;
 }
 

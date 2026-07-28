@@ -260,7 +260,7 @@ export function LandingPage() {
                     <span className="card-tag tag-stack">2 versions</span>
                   </div>
                   <div className="card-tags-row">
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Lyrics drafted</span>
+                    <span className="card-pill">Lyrics drafted</span>
                   </div>
                 </div>
                 <div className="audio-card">
@@ -282,7 +282,7 @@ export function LandingPage() {
                     <span className="card-tag tag-stack">TRACK</span>
                   </div>
                   <div className="card-tags-row">
-                    <span className="card-pill" style={{ background: 'linear-gradient(135deg,#6dffb8,#3b82f6)' }}>Full idea</span>
+                    <span className="card-pill">Full idea</span>
                   </div>
                 </div>
               </div>
