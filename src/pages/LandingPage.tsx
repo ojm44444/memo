@@ -495,7 +495,7 @@ export function LandingPage() {
         <div className="footer-logo">
           mem<span>o</span>
         </div>
-        <span className="footer-text">CHARCOAL · MINT · LOCAL-FIRST</span>
+        <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
       </footer>
     </div>
   )

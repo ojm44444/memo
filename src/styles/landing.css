@@ -5,18 +5,20 @@
 .landing *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #121214;
-  --bg2: #18181b;
-  --bg3: #1f1f23;
-  --border: rgba(255,255,255,0.08);
-  --text: #f2f0ec;
+  --bg: #111113;
+  --bg2: #17171c;
+  --bg3: #1c1c24;
+  --border: rgba(255,255,255,0.09);
+  --text: #f0ede8;
   --muted: #a8a5b0;
   --accent: #00ff9d;
   --accent-hover: #33ffb1;
-  --accent-dim: rgba(0, 255, 157, 0.15);
-  --accent-glow: rgba(0, 255, 157, 0.1);
-  --amber: #f5a623;
-  --card1: #232328;
+  --accent-dim: rgba(0, 255, 157, 0.12);
+  --accent-glow: rgba(0, 255, 157, 0.08);
+  --amber: #f5a85a;
+  --amber-dim: rgba(245, 168, 90, 0.12);
+  --warm-glow: rgba(245, 140, 60, 0.07);
+  --card1: #1e1e27;
 }
 
 .landing {
@@ -141,8 +143,8 @@ a.nav-cta {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse 60% 50% at 70% 40%, var(--accent-glow) 0%, transparent 70%),
-              radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0, 255, 157, 0.04) 0%, transparent 70%);
+  background: radial-gradient(ellipse 60% 55% at 72% 38%, var(--accent-glow) 0%, transparent 65%),
+              radial-gradient(ellipse 50% 55% at 8% 65%, var(--warm-glow) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -194,7 +196,7 @@ a.nav-cta {
   font-weight: 400;
 }
 
-.hero-h1 em { font-style: italic; color: var(--accent); }
+.hero-h1 em { font-style: italic; color: var(--amber); }
 
 .hero-sub {
   font-size: 1.05rem;
@@ -605,6 +607,13 @@ a.nav-cta {
   color: var(--accent);
 }
 
+/* Give each feature card a different accent so the grid has colour variety */
+.features-grid .feature-card:nth-child(2) .feature-icon { background: var(--amber-dim); color: var(--amber); }
+.features-grid .feature-card:nth-child(3) .feature-icon { background: rgba(100,180,255,0.1); color: #7eb8ff; }
+.features-grid .feature-card:nth-child(4) .feature-icon { background: rgba(200,130,255,0.1); color: #c482ff; }
+.features-grid .feature-card:nth-child(5) .feature-icon { background: rgba(255,107,53,0.1); color: #ff7b50; }
+.features-grid .feature-card:nth-child(6) .feature-icon { background: var(--amber-dim); color: var(--amber); }
+
 .fi-green { background: var(--accent-dim); }
 .fi-orange { background: rgba(255,107,53,0.1); }
 .fi-amber { background: rgba(245,166,35,0.1); }
@@ -794,8 +803,9 @@ a.nav-cta {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px; height: 600px;
-  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse 55% 55% at 40% 50%, var(--warm-glow) 0%, transparent 65%),
+              radial-gradient(ellipse 45% 45% at 65% 50%, var(--accent-glow) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -808,7 +818,7 @@ a.nav-cta {
   z-index: 1;
 }
 
-.cta-section h2 em { font-style: italic; color: var(--accent); }
+.cta-section h2 em { font-style: italic; color: var(--amber); }
 
 .cta-section p {
   color: var(--muted);
@@ -908,9 +918,9 @@ a.nav-cta {
 /* Offline spotlight */
 .offline-section {
   padding: 100px 60px;
-  background: rgba(109, 255, 184, 0.03);
-  border-top: 1px solid rgba(109, 255, 184, 0.1);
-  border-bottom: 1px solid rgba(109, 255, 184, 0.1);
+  background: rgba(255,255,255,0.012);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .offline-inner {
@@ -1223,8 +1233,9 @@ a.nav-cta {
 }
 
 .pricing-card--featured {
-  border-color: rgba(0, 255, 157, 0.35);
-  background: linear-gradient(180deg, rgba(0, 255, 157, 0.06), var(--bg2));
+  border-color: rgba(0, 255, 157, 0.25);
+  background: linear-gradient(160deg, rgba(0, 255, 157, 0.06) 0%, rgba(245,168,90,0.04) 60%, transparent 100%);
+  box-shadow: 0 0 50px rgba(0, 255, 157, 0.05), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .pricing-card--beta {
@@ -1303,7 +1314,7 @@ footer {
 .footer-text {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
-  color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.2);
   letter-spacing: 0.06em;
 }
 
