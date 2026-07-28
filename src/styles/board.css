@@ -2108,67 +2108,124 @@ html.light .song-card:hover {
 }
 
 .player-bar-song-title {
-  display: block;
-  width: 100%;
+  display: inline;
   text-align: left;
   background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
-  color: inherit;
+  color: var(--text);
   font-weight: 600;
-  font-size: 0.875rem;
-  line-height: 1.25;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .player-bar-song-title:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: var(--audio-mint);
 }
 
 .player-bar {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
-  background: var(--bg-2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 14px 20px;
-  padding-bottom: calc(14px + env(safe-area-inset-bottom));
-  box-shadow: 0 -1px 0 rgba(255,255,255,0.04);
+  background: rgba(12, 12, 14, 0.92);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  padding: 10px 16px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.05);
+}
+
+html.light .player-bar {
+  background: rgba(248, 248, 250, 0.92);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-top-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -1px 0 rgba(0,0,0,0.05), 0 -8px 32px rgba(0,0,0,0.06);
 }
 
 @media (max-width: 600px) {
   .player-bar {
-    padding: 8px 12px;
+    padding: 8px 10px;
     padding-bottom: calc(8px + env(safe-area-inset-bottom));
   }
 
-  /* Speed + loop are in the expanded panel — hide in compact bar on phone */
   .player-bar .player-bar-speed,
   .player-bar .player-loop-btn {
     display: none;
   }
-
-  .player-bar-inner {
-    gap: 8px;
-  }
-
-  .player-bar-transport {
-    gap: 4px;
-  }
 }
 
 .player-bar--expanded {
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
+/* Gradient thumbnail */
+.player-bar-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Inner flex row: [thumb] [center] [controls] */
 .player-bar-inner {
   width: 100%;
-  max-width: none;
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+}
+
+/* Centre column: title/meta stacked above scrubber */
+.player-bar-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Title + sub in a single row */
+.player-bar-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Sub-label: version + queue */
+.player-bar-sub {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Scrubber row: time | waveform | time */
+.player-bar-scrubber {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.player-bar-wave-col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Right controls column */
+.player-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .player-bar-wave-hit {
@@ -6562,9 +6619,8 @@ html.light .board-drop-banner {
   border-color: rgba(0, 184, 107, 0.25);
 }
 
-html.light .column-player-bar,
-html.light .player-bar {
-  background: rgba(255, 255, 255, 0.95);
+html.light .column-player-bar {
+  background: rgba(248, 248, 250, 0.92);
   border-top-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -7221,28 +7277,26 @@ html.light .custom-select-option:hover {
   transform: scale(1.08);
 }
 
-/* Show time in the compact player bar */
+/* Time codes flanking the waveform scrubber */
 .player-bar-time {
   font-family: var(--font-mono);
   font-size: 0.6rem;
   color: var(--text-muted);
   white-space: nowrap;
   letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 
-/* Taller compact waveform */
+.player-bar-time--dur {
+  text-align: right;
+}
+
+/* Waveform in the scrubber row */
 .player-bar-wave-col .interactive-waveform {
-  height: 44px !important;
+  height: 40px !important;
 }
 
-/* Elevated glass player bar in light mode */
-html.light .player-bar {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  border-top-color: rgba(0, 0, 0, 0.07);
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08), 0 -1px 0 rgba(0, 0, 0, 0.05);
-}
+/* light mode player bar — consolidated into .player-bar rule above */
 
 /* Active version-stack-item: clear visual when playing */
 html.light .version-stack-item--active .scp-audio-item {
@@ -7260,11 +7314,7 @@ html.light .version-stack-item--active .scp-audio-item {
 }
 
 .player-bar-time-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+  display: none; /* replaced by player-bar-scrubber layout */
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -7376,23 +7426,31 @@ html.dark .song-detail-notes,
   }
 
   .player-bar {
-    padding: 10px 16px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    padding: 8px 10px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
   }
 
   .player-bar-inner {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  /* Hide gradient thumb on very small screens to save space */
+  .player-bar-thumb {
+    display: none;
+  }
+
+  .player-bar-time {
+    display: none;
   }
 
   .player-bar-song-title {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
 
   .player-bar-wave-col .interactive-waveform {
     height: 36px !important;
   }
 
-  /* On mobile hide the speed + loop in compact bar — they're in expanded */
   .player-bar .player-bar-speed,
   .player-bar .player-loop-btn {
     display: none;

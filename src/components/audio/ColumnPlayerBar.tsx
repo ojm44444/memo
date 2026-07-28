@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, memo } from 'react'
 import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
@@ -15,6 +15,28 @@ import { PlayerLoopButton } from './PlayerLoopButton'
 import { PlayerQueueDrawer } from './PlayerQueueDrawer'
 import { InteractiveWaveform } from './InteractiveWaveform'
 import { getMarkersForVersion } from '@/db/repositories/markerRepo'
+
+function seedHue(seed: string, offset: number): number {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) {
+    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0
+  }
+  return Math.abs((h + offset * 137) % 360)
+}
+
+const PlayerGradient = memo(function PlayerGradient({ songId }: { songId: string }) {
+  const h1 = seedHue(songId, 0)
+  const h2 = seedHue(songId, 1)
+  return (
+    <div
+      className="player-bar-thumb"
+      style={{
+        background: `radial-gradient(circle at 35% 40%, hsl(${h1},65%,55%), hsl(${h2},80%,30%))`,
+      }}
+      aria-hidden
+    />
+  )
+})
 
 export function ColumnPlayerBar() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -426,69 +448,46 @@ export function ColumnPlayerBar() {
           )}
 
           <div className="player-bar-inner">
-            <div className="player-bar-transport">
-              <button
-                type="button"
-                className="player-bar-skip"
-                disabled={playlist.length === 0}
-                onClick={() => playPreviousInColumn()}
-                aria-label="Previous"
-              >
-                ⏮
-              </button>
-              <button
-                type="button"
-                onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
-                className={`player-bar-play${buffering ? ' player-bar-buffering' : ''}`}
-                aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
-              >
-                {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
-              </button>
-              <button
-                type="button"
-                className="player-bar-skip"
-                disabled={playlist.length === 0 || currentIndex >= playlist.length - 1}
-                onClick={() => playNextInColumn()}
-                aria-label="Next"
-              >
-                ⏭
-              </button>
-            </div>
+            {/* Gradient thumbnail */}
+            <PlayerGradient songId={currentSongId!} />
 
-            <div className="min-w-0 flex-1">
-              <button
-                type="button"
-                className="player-bar-song-title truncate text-sm font-semibold"
-                onClick={() => currentSongId && openDrawer(currentSongId)}
-                title="Open song"
-              >
-                {displaySong!.title}
-              </button>
-              <div className="truncate font-mono text-[0.65rem] text-muted">
-                {version?.label}
-                {playlist.length > 1 && (
-                  <button
-                    type="button"
-                    className="player-bar-queue"
-                    onClick={() => toggleQueueOpen()}
-                    aria-expanded={queueOpen}
-                    aria-controls="player-queue-panel"
-                    aria-label={`${queueOpen ? 'Close' : 'Open'} play queue, track ${currentIndex + 1} of ${playlist.length}`}
-                  >
-                    {' '}
-                    · {playlistSource === 'favourites' ? '★ ' : ''}
-                    {currentIndex + 1}/{playlist.length}
-                  </button>
-                )}
+            {/* Centre: title/meta + scrubber */}
+            <div className="player-bar-center">
+              <div className="player-bar-meta">
+                <button
+                  type="button"
+                  className="player-bar-song-title"
+                  onClick={() => currentSongId && openDrawer(currentSongId)}
+                  title="Open song"
+                >
+                  {displaySong!.title}
+                </button>
+                <div className="player-bar-sub">
+                  {version?.label}
+                  {playlist.length > 1 && (
+                    <button
+                      type="button"
+                      className="player-bar-queue"
+                      onClick={() => toggleQueueOpen()}
+                      aria-expanded={queueOpen}
+                      aria-controls="player-queue-panel"
+                      aria-label={`${queueOpen ? 'Close' : 'Open'} play queue, track ${currentIndex + 1} of ${playlist.length}`}
+                    >
+                      {' '}· {playlistSource === 'favourites' ? '★ ' : ''}{currentIndex + 1}/{playlist.length}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="player-bar-wave-row">
+
+              <div className="player-bar-scrubber">
+                <span className="player-bar-time">{formatDuration(currentMs)}</span>
                 <div className="player-bar-wave-col">
                   <InteractiveWaveform
                     audioUrl={audioUrl}
                     cacheKey={currentVersionId ?? undefined}
                     progress={progress}
                     active={isPlaying && !buffering}
-                    height={44}
+                    height={40}
                     onSeek={seekTo}
                   />
                   {buffering && (
@@ -500,22 +499,45 @@ export function ColumnPlayerBar() {
                     </div>
                   )}
                 </div>
-                <div className="player-bar-time-stack">
-                  <span className="player-bar-time">{formatDuration(currentMs)}</span>
-                  <button
-                    type="button"
-                    className="player-bar-expand-btn"
-                    onClick={() => setExpanded(true)}
-                    aria-label="Open waveform"
-                  >
-                    ⌃
-                  </button>
-                </div>
+                <span className="player-bar-time player-bar-time--dur">
+                  {formatDuration(durationMs || version?.durationMs)}
+                </span>
               </div>
             </div>
 
-            <PlayerLoopButton />
-            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-speed" />
+            {/* Right: transport + secondary controls */}
+            <div className="player-bar-controls">
+              <div className="player-bar-transport">
+                <button
+                  type="button"
+                  className="player-bar-skip"
+                  disabled={playlist.length === 0}
+                  onClick={() => playPreviousInColumn()}
+                  aria-label="Previous"
+                >
+                  ⏮
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+                  className={`player-bar-play${buffering ? ' player-bar-buffering' : ''}`}
+                  aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
+                >
+                  {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
+                </button>
+                <button
+                  type="button"
+                  className="player-bar-skip"
+                  disabled={playlist.length === 0 || currentIndex >= playlist.length - 1}
+                  onClick={() => playNextInColumn()}
+                  aria-label="Next"
+                >
+                  ⏭
+                </button>
+              </div>
+              <PlayerLoopButton />
+              <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="player-bar-speed" />
+            </div>
           </div>
           <PlayerQueueDrawer />
         </footer>
