@@ -23,33 +23,33 @@ function WaveBars({ playedFrac = 0, count = 26 }: { playedFrac?: number; count?:
 const FEATURES = [
   {
     icon: '✈',
-    title: 'Always with you, no signal needed',
-    desc: 'Fill your dead time with creativity. memo is local-first — your entire imported library lives on your device. On the tube, on a plane, in a field. Nothing stops you moving forward.',
+    title: 'Works in a tunnel',
+    desc: 'Your whole library sits on your device, not on a server somewhere. The tube, a plane, a field in Wales with one bar. Doesn\'t matter. It all still works.',
   },
   {
     icon: '▦',
     title: 'A home for every idea',
-    desc: 'Inbox → Ideas → Half Finished → Finished Demo → Released. Import from Voice Memos or any audio app, name it, tag it, and never lose track of where it\'s up to.',
+    desc: 'Inbox → Ideas → Half Finished → Finished Demo → Released. Drag a song right when it gets better. That\'s the whole system.',
   },
   {
     icon: '⧉',
-    title: 'All your takes, one card',
-    desc: 'Got a second voice note for the same idea? A new riff? A bridge you just sang in the shower? Pin them all to one song card — hear how it evolved without hunting through folders.',
+    title: 'Every take on one card',
+    desc: 'Second voice note for the same idea. A new riff. That bridge you sang in the shower. They all stack onto one song, in order, so you can hear it turn into something.',
   },
   {
     icon: '◎',
-    title: 'Adjustable playback speed',
-    desc: 'Dial from 0.75× to 2×. Slow down to catch a lyric, speed up to skim your backlog, fast-forward through the silence. Find the keeper take in minutes.',
+    title: '0.75× to 2×',
+    desc: 'Slow it down to catch what you actually mumbled. Speed it up to get through 40 memos on the walk to work. Skip the eleven seconds of you finding the chord.',
   },
   {
     icon: '↗',
-    title: 'Import anywhere, organise everywhere',
-    desc: 'Record in Voice Memos, GarageBand, or any audio app. Import when you\'re ready — your board stays in sync across phone, Mac, and PC automatically.',
+    title: 'Bring it in from anywhere',
+    desc: 'Voice Memos, GarageBand, whatever you already record in. Import when you feel like it. Phone, Mac and PC stay in step on their own.',
   },
   {
     icon: '↔',
-    title: 'Share with your people',
-    desc: 'Send a listen link to your producer, A&R, or bandmates. They leave timestamped comments pinned to the waveform — no account needed on their end.',
+    title: 'Send it to someone',
+    desc: 'One link to your producer, your drummer, your A&R. They leave comments pinned to the exact second they mean. They don\'t need an account.',
   },
 ] as const
 
@@ -75,36 +75,36 @@ const COMPARE_ROWS = [
 ] as const
 
 const STEPS = [
-  ['01', 'Import your recordings', 'Drag audio from your desktop, or import from the Files app on iPhone. Everything lands straight in your Inbox.'],
-  ['02', 'Land in Inbox', 'Audio hits your Inbox instantly — name it, tag it, and drag it to Ideas, Half Finished, or wherever it belongs.'],
-  ['03', 'Move at your own pace', 'Work through ideas when inspiration strikes. Nothing forces, nothing expires. Songs move forward when you decide they\'re ready.'],
-  ['04', 'Share when ready', 'Send a listen link to your producer, bandmates, or A&R. Get timestamped feedback right on the waveform.'],
+  ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox.'],
+  ['02', 'Give it a name', 'Ten seconds of typing now saves you scrolling past "New Recording 47" for the next two years.'],
+  ['03', 'Move it when it earns it', 'A song shifts right when it gets better. Nothing expires, nothing nags you, nothing gets archived behind your back.'],
+  ['04', 'Send it out', 'One link to whoever needs to hear it. Their notes come back stuck to the second they mean.'],
 ] as const
 
 const FAQS = [
   {
     q: 'Does it work without Wi-Fi?',
-    a: 'Fully offline. Everything you\'ve imported lives on your device — on the tube, on a plane, in a studio with no signal. Changes sync automatically the moment you\'re back online.',
+    a: 'Yes, properly. Not a cut-down offline mode. Everything you\'ve imported is already on your device, so the tube and the plane and the studio with the thick walls are all fine. It catches up on sync when you resurface.',
   },
   {
-    q: 'What happens to a song if I never finish it?',
-    a: 'Nothing. It sits in whatever stage you left it, forever. memo doesn\'t nag, delete, or archive anything for you.',
+    q: 'What happens to a song I never finish?',
+    a: 'It sits exactly where you left it. Forever, if that\'s how it goes. Nothing gets archived, deleted or flagged as stale, and nothing sends you a reminder about it.',
   },
   {
-    q: 'Can I share demos with my producer, bandmates, or A&R?',
-    a: 'Yes. Send a listen link from any song — they click it, hear the audio, and leave timestamped comments pinned to the waveform. No account needed on their end.',
+    q: 'Can I share demos with my producer or bandmates?',
+    a: 'Send them a listen link. They click, they hear it, they leave comments stuck to the exact second they\'re talking about. They never have to make an account.',
   },
   {
     q: 'Does it work on my phone?',
-    a: 'You can import audio on iPhone via the Files app and use memo in your mobile browser. We\'re working towards a native App Store app for an even smoother experience.',
+    a: 'Import via the Files app on iPhone and run memo in your mobile browser. A proper App Store app is being worked on.',
   },
   {
     q: 'Is my music private?',
-    a: 'Yes. Your audio is stored locally on your device first, and only syncs to encrypted cloud storage you control. It\'s never shared, analysed, or accessed by anyone else.',
+    a: 'Your audio sits on your device first and syncs to storage you control. Nobody reads it, nobody trains anything on it, nobody at this end listens to your demos.',
   },
   {
-    q: 'What happens to my music if I stop paying?',
-    a: 'Your audio stays on your device — memo is local-first, so cancelling doesn\'t delete anything. Cloud sync and sharing features pause until you resubscribe.',
+    q: 'What if I stop paying?',
+    a: 'Your audio is on your device, so cancelling doesn\'t take anything away from you. Sync and sharing go quiet until you come back.',
   },
 ] as const
 
@@ -135,7 +135,7 @@ function WaitlistForm({ className }: { className?: string }) {
     return (
       <div className={`waitlist-done ${className ?? ''}`}>
         <span className="waitlist-done-icon">✓</span>
-        You're on the list — we'll be in touch.
+        You're on the list. We'll be in touch.
       </div>
     )
   }
@@ -154,7 +154,7 @@ function WaitlistForm({ className }: { className?: string }) {
       <button type="submit" className="waitlist-btn" disabled={state === 'busy'}>
         {state === 'busy' ? 'Joining…' : 'Get early access'}
       </button>
-      {state === 'error' && <p className="waitlist-error">Something went wrong — try again.</p>}
+      {state === 'error' && <p className="waitlist-error">Something went wrong. Try again.</p>}
     </form>
   )
 }
@@ -200,12 +200,12 @@ export function LandingPage() {
             {' '}<em>Start finishing songs.</em>
           </h1>
           <p className="hero-sub">
-            Every songwriter has hundreds of voice memos they'll "get back to." Most never do.
-            memo is a Kanban board for your music — import your recordings, organise ideas by stage,
-            collaborate with bandmates, and keep everything moving forward.
+            You've got 400 voice memos called "New Recording 47". Somewhere in there are
+            three good songs. memo is a board for your music: bring the recordings in,
+            drag them right as they get better, and actually finish some of them.
           </p>
           <WaitlistForm />
-          <p className="hero-trial-note">Early access · no credit card · be first in</p>
+          <p className="hero-trial-note">no card · no spam · just a nudge when it opens</p>
         </div>
 
         <div className="hero-right">
@@ -214,7 +214,7 @@ export function LandingPage() {
               <div className="dot dot-r" />
               <div className="dot dot-y" />
               <div className="dot dot-g" />
-              <span className="app-titlebar-text">memo — songwriting board</span>
+              <span className="app-titlebar-text">memo · songwriting board</span>
             </div>
             <div className="kanban-board">
               <div className="kanban-col">
@@ -304,8 +304,8 @@ export function LandingPage() {
           finally organised.
         </h2>
         <p className="section-sub">
-          No more renaming files. No more scrolling through 400 untitled memos.
-          Just your ideas, organised and moving forward.
+          No renaming files. No scrolling past the same 400 untitled memos looking for
+          the one with the good chorus.
         </p>
         <div className="features-grid">
           {FEATURES.map(({ icon, title, desc }) => (
@@ -327,15 +327,15 @@ export function LandingPage() {
               No signal?<br /><em>No problem.</em>
             </h2>
             <p className="offline-sub">
-              Most tools fall apart the moment you lose connection. memo is local-first — your
-              entire library lives on your device. Open it on the tube, on a plane, in a field.
-              Listen, rate, move songs forward. Everything syncs when you're back online.
+              Most of these tools go blank the second you lose signal, which is exactly when
+              you're on a train with nothing else to do. Your library lives on your device.
+              Listen, sort, write notes. It syncs up later without being asked.
             </p>
             <ul className="offline-list">
-              <li>Full library access with no internet</li>
-              <li>Playback, speed control, and notes work offline</li>
-              <li>Automatic background sync when connection returns</li>
-              <li>Nothing lost if the app closes mid-session</li>
+              <li>The whole library, no internet</li>
+              <li>Playback, speed and notes all still work</li>
+              <li>Syncs itself when you're back online</li>
+              <li>Close the app mid-song, lose nothing</li>
             </ul>
           </div>
           <div className="offline-visual">
@@ -365,7 +365,8 @@ export function LandingPage() {
         </h2>
         <p className="section-sub">
           Tape.it records. Dubnote captures. Samply shares with clients. Suonote structures.
-          memo is the only tool built around the songwriter's actual workflow — from raw idea to finished demo, on one board.
+          They're all good at their bit. None of them cover the messy stretch between
+          a voice note and a finished demo, which is where songs actually go to die.
         </p>
         <div className="compare-wrap">
           <table className="compare-table">
@@ -435,7 +436,7 @@ export function LandingPage() {
               </div>
               <span className="scp-label">Version stack · 2× speed</span>
               <div className="scp-notes">
-                Captured on the walk home. Reviewed on Mac the next morning. Sent to the producer by Friday.
+                Hummed on the walk home. Listened back properly on Tuesday. Producer had it by Friday.
               </div>
             </div>
           </div>
@@ -446,7 +447,8 @@ export function LandingPage() {
         <div className="section-label">Pricing</div>
         <h2 className="section-h2">One plan. Everything included.</h2>
         <p className="section-sub">
-          No tiers. No features locked away. Just memo — the full thing — for £7 a month.
+          No tiers, no upsell, nothing held back for the expensive version. £7 a month
+          for all of it.
         </p>
         <div className="pricing-single">
           <div className="pricing-card pricing-card--featured pricing-card--solo">
@@ -460,7 +462,7 @@ export function LandingPage() {
               <li>Adjustable playback speed</li>
               <li>Timestamped listener feedback</li>
               <li>Invite bandmates &amp; co-writers</li>
-              <li>Fully offline — works everywhere</li>
+              <li>Works with no signal at all</li>
             </ul>
             <a href="#get-started" className="btn-primary pricing-cta">
               Join the waitlist
@@ -487,7 +489,7 @@ export function LandingPage() {
           <br />
           <em>a proper home.</em>
         </h2>
-        <p>Join the waitlist. Be first in when we open.</p>
+        <p>Get on the list. We'll tell you the day it opens.</p>
         <WaitlistForm className="cta-waitlist" />
       </section>
 
