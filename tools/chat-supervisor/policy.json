@@ -1,0 +1,29 @@
+{
+  "enabled": true,
+
+  "classifier_model": "claude-haiku-4-5-20251001",
+  "classifier_timeout_seconds": 45,
+  "max_message_chars": 6000,
+
+  "auto_continue_max_consecutive": 5,
+  "daily_auto_continue_cap": 40,
+  "stuck_threshold": 2,
+
+  "_comment": "deny_patterns are a hard veto checked before the classifier runs. A match always escalates to you, whatever the model thinks. Widen freely; each entry needs a plain-English label, which is what reaches your phone.",
+
+  "deny_patterns": [
+    {"label": "deleting files", "pattern": "\\brm\\s+-[a-z]*[rf]"},
+    {"label": "a force push", "pattern": "\\bgit\\s+push\\b[^\\n]*--force|\\bforce[- ]push"},
+    {"label": "a hard reset", "pattern": "\\bgit\\s+reset\\s+--hard\\b"},
+    {"label": "a rebase", "pattern": "\\bgit\\s+rebase\\b"},
+    {"label": "dropping database objects", "pattern": "\\bdrop\\s+(table|database|schema|column)\\b"},
+    {"label": "deleting rows", "pattern": "\\btruncate\\s+table\\b|\\bdelete\\s+from\\b"},
+    {"label": "resetting the database", "pattern": "\\bdb\\s+reset\\b|\\bsupabase\\s+db\\s+reset\\b"},
+    {"label": "a database migration", "pattern": "\\bmigration\\b"},
+    {"label": "a production deploy", "pattern": "\\bdeploy\\b[^\\n]*\\b(prod|production|live)\\b|\\b(prod|production)\\b[^\\n]*\\bdeploy\\b"},
+    {"label": "secrets or credentials", "pattern": "\\b(api[_ -]?key|secret|credential|token|password|\\.env)\\b"},
+    {"label": "spending money", "pattern": "\\b(charge|purchase|billing|subscribe|payment|spend)\\b"},
+    {"label": "elevated permissions", "pattern": "\\bsudo\\b|\\brevoke\\b|\\bgrant\\s+(access|permission)\\b"},
+    {"label": "deleting something named", "pattern": "\\bdelete\\s+(the\\s+)?(branch|repo|repository|bucket|user|account)\\b"}
+  ]
+}

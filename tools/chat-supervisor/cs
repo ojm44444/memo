@@ -1,0 +1,301 @@
+#!/usr/bin/env python3
+"""cs -- drive the four (or however many) Claude Code sessions the supervisor
+is watching.
+
+  cs status            what every session is doing right now
+  cs inbox             questions waiting on you
+  cs reply <n> "..."   answer one and resume that session where it left off
+  cs log [-n 20]       recent supervisor decisions
+  cs pause | cs on     stop / start auto-continuing
+  cs test              push a fake stop through the hook to check the wiring
+
+`cs reply` works over SSH, so an escalation can be cleared from a phone.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def home() -> Path:
+    override = os.environ.get("CHAT_SUPERVISOR_HOME")
+    root = Path(override) if override else Path.home() / ".claude" / "chat-supervisor"
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def read_jsonl(name: str) -> list[dict[str, Any]]:
+    path = home() / name
+    if not path.exists():
+        return []
+    out = []
+    for line in path.read_text().splitlines():
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def states() -> list[dict[str, Any]]:
+    d = home() / "state"
+    if not d.exists():
+        return []
+    out = []
+    for path in d.glob("*.json"):
+        try:
+            out.append(json.loads(path.read_text()))
+        except json.JSONDecodeError:
+            continue
+    return sorted(out, key=lambda s: s.get("updated_at", ""), reverse=True)
+
+
+def ago(stamp: str | None) -> str:
+    if not stamp:
+        return "-"
+    try:
+        then = datetime.fromisoformat(stamp)
+    except ValueError:
+        return "-"
+    if then.tzinfo is None:
+        then = then.replace(tzinfo=timezone.utc)
+    secs = int((datetime.now(timezone.utc) - then).total_seconds())
+    if secs < 60:
+        return f"{secs}s ago"
+    if secs < 3600:
+        return f"{secs // 60}m ago"
+    if secs < 86400:
+        return f"{secs // 3600}h ago"
+    return f"{secs // 86400}d ago"
+
+
+def clip(text: str, width: int) -> str:
+    text = " ".join(str(text).split())
+    return text if len(text) <= width else text[: width - 1] + "…"
+
+
+def pending() -> list[dict[str, Any]]:
+    return [e for e in read_jsonl("inbox.jsonl") if not e.get("resolved")]
+
+
+# --------------------------------------------------------------------------
+
+
+def cmd_status(_: list[str]) -> int:
+    rows = states()
+    if not rows:
+        print("No sessions seen yet. Start a Claude Code session with the hook "
+              "installed, or run: cs test")
+        return 0
+
+    waiting = {e["session_id"] for e in pending()}
+    print(f"{'SESSION':10} {'PROJECT':18} {'STATE':14} {'AUTO':6} {'LAST':10} WHAT")
+    for s in rows:
+        sid = s.get("session_id", "?")
+        project = Path(s.get("cwd", "?")).name
+        if sid in waiting:
+            label = "NEEDS YOU"
+        elif s.get("consecutive_auto_continues", 0) > 0:
+            label = "building"
+        else:
+            label = "idle"
+        auto = (f"{s.get('consecutive_auto_continues', 0)}"
+                f"/{s.get('auto_continues_today', 0)}d")
+        note = s.get("pending", {}).get("summary") or s.get("last_message", "")
+        print(f"{sid[:8]:10} {clip(project, 18):18} {label:14} {auto:6} "
+              f"{ago(s.get('updated_at')):10} {clip(note, 60)}")
+
+    if waiting:
+        print(f"\n{len(waiting)} waiting on you -> cs inbox")
+    return 0
+
+
+def cmd_inbox(_: list[str]) -> int:
+    items = pending()
+    if not items:
+        print("Inbox empty. Nothing is waiting on you.")
+        return 0
+    for i, entry in enumerate(reversed(items), start=1):
+        print(f"[{i}] {entry['project']}  ({entry['session_id'][:8]})  "
+              f"{ago(entry.get('at'))}")
+        print(f"    why: {entry['reason']}")
+        print(f"    {clip(entry.get('summary', ''), 100)}")
+        print(f"    ---\n{indent(clip_lines(entry.get('question', ''), 12))}")
+        print(f"    answer: cs reply {i} \"...\"\n")
+    return 0
+
+
+def clip_lines(text: str, limit: int) -> str:
+    lines = text.splitlines()
+    if len(lines) <= limit:
+        return text
+    return "\n".join(lines[:limit] + [f"... (+{len(lines) - limit} more lines)"])
+
+
+def indent(text: str) -> str:
+    return "\n".join("    " + line for line in text.splitlines())
+
+
+def resolve_target(token: str) -> dict[str, Any] | None:
+    items = pending()
+    ordered = list(reversed(items))
+    if token.isdigit():
+        idx = int(token) - 1
+        return ordered[idx] if 0 <= idx < len(ordered) else None
+    for entry in ordered:
+        if entry["session_id"].startswith(token):
+            return entry
+    return None
+
+
+def mark_resolved(session_id: str, at: str) -> None:
+    path = home() / "inbox.jsonl"
+    entries = read_jsonl("inbox.jsonl")
+    for entry in entries:
+        if entry["session_id"] == session_id and entry.get("at") == at:
+            entry["resolved"] = True
+    path.write_text("".join(json.dumps(e) + "\n" for e in entries))
+
+
+def cmd_reply(args: list[str]) -> int:
+    if len(args) < 2:
+        print('usage: cs reply <n|session-prefix> "your answer"', file=sys.stderr)
+        return 2
+
+    target = resolve_target(args[0])
+    if target is None:
+        print(f"No pending item matches {args[0]!r}. Try: cs inbox", file=sys.stderr)
+        return 1
+
+    answer = " ".join(args[1:])
+    sid = target["session_id"]
+
+    # The human touched it, so the auto-continue budget starts over.
+    state_file = home() / "state" / f"{sid}.json"
+    if state_file.exists():
+        try:
+            state = json.loads(state_file.read_text())
+            state["consecutive_auto_continues"] = 0
+            state["consecutive_no_progress"] = 0
+            state.pop("pending", None)
+            state_file.write_text(json.dumps(state, indent=2))
+        except json.JSONDecodeError:
+            pass
+
+    logs = home() / "logs"
+    logs.mkdir(exist_ok=True)
+    log_file = logs / f"{sid}.log"
+
+    # Resume the stopped session with the answer. Its Stop hook stays armed, so
+    # the supervise-and-continue loop picks up from here.
+    with log_file.open("a") as fh:
+        fh.write(f"\n===== resumed {datetime.now(timezone.utc).isoformat()} =====\n")
+        try:
+            subprocess.Popen(
+                ["claude", "--resume", sid, "-p", answer,
+                 "--permission-mode", "acceptEdits"],
+                cwd=target.get("cwd") or None,
+                stdout=fh, stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL, start_new_session=True,
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            print(f"Could not resume: {exc}", file=sys.stderr)
+            return 1
+
+    mark_resolved(sid, target.get("at", ""))
+    print(f"Sent to {target['project']} ({sid[:8]}). It is building again.")
+    print(f"Output: {log_file}")
+    return 0
+
+
+def cmd_log(args: list[str]) -> int:
+    limit = 20
+    if len(args) >= 2 and args[0] in ("-n", "--number"):
+        limit = int(args[1])
+    for record in read_jsonl("audit.jsonl")[-limit:]:
+        event = record.get("event", "?")
+        detail = (record.get("summary") or record.get("reason")
+                  or record.get("error") or "")
+        print(f"{record.get('at', '?')[:19]}  {event:18} "
+              f"{str(record.get('session_id', ''))[:8]:10} {clip(detail, 70)}")
+    return 0
+
+
+def set_enabled(value: bool) -> int:
+    path = home() / "policy.json"
+    policy = {}
+    if path.exists():
+        try:
+            policy = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            pass
+    policy["enabled"] = value
+    path.write_text(json.dumps(policy, indent=2))
+    print("Auto-continue " + ("ON. Sessions will be kept building."
+                              if value else
+                              "OFF. Sessions will stop and wait for you."))
+    return 0
+
+
+def cmd_test(_: list[str]) -> int:
+    payload = {
+        "session_id": "test-session-0001",
+        "cwd": os.getcwd(),
+        "hook_event_name": "Stop",
+        "stop_reason": "end_turn",
+        "last_assistant_message": (
+            "I've added the login form component and it compiles. "
+            "Want me to wire it up to the auth endpoint next?"
+        ),
+    }
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT_DIR / "supervisor.py")],
+        input=json.dumps(payload), capture_output=True, text=True,
+    )
+    print("hook stdout:", proc.stdout.strip() or "(empty)")
+    if proc.stderr.strip():
+        print("hook stderr:", proc.stderr.strip())
+    try:
+        decision = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        print("\nFAIL: hook did not emit JSON.")
+        return 1
+    if decision.get("decision") == "block":
+        print("\nOK: a routine stall was auto-continued.")
+    else:
+        print("\nOK: hook ran and chose to stop. Check `cs inbox` and `cs log`.")
+    return 0
+
+
+COMMANDS = {
+    "status": cmd_status,
+    "inbox": cmd_inbox,
+    "reply": cmd_reply,
+    "log": cmd_log,
+    "test": cmd_test,
+    "pause": lambda _: set_enabled(False),
+    "on": lambda _: set_enabled(True),
+}
+
+
+def main() -> int:
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    command = COMMANDS.get(sys.argv[1])
+    if command is None:
+        print(f"Unknown command {sys.argv[1]!r}. Try: cs help", file=sys.stderr)
+        return 2
+    return command(sys.argv[2:])
+
+
+if __name__ == "__main__":
+    sys.exit(main())
