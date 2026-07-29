@@ -34,6 +34,8 @@ from pathlib import Path
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
+import backlog  # noqa: E402  (must follow the sys.path line above)
 
 # Set in the classifier subprocess so its own Stop hook no-ops instead of
 # recursing into another classifier call.
@@ -123,23 +125,28 @@ def fingerprint(cwd: str) -> str | None:
     An agent that stops repeatedly without changing a single file is not making
     progress, whatever its messages claim.
     """
-    try:
-        head = subprocess.run(
-            ["git", "-C", cwd, "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=10,
-        )
-        dirty = subprocess.run(
-            ["git", "-C", cwd, "status", "--porcelain"],
-            capture_output=True, text=True, timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError):
+    def git(*args: str) -> str | None:
+        try:
+            proc = subprocess.run(["git", "-C", cwd, *args],
+                                  capture_output=True, text=True, timeout=15)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return proc.stdout if proc.returncode == 0 else None
+
+    head = git("rev-parse", "HEAD")
+    if head is None:
         return None
-    if head.returncode != 0:
-        return None
+
+    # -uall lists untracked files individually; without it git collapses a whole
+    # new directory to one line and an agent writing new files looks frozen.
+    # The diff covers edits to tracked files, which the status alone misses.
+    status = git("status", "--porcelain", "-uall") or ""
+    diff = git("diff") or ""
+
     # hashlib, not hash(): str hashing is salted per process, so hash() would
     # produce a different value every run and never detect a stuck session.
-    digest = hashlib.sha1(dirty.stdout.encode()).hexdigest()[:12]
-    return f"{head.stdout.strip()}:{digest}"
+    digest = hashlib.sha1((status + diff).encode()).hexdigest()[:12]
+    return f"{head.strip()}:{digest}"
 
 
 # --------------------------------------------------------------------------
@@ -448,13 +455,54 @@ def main() -> None:
     risk = verdict.get("risk", "high")
     kind = verdict["state"]
 
+    project = backlog.resolve(None, ctx["cwd"])
+
     if kind == COMPLETE:
+        # Finished the thing it was on. Mark it done and hand over the next item
+        # from the list -- verbatim, never invented. Empty list means stop.
+        if project and state.get("current_item"):
+            backlog.mark_done(project, state["current_item"])
+        log_audit({"event": "complete", "session_id": ctx["session_id"],
+                   "summary": summary, "finished_item": state.get("current_item")})
+
+        nxt = backlog.take_next(project) if project else None
+        if nxt:
+            state["current_item"] = nxt
+            state["consecutive_auto_continues"] = 0  # new task, fresh budget
+            state["auto_continues_today"] += 1
+            state.pop("pending", None)
+            save_state(state)
+            log_audit({"event": "next_item", "session_id": ctx["session_id"], "item": nxt})
+            notify(f"{Path(ctx['cwd']).name}: next up", nxt)
+            keep_going(f"Done. Next item from the backlog:\n\n{nxt}\n\n"
+                       f"Build it. If it turns out to need a decision only a "
+                       f"human can make, stop and say so rather than guessing.")
+
         state["consecutive_auto_continues"] = 0
+        state.pop("current_item", None)
         state.pop("pending", None)
         save_state(state)
-        log_audit({"event": "complete", "session_id": ctx["session_id"], "summary": summary})
-        notify(f"done: {Path(ctx['cwd']).name}", summary or "Finished.")
-        allow_stop("chat-supervisor: work complete, you have been notified.")
+        notify(f"done: {Path(ctx['cwd']).name}",
+               f"{summary} Backlog is empty." if summary else "Finished, backlog empty.")
+        allow_stop("chat-supervisor: work complete and backlog empty.")
+
+    if kind == BLOCKED_EXTERNAL and project:
+        # Something only you can do. Park it, skip it, keep building the rest
+        # rather than sitting idle until you happen to look.
+        backlog.park(project, summary or message[:200])
+        nxt = backlog.take_next(project)
+        if nxt:
+            state["current_item"] = nxt
+            state["consecutive_auto_continues"] = 0
+            state["auto_continues_today"] += 1
+            save_state(state)
+            log_audit({"event": "parked_and_advanced", "session_id": ctx["session_id"],
+                       "parked": summary, "item": nxt})
+            notify(f"{Path(ctx['cwd']).name}: parked one for you", summary or "See NEEDS-YOU.md")
+            keep_going(f"Note that in .claude/NEEDS-YOU.md for the human, then "
+                       f"leave it and move on to the next backlog item:\n\n{nxt}")
+        escalate(state, ctx, "blocked, backlog empty",
+                 summary or "Blocked on something only you can do.", message)
 
     if kind != STALLED_ROUTINE or risk not in ("none", "low"):
         escalate(state, ctx, f"{kind} (risk: {risk})", summary or "Needs your call.", message)

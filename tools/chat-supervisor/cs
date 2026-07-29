@@ -2,9 +2,13 @@
 """cs -- drive the four (or however many) Claude Code sessions the supervisor
 is watching.
 
+  cs add "..."         say what to build next (this is the important one)
   cs status            what every session is doing right now
   cs inbox             questions waiting on you
   cs reply <n> "..."   answer one and resume that session where it left off
+  cs needs             the five-minute list: things only you can do
+  cs backlog [name]    what's queued for a project
+  cs link <name>       register the current directory as a project
   cs log [-n 20]       recent supervisor decisions
   cs pause | cs on     stop / start auto-continuing
   cs test              push a fake stop through the hook to check the wiring
@@ -23,6 +27,8 @@ from pathlib import Path
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
+import backlog  # noqa: E402  (must follow the sys.path line above)
 
 
 def home() -> Path:
@@ -275,8 +281,79 @@ def cmd_test(_: list[str]) -> int:
     return 0
 
 
+def cmd_link(args: list[str]) -> int:
+    if not args:
+        reg = backlog.registry()
+        if not reg:
+            print("No projects linked yet. From inside a project: cs link moon")
+        for name, path in sorted(reg.items()):
+            print(f"{name:16} {path}")
+        return 0
+    backlog.link(args[0], os.getcwd())
+    print(f"Linked {args[0]} -> {os.getcwd()}")
+    return 0
+
+
+def cmd_add(args: list[str]) -> int:
+    """cs add "idea"  |  cs add moon "idea" """
+    if not args:
+        print('usage: cs add [project] "what to build"', file=sys.stderr)
+        return 2
+
+    name = args[0] if args[0] in backlog.registry() else None
+    text = " ".join(args[1:] if name else args)
+    if not text.strip():
+        print('Nothing to add. usage: cs add [project] "what to build"', file=sys.stderr)
+        return 2
+
+    project = backlog.resolve(name)
+    if project is None:
+        print(f"Don't know project {name!r}. Linked projects:", file=sys.stderr)
+        return cmd_link([])
+    backlog.add(project, text)
+    print(f"Added to {project.name}: {text}")
+    return 0
+
+
+def cmd_backlog(args: list[str]) -> int:
+    project = backlog.resolve(args[0] if args else None)
+    if project is None:
+        print("Unknown project. Try: cs link", file=sys.stderr)
+        return 1
+    rows = backlog.items(project)
+    if not rows:
+        print(f"{project.name}: backlog empty. Add one with: cs add \"...\"")
+        return 0
+    mark = {"todo": "[ ]", "doing": "[~]", "done": "[x]"}
+    print(args[0] if args else project.name)
+    for status, text in rows:
+        print(f"  {mark[status]} {text}")
+    todo = sum(1 for s, _ in rows if s == "todo")
+    print(f"\n{todo} left to build")
+    return 0
+
+
+def cmd_needs(_: list[str]) -> int:
+    """The five-minute sit-down list: everything only you can do."""
+    found = False
+    for name, path in sorted(backlog.registry().items()):
+        parked = backlog.parked(Path(path))
+        if parked:
+            found = True
+            print(f"{name}")
+            for item in parked:
+                print(f"  - {item}")
+    if not found:
+        print("Nothing waiting on you. Everything is buildable.")
+    return 0
+
+
 COMMANDS = {
     "status": cmd_status,
+    "link": cmd_link,
+    "add": cmd_add,
+    "backlog": cmd_backlog,
+    "needs": cmd_needs,
     "inbox": cmd_inbox,
     "reply": cmd_reply,
     "log": cmd_log,
