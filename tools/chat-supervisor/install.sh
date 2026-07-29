@@ -30,7 +30,9 @@ import json, os, sys
 
 target, hook = sys.argv[1], os.environ["HOOK_PATH"]
 settings = json.load(open(target))
-entry = {"type": "command", "command": f"python3 {hook}", "timeout": 90}
+# Generous: on a "done" claim this runs the build, the tests and a reviewer
+# before it will believe the work is finished.
+entry = {"type": "command", "command": f"python3 {hook}", "timeout": 900}
 
 groups = settings.setdefault("hooks", {}).setdefault("Stop", [])
 for group in groups:

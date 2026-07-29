@@ -108,6 +108,46 @@ Sent to landing-page (7c02de41). It is building again.
 Other commands: `cs log` for recent decisions, `cs pause` to stop
 auto-continuing entirely, `cs on` to resume.
 
+## "Done" has to be earned
+
+A session saying it's finished is a claim, not a fact. Before an item is marked
+done and the next one starts, the work has to survive a gate:
+
+1. **The project's own checks** — build, tests, lint. Auto-detected from
+   `package.json`, or set explicitly in `.claude/done.json`.
+2. **A browser smoke test** *(optional)* — loads the running app, fails on
+   console errors, uncaught exceptions, failed requests, or an HTTP error. Needs
+   `npm i -D playwright` and a `url` in `done.json`; skipped silently otherwise.
+3. **A reviewer with fresh eyes** — a separate agent that never saw the building
+   session's reasoning, given only the backlog item and the diff, asked whether
+   this is genuinely finished or a first pass. It reports stubs, TODOs, missing
+   error and empty states, and work that doesn't match what was asked.
+
+Anything that fails comes back as a specific list, and the session is sent to fix
+it. Only a clean pass advances the backlog.
+
+That loop is capped (`max_rounds`, default 3). If the work can't get through the
+gate in three rounds, it stops and asks you rather than polishing forever.
+
+```json
+// .claude/done.json
+{
+  "checks": [
+    {"name": "build", "command": "npm run build"},
+    {"name": "tests", "command": "npm test"},
+    {"name": "lint",  "command": "npm run lint"}
+  ],
+  "url": "http://localhost:5173",
+  "max_rounds": 3,
+  "budget_seconds": 600
+}
+```
+
+What the gate catches: broken builds, failing tests, stubbed functions, half-built
+features, console errors, missing states. What it does not catch: whether the
+feature was worth building, and whether the result is any good to use. Those are
+still yours.
+
 ## The guards
 
 Auto-continuing is the dangerous half, so the classifier is never the only

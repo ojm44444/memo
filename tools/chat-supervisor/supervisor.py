@@ -36,6 +36,7 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 import backlog  # noqa: E402  (must follow the sys.path line above)
+import verify  # noqa: E402
 
 # Set in the classifier subprocess so its own Stop hook no-ops instead of
 # recursing into another classifier call.
@@ -142,6 +143,21 @@ def fingerprint(cwd: str) -> str | None:
     # The diff covers edits to tracked files, which the status alone misses.
     status = git("status", "--porcelain", "-uall") or ""
     diff = git("diff") or ""
+
+    # Neither of the above notices an *edit to an untracked file*: the status
+    # line is just the name and the diff ignores it entirely. A session building
+    # a new feature out of new files would look frozen. Size and mtime are
+    # enough to see it moving, and far cheaper than reading every file.
+    marks = []
+    for name in (git("ls-files", "--others", "--exclude-standard") or "").split("\n"):
+        if not name.strip() or len(marks) >= 2000:
+            continue
+        try:
+            info = (Path(cwd) / name).stat()
+        except OSError:
+            continue
+        marks.append(f"{name}:{info.st_size}:{info.st_mtime_ns}")
+    status += "\n".join(marks)
 
     # hashlib, not hash(): str hashing is salted per process, so hash() would
     # produce a different value every run and never detect a stuck session.
@@ -355,6 +371,24 @@ def escalate(state: dict[str, Any], ctx: dict[str, Any], reason: str,
 # --------------------------------------------------------------------------
 
 
+def hand_over(state: dict[str, Any], ctx: dict[str, Any], project: Path,
+              item: str, preamble: str) -> None:
+    """Give a session its next backlog item and record where it started."""
+    state["current_item"] = item
+    state["item_base_ref"] = verify.head(project)
+    state["verify_rounds"] = 0
+    state["consecutive_auto_continues"] = 0  # new task, fresh budget
+    state["auto_continues_today"] += 1
+    state.pop("pending", None)
+    save_state(state)
+    log_audit({"event": "next_item", "session_id": ctx["session_id"], "item": item})
+    notify(f"{Path(ctx['cwd']).name}: next up", item)
+    keep_going(f"{preamble}\n\n{item}\n\nBuild it properly: it has to build, pass "
+               f"tests and lint, and hold up to review before it counts as done. "
+               f"If it needs a decision only a human can make, stop and say so "
+               f"rather than guessing.")
+
+
 def read_last_message(payload: dict[str, Any]) -> str:
     """Prefer the payload field; fall back to the transcript for older builds."""
     message = (payload.get("last_assistant_message") or "").strip()
@@ -458,26 +492,42 @@ def main() -> None:
     project = backlog.resolve(None, ctx["cwd"])
 
     if kind == COMPLETE:
-        # Finished the thing it was on. Mark it done and hand over the next item
-        # from the list -- verbatim, never invented. Empty list means stop.
-        if project and state.get("current_item"):
-            backlog.mark_done(project, state["current_item"])
+        item = state.get("current_item")
+
+        # "Done" is a claim, not a fact. Check it before believing it.
+        if project and item:
+            problems = verify.gate(project, item, state.get("item_base_ref"))
+            rounds = state.get("verify_rounds", 0)
+            if problems:
+                limit = verify.max_rounds(project)
+                if rounds < limit:
+                    state["verify_rounds"] = rounds + 1
+                    state["auto_continues_today"] += 1
+                    save_state(state)
+                    log_audit({"event": "sent_back", "session_id": ctx["session_id"],
+                               "item": item, "round": rounds + 1, "problems": problems})
+                    listed = "\n".join(f"- {p}" for p in problems)
+                    keep_going(
+                        f"Not done yet. Reviewing \"{item}\" turned up:\n\n{listed}\n\n"
+                        f"Fix all of it, then say you're finished. "
+                        f"(Round {rounds + 1} of {limit} before this goes to a human.)"
+                    )
+                escalate(state, ctx, "could not get it finished",
+                         f"\"{item}\" failed review {limit}x. Last: {problems[0][:120]}",
+                         "\n".join(problems))
+
+            backlog.mark_done(project, item)
+            log_audit({"event": "verified_done", "session_id": ctx["session_id"],
+                       "item": item})
+
         log_audit({"event": "complete", "session_id": ctx["session_id"],
-                   "summary": summary, "finished_item": state.get("current_item")})
+                   "summary": summary, "finished_item": item})
 
         nxt = backlog.take_next(project) if project else None
         if nxt:
-            state["current_item"] = nxt
-            state["consecutive_auto_continues"] = 0  # new task, fresh budget
-            state["auto_continues_today"] += 1
-            state.pop("pending", None)
-            save_state(state)
-            log_audit({"event": "next_item", "session_id": ctx["session_id"], "item": nxt})
-            notify(f"{Path(ctx['cwd']).name}: next up", nxt)
-            keep_going(f"Done. Next item from the backlog:\n\n{nxt}\n\n"
-                       f"Build it. If it turns out to need a decision only a "
-                       f"human can make, stop and say so rather than guessing.")
+            hand_over(state, ctx, project, nxt, "Verified done. Next item from the backlog:")
 
+        state["verify_rounds"] = 0
         state["consecutive_auto_continues"] = 0
         state.pop("current_item", None)
         state.pop("pending", None)
@@ -492,15 +542,12 @@ def main() -> None:
         backlog.park(project, summary or message[:200])
         nxt = backlog.take_next(project)
         if nxt:
-            state["current_item"] = nxt
-            state["consecutive_auto_continues"] = 0
-            state["auto_continues_today"] += 1
-            save_state(state)
             log_audit({"event": "parked_and_advanced", "session_id": ctx["session_id"],
-                       "parked": summary, "item": nxt})
+                       "parked": summary})
             notify(f"{Path(ctx['cwd']).name}: parked one for you", summary or "See NEEDS-YOU.md")
-            keep_going(f"Note that in .claude/NEEDS-YOU.md for the human, then "
-                       f"leave it and move on to the next backlog item:\n\n{nxt}")
+            hand_over(state, ctx, project, nxt,
+                      "Note that in .claude/NEEDS-YOU.md for the human, then leave "
+                      "it and move on to the next backlog item:")
         escalate(state, ctx, "blocked, backlog empty",
                  summary or "Blocked on something only you can do.", message)
 
