@@ -4,6 +4,7 @@ import {
   getPendingSyncCount,
 } from '@/db/repositories/outboxRepo'
 import { getBoardUserId } from '@/lib/auth/session'
+import { isDevAuthBypass } from '@/lib/auth/devBypass'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { cachePendingRemoteAudio } from './audioDownload'
 import { pullChanges } from './pullChanges'
@@ -70,6 +71,14 @@ export async function flush() {
 
   flushPromise = (async () => {
     await refreshPendingCount()
+
+    // Dev auth bypass: local-only board, never talk to Supabase.
+    if (isDevAuthBypass()) {
+      status = 'idle'
+      lastError = null
+      notify()
+      return
+    }
 
     if (!navigator.onLine) {
       status = 'offline'

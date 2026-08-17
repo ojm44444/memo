@@ -17,9 +17,17 @@ const root = createRoot(document.getElementById('root')!)
 // Wait for Dexie to finish opening/upgrading before rendering so useLiveQuery
 // calls inside components never fire against a half-open database.
 db.open()
-  .then(() => {
-    void ensureSeeded()
+  .then(async () => {
+    await ensureSeeded()
     void backfillSongTitlesFromVersionLabels()
+    // Dev-only: seed a demo board when the auth bypass is active (UI testing).
+    if (import.meta.env.DEV) {
+      const { isDevAuthBypass } = await import('@/lib/auth/devBypass')
+      if (isDevAuthBypass()) {
+        const { seedDevDemo } = await import('@/db/devSeed')
+        await seedDevDemo()
+      }
+    }
   })
   .catch((err) => {
     console.error('[memo] DB failed to open:', err)

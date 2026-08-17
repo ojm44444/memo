@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { consumeExplicitSignOut, resolveBoardAuth } from '@/lib/auth/session'
+import { isDevAuthBypass } from '@/lib/auth/devBypass'
 import { clearLocalUserBoard } from '@/db/clearLocalUserBoard'
 import { db } from '@/db/database'
 import { supabase } from '@/lib/supabase/client'
@@ -10,6 +11,12 @@ import type { User } from '@supabase/supabase-js'
 
 export function useSyncAuth() {
   useEffect(() => {
+    // Dev bypass: board runs purely on local data, cloud sync never turns on.
+    if (isDevAuthBypass()) {
+      setCloudSyncEnabled(false)
+      return
+    }
+
     const client = supabase
     if (!client) return
 

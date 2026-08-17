@@ -1,4 +1,5 @@
 import { db } from '@/db/database'
+import { DEV_BYPASS_USER, isDevAuthBypass } from '@/lib/auth/devBypass'
 import { supabase } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
@@ -25,6 +26,11 @@ export async function getCachedUser(): Promise<User | null> {
  * Offline + expired JWT is NOT game over — we trust lastUserId until explicit sign-out.
  */
 export async function resolveBoardAuth(): Promise<BoardAuth | null> {
+  // Dev-only UI testing bypass — see devBypass.ts. Sync stays disabled.
+  if (isDevAuthBypass()) {
+    return { user: DEV_BYPASS_USER, offlineGrace: false }
+  }
+
   // If offline, skip the network call entirely and use the cached identity.
   if (!navigator.onLine) {
     const lastUserId = (await db.syncMeta.get('lastUserId'))?.value
