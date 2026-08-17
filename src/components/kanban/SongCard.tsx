@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
-import { getTagGradient } from '@/lib/tagColors'
+import { tagHueStyle } from '@/lib/tagColors'
 import { db } from '@/db/database'
 import { getShareFeedbackCount } from '@/db/repositories/shareFeedbackRepo'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
@@ -196,7 +196,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
                   <span
                     key={tag}
                     className="song-card-tag-pill"
-                    style={{ background: getTagGradient(tag), border: 'none', color: '#fff' }}
+                    style={tagHueStyle(tag)}
                   >
                     {tag}
                   </span>

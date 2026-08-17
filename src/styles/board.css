@@ -1764,7 +1764,7 @@ body.is-file-dragging * {
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 html.light .song-card {
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(62,52,33,0.1), 0 4px 14px rgba(62,52,33,0.07);
 }
 
 .song-card:active {
@@ -2380,11 +2380,11 @@ html.light .player-bar {
 }
 
 html.light .interactive-waveform-bar {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(62, 52, 33, 0.38);
 }
 
 html.light .interactive-waveform-bar.is-played {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(62, 52, 33, 0.66);
 }
 
 .interactive-waveform-skeleton {
@@ -2600,42 +2600,34 @@ html.light .interactive-waveform-bar.is-played {
 
 .board-tag-chip {
   border: none;
-  background: var(--bg-3);
   border-radius: 999px;
   padding: 4px 10px;
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-  /* gradient text for tagged chips */
-  background-image: var(--tag-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-color: var(--bg-3);
+  background: hsla(var(--tag-h, 150), 40%, 60%, 0.13);
+  color: hsl(var(--tag-h, 150), 45%, 70%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 40%, 60%, 0.2);
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
-/* "All tags" and "★ Favourites" chips have no gradient */
+/* "All tags" and "★ Favourites" chips are neutral */
 .board-tag-chip:not([style]) {
-  background-image: none;
-  -webkit-text-fill-color: var(--text-muted);
+  background: var(--bg-3);
   color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
 }
 
 .board-tag-chip.is-active:not([style]) {
   box-shadow: inset 0 0 0 1px var(--audio-mint-dim);
-  -webkit-text-fill-color: var(--audio-mint);
   color: var(--audio-mint);
 }
 
 .board-tag-chip.is-active[style] {
-  background: var(--tag-gradient, linear-gradient(135deg,#6dffb8,#3b82f6));
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: #fff;
-  background-clip: unset;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  background: hsla(var(--tag-h, 150), 45%, 55%, 0.32);
+  color: hsl(var(--tag-h, 150), 60%, 82%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 50%, 60%, 0.5);
 }
 
 .board-onboarding {
@@ -2731,7 +2723,9 @@ html.light .interactive-waveform-bar.is-played {
   font-family: var(--font-mono);
   font-size: 0.5rem;
   text-transform: lowercase;
-  color: #fff;
+  background: hsla(var(--tag-h, 150), 40%, 60%, 0.14);
+  color: hsl(var(--tag-h, 150), 45%, 72%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 40%, 60%, 0.18);
   border-radius: 999px;
   padding: 2px 7px;
   font-weight: 600;
@@ -2739,9 +2733,21 @@ html.light .interactive-waveform-bar.is-played {
   white-space: nowrap;
 }
 
+html.light .song-card-tag-pill {
+  background: hsla(var(--tag-h, 150), 45%, 38%, 0.1);
+  color: hsl(var(--tag-h, 150), 55%, 28%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 45%, 35%, 0.18);
+}
+
 .song-card-tag-overflow {
   background: rgba(255,255,255,0.12) !important;
   color: rgba(255,255,255,0.5) !important;
+  box-shadow: none !important;
+}
+
+html.light .song-card-tag-overflow {
+  background: rgba(62,52,33,0.08) !important;
+  color: rgba(62,52,33,0.55) !important;
 }
 
 .song-tags-editor {
@@ -2757,32 +2763,22 @@ html.light .interactive-waveform-bar.is-played {
 
 .song-tag-pill {
   border: none;
-  background: var(--bg-3);
   border-radius: 999px;
   padding: 5px 12px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  /* gradient text when inactive */
-  background-image: var(--tag-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  /* box */
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-  background-color: var(--bg-3);
-  background-size: auto, auto;
+  transition: opacity 0.15s, transform 0.1s, background 0.15s;
+  background: hsla(var(--tag-h, 150), 35%, 60%, 0.1);
+  color: hsl(var(--tag-h, 150), 40%, 65%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 35%, 60%, 0.16);
 }
 
 .song-tag-pill.is-active {
-  background: var(--tag-gradient, linear-gradient(135deg,#6dffb8,#3b82f6));
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: #fff;
-  background-clip: unset;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  background: hsla(var(--tag-h, 150), 45%, 55%, 0.32);
+  color: hsl(var(--tag-h, 150), 60%, 82%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 50%, 60%, 0.5);
 }
 
 .song-tag-pill:hover {
@@ -6592,8 +6588,8 @@ html.light .project-switcher-panel {
 /* Waveform bars — theme-aware */
 .waveform-bar-idle { background: rgba(255, 255, 255, 0.1); }
 .waveform-bar-played { background: rgba(255, 255, 255, 0.35); }
-html.light .waveform-bar-idle { background: rgba(0, 0, 0, 0.15); }
-html.light .waveform-bar-played { background: rgba(0, 0, 0, 0.4); }
+html.light .waveform-bar-idle { background: rgba(62, 52, 33, 0.38); }
+html.light .waveform-bar-played { background: rgba(62, 52, 33, 0.66); }
 
 /* Light mode component overrides */
 html.light .app-header {
@@ -6632,13 +6628,31 @@ html.light .board-column-header {
   background: transparent;
 }
 
-/* Light mode: fix white-on-white borders/shadows */
+/* Light mode: tinted pills on paper */
 html.light .board-tag-chip {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+  background: hsla(var(--tag-h, 150), 45%, 38%, 0.1);
+  color: hsl(var(--tag-h, 150), 55%, 28%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 45%, 35%, 0.18);
+}
+html.light .board-tag-chip:not([style]) {
+  background: rgba(62,52,33,0.06);
+  color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px rgba(62,52,33,0.12);
+}
+html.light .board-tag-chip.is-active[style] {
+  background: hsla(var(--tag-h, 150), 50%, 38%, 0.2);
+  color: hsl(var(--tag-h, 150), 60%, 22%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 50%, 35%, 0.4);
 }
 html.light .song-tag-pill {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-  background-color: var(--bg-2);
+  background: hsla(var(--tag-h, 150), 45%, 38%, 0.08);
+  color: hsl(var(--tag-h, 150), 50%, 30%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 45%, 35%, 0.16);
+}
+html.light .song-tag-pill.is-active {
+  background: hsla(var(--tag-h, 150), 50%, 38%, 0.2);
+  color: hsl(var(--tag-h, 150), 60%, 22%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 50%, 35%, 0.4);
 }
 html.light .player-bar-spinner {
   border-color: rgba(0,0,0,0.15);
@@ -6662,6 +6676,14 @@ html.light .drag-overlay-card {
   box-shadow: 0 16px 48px rgba(0,0,0,0.2), 0 0 0 2px var(--audio-mint);
 }
 
+/* Light mode: metadata chips on white cards — quiet neutral, not bg-3 beige */
+html.light .song-card-meta-pill,
+html.light .song-card-merge {
+  background: rgba(62,52,33,0.05);
+  border-color: rgba(62,52,33,0.1);
+  color: var(--text-muted);
+}
+
 /* Light mode: column header pill badge */
 html.light .board-column-count {
   background: rgba(0,0,0,0.06);
@@ -6682,12 +6704,6 @@ html.light .pwa-update-banner {
 
 /* ─── Light mode: remaining hardcoded-white fixes ─── */
 
-html.light .board-tag-chip {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-}
-html.light .song-tag-pill {
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-}
 html.light .bulk-merge-desc,
 html.light .bulk-merge-label {
   color: var(--text-muted);
@@ -6836,7 +6852,7 @@ html.light .scp-status {
 }
 
 /* Waveform bars: make idle bars more visible on white song-cards */
-html.light .waveform-bar-idle { background: rgba(0, 0, 0, 0.2); }
+html.light .waveform-bar-idle { background: rgba(62, 52, 33, 0.38); }
 html.light .waveform-bar-played { background: rgba(0, 0, 0, 0.45); }
 
 /* Player queue focused item */
@@ -7060,7 +7076,7 @@ html.light .scp-audio-item:hover {
 /* Light mode: waveform bars inside white audio card */
 html.light .scp-audio-item .waveform-bar-idle,
 html.light .scp-audio-item .interactive-waveform-bar {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(62, 52, 33, 0.38);
 }
 
 /* Light mode: comments + notes textareas = white inset cards */

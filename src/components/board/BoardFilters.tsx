@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { getTagGradient } from '@/lib/tagColors'
+import { tagHueStyle } from '@/lib/tagColors'
 import {
   createProject,
   getActiveProjectId,
@@ -132,18 +132,13 @@ export function BoardFilters({ readOnly = false }: BoardFiltersProps) {
                 All tags
               </button>
               {tags?.map((tag) => {
-                const gradient = getTagGradient(tag)
                 const isActive = activeTag === tag
                 return (
                   <button
                     key={tag}
                     type="button"
                     className={isActive ? 'board-tag-chip is-active' : 'board-tag-chip'}
-                    style={
-                      isActive
-                        ? ({ background: gradient, '--tag-gradient': gradient } as React.CSSProperties)
-                        : ({ '--tag-gradient': gradient } as React.CSSProperties)
-                    }
+                    style={tagHueStyle(tag)}
                     onClick={() => void setActiveTagFilter(tag)}
                   >
                     {tag}

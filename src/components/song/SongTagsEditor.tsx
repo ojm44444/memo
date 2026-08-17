@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { updateSong, getAllSongs } from '@/db/repositories/boardRepo'
 import { scheduleFlush } from '@/sync/syncEngine'
-import { PRESET_TAGS, getTagGradient } from '@/lib/tagColors'
+import { PRESET_TAGS, tagHueStyle } from '@/lib/tagColors'
 
 interface SongTagsEditorProps {
   songId: string
@@ -81,17 +81,12 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
       <div className="song-tags-presets">
         {PRESET_TAGS.map((tag) => {
           const active = tags.some((t) => t.toLowerCase() === tag.toLowerCase())
-          const gradient = getTagGradient(tag)
           return (
             <button
               key={tag}
               type="button"
               className={`song-tag-pill${active ? ' is-active' : ''}`}
-              style={
-                active
-                  ? ({ background: gradient, '--tag-gradient': gradient } as React.CSSProperties)
-                  : ({ '--tag-gradient': gradient } as React.CSSProperties)
-              }
+              style={tagHueStyle(tag)}
               onClick={() => void togglePreset(tag)}
             >
               {tag}
@@ -99,13 +94,12 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
           )
         })}
         {customTags.map((tag) => {
-          const gradient = getTagGradient(tag)
           return (
             <button
               key={tag}
               type="button"
               className="song-tag-pill is-active"
-              style={{ background: gradient } as React.CSSProperties}
+              style={tagHueStyle(tag)}
               onClick={() => void removeCustom(tag)}
             >
               {tag} ×
@@ -137,7 +131,7 @@ export function SongTagsEditor({ songId, initialTags }: SongTagsEditorProps) {
               key={tag}
               type="button"
               className="song-tag-pill"
-              style={{ '--tag-gradient': getTagGradient(tag) } as React.CSSProperties}
+              style={tagHueStyle(tag)}
               onClick={() => void toggleCustom(tag)}
             >
               {tag}
