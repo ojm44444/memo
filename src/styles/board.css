@@ -4976,6 +4976,120 @@ html.light .project-switcher-panel {
   border-color: rgba(0, 255, 157, 0.2);
 }
 
+.version-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.version-row .scp-audio-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.version-row-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.version-row-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.version-trim-chip {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--audio-mint);
+  background: var(--audio-mint-glow);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+/* ⋯ per-version menu */
+.version-menu-anchor {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.version-kebab {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.version-kebab:hover,
+.version-kebab.is-open {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.version-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.version-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 61;
+  min-width: 172px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+html.light .version-menu {
+  box-shadow: 0 12px 32px rgba(62, 52, 33, 0.18);
+}
+
+.version-menu-item {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.version-menu-item:hover {
+  background: var(--bg-3);
+}
+
+.version-menu-item--danger {
+  color: #ff8a8a;
+}
+
+html.light .version-menu-item--danger {
+  color: #c2413b;
+}
+
+/* Legacy always-visible action row (share page fallback) */
 .version-stack-actions {
   display: flex;
   flex-wrap: wrap;
@@ -5140,6 +5254,9 @@ html.light .project-switcher-panel {
   font-family: var(--font-mono);
   font-size: 0.55rem;
   color: var(--audio-mint);
+  background: var(--audio-mint-glow);
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 
 .version-stack-rename {

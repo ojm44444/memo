@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
@@ -39,6 +39,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   const [draftLabel, setDraftLabel] = useState('')
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
   const [tagDraft, setTagDraft] = useState('')
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({})
 
   // Resolve audio URLs so InteractiveWaveform can decode peaks
@@ -52,6 +53,16 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
     )
     setAudioUrls(Object.fromEntries(entries.filter(([, url]) => url != null) as [string, string][]))
   }, [versions?.map(v => v.id).join(',')])
+
+  // Close the row menu on Escape
+  useEffect(() => {
+    if (!menuOpenId) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpenId(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpenId])
 
   if (!song) return null
 
@@ -77,6 +88,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
         const isActive = isCurrent && isPlaying
         const isSecondary = i > 0
         const isPrimary = i === 0
+        const menuOpen = menuOpenId === version.id
+        const multipleClips = (versions?.length ?? 0) > 1
 
         return (
           <div
@@ -88,95 +101,232 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
               isActive && 'version-stack-item--active',
             )}
           >
-            <button
-              type="button"
-              onClick={() => {
-                // If already the current clip, just toggle play/pause
-                if (isCurrent) {
-                  setPlaying(!isPlaying)
-                  return
-                }
-                // If the URL is already cached, play instantly in the gesture
-                // handler before any await — this is the only way to guarantee
-                // iOS allows audio.play() without a second tap.
-                const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
-                const rate = usePlayerStore.getState().playbackRate
-                if (cachedUrl) {
-                  playAudioImmediately(cachedUrl, rate)
-                } else {
-                  // First load — keep gesture alive for the async play path
-                  unlockAudioEl()
-                }
-                void playSongVersion(song.columnSlug, songId, version.id)
-              }}
-              className="scp-audio-item w-full text-left"
-            >
-              <span
-                className={cn(
-                  'scp-play shrink-0',
-                  !isCurrent && isSecondary && 'scp-play-muted',
-                )}
+            <div className="version-row">
+              <button
+                type="button"
+                onClick={() => {
+                  // If already the current clip, just toggle play/pause
+                  if (isCurrent) {
+                    setPlaying(!isPlaying)
+                    return
+                  }
+                  // If the URL is already cached, play instantly in the gesture
+                  // handler before any await — this is the only way to guarantee
+                  // iOS allows audio.play() without a second tap.
+                  const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
+                  const rate = usePlayerStore.getState().playbackRate
+                  if (cachedUrl) {
+                    playAudioImmediately(cachedUrl, rate)
+                  } else {
+                    // First load — keep gesture alive for the async play path
+                    unlockAudioEl()
+                  }
+                  void playSongVersion(song.columnSlug, songId, version.id)
+                }}
+                className="scp-audio-item w-full text-left"
               >
-                {isActive ? '❚❚' : '▶'}
-              </span>
-              <div className="min-w-0 flex-1">
-                {editingId === version.id ? (
-                  <input
-                    className="version-stack-rename"
-                    value={draftLabel}
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => setDraftLabel(e.target.value)}
-                    onBlur={() => void saveRename(version.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') void saveRename(version.id)
-                      if (e.key === 'Escape') setEditingId(null)
+                <span
+                  className={cn(
+                    'scp-play shrink-0',
+                    !isCurrent && isSecondary && 'scp-play-muted',
+                  )}
+                >
+                  {isActive ? '❚❚' : '▶'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  {editingId === version.id ? (
+                    <input
+                      className="version-stack-rename"
+                      value={draftLabel}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => setDraftLabel(e.target.value)}
+                      onBlur={() => void saveRename(version.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') void saveRename(version.id)
+                        if (e.key === 'Escape') setEditingId(null)
+                      }}
+                    />
+                  ) : (
+                    (() => {
+                      // Hide redundant label: only one clip, or label matches song title
+                      const labelMatchesTitle =
+                        version.label.toLowerCase().trim() === song.title.toLowerCase().trim()
+                      const onlyOneClip = (versions?.length ?? 0) <= 1
+                      const showLabel = !onlyOneClip && !labelMatchesTitle
+                      return showLabel || (isPrimary && multipleClips) || version.trimStartMs ? (
+                        <div className="version-row-meta">
+                          {showLabel && <span className="version-row-label">{version.label}</span>}
+                          {isPrimary && multipleClips && (
+                            <span className="version-stack-primary">primary</span>
+                          )}
+                          {version.trimStartMs ? (
+                            <span
+                              className="version-trim-chip"
+                              title="Playback starts here — clear via ⋯ menu"
+                            >
+                              ▷ {(version.trimStartMs / 1000).toFixed(1)}s
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null
+                    })()
+                  )}
+                  <InteractiveWaveform
+                    audioUrl={audioUrls[version.id] ?? null}
+                    cacheKey={version.id}
+                    progress={isCurrent ? progress : 0}
+                    active={isActive}
+                    height={isCurrent ? 64 : 24}
+                    markers={(comments ?? [])
+                      .filter(c => c.timestampMs != null && version.durationMs > 0)
+                      .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs }))
+                    }
+                    onSeek={(fraction) => {
+                      const ms = fraction * (version.durationMs || 0)
+                      if (isCurrent) {
+                        // Seek without restarting whether playing or paused
+                        seekAudioTo(ms)
+                        setProgress(fraction)
+                      } else {
+                        const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
+                        if (cachedUrl) playAudioImmediately(cachedUrl, usePlayerStore.getState().playbackRate)
+                        else unlockAudioEl()
+                        void playSongAtTimestamp(song.columnSlug, songId, version.id, ms)
+                      }
                     }}
                   />
-                ) : (
-                  (() => {
-                    // Hide redundant label: only one clip, or label matches song title
-                    const labelMatchesTitle =
-                      version.label.toLowerCase().trim() === song.title.toLowerCase().trim()
-                    const onlyOneClip = (versions?.length ?? 0) <= 1
-                    const showLabel = !onlyOneClip && !labelMatchesTitle
-                    return showLabel ? (
-                      <div className="mb-1 truncate text-xs font-medium">
-                        {version.label}
-                        {isPrimary && versions!.length > 1 && (
-                          <span className="version-stack-primary"> primary</span>
+                </div>
+                <span className="scp-dur shrink-0">{formatDuration(version.durationMs)}</span>
+              </button>
+
+              {!readOnly && (
+                <div className="version-menu-anchor">
+                  <button
+                    type="button"
+                    className={cn('version-kebab', menuOpen && 'is-open')}
+                    aria-label={`Options for ${version.label}`}
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpenId(menuOpen ? null : version.id)}
+                  >
+                    ⋯
+                  </button>
+                  {menuOpen && (
+                    <>
+                      <div
+                        className="version-menu-backdrop"
+                        onClick={() => setMenuOpenId(null)}
+                      />
+                      <div className="version-menu" role="menu">
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="version-menu-item"
+                          onClick={() => {
+                            setMenuOpenId(null)
+                            startRename(version.id, version.label)
+                          }}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="version-menu-item"
+                          onClick={() => {
+                            setMenuOpenId(null)
+                            setTagEditingId(version.id)
+                            setTagDraft('')
+                          }}
+                        >
+                          Add tag
+                        </button>
+                        {!isPrimary && (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item"
+                            onClick={() => {
+                              setMenuOpenId(null)
+                              void setPrimaryVersion(songId, version.id).then(() => scheduleFlush())
+                            }}
+                          >
+                            Make primary
+                          </button>
+                        )}
+                        {isCurrent && (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item"
+                            title="Start playback here every time"
+                            onClick={() => {
+                              setMenuOpenId(null)
+                              const ms = Math.round(progress * version.durationMs)
+                              void setAudioVersionTrimStart(version.id, ms > 1000 ? ms : null)
+                            }}
+                          >
+                            {version.trimStartMs ? 'Move start point here' : 'Set start point here'}
+                          </button>
+                        )}
+                        {version.trimStartMs ? (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item"
+                            onClick={() => {
+                              setMenuOpenId(null)
+                              void setAudioVersionTrimStart(version.id, null)
+                            }}
+                          >
+                            Clear start point
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="version-menu-item"
+                          onClick={() => {
+                            setMenuOpenId(null)
+                            void exportSongVersion(version.id)
+                          }}
+                        >
+                          Export
+                        </button>
+                        {multipleClips && isSecondary && (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item"
+                            title="Move this clip to its own song card"
+                            onClick={() => {
+                              setMenuOpenId(null)
+                              void unmergeSong(version.id).then(() => scheduleFlush())
+                            }}
+                          >
+                            Split into own song
+                          </button>
+                        )}
+                        {multipleClips && (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item version-menu-item--danger"
+                            onClick={() => {
+                              setMenuOpenId(null)
+                              if (!confirm(`Remove "${version.label}" from this song?`)) return
+                              void deleteAudioVersion(version.id).then(() => scheduleFlush())
+                            }}
+                          >
+                            Remove
+                          </button>
                         )}
                       </div>
-                    ) : null
-                  })()
-                )}
-                <InteractiveWaveform
-                  audioUrl={audioUrls[version.id] ?? null}
-                  cacheKey={version.id}
-                  progress={isCurrent ? progress : 0}
-                  active={isActive}
-                  height={isCurrent ? 64 : 24}
-                  markers={(comments ?? [])
-                    .filter(c => c.timestampMs != null && version.durationMs > 0)
-                    .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs }))
-                  }
-                  onSeek={(fraction) => {
-                    const ms = fraction * (version.durationMs || 0)
-                    if (isCurrent) {
-                      // Seek without restarting whether playing or paused
-                      seekAudioTo(ms)
-                      setProgress(fraction)
-                    } else {
-                      const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
-                      if (cachedUrl) playAudioImmediately(cachedUrl, usePlayerStore.getState().playbackRate)
-                      else unlockAudioEl()
-                      void playSongAtTimestamp(song.columnSlug, songId, version.id, ms)
-                    }
-                  }}
-                />
-              </div>
-              <span className="scp-dur shrink-0">{formatDuration(version.durationMs)}</span>
-            </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Per-clip tags */}
             {(version.tags && version.tags.length > 0) || tagEditingId === version.id ? (
@@ -239,100 +389,9 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                 })()}
               </div>
             ) : null}
-
-            {!readOnly && (
-              <div className="version-stack-actions">
-                <button
-                  type="button"
-                  className="version-stack-action"
-                  onClick={() => startRename(version.id, version.label)}
-                >
-                  Rename
-                </button>
-                <button
-                  type="button"
-                  className="version-stack-action"
-                  onClick={() => { setTagEditingId(version.id); setTagDraft('') }}
-                >
-                  + Tag
-                </button>
-                {!isPrimary && (
-                  <button
-                    type="button"
-                    className="version-stack-action"
-                    onClick={() => {
-                      void setPrimaryVersion(songId, version.id).then(() => scheduleFlush())
-                    }}
-                  >
-                    Make primary
-                  </button>
-                )}
-                {/* Trim start: capture current playback position when this clip is active */}
-                {currentVersionId === version.id ? (
-                  <button
-                    type="button"
-                    className="version-stack-action version-stack-action--trim"
-                    onClick={() => {
-                      const ms = Math.round(progress * version.durationMs)
-                      void setAudioVersionTrimStart(version.id, ms > 1000 ? ms : null)
-                    }}
-                    title="Start playback here every time"
-                  >
-                    {version.trimStartMs
-                      ? `▷ from ${(version.trimStartMs / 1000).toFixed(1)}s`
-                      : '▷ Set start'}
-                  </button>
-                ) : version.trimStartMs ? (
-                  <button
-                    type="button"
-                    className="version-stack-action version-stack-action--trim"
-                    onClick={() => void setAudioVersionTrimStart(version.id, null)}
-                    title="Clear start point"
-                  >
-                    ▷ {(version.trimStartMs / 1000).toFixed(1)}s ×
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="version-stack-action"
-                  onClick={() => void exportSongVersion(version.id)}
-                >
-                  Export
-                </button>
-                {(versions?.length ?? 0) > 1 && isSecondary && (
-                  <button
-                    type="button"
-                    className="version-stack-action"
-                    onClick={() => {
-                      void unmergeSong(version.id).then(() => scheduleFlush())
-                    }}
-                    title="Move this clip to its own song card"
-                  >
-                    Unmerge
-                  </button>
-                )}
-                {(versions?.length ?? 0) > 1 && (
-                  <button
-                    type="button"
-                    className="version-stack-action version-stack-action--danger"
-                    onClick={() => {
-                      if (!confirm(`Remove "${version.label}" from this song?`)) return
-                      void deleteAudioVersion(version.id).then(() => scheduleFlush())
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         )
       })}
-      {(versions?.length ?? 0) > 1 && (
-        <span className="song-detail-label">
-          {versions!.length} merged clips — tap to play any
-        </span>
-      )}
     </div>
   )
 }
