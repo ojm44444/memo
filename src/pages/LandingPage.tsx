@@ -51,6 +51,16 @@ const FEATURES = [
     title: 'Send it to someone',
     desc: 'One link to your producer, your drummer, your A&R. They leave comments pinned to the exact second they mean. They don\'t need an account.',
   },
+  {
+    icon: '⊕',
+    title: 'Two half-songs make one whole one',
+    desc: 'That chorus you wrote in March fits the verse you wrote last week. Drag one onto the other and they become one song, every take kept. Fire and Rain was three separate pieces about three different things before it was one song.',
+  },
+  {
+    icon: '♯',
+    title: 'Key and tempo, read from the file',
+    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and puts them on the card. No typing. That is usually how you find out two fragments were the same song all along.',
+  },
 ] as const
 
 function Tick({ val }: { val: boolean | 'partial' | string }) {
@@ -61,17 +71,21 @@ function Tick({ val }: { val: boolean | 'partial' | string }) {
 }
 
 const COMPARE_ROWS = [
-  { feature: 'Kanban workflow for songs',       songdrafts: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
-  { feature: 'Version stacking per song',       songdrafts: true,  dubnote: false,    samply: 'partial', suonote: false,   tapeit: false },
-  { feature: 'Adjustable playback speed',       songdrafts: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
-  { feature: 'Phone → Mac sync',               songdrafts: true,  dubnote: false,    samply: true,     suonote: 'partial', tapeit: true },
-  { feature: 'Share demo links',               songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: 'partial' },
-  { feature: 'Timestamped listener feedback',  songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
-  { feature: 'Listener needs no account',      songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
-  { feature: 'Invite co-writers',              songdrafts: true,  dubnote: true,     samply: true,     suonote: 'partial', tapeit: true },
-  { feature: 'Works fully offline',            songdrafts: true,  dubnote: true,     samply: true,     suonote: true,     tapeit: true },
-  { feature: 'Built for songwriters',          songdrafts: true,  dubnote: true,     samply: false,    suonote: true,     tapeit: true },
-  { feature: 'Price',                          songdrafts: '£7/mo', dubnote: '$25/yr', samply: '$10/mo', suonote: 'free*', tapeit: 'free*' },
+  // Rows we lose or draw are kept deliberately. A table that wins ten out of
+  // ten gets discounted wholesale, including the rows we genuinely win.
+  { feature: 'Kanban workflow for songs',       songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
+  { feature: 'Version stacking per song',       songdrafts: true,      dubnote: false,     samply: 'partial', suonote: false,    tapeit: false },
+  { feature: 'Adjustable playback speed',       songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
+  { feature: 'Merge two songs into one',        songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
+  { feature: 'Phone to desktop sync',           songdrafts: true,      dubnote: false,     samply: true,     suonote: 'partial', tapeit: true },
+  { feature: 'Timestamped listener feedback',   songdrafts: true,      dubnote: false,     samply: true,     suonote: false,     tapeit: false },
+  { feature: 'Listener needs no account',       songdrafts: true,      dubnote: false,     samply: true,     suonote: false,     tapeit: false },
+  { feature: 'Works fully offline',             songdrafts: true,      dubnote: true,      samply: true,     suonote: true,      tapeit: true },
+  // Conceded, honestly.
+  { feature: 'Recording quality and monitoring', songdrafts: 'partial', dubnote: true,     samply: false,    suonote: 'partial', tapeit: true },
+  { feature: 'Presenting a finished mix to a client', songdrafts: 'partial', dubnote: false, samply: true,   suonote: false,     tapeit: 'partial' },
+  { feature: 'Lyrics writing tools',            songdrafts: false,     dubnote: 'partial', samply: false,    suonote: true,      tapeit: false },
+  { feature: 'Price, per month, GBP',           songdrafts: '£7',      dubnote: '£1.60',   samply: '£7.40',  suonote: 'free',    tapeit: 'free' },
 ] as const
 
 const STEPS = [
@@ -282,6 +296,9 @@ export function LandingPage() {
             drag them right as they get better, and actually finish some of them.
           </p>
           <WaitlistForm />
+          <p className="hero-reassure">
+            Keep recording in Voice Memos. Songdrafts is what happens next.
+          </p>
           <p className="hero-trial-note">no card · no spam · just a nudge when it opens</p>
         </div>
 
@@ -472,7 +489,13 @@ export function LandingPage() {
               ))}
             </tbody>
           </table>
-          <p className="compare-footnote">* Suonote and Tape.it have free tiers. Samply from $10/mo. Dubnote $24.99/yr.</p>
+          <p className="compare-footnote">
+            Checked 25 August 2026 from each product's own pricing page, converted to GBP
+            per month at that day's rate for comparison: Dubnote bills $24.99/year, Samply
+            from $10/month. Suonote and Tape.it have free tiers with paid plans above them.
+            Rates move and features change, so check before you decide. We lose three rows
+            here and left them in.
+          </p>
         </div>
       </section>
 
@@ -542,7 +565,7 @@ export function LandingPage() {
               <li>Works with no signal at all</li>
             </ul>
             <a href="#get-started" className="btn-primary pricing-cta">
-              Join the waitlist
+              Get early access
             </a>
             <p className="pricing-small">Early access. Be first to know when we open up.</p>
             <p className="pricing-trust">Your music stays private · Cancel any time</p>

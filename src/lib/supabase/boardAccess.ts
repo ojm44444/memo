@@ -13,6 +13,21 @@ export interface AccessibleBoard {
 }
 
 /** Resolve the canonical (oldest) board for this user from Supabase. */
+/**
+ * Write boardId only when it actually changes.
+ *
+ * A Dexie put fires liveQuery observers whether or not the value differs, and
+ * resolveBoardId runs on every sync flush (an 8s loop) plus several boot
+ * paths. Every one of those re-emitted to BoardSwitcher's liveQuery, whose
+ * effect calls listAccessibleBoards, which is 2-3 queries a time. That is the
+ * churn behind the duplicated /rest/v1/boards requests.
+ */
+async function setBoardIdIfChanged(boardId: string) {
+  const current = (await db.syncMeta.get('boardId'))?.value
+  if (current === boardId) return
+  await db.syncMeta.put({ key: 'boardId', value: boardId })
+}
+
 export async function resolveBoardId(userId: string): Promise<string | null> {
   if (!supabase) return null
 
@@ -26,7 +41,7 @@ export async function resolveBoardId(userId: string): Promise<string | null> {
   if (ownedError) throw ownedError
 
   if (owned?.[0]?.id) {
-    await db.syncMeta.put({ key: 'boardId', value: owned[0].id })
+    await setBoardIdIfChanged(owned[0].id)
     return owned[0].id
   }
 
@@ -39,7 +54,7 @@ export async function resolveBoardId(userId: string): Promise<string | null> {
   if (memberError) throw memberError
 
   if (membership?.[0]?.board_id) {
-    await db.syncMeta.put({ key: 'boardId', value: membership[0].board_id })
+    await setBoardIdIfChanged(membership[0].board_id)
     return membership[0].board_id
   }
 

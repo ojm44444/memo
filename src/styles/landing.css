@@ -1558,3 +1558,23 @@ a.nav-cta {
   .hero { padding-top: 62px; min-height: 0; }
   .hero-right { padding: 0 20px 24px; }
 }
+
+/* Answers the first-time visitor's opening objection ("do I have to change
+   how I record?") in the hero rather than three screens down. */
+.hero-reassure {
+  margin-top: 18px;
+  font-size: 0.92rem;
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  padding-left: 12px;
+  line-height: 1.5;
+}
+
+/* Anchor targets were landing underneath the fixed nav. */
+.landing section[id] {
+  scroll-margin-top: 84px;
+}
+
+@media (max-width: 768px) {
+  .landing section[id] { scroll-margin-top: 68px; }
+}

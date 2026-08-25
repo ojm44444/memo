@@ -167,6 +167,10 @@ export async function ensureBoardForUser(userId: string): Promise<string> {
 
   await ensureRemoteColumns(boardId)
   await syncLocalColumnsToBoard(boardId)
-  await db.syncMeta.put({ key: 'boardId', value: boardId })
+  // Same reason as boardAccess.setBoardIdIfChanged: an unconditional put
+  // re-emits to every liveQuery watching syncMeta.
+  if ((await db.syncMeta.get('boardId'))?.value !== boardId) {
+    await db.syncMeta.put({ key: 'boardId', value: boardId })
+  }
   return boardId
 }
