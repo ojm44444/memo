@@ -13,7 +13,8 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:db:reset": "supabase db reset",
-    "supabase:gen-types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts"
+    "supabase:gen-types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "shoot:hero": "node scripts/shoot-hero.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

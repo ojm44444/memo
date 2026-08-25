@@ -1611,3 +1611,221 @@ a.nav-cta {
 .kanban-col:nth-child(3) .wave-bar { background: color-mix(in srgb, var(--stage-half) 40%, transparent); }
 .kanban-col:nth-child(4) .wave-bar { background: color-mix(in srgb, var(--stage-done) 40%, transparent); }
 .audio-card.is-playing .wave-bar.played { background: var(--accent); }
+
+/* ─── Real product shot (brief 04, A01) ───
+   Soft shadow and radius say "app". No traffic lights: those belonged to a
+   drawing pretending to be a screenshot, and this is a screenshot. */
+.hero-shot {
+  width: 100%;
+  max-width: 700px;
+  border-radius: 12px;
+  overflow: hidden;
+  /* A dark screenshot on a dark ground reads as an empty box without a real
+     edge. Rim light at the top, deep shadow below, so it sits ON the page. */
+  border: 1px solid rgba(238, 245, 242, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(238, 245, 242, 0.1),
+    0 32px 70px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+  line-height: 0;
+}
+
+.hero-shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .hero-shot {
+    max-width: 100%;
+    /* Crop to the left columns so cards stay legible on a phone rather than
+       shrinking the whole board into unreadability. */
+    aspect-ratio: 4 / 3;
+  }
+  .hero-shot img {
+    width: 175%;
+    max-width: none;
+  }
+}
+
+/* ─── A05: one container, one spacing scale (multiples of 8) ─── */
+.features,
+.compare,
+.workflow-inner,
+.faq-section,
+.howitworks,
+.merge-band-inner,
+.trust-inner,
+.pricing {
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.howitworks,
+.trust {
+  padding: 96px 40px;
+}
+
+.merge-band {
+  padding: 96px 40px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(157, 219, 173, 0.03);
+}
+
+.merge-band-inner p {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 640px;
+  margin-top: 16px;
+}
+
+/* The ramp, cold to alive, as the section's own illustration. */
+.howitworks-ramp {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.ramp-step {
+  padding: 24px 16px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-top: 3px solid currentColor;
+}
+
+.ramp-step--inbox { color: var(--stage-inbox); }
+.ramp-step--ideas { color: var(--stage-ideas); }
+.ramp-step--done  { color: var(--stage-done); }
+.ramp-step span { color: var(--text); }
+
+.trust-lead {
+  color: var(--muted);
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+.trust-list {
+  list-style: none;
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.trust-list li {
+  color: var(--text);
+  font-size: 0.95rem;
+  padding-left: 24px;
+  position: relative;
+}
+
+.trust-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .howitworks, .trust, .merge-band { padding: 56px 20px; }
+  .howitworks-ramp { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ─── A04: the wordmark used properly ───
+   One hero-scale moment per page. The footer sets it full width as the sign-off. */
+.footer-wordmark {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(3.5rem, 15vw, 11rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--muted);
+  opacity: 0.28;
+  width: 100%;
+  text-align: center;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-wordmark span {
+  display: inline-block;
+  width: 0.58em;
+  height: 0.58em;
+  background: var(--accent);
+  border-radius: 50%;
+  color: transparent;
+  margin: 0 0.02em;
+  /* The dot is the only thing that ever animates on load. */
+  animation: dot-fade-up 400ms ease-out both;
+}
+
+@keyframes dot-fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Nav wordmark: 22px, clear space each side of 2x the dot's width. */
+.logo { font-size: 22px; padding: 0 calc(0.62em * 2 * 0.5); letter-spacing: 0; }
+
+/* ─── A06: exactly three motions ───
+   1. the hero shot breathes  2. sections fade up once  3. the CTA lifts 1px */
+
+@keyframes hero-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.006); }
+}
+
+.hero-shot img { animation: hero-breathe 7s ease-in-out infinite; }
+
+@keyframes section-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/**
+ * Fails visible, deliberately.
+ *
+ * This was `animation-timeline: view()`, which holds the `from` state before a
+ * section enters, so 10 of 11 sections rendered at opacity 0. On a marketing
+ * page, a motion bug that hides copy is worse than having no motion at all.
+ * Sections are visible by default; JS opts them into the animation, so any
+ * failure leaves the page readable rather than blank.
+ */
+.landing section.will-reveal {
+  opacity: 0;
+}
+
+.landing section.is-revealed {
+  animation: section-fade-up 300ms ease-out both;
+}
+
+.waitlist-btn, .btn-primary, .nav-cta {
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out, background 150ms ease-out;
+}
+
+.waitlist-btn:hover, .btn-primary:hover, .nav-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* Nothing else moves, and none of it moves for anyone who asked it not to. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-shot img,
+  .landing section,
+  .footer-wordmark span {
+    animation: none !important;
+  }
+  .waitlist-btn:hover, .btn-primary:hover, .nav-cta:hover { transform: none; }
+}

@@ -3,22 +3,32 @@ export type ProjectAccentPreset = {
   hue: number
 }
 
+/**
+ * Project accents live inside the identity's hue band, roughly 110-200:
+ * the same slate-to-green water the stage ramp runs through.
+ *
+ * These used to span the full wheel (coral, violet, rose), so a project could
+ * render hot pink next to a locked slate/green identity. A project accent is
+ * a wayfinding tint, not a second brand.
+ */
 export const PROJECT_ACCENT_PRESETS: ProjectAccentPreset[] = [
-  { label: 'Coral', hue: 12 },
-  { label: 'Amber', hue: 38 },
-  { label: 'Lime', hue: 95 },
-  { label: 'Mint', hue: 158 },
-  { label: 'Sky', hue: 205 },
-  { label: 'Violet', hue: 265 },
-  { label: 'Rose', hue: 330 },
+  { label: 'Spring', hue: 118 },
+  { label: 'Sage', hue: 140 },
+  { label: 'Sea', hue: 158 },
+  { label: 'Teal', hue: 176 },
+  { label: 'Slate', hue: 194 },
 ]
+
+/** The identity band. Anything outside it is not ours. */
+const HUE_MIN = 110
+const HUE_SPAN = 90
 
 export function hashProjectHue(projectId: string) {
   let hash = 0
   for (let i = 0; i < projectId.length; i++) {
     hash = projectId.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return Math.abs(hash) % 360
+  return HUE_MIN + (Math.abs(hash) % HUE_SPAN)
 }
 
 /** Deterministic accent gradient from project id, or a chosen hue. */

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
@@ -24,7 +24,7 @@ const FEATURES = [
   {
     icon: '✈',
     title: 'Works in a tunnel',
-    desc: 'Your whole library sits on your device, not on a server somewhere. The tube, a plane, a field in Wales with one bar. Doesn\'t matter. It all still works.',
+    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar — listen, sort, write. It syncs itself later.',
   },
   {
     icon: '▦',
@@ -42,19 +42,9 @@ const FEATURES = [
     desc: 'Slow it down to catch what you actually mumbled. Speed it up to get through 40 memos on the walk to work. Skip the eleven seconds of you finding the chord.',
   },
   {
-    icon: '↗',
-    title: 'Bring it in from anywhere',
-    desc: 'Voice Memos, GarageBand, whatever you already record in. Import when you feel like it. Phone, Mac and PC stay in step on their own.',
-  },
-  {
     icon: '↔',
-    title: 'Send it to someone',
-    desc: 'One link to your producer, your drummer, your A&R. They leave comments pinned to the exact second they mean. They don\'t need an account.',
-  },
-  {
-    icon: '⊕',
-    title: 'Two half-songs make one whole one',
-    desc: 'That chorus you wrote in March fits the verse you wrote last week. Drag one onto the other and they become one song, every take kept. Fire and Rain was three separate pieces about three different things before it was one song.',
+    title: 'Send it before it\'s ready',
+    desc: 'One link to your producer or your drummer. They press play in the browser and leave a comment pinned to 1:43 — no account, no app, no "can you WeTransfer it again".',
   },
   {
     icon: '♯',
@@ -222,8 +212,53 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   )
 }
 
+/**
+ * Motion 2 of 3: sections fade up once as they arrive.
+ *
+ * Adds the hiding class only after mount, so the server/no-JS render is fully
+ * visible and a failure here can never hide copy. Respects reduced-motion by
+ * simply not opting in.
+ */
+function useSectionReveal() {
+  useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
+
+    const sections = [...document.querySelectorAll<HTMLElement>('.landing section')]
+    // The hero is above the fold on load; hiding it would flash.
+    const targets = sections.slice(1)
+    targets.forEach((el) => el.classList.add('will-reveal'))
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const el = entry.target as HTMLElement
+          el.classList.remove('will-reveal')
+          el.classList.add('is-revealed')
+          io.unobserve(el)
+        }
+      },
+      { rootMargin: '0px 0px -12% 0px' },
+    )
+    targets.forEach((el) => io.observe(el))
+
+    // Safety net: if anything goes wrong, nothing stays hidden.
+    const failsafe = setTimeout(() => {
+      targets.forEach((el) => el.classList.remove('will-reveal'))
+    }, 4000)
+
+    return () => {
+      io.disconnect()
+      clearTimeout(failsafe)
+      targets.forEach((el) => el.classList.remove('will-reveal'))
+    }
+  }, [])
+}
+
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
+  useSectionReveal()
 
   return (
     <div className="landing">
@@ -292,99 +327,29 @@ export function LandingPage() {
           </h1>
           <p className="hero-sub">
             You've got 400 voice memos called "New Recording 47". Somewhere in there are
-            three good songs. songdrafts is a board for your music: bring the recordings in,
-            drag them right as they get better, and actually finish some of them.
+            three good songs. songdrafts is a board for your music — drag a song right as
+            it gets better, and actually finish it.
           </p>
           <WaitlistForm />
           <p className="hero-reassure">
-            Keep recording in Voice Memos. Songdrafts is what happens next.
+            Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
           <p className="hero-trial-note">no card · no spam · just a nudge when it opens</p>
         </div>
 
         <div className="hero-right">
-          <div className="app-preview">
-            <div className="app-titlebar">
-              <div className="dot dot-r" />
-              <div className="dot dot-y" />
-              <div className="dot dot-g" />
-              <span className="app-titlebar-text">songdrafts · songwriting board</span>
-            </div>
-            <div className="kanban-board">
-              <div className="kanban-col">
-                <div className="col-header">Inbox <span className="col-count">254</span></div>
-                <div className="audio-card">
-                  <div className="card-title">Folky guitar thing</div>
-                  <WaveBars />
-                  <div className="card-meta">
-                    <span className="card-time">0:26</span>
-                    <span className="card-tag tag-idea">NEW</span>
-                  </div>
-                </div>
-                <div className="audio-card">
-                  <div className="card-title">somebody home</div>
-                  <WaveBars />
-                  <div className="card-meta">
-                    <span className="card-time">7:21</span>
-                    <span className="card-tag tag-idea">NEW</span>
-                  </div>
-                </div>
-                <div className="audio-card">
-                  <div className="card-title">Maple Leaf Business Park 12</div>
-                  <WaveBars />
-                  <div className="card-meta">
-                    <span className="card-time">4:08</span>
-                    <span className="card-tag tag-idea">NEW</span>
-                  </div>
-                </div>
-              </div>
-              <div className="kanban-col">
-                <div className="col-header">Ideas / Inspiration <span className="col-count">0</span></div>
-                <div className="audio-card" style={{ opacity: 0.4, borderStyle: 'dashed' }}>
-                  <div className="card-title" style={{ color: 'var(--text-muted)' }}>Drop audio or drag a song here</div>
-                </div>
-              </div>
-              <div className="kanban-col">
-                <div className="col-header">Half Finished Songs <span className="col-count">2</span></div>
-                <div className="audio-card featured is-playing">
-                  <div className="card-title">Poem</div>
-                  <WaveBars playedFrac={0.45} />
-                  <div className="card-meta">
-                    <span className="card-time">3:42</span>
-                    <span className="card-tag tag-stack">2 versions</span>
-                  </div>
-                  <div className="card-tags-row">
-                    <span className="card-pill">Lyrics drafted</span>
-                  </div>
-                </div>
-                <div className="audio-card">
-                  <div className="card-title">9 Wheelwrights Way 27</div>
-                  <WaveBars playedFrac={0.2} />
-                  <div className="card-meta">
-                    <span className="card-time">6:20</span>
-                    <span className="card-tag tag-idea">Full idea</span>
-                  </div>
-                </div>
-              </div>
-              <div className="kanban-col">
-                <div className="col-header">Finished Demos <span className="col-count">1</span></div>
-                <div className="audio-card">
-                  <div className="card-title">TEZ - Strangers</div>
-                  <WaveBars playedFrac={0.8} />
-                  <div className="card-meta">
-                    <span className="card-time">3:33</span>
-                    <span className="card-tag tag-done">RELEASED</span>
-                  </div>
-                  <div className="card-tags-row">
-                    <span className="card-pill">Full idea</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="preview-speed">
-              <span className="preview-speed-label">Playback</span>
-              <span className="preview-speed-pill">2×</span>
-            </div>
+          {/* A real screenshot of the real app, re-shot by scripts/shoot-hero.mjs
+              on every visual release. This was a hand-drawn mockup of an
+              interface that no longer existed. */}
+          <div className="hero-shot">
+            <img
+              src="/hero-board.png"
+              width={1400}
+              height={880}
+              alt="The songdrafts board: five columns from Inbox to Released, eleven songs with waveforms, one playing."
+              loading="eager"
+              decoding="async"
+            />
           </div>
         </div>
       </section>
@@ -409,6 +374,32 @@ export function LandingPage() {
               <p className="feature-desc">{desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* How it works — three steps, stage colours */}
+      <section className="howitworks" id="how">
+        <div className="section-label">How it works</div>
+        <h2 className="section-h2">Inbox → Ideas → Finished.</h2>
+        <p className="section-sub">
+          Bring the recordings in. Drag a song one column right whenever it gets better.
+          That's the entire system — the board remembers so you don't have to.
+        </p>
+        <div className="howitworks-ramp">
+          <div className="ramp-step ramp-step--inbox"><span>Inbox</span></div>
+          <div className="ramp-step ramp-step--ideas"><span>Ideas</span></div>
+          <div className="ramp-step ramp-step--done"><span>Finished</span></div>
+        </div>
+      </section>
+
+      {/* Merge, promoted out of the grid to a full-width band */}
+      <section className="merge-band">
+        <div className="merge-band-inner">
+          <h2 className="section-h2">Two half-songs make one whole one.</h2>
+          <p>
+            The chorus from March fits the verse from last week. Drag one onto the other —
+            takes, tags and all. Fire and Rain was three fragments once.
+          </p>
         </div>
       </section>
 
@@ -543,6 +534,20 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section className="trust">
+        <div className="trust-inner">
+          <h2 className="section-h2">Your music is yours.</h2>
+          <p className="trust-lead">Boringly, legally, actually.</p>
+          <ul className="trust-list">
+            <li>On your device by default.</li>
+            <li>Synced encrypted only if you sign in.</li>
+            <li>Export everything, any time, in one zip.</li>
+            <li>Delete means delete.</li>
+            <li>And nothing you record trains an AI — not ours, not anyone's.</li>
+          </ul>
+        </div>
+      </section>
+
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
         <h2 className="section-h2">One plan. Everything included.</h2>
@@ -589,12 +594,13 @@ export function LandingPage() {
           <br />
           <em>a proper home.</em>
         </h2>
-        <p>Get on the list. We'll tell you the day it opens.</p>
+        <p>Open the board. Drag the first memo in. See what you've actually got.</p>
         <WaitlistForm className="cta-waitlist" />
       </section>
 
       <footer>
-        <div className="footer-logo">
+        {/* A04: one confident hero-scale appearance beats five timid ones. */}
+        <div className="footer-wordmark" aria-hidden>
           s<span>o</span>ngdrafts
         </div>
         <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>

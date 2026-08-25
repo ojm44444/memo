@@ -153,7 +153,16 @@ const DEMO_SONGS: DemoSong[] = [
     notes: 'Sent to producer. Waiting on notes.',
     daysAgo: 48,
   },
+  {
+    title: 'Coming Up For Air',
+    column: 'finished-demos',
+    versions: [{ label: 'demo mix', seconds: 14 }, { label: 'vocal up', seconds: 14 }],
+    key: 'G', bpm: 88,
+    notes: 'Drums still programmed. Fine for now.',
+    daysAgo: 54,
+  },
   { title: 'Strangers', column: 'released', versions: [{ label: 'master', seconds: 18 }], key: 'C', bpm: 116, daysAgo: 90 },
+  { title: 'Ninety Nine', column: 'released', versions: [{ label: 'master', seconds: 16 }], key: 'Em', bpm: 128, daysAgo: 140 },
 ]
 
 /** True once the demo board has been written (idempotent across reloads). */

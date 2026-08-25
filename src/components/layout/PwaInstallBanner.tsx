@@ -44,7 +44,7 @@ export function PwaInstallBanner() {
   return (
     <div className="pwa-install-banner" role="status">
       <span>
-        Install memo for offline access and Share → memo from Voice Memos.
+        Install songdrafts for offline access and Share → songdrafts from Voice Memos.
       </span>
       <button type="button" className="pwa-install-btn" onClick={() => void install()}>
         Install

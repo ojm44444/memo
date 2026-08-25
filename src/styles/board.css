@@ -8608,3 +8608,16 @@ html.light .listen-playlist-row {
 /* Columns stretch to the frame; cards scroll inside them. */
 .board-column { height: 100%; }
 .board-kanban { align-items: stretch; }
+
+/* Marketing-shot dressing (?shot=1, dev only). Hides state that is real but
+   meaningless out of context: the dev-bypass sync badges and the sign-in
+   prompt would read as clutter or as a broken app in a hero image. */
+html[data-shot='1'] .sync-status-badge,
+html[data-shot='1'] .sync-auth,
+html[data-shot='1'] .feedback-badge-wrap {
+  display: none !important;
+}
+html[data-shot='1'] .pwa-install-banner,
+html[data-shot='1'] .pwa-update-banner {
+  display: none !important;
+}
