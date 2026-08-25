@@ -117,16 +117,48 @@ function WaitlistForm({ className }: { className?: string }) {
     const trimmed = email.trim().toLowerCase()
     if (!trimmed) return
     setState('busy')
+
+    // A missing client is a failure, not a silent no-op. Previously this
+    // branch was skipped and the user still saw a green tick.
+    if (!supabase) {
+      console.error('[songdrafts] waitlist: Supabase client unavailable')
+      setState('error')
+      return
+    }
+
     try {
-      if (supabase) {
-        await supabase.from('waitlist').upsert({ email: trimmed }, { onConflict: 'email' })
+      // insert, not upsert: RLS grants INSERT only (there is no UPDATE policy,
+      // so an upsert conflict fails). No .select() chained, because
+      // waitlist_leads_select_none denies SELECT to anon — in supabase-js v2
+      // omitting .select() is what keeps this a minimal-return insert.
+      const { error } = await supabase.from('waitlist_leads').insert({ email: trimmed })
+
+      // 23505 = unique violation. Already on the list is a success for the
+      // person submitting, but it is NOT a new lead, so no Pixel event.
+      if (error && error.code !== '23505') {
+        console.error('[songdrafts] waitlist insert failed:', error.message, error.code)
+        setState('error')
+        return
       }
-      if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).fbq) {
-        ;((window as unknown as Record<string, unknown>).fbq as (...args: unknown[]) => void)('track', 'Lead', { content_name: 'waitlist' })
+
+      const isNewLead = !error
+      if (
+        isNewLead &&
+        typeof window !== 'undefined' &&
+        (window as unknown as Record<string, unknown>).fbq
+      ) {
+        ;((window as unknown as Record<string, unknown>).fbq as (...args: unknown[]) => void)(
+          'track',
+          'Lead',
+          { content_name: 'waitlist' },
+        )
       }
+
       setState('done')
       setEmail('')
-    } catch {
+    } catch (err) {
+      // Network-level failure (offline, DNS, CORS)
+      console.error('[songdrafts] waitlist request threw:', err)
       setState('error')
     }
   }

@@ -1,11 +1,43 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+/**
+ * Fail a production build when Supabase credentials are absent.
+ *
+ * Without this the app degrades silently: `supabase` is null, sign-in shows
+ * "Cloud sign-in isn't configured", and the waitlist form used to report
+ * success while saving nothing. A marketing site that quietly becomes a no-op
+ * should not be deployable.
+ *
+ * Dev is exempt so the board can still be worked on offline.
+ */
+function requireSupabaseEnv(mode: string): Plugin {
+  return {
+    name: 'songdrafts:require-supabase-env',
+    apply: 'build',
+    config() {
+      const env = loadEnv(mode, process.cwd(), 'VITE_')
+      const missing = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'].filter(
+        (key) => !env[key] && !process.env[key],
+      )
+      if (missing.length > 0) {
+        throw new Error(
+          `Production build blocked: missing ${missing.join(' and ')}.\n` +
+            'Without these the deployed site cannot sign anyone in and the ' +
+            'waitlist saves nothing. Set them in the Vercel Production ' +
+            'environment, or run `vercel env pull` for a local build.',
+        )
+      }
+    },
+  }
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
+    requireSupabaseEnv(mode),
     react(),
     tailwindcss(),
     VitePWA({
@@ -84,4 +116,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-})
+}))
