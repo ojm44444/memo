@@ -125,7 +125,7 @@ export function PlaylistSharePage() {
   return (
     <div className="share-page">
       <header className="share-header">
-        <Link to="/" className="share-logo">mem<span>o</span></Link>
+        <Link to="/" className="share-logo">s<span>o</span>ngdrafts</Link>
         <span className="share-badge">Playlist</span>
       </header>
 

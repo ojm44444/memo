@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[memo] Unhandled render error:', error, info.componentStack)
+    console.error('[songdrafts] Unhandled render error:', error, info.componentStack)
   }
 
   render() {

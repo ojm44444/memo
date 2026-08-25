@@ -29,7 +29,7 @@ export function PwaInstallBanner() {
     return (
       <div className="pwa-install-banner" role="status">
         <span>
-          Install memo: tap <strong>Share ⬆</strong> in Safari, then <strong>Add to Home Screen</strong>
+          Install songdrafts: tap <strong>Share ⬆</strong> in Safari, then <strong>Add to Home Screen</strong>
         </span>
         <button type="button" className="pwa-install-dismiss" onClick={dismiss}>
           ✕

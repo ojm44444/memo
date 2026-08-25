@@ -20,7 +20,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="app-shell">
       <header className="app-header">
         <Link to="/app" className="app-header-logo">
-          mem<span>o</span>
+          s<span>o</span>ngdrafts
         </Link>
         <div className="app-header-actions">
           <BoardSwitcher />

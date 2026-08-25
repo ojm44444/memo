@@ -8,7 +8,7 @@ import {
   markShareImportHandled,
 } from '@/lib/share-import'
 
-/** Consume audio shared to mem• via the system share sheet (PWA share target). */
+/** Consume audio shared to songdrafts via the system share sheet (PWA share target). */
 export function useShareImport() {
   const { importFiles } = useAudioImport('inbox')
   const [message, setMessage] = useState<string | null>(null)

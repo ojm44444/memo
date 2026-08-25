@@ -61,17 +61,17 @@ function Tick({ val }: { val: boolean | 'partial' | string }) {
 }
 
 const COMPARE_ROWS = [
-  { feature: 'Kanban workflow for songs',       memo: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
-  { feature: 'Version stacking per song',       memo: true,  dubnote: false,    samply: 'partial', suonote: false,   tapeit: false },
-  { feature: 'Adjustable playback speed',       memo: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
-  { feature: 'Phone → Mac sync',               memo: true,  dubnote: false,    samply: true,     suonote: 'partial', tapeit: true },
-  { feature: 'Share demo links',               memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: 'partial' },
-  { feature: 'Timestamped listener feedback',  memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
-  { feature: 'Listener needs no account',      memo: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
-  { feature: 'Invite co-writers',              memo: true,  dubnote: true,     samply: true,     suonote: 'partial', tapeit: true },
-  { feature: 'Works fully offline',            memo: true,  dubnote: true,     samply: true,     suonote: true,     tapeit: true },
-  { feature: 'Built for songwriters',          memo: true,  dubnote: true,     samply: false,    suonote: true,     tapeit: true },
-  { feature: 'Price',                          memo: '£7/mo', dubnote: '$25/yr', samply: '$10/mo', suonote: 'free*', tapeit: 'free*' },
+  { feature: 'Kanban workflow for songs',       songdrafts: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
+  { feature: 'Version stacking per song',       songdrafts: true,  dubnote: false,    samply: 'partial', suonote: false,   tapeit: false },
+  { feature: 'Adjustable playback speed',       songdrafts: true,  dubnote: false,    samply: false,    suonote: false,    tapeit: false },
+  { feature: 'Phone → Mac sync',               songdrafts: true,  dubnote: false,    samply: true,     suonote: 'partial', tapeit: true },
+  { feature: 'Share demo links',               songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: 'partial' },
+  { feature: 'Timestamped listener feedback',  songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
+  { feature: 'Listener needs no account',      songdrafts: true,  dubnote: false,    samply: true,     suonote: false,    tapeit: false },
+  { feature: 'Invite co-writers',              songdrafts: true,  dubnote: true,     samply: true,     suonote: 'partial', tapeit: true },
+  { feature: 'Works fully offline',            songdrafts: true,  dubnote: true,     samply: true,     suonote: true,     tapeit: true },
+  { feature: 'Built for songwriters',          songdrafts: true,  dubnote: true,     samply: false,    suonote: true,     tapeit: true },
+  { feature: 'Price',                          songdrafts: '£7/mo', dubnote: '$25/yr', samply: '$10/mo', suonote: 'free*', tapeit: 'free*' },
 ] as const
 
 const STEPS = [
@@ -96,7 +96,7 @@ const FAQS = [
   },
   {
     q: 'Does it work on my phone?',
-    a: 'Import via the Files app on iPhone and run memo in your mobile browser. A proper App Store app is being worked on.',
+    a: 'Import via the Files app on iPhone and run songdrafts in your mobile browser. A proper App Store app is being worked on.',
   },
   {
     q: 'Is my music private?',
@@ -177,7 +177,7 @@ export function LandingPage() {
     <div className="landing">
       <nav>
         <div className="logo">
-          mem<span>o</span>
+          s<span>o</span>ngdrafts
         </div>
         <ul className="nav-links">
           <li><a href="#features">Features</a></li>
@@ -201,7 +201,7 @@ export function LandingPage() {
           </h1>
           <p className="hero-sub">
             You've got 400 voice memos called "New Recording 47". Somewhere in there are
-            three good songs. memo is a board for your music: bring the recordings in,
+            three good songs. songdrafts is a board for your music: bring the recordings in,
             drag them right as they get better, and actually finish some of them.
           </p>
           <WaitlistForm />
@@ -214,7 +214,7 @@ export function LandingPage() {
               <div className="dot dot-r" />
               <div className="dot dot-y" />
               <div className="dot dot-g" />
-              <span className="app-titlebar-text">memo · songwriting board</span>
+              <span className="app-titlebar-text">songdrafts · songwriting board</span>
             </div>
             <div className="kanban-board">
               <div className="kanban-col">
@@ -374,7 +374,7 @@ export function LandingPage() {
               <tr>
                 <th />
                 <th className="compare-col compare-col--memo">
-                  <span className="compare-logo">mem<span>o</span></span>
+                  <span className="compare-logo">s<span>o</span>ngdrafts</span>
                 </th>
                 <th className="compare-col">Tape.it</th>
                 <th className="compare-col">Dubnote</th>
@@ -386,7 +386,7 @@ export function LandingPage() {
               {COMPARE_ROWS.map((row) => (
                 <tr key={row.feature}>
                   <td className="compare-feature">{row.feature}</td>
-                  <td className="compare-cell compare-cell--memo"><Tick val={row.memo} /></td>
+                  <td className="compare-cell compare-cell--memo"><Tick val={row.songdrafts} /></td>
                   <td className="compare-cell"><Tick val={row.tapeit} /></td>
                   <td className="compare-cell"><Tick val={row.dubnote} /></td>
                   <td className="compare-cell"><Tick val={row.samply} /></td>
@@ -495,7 +495,7 @@ export function LandingPage() {
 
       <footer>
         <div className="footer-logo">
-          mem<span>o</span>
+          s<span>o</span>ngdrafts
         </div>
         <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
       </footer>

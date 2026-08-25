@@ -161,7 +161,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
     if (!qrDataUrl || !qrToken) return
     const anchor = document.createElement('a')
     anchor.href = qrDataUrl
-    anchor.download = `memo-share-qr-${qrToken.slice(0, 8)}.png`
+    anchor.download = `songdrafts-share-qr-${qrToken.slice(0, 8)}.png`
     anchor.click()
   }
 
@@ -306,8 +306,8 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
       ? shareLabelFilter.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24)
       : ''
     anchor.download = filterSlug
-      ? `memo-shares-${filterSlug}-${songId.slice(0, 8)}.csv`
-      : `memo-shares-${songId.slice(0, 8)}.csv`
+      ? `songdrafts-shares-${filterSlug}-${songId.slice(0, 8)}.csv`
+      : `songdrafts-shares-${songId.slice(0, 8)}.csv`
     anchor.click()
     URL.revokeObjectURL(objectUrl)
   }
@@ -673,7 +673,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
                               <span className="song-share-preview-label">{share.label}</span>
                             ) : null}
                             <span className="song-share-preview-desc">
-                              {share.label ? 'Shared demo link' : 'Listen on memo'}
+                              {share.label ? 'Shared demo link' : 'Listen on songdrafts'}
                             </span>
                             {((share.view_count ?? 0) > 0 || (share.listen_count ?? 0) > 0) && (
                               <span className="song-share-preview-meta">

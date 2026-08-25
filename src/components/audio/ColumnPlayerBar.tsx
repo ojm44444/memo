@@ -221,7 +221,7 @@ export function ColumnPlayerBar() {
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: displaySong.title,
-      artist: 'mem•',
+      artist: 'songdrafts',
       album: version?.label ?? undefined,
     })
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'

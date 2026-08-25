@@ -8,8 +8,8 @@ import { useUiStore } from '@/stores/uiStore'
 
 const TOUR_STEPS = [
   {
-    title: 'Welcome to memo',
-    body: 'Your songwriting board — see every memo, work on keepers, and share demos from one place.',
+    title: 'Welcome to songdrafts',
+    body: 'Your songwriting board. Every recording in one place, sorted by how finished it is.',
   },
   {
     title: 'Import memos',

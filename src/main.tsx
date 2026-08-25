@@ -30,7 +30,7 @@ db.open()
     }
   })
   .catch((err) => {
-    console.error('[memo] DB failed to open:', err)
+    console.error('[songdrafts] DB failed to open:', err)
   })
   .finally(() => {
     root.render(

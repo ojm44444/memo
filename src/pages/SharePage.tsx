@@ -196,7 +196,7 @@ export function SharePage() {
     <div className="share-page">
       <header className="share-header">
         <Link to="/" className="share-logo">
-          mem<span>o</span>
+          s<span>o</span>ngdrafts
         </Link>
         <span className="share-badge">Demo listen</span>
       </header>

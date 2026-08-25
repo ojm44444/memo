@@ -99,7 +99,7 @@ export async function pullChanges(userId: string) {
   if (remoteProjects && remoteProjects.length > 0) {
     // If the server already has projects, remove any locally-created default project
     // that hasn't been pushed yet (still in outbox). This prevents duplicate "My Project"
-    // entries when opening mem• on a new device that already has cloud data.
+    // entries when opening songdrafts on a new device that already has cloud data.
     const localUnpushed = await db.syncQueue
       .filter((item) => item.entityType === 'project' && item.op === 'create')
       .toArray()

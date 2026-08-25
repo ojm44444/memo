@@ -32,7 +32,7 @@ export function BoardOnboarding({ readOnly = false }: BoardOnboardingProps) {
       <h3>Your songwriting board is ready</h3>
       <ol>
         <li>
-          <strong>Import a memo</strong> — tap <em>+ Import audio</em> in Inbox (or drag from Finder on
+          <strong>Import a memo</strong>, tap <em>+ Import audio</em> in Inbox (or drag from Finder on
           Mac).
         </li>
         {supabaseConfigured && (
