@@ -341,13 +341,24 @@ async function computeInsertSortOrder(
         : beforeSong.sortOrder - 1024
     }
   }
-  // Append: count existing songs in target
-  const count = await db.songs
+  // Append: one past the highest existing sortOrder.
+  //
+  // This used to return the *count* of songs in the column, which collides
+  // whenever sortOrder values are not a dense 0..n-1 run — and they routinely
+  // are not, because inserts above use midpoints (x + y) / 2 and
+  // `beforeSong.sortOrder - 1024`, and moving a song out of a column leaves a
+  // gap without renumbering. A column holding [0, 1, 3] has count 3, so the
+  // next append also got 3 and tied with an existing song. Ties order
+  // arbitrarily, and two devices can resolve the same tie differently, which
+  // is how column order drifts apart.
+  const siblings = await db.songs
     .where('columnSlug')
     .equals(targetColumnSlug)
     .filter((s) => !s.deletedAt && s.id !== excludeSongId && (s.projectId === projectId || s.projectId == null))
-    .count()
-  return count
+    .toArray()
+
+  if (siblings.length === 0) return 0
+  return Math.max(...siblings.map((s) => s.sortOrder)) + 1
 }
 
 export async function moveSong(

@@ -285,6 +285,18 @@ export async function pullChanges(userId: string) {
     if (commentError) throw commentError
 
     for (const remote of remoteComments ?? []) {
+      // An un-pushed local edit always wins over the server. Songs and audio
+      // versions above already check the outbox; comments only checked
+      // syncedAt, which is not the same thing — a comment edited offline keeps
+      // its old syncedAt, so a remote row looked newer and clobbered the edit.
+      // A pending delete must survive a remote row too, or the comment
+      // reappears.
+      const pendingCommentEdit = await db.syncQueue
+        .where('entityId').equals(remote.id)
+        .filter((item) => item.entityType === 'song_comment')
+        .first()
+      if (pendingCommentEdit) continue
+
       if (remote.deleted_at) {
         await db.songComments.delete(remote.id)
         pulled++
@@ -297,7 +309,15 @@ export async function pullChanges(userId: string) {
       const remoteUpdated = new Date(remote.updated_at).getTime()
       const localUpdated = local?.syncedAt ? new Date(local.syncedAt).getTime() : 0
 
-      if (!local || !local.syncedAt || remoteUpdated >= localUpdated) {
+      // `!local.syncedAt` used to force an overwrite. That is backwards: a
+      // comment with no syncedAt has never been confirmed by the server, so it
+      // is precisely the one whose local text must not be discarded.
+      // pushChanges sets syncedAt on a successful push, so this cannot block a
+      // legitimate update forever — once the comment lands, the timestamp
+      // comparison below takes over again.
+      if (local && !local.syncedAt) continue
+
+      if (!local || remoteUpdated >= localUpdated) {
         const comment: SongComment = {
           id: remote.id,
           songId: remote.song_id,
