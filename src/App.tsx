@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PwaInstallBanner } from '@/components/layout/PwaInstallBanner'
 import { PwaUpdateBanner } from '@/components/layout/PwaUpdateBanner'
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
+      <Analytics />
     </BrowserRouter>
   )
 }

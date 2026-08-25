@@ -20,7 +20,7 @@ serve(async (req) => {
 
   try {
     const resendKey = Deno.env.get('RESEND_API_KEY')
-    const fromAddress = Deno.env.get('INVITE_FROM_EMAIL') ?? 'mem• <onboarding@resend.dev>'
+    const fromAddress = Deno.env.get('INVITE_FROM_EMAIL') ?? 'songdrafts <onboarding@resend.dev>'
 
     if (!resendKey) {
       return new Response(JSON.stringify({ error: 'Invite email is not configured' }), {
@@ -62,9 +62,9 @@ serve(async (req) => {
 
     const sender = inviterName?.trim() || userData.user.email?.split('@')[0] || 'Someone'
     const html = `
-      <p>Hey — ${sender} invited you to collaborate on <strong>${boardName}</strong> in mem•.</p>
+      <p>Hey, ${sender} invited you to collaborate on <strong>${boardName}</strong> in songdrafts.</p>
       <p><a href="${link}">Open invite and sign in</a></p>
-      <p style="color:#666;font-size:13px;">mem• is a local-first songwriting board for voice memos, demos, and share feedback.</p>
+      <p style="color:#666;font-size:13px;">songdrafts is a local-first songwriting board for voice memos, demos, and share feedback.</p>
     `
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
@@ -76,7 +76,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: fromAddress,
         to: [recipient],
-        subject: `Join ${boardName} on mem•`,
+        subject: `Join ${boardName} on songdrafts`,
         html,
       }),
     })

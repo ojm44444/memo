@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { importAudioFiles } from '@/db/repositories/audioRepo'
 import { flush } from '@/sync/syncEngine'
 import { extractAudioFiles } from '@/lib/extract-audio-files'
+import { trackFirstImport } from '@/lib/analytics'
 import type { ColumnSlug } from '@/types/column'
 
 export type ImportFilesResult = {
@@ -28,7 +29,11 @@ export function useAudioImport(defaultColumn: ColumnSlug = 'inbox') {
       setImporting(true)
       try {
         const result = await importAudioFiles(audioFiles, columnSlug)
-        if (result.versions.length > 0) await flush()
+        if (result.versions.length > 0) {
+          // Activation moment, fired once per device.
+          trackFirstImport(result.versions.length)
+          await flush()
+        }
         setLastCount(result.versions.length)
         return { imported: result.versions.length, duplicates: result.duplicates }
       } finally {
