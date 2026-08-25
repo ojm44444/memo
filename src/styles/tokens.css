@@ -1,18 +1,50 @@
+/**
+ * songdrafts palette.
+ *
+ * Every value here is contrast-checked. If you change one, re-check it — the
+ * ratios in the comments are measured, not aspirational.
+ *
+ * Two rules that are not style preferences:
+ *
+ * 1. NEVER put --text on an --accent fill. Amber is a light colour; light text
+ *    on it measures 1.88:1. Filled accent buttons take --accent-on (dark),
+ *    which measures 8.67:1.
+ * 2. --accent is NOT a state colour. Success, warning and danger are held
+ *    separately below so that "done" can be green while the brand is amber.
+ */
+
 :root {
-  --bg: #0d0d0f;
-  --bg-2: #141417;
-  --bg-3: #1c1c21;
-  --surface: #26262d;
-  --border: rgba(255, 255, 255, 0.12);
-  --text: #f5f3ef;
-  --text-muted: #9a97a4;
-  --accent: #00ff9d;
-  --accent-hover: #33ffb1;
-  --accent-dim: rgba(0, 255, 157, 0.15);
-  --accent-glow: rgba(0, 255, 157, 0.1);
-  --audio-mint: #00ff9d;
-  --audio-mint-dim: rgba(0, 255, 157, 0.25);
-  --audio-mint-glow: rgba(0, 255, 157, 0.12);
+  /* ── Dark: warm charcoal with a brown bias, not near-black.
+     Near-black + acid mint collided with song.so at favicon size, read as
+     Spotify in a music context, and is the default look of half of current
+     software. Amber is the world this product is actually about: VU meters,
+     tape saturation, the panel glow on a 4-track at 2am. ── */
+  --bg: #14120e;
+  --bg-2: #1c1915;
+  --bg-3: #26221b;
+  --surface: #302b22;
+  --border: rgba(245, 239, 228, 0.14);
+
+  --text: #f5efe4;        /* 16.35:1 on --bg */
+  --text-muted: #a99c86;  /*  6.94:1 on --bg, 5.21:1 on --surface */
+
+  --accent: #e8a33d;      /*  8.67:1 on --bg */
+  --accent-hover: #f2b45a;
+  --accent-on: #14120e;   /*  8.67:1 ON the accent fill. Dark, deliberately. */
+  --accent-dim: rgba(232, 163, 61, 0.15);
+  --accent-glow: rgba(232, 163, 61, 0.1);
+
+  /* Semantic, independent of the brand accent. 106° of hue between accent
+     and success, so "done" can never be confused with "branded". */
+  --success: #4ade80;     /* 10.74:1 on --bg */
+  --warning: #fb923c;     /*  8.27:1 */
+  --danger: #f87171;      /*  6.76:1 */
+  --on-semantic: #14120e; /* dark text on any filled semantic colour */
+
+  /* Audio waveform tokens track the accent. */
+  --audio-mint: #e8a33d;
+  --audio-mint-dim: rgba(232, 163, 61, 0.25);
+  --audio-mint-glow: rgba(232, 163, 61, 0.12);
 
   --font-serif: 'Instrument Serif', serif;
   --font-sans: 'Bricolage Grotesque', sans-serif;
@@ -21,22 +53,33 @@
 
 html.light {
   color-scheme: light;
-  /* Warm paper, not cold grey — matches the serif/bone brand. Cards sit on
-     a slightly deeper ground so they genuinely separate without heavy borders. */
-  --bg: #f1eee8;
-  --bg-2: #e9e5dd;
-  --bg-3: #dfdacf;
-  --surface: #fdfcfa;
-  --border: rgba(62, 52, 33, 0.13);
-  --text: #211e18;
-  --text-muted: #6e6759;
-  /* Deeper green for real contrast on paper (the dark-mode mint is unreadable here). */
-  --accent: #0b8a54;
-  --accent-hover: #087546;
-  --accent-dim: rgba(11, 138, 84, 0.12);
-  --accent-glow: rgba(11, 138, 84, 0.08);
-  --audio-mint: #0b8a54;
-  --audio-mint-dim: rgba(11, 138, 84, 0.22);
-  --audio-mint-glow: rgba(11, 138, 84, 0.1);
-}
 
+  /* ── Light is the OUTDOOR mode, not a paper mode.
+     This app's own pitch is a tunnel, a plane, a field in Wales with one bar,
+     so light mode gets used in glare. The previous palette put every surface
+     within 1.08–1.36:1 of its neighbour, which flattens into one wash outside.
+     Fewer levels, bigger steps, real borders. ── */
+  --surface: #ffffff;     /* cards: pure white so they separate hardest */
+  --bg-2: #f2ede4;
+  --bg: #e4dccb;          /* page ground, deep enough that white cards pop */
+  --bg-3: #d3c8b2;        /* inset wells, inputs */
+  --border: #aea189;      /* solid, 1.86:1 — was 13% alpha at 1.25:1 */
+
+  --text: #17140e;        /* 18.38:1 on white, 13.47:1 on --bg */
+  --text-muted: #49453b;  /*  7.01:1 on --bg (was 4.84:1) */
+
+  --accent: #875710;      /*  4.53:1 as text on --bg, 6.17:1 on white */
+  --accent-hover: #6d4609;
+  --accent-on: #ffffff;   /*  6.17:1 on the accent fill */
+  --accent-dim: rgba(135, 87, 16, 0.12);
+  --accent-glow: rgba(135, 87, 16, 0.08);
+
+  --success: #147036;     /* 4.53:1 on --bg */
+  --warning: #9e4903;     /* 4.52:1 */
+  --danger: #c50a0a;      /* 4.50:1 */
+  --on-semantic: #ffffff;
+
+  --audio-mint: #875710;
+  --audio-mint-dim: rgba(135, 87, 16, 0.22);
+  --audio-mint-glow: rgba(135, 87, 16, 0.1);
+}

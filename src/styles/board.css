@@ -60,7 +60,7 @@
   height: 40px;
   border-radius: 50%;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 1.1rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -475,7 +475,7 @@ body.is-file-dragging * {
   border: none;
   border-radius: 8px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 9px 14px;
@@ -511,7 +511,7 @@ body.is-file-dragging * {
   border: none;
   border-radius: 8px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 8px 12px;
@@ -692,7 +692,7 @@ body.is-file-dragging * {
 .song-share-badge {
   margin-left: 6px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.58rem;
   padding: 1px 6px;
   border-radius: 999px;
@@ -1242,7 +1242,7 @@ body.is-file-dragging * {
 .board-add-section-save {
   border: none;
   background: var(--audio-mint);
-  color: #121214;
+  color: var(--accent-on);
 }
 
 .board-add-section-cancel {
@@ -1883,7 +1883,7 @@ html.light .song-card:hover {
   padding: 0 5px;
   border-radius: 999px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-family: var(--font-mono);
   font-size: 0.55rem;
   font-weight: 600;
@@ -2023,7 +2023,7 @@ html.light .song-card:hover {
   height: 34px;
   border-radius: 50%;
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   font-size: 0.6rem;
   border: none;
   flex-shrink: 0;
@@ -3032,7 +3032,7 @@ html.light .song-card-tag-overflow {
   border: none;
   border-radius: 8px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-family: var(--font-sans);
   font-size: 0.78rem;
   font-weight: 600;
@@ -3137,7 +3137,7 @@ html.light .song-card-tag-overflow {
 
 .invite-bandmate-copy {
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
 }
 
 .invite-bandmate-email-btn {
@@ -3149,7 +3149,7 @@ html.light .song-card-tag-overflow {
 .invite-bandmate-badge {
   margin-left: 4px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.55rem;
   padding: 1px 5px;
   border-radius: 999px;
@@ -3429,7 +3429,7 @@ html.light .song-card-tag-overflow {
   border: none;
   border-radius: 8px;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-family: var(--font-sans);
   font-size: 0.88rem;
   font-weight: 600;
@@ -3569,7 +3569,7 @@ html.light .song-card-tag-overflow {
 
 .song-drawer-handle:active .song-drawer-handle-label {
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   border-color: var(--audio-mint);
 }
 
@@ -3597,7 +3597,7 @@ html.light .song-card-tag-overflow {
   height: 36px;
   border-radius: 50%;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.75rem;
   display: flex;
   align-items: center;
@@ -3661,7 +3661,7 @@ html.light .song-card-tag-overflow {
 
 .speed-preset-btn.is-active {
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
 }
 
 .speed-slider-wrap {
@@ -3799,7 +3799,7 @@ html.light .song-card-tag-overflow {
   background: var(--audio-mint);
   border-radius: 50%;
   font-size: 0.62rem;
-  color: #000;
+  color: var(--accent-on);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0,255,157,0.25);
   transition: transform 0.1s, box-shadow 0.1s;
@@ -4235,7 +4235,7 @@ html.light .project-switcher-panel {
 
 .listen-view-play-all {
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   border: none;
   font-family: var(--font-sans);
   font-size: 0.78rem;
@@ -4293,7 +4293,7 @@ html.light .project-switcher-panel {
   border-radius: 50%;
   border: none;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.55rem;
   cursor: pointer;
   flex-shrink: 0;
@@ -4448,7 +4448,7 @@ html.light .project-switcher-panel {
   height: 40px;
   border-radius: 50%;
   background: var(--audio-mint);
-  color: var(--bg);
+  color: var(--accent-on);
   font-size: 0.65rem;
   border: none;
   flex-shrink: 0;
@@ -5572,7 +5572,7 @@ html.light .version-menu-item--danger {
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--bg);
+  color: var(--accent-on);
   background: var(--audio-mint);
   border: none;
   border-radius: 999px;
@@ -7799,7 +7799,7 @@ html.light .song-detail-playlist-btn {
 .add-playlist-input:focus { border-color: var(--audio-mint); }
 .add-playlist-confirm {
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   border: none;
   border-radius: 8px;
   padding: 7px 14px;
@@ -7881,7 +7881,7 @@ html.light .add-playlist-input { background: #f5f5f7; }
 .playlists-create-input:focus { border-color: var(--audio-mint); }
 .playlists-create-confirm {
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   border: none;
   border-radius: 10px;
   padding: 9px 16px;
@@ -8031,7 +8031,7 @@ html.light .playlists-row:hover {
 }
 .playlist-play-all-btn {
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   border: none;
   border-radius: 20px;
   padding: 8px 20px;
@@ -8122,8 +8122,8 @@ html.light .playlists-row:hover {
   justify-content: center;
   transition: background 0.1s;
 }
-.playlist-song-play:hover { background: var(--audio-mint); color: #000; }
-.playlist-song-row--active .playlist-song-play { background: var(--audio-mint); color: #000; }
+.playlist-song-play:hover { background: var(--audio-mint); color: var(--accent-on); }
+.playlist-song-row--active .playlist-song-play { background: var(--audio-mint); color: var(--accent-on); }
 .playlist-song-remove {
   width: 24px;
   height: 24px;
@@ -8226,7 +8226,7 @@ html.light .listen-now-playing-inner {
   border-radius: 50%;
   border: none;
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   font-size: 0.7rem;
   cursor: pointer;
   display: flex;
@@ -8375,7 +8375,7 @@ html.light .listen-playlist-row {
 }
 .listen-playlist-play-all {
   background: var(--audio-mint);
-  color: #000;
+  color: var(--accent-on);
   border: none;
   border-radius: 20px;
   padding: 8px 20px;
