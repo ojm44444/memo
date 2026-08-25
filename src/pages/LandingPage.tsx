@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase/client'
+import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
 
 const WAVE_HEIGHTS = [42, 68, 55, 82, 38, 71, 48, 90, 35, 64, 52, 78, 44, 86, 58, 72, 40, 66, 50, 84, 36, 74, 46, 80, 54, 70]
@@ -118,15 +118,19 @@ function WaitlistForm({ className }: { className?: string }) {
     if (!trimmed) return
     setState('busy')
 
-    // A missing client is a failure, not a silent no-op. Previously this
-    // branch was skipped and the user still saw a green tick.
-    if (!supabase) {
-      console.error('[songdrafts] waitlist: Supabase client unavailable')
-      setState('error')
-      return
-    }
-
     try {
+      // Imported here rather than at module scope so supabase-js stays out of
+      // the landing chunk. A visitor only needs it if they actually submit.
+      const { supabase } = await import('@/lib/supabase/client')
+
+      // A missing client is a failure, not a silent no-op. Previously this
+      // branch was skipped and the user still saw a green tick.
+      if (!supabase) {
+        console.error('[songdrafts] waitlist: Supabase client unavailable')
+        setState('error')
+        return
+      }
+
       // insert, not upsert: RLS grants INSERT only (there is no UPDATE policy,
       // so an upsert conflict fails). No .select() chained, because
       // waitlist_leads_select_none denies SELECT to anon — in supabase-js v2
@@ -218,7 +222,14 @@ export function LandingPage() {
           <li><a href="#faq">FAQ</a></li>
         </ul>
         <div className="nav-right">
-          <Link to="/sign-in" className="nav-signin">Sign in</Link>
+          <Link
+            to="/sign-in"
+            className="nav-signin"
+            onMouseEnter={prefetchAppChunks}
+            onTouchStart={prefetchAppChunks}
+          >
+            Sign in
+          </Link>
           <a href="#get-started" className="nav-cta nav-cta--app">
             Get early access
           </a>
