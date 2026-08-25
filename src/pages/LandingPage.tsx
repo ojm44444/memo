@@ -209,6 +209,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
     <div className="landing">
       <nav>
@@ -221,6 +223,20 @@ export function LandingPage() {
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
+
+        {/* Below 768px the nav links are hidden with nothing replacing them,
+            so Compare, Pricing and FAQ were only reachable by scrolling
+            8,000+ pixels. */}
+        <button
+          type="button"
+          className="nav-burger"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? '\u2715' : '\u2630'}
+        </button>
         <div className="nav-right">
           <Link
             to="/sign-in"
@@ -235,6 +251,24 @@ export function LandingPage() {
           </a>
         </div>
       </nav>
+
+      {menuOpen && (
+        <div id="mobile-menu" className="mobile-menu">
+          {[
+            ['#features', 'Features'],
+            ['#compare', 'Compare'],
+            ['#pricing', 'Pricing'],
+            ['#faq', 'FAQ'],
+          ].map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+              {label}
+            </a>
+          ))}
+          <Link to="/sign-in" className="mobile-menu-signin" onClick={() => setMenuOpen(false)}>
+            Sign in
+          </Link>
+        </div>
+      )}
 
       <section className="hero">
         <div className="hero-left">

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './fonts.css';
 @import './tokens.css';
 
 #root:has(.board-workspace) {
@@ -35,6 +36,33 @@ body,
 #root {
   height: 100%;
   overscroll-behavior: none;
+}
+
+/**
+ * The landing page must scroll the DOCUMENT, not an inner element.
+ *
+ * height:100% above pins the viewport, and `.landing { overflow-x: hidden }`
+ * makes the other axis compute to `auto` per spec, so the page became an
+ * 8,361px scroll container inside an 812px window while document.scrollHeight
+ * stayed at 812. Mobile browsers only retract the address bar in response to
+ * document scroll, so that permanently forfeited 60-100px on the device that
+ * matters most, broke tap-status-bar-to-top on iOS, broke scroll restoration,
+ * and made scroll-depth analytics record zero.
+ *
+ * The board keeps the pinning: it manages its own internal scrolling.
+ */
+html:has(.landing),
+body:has(.landing),
+#root:has(.landing) {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  overscroll-behavior: auto;
+}
+
+.landing {
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 body {

@@ -1460,3 +1460,101 @@ a.nav-cta {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Mobile navigation + product visual (brief 02, job 05) ─── */
+
+.nav-burger {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav-burger { display: inline-flex; align-items: center; justify-content: center; }
+
+  .mobile-menu {
+    position: fixed;
+    top: 62px;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    background: rgba(20, 18, 14, 0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px 16px;
+  }
+
+  .mobile-menu a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-menu a:last-child { border-bottom: none; }
+  .mobile-menu-signin { color: var(--accent) !important; }
+
+  /* The board mockup is the only element that shows a stranger what this is,
+     and it was desktop-only: the phone got a headline and a paragraph. Show a
+     single cropped column instead of hiding the product entirely. */
+  .hero-right {
+    display: flex !important;
+    padding: 0 20px 32px;
+    overflow: hidden;
+  }
+
+  .app-preview {
+    max-width: 100%;
+    animation: none;
+  }
+
+  /* One column, cropped to the cards that fit. */
+  .kanban-board {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    max-height: 300px;
+    overflow: hidden;
+  }
+
+  .kanban-col:not(:first-child) { display: none; }
+
+  .app-titlebar-text { font-size: 0.62rem; }
+}
+
+@media (max-width: 768px) {
+  /* Sign in lives in the burger menu on mobile; keeping it in the bar too
+     wrapped it onto two lines and crowded the CTA. */
+  .nav-signin { display: none; }
+
+  .nav-right { gap: 10px; }
+  .nav-cta { padding: 8px 14px; font-size: 0.7rem; }
+
+  /* Tighten the hero so the product visual clears the fold on a 390x844
+     device. The copy was pushing it ~1,250px down. */
+  .hero-left { padding: 24px 20px 16px; }
+  .hero-h1 { font-size: clamp(2rem, 8.5vw, 2.5rem); margin-bottom: 14px; }
+  .hero-sub {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
+    max-width: none;
+  }
+  .waitlist-form { margin-top: 12px; }
+  .hero-trial-note { margin-top: 8px; font-size: 0.6rem; }
+  .hero { padding-top: 62px; min-height: 0; }
+  .hero-right { padding: 0 20px 24px; }
+}
