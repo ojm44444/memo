@@ -3,7 +3,6 @@ import { InviteBandmateButton } from '@/components/board/InviteBandmateButton'
 import { SyncAuthButton } from '@/components/auth/SyncAuthButton'
 import { OfflineGraceBanner } from './OfflineGraceBanner'
 import { CollaboratorBanner } from './CollaboratorBanner'
-import { BoardSwitcher } from '@/components/board/BoardSwitcher'
 import { SyncStatusBadge } from './SyncStatusBadge'
 import { FeedbackBadge } from './FeedbackBadge'
 import { KeyboardShortcutsHelp } from '@/components/board/KeyboardShortcutsHelp'
@@ -23,7 +22,6 @@ export function AppShell({ children }: AppShellProps) {
           s<span>o</span>ngdrafts
         </Link>
         <div className="app-header-actions">
-          <BoardSwitcher />
           <InviteBandmateButton />
           <ThemeToggle />
           <SettingsPanel />

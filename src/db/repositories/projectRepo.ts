@@ -172,6 +172,43 @@ export async function getTitleSearchFilter() {
   return meta?.value?.trim() ?? ''
 }
 
+/**
+ * Everything the board needs to render a "you are filtered" bar: which filters
+ * are on, and how much of the board they are hiding.
+ *
+ * The counts matter more than the labels. A songwriter opening this app and
+ * seeing empty columns needs to know their work is filtered, not gone.
+ */
+export async function getBoardFilterSummary() {
+  const [tag, favouritesOnly, titleSearch, projectId] = await Promise.all([
+    getActiveTagFilter(),
+    getFavouritesOnlyFilter(),
+    getTitleSearchFilter(),
+    getActiveProjectId(),
+  ])
+
+  const active = Boolean(tag || favouritesOnly || titleSearch)
+  if (!active) return { active: false as const }
+
+  const inProject = await db.songs
+    .filter((song) => !song.deletedAt && (song.projectId === projectId || song.projectId == null))
+    .toArray()
+
+  const matched = inProject.filter((song) => {
+    if (tag && !(song.tags ?? []).includes(tag)) return false
+    if (favouritesOnly && !song.isFavourite) return false
+    if (titleSearch && !song.title.toLowerCase().includes(titleSearch.toLowerCase())) return false
+    return true
+  }).length
+
+  const parts: string[] = []
+  if (titleSearch) parts.push(`"${titleSearch}"`)
+  if (tag) parts.push(tag)
+  if (favouritesOnly) parts.push('favourites')
+
+  return { active: true as const, parts, matched, total: inProject.length }
+}
+
 export async function clearAllBoardFilters() {
   await db.syncMeta.delete(ACTIVE_TAG_KEY)
   await db.syncMeta.delete(FAVOURITES_ONLY_KEY)

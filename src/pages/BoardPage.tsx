@@ -22,6 +22,7 @@ import { useShareImport } from '@/hooks/useShareImport'
 import { BoardFrame } from '@/components/board/BoardFrame'
 import { BoardProjectAccent } from '@/components/board/BoardProjectAccent'
 import { ProjectSwitcher } from '@/components/board/ProjectSwitcher'
+import { BoardSwitcher } from '@/components/board/BoardSwitcher'
 import { useUiStore } from '@/stores/uiStore'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useAudioImport } from '@/hooks/useAudioImport'
@@ -133,14 +134,15 @@ function AuthenticatedBoard() {
           <div className="board-workspace">
             <BoardFrame>
               <div className="board-titlebar">
-                <span className="board-dot board-dot-r" />
-                <span className="board-dot board-dot-y" />
-                <span className="board-dot board-dot-g" />
+                {/* The macOS traffic lights belong on the landing-page mockup,
+                    where they signal "this is a screenshot of an app". Inside
+                    the real app they are a window drawn inside a window. */}
                 <BoardProjectAccent />
                 <span className="board-titlebar-text">songdrafts · songwriting board</span>
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
                   <BoardSearch />
+                  <BoardSwitcher />
                   <ProjectSwitcher readOnly={readOnly} />
                   <BoardFilters readOnly={readOnly} />
                   {boardMode === 'manage' && !readOnly && (

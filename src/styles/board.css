@@ -28,11 +28,11 @@
 .board-drop-edge {
   position: fixed;
   inset: 14px;
-  border: 2px dashed rgba(0, 255, 157, 0.55);
+  border: 2px dashed rgba(232, 163, 61, 0.55);
   border-radius: 18px;
   box-shadow:
-    inset 0 0 80px rgba(0, 255, 157, 0.06),
-    0 0 40px rgba(0, 255, 157, 0.08);
+    inset 0 0 80px rgba(232, 163, 61, 0.06),
+    0 0 40px rgba(232, 163, 61, 0.08);
   pointer-events: none;
 }
 
@@ -46,7 +46,7 @@
   gap: 14px;
   padding: 14px 18px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 255, 157, 0.25);
+  border: 1px solid rgba(232, 163, 61, 0.25);
   background: rgba(20, 20, 22, 0.92);
   backdrop-filter: blur(10px);
   pointer-events: none;
@@ -142,7 +142,7 @@ body.is-file-dragging * {
 }
 
 .import-error-toast--success {
-  border-color: rgba(0, 255, 157, 0.35);
+  border-color: rgba(232, 163, 61, 0.35);
   background: rgba(12, 28, 22, 0.96);
 }
 
@@ -157,8 +157,8 @@ body.is-file-dragging * {
   margin-bottom: 8px;
   padding: 12px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 255, 157, 0.18);
-  background: rgba(0, 255, 157, 0.04);
+  border: 1px solid rgba(232, 163, 61, 0.18);
+  background: rgba(232, 163, 61, 0.04);
 }
 
 .voice-memos-share-eyebrow {
@@ -191,9 +191,9 @@ body.is-file-dragging * {
 .voice-memos-share-primary {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid rgba(0, 255, 157, 0.45);
+  border: 1px solid rgba(232, 163, 61, 0.45);
   border-radius: 8px;
-  background: rgba(0, 255, 157, 0.12);
+  background: rgba(232, 163, 61, 0.12);
   color: var(--audio-mint);
   font-family: var(--font-sans);
   font-size: 0.78rem;
@@ -222,16 +222,16 @@ body.is-file-dragging * {
   margin-bottom: 8px;
   padding: 12px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 255, 157, 0.18);
-  background: rgba(0, 255, 157, 0.04);
+  border: 1px solid rgba(232, 163, 61, 0.18);
+  background: rgba(232, 163, 61, 0.04);
 }
 
 .voice-memos-connect-primary {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid rgba(0, 255, 157, 0.45);
+  border: 1px solid rgba(232, 163, 61, 0.45);
   border-radius: 8px;
-  background: rgba(0, 255, 157, 0.12);
+  background: rgba(232, 163, 61, 0.12);
   color: var(--audio-mint);
   font-family: var(--font-sans);
   font-size: 0.78rem;
@@ -242,8 +242,8 @@ body.is-file-dragging * {
 
 .voice-memos-connect-primary:hover:not(:disabled),
 .voice-memos-connect-primary.is-busy {
-  background: rgba(0, 255, 157, 0.2);
-  border-color: rgba(0, 255, 157, 0.65);
+  background: rgba(232, 163, 61, 0.2);
+  border-color: rgba(232, 163, 61, 0.65);
 }
 
 .voice-memos-connect-primary:disabled {
@@ -286,7 +286,7 @@ body.is-file-dragging * {
   height: 7px;
   border-radius: 50%;
   background: var(--audio-mint);
-  box-shadow: 0 0 8px rgba(0, 255, 157, 0.6);
+  box-shadow: 0 0 8px rgba(232, 163, 61, 0.6);
   flex-shrink: 0;
 }
 
@@ -307,7 +307,7 @@ body.is-file-dragging * {
 }
 
 .voice-memos-connect-secondary {
-  border: 1px solid rgba(0, 255, 157, 0.3);
+  border: 1px solid rgba(232, 163, 61, 0.3);
   background: transparent;
   color: var(--audio-mint);
 }
@@ -332,7 +332,7 @@ body.is-file-dragging * {
   padding: 16px;
   background:
     radial-gradient(ellipse 60% 50% at 70% 20%, rgba(200, 255, 87, 0.04) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(0, 255, 157, 0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(232, 163, 61, 0.03) 0%, transparent 70%),
     var(--bg);
 }
 
@@ -625,7 +625,7 @@ body.is-file-dragging * {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--audio-mint);
-  border: 1px solid rgba(0, 255, 157, 0.35);
+  border: 1px solid rgba(232, 163, 61, 0.35);
   border-radius: 4px;
   padding: 1px 5px;
 }
@@ -1193,7 +1193,7 @@ body.is-file-dragging * {
 .board-add-section {
   flex-shrink: 0;
   padding: 6px 14px;
-  border: 1px dashed rgba(0, 255, 157, 0.35);
+  border: 1px dashed rgba(232, 163, 61, 0.35);
   border-radius: 20px;
   background: transparent;
   color: var(--audio-mint);
@@ -1204,8 +1204,8 @@ body.is-file-dragging * {
   transition: background 0.12s, border-color 0.12s;
 }
 .board-add-section:hover {
-  background: rgba(0,255,157,0.06);
-  border-color: rgba(0,255,157,0.55);
+  background: rgba(232, 163, 61, 0.06);
+  border-color: rgba(232, 163, 61, 0.55);
 }
 
 .board-add-section-form {
@@ -1444,8 +1444,8 @@ body.is-file-dragging * {
 
   .board-column-tabs button.is-active {
     color: var(--audio-mint);
-    border-color: rgba(0, 255, 157, 0.35);
-    background: rgba(0, 255, 157, 0.08);
+    border-color: rgba(232, 163, 61, 0.35);
+    background: rgba(232, 163, 61, 0.08);
   }
 
   .board-column-tabs button.is-active.has-project-accent {
@@ -1481,7 +1481,7 @@ body.is-file-dragging * {
   }
 
   .board-column-tabs button.is-active .board-column-tab-count {
-    background: rgba(0, 255, 157, 0.15);
+    background: rgba(232, 163, 61, 0.15);
     color: var(--audio-mint);
   }
 
@@ -1524,8 +1524,8 @@ body.is-file-dragging * {
     margin-bottom: 8px;
     padding: 12px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(0, 255, 157, 0.18);
-    background: rgba(0, 255, 157, 0.04);
+    border: 1px solid rgba(232, 163, 61, 0.18);
+    background: rgba(232, 163, 61, 0.04);
   }
 
   .mobile-import-eyebrow {
@@ -1571,9 +1571,9 @@ body.is-file-dragging * {
 
 .board-column.is-over,
 .board-column.is-file-drop {
-  background: rgba(0, 255, 157, 0.07);
+  background: rgba(232, 163, 61, 0.07);
   border-radius: 10px;
-  outline: 2px solid rgba(0, 255, 157, 0.35);
+  outline: 2px solid rgba(232, 163, 61, 0.35);
   outline-offset: 2px;
   transition: background 0.12s, outline 0.12s;
 }
@@ -1603,14 +1603,40 @@ body.is-file-dragging * {
 
 .board-column-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 8px;
+  /* Sized for two lines so one-line and two-line titles occupy identical
+     space. Without this, INBOX and IDEAS/INSPIRATION sat a line higher than
+     their neighbours and every column's first card started at a different
+     y-position, which reads as "unfinished" across the whole board. */
+  min-height: 44px;
   padding: 6px 4px 8px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+/* Truncate at three lines rather than pushing the board out of alignment. */
+.board-column-header > span:first-child,
+.column-title-label {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Reserve the control row height regardless of enabled state, so adding the
+   first song to an empty column does not shift that column's header. */
+.board-column-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-height: 24px;
 }
 
 .board-column-header.is-active-column {
@@ -1743,9 +1769,9 @@ body.is-file-dragging * {
 
 .board-add-card:hover,
 .board-add-card.is-dragging {
-  border-color: rgba(0, 255, 157, 0.35);
+  border-color: rgba(232, 163, 61, 0.35);
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.05);
+  background: rgba(232, 163, 61, 0.05);
 }
 
 .song-card {
@@ -1807,8 +1833,8 @@ html.light .song-card:hover {
 }
 
 .song-card.is-active {
-  border-color: rgba(0, 255, 157, 0.4);
-  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08), 0 2px 12px rgba(0, 0, 0, 0.2);
+  border-color: rgba(232, 163, 61, 0.4);
+  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.08), 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 .song-card.is-dragging {
@@ -1858,7 +1884,7 @@ html.light .song-card:hover {
 
 .drag-overlay-card {
   cursor: grabbing;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 157, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(232, 163, 61, 0.25);
   transform: rotate(1.5deg) scale(1.03);
   opacity: 0.96;
   pointer-events: none;
@@ -2029,13 +2055,13 @@ html.light .song-card:hover {
   flex-shrink: 0;
   transition: opacity 0.1s, transform 0.12s, box-shadow 0.12s;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,255,157,0.25);
+  box-shadow: 0 2px 8px rgba(232, 163, 61, 0.25);
 }
 
 .song-card-play:hover {
   opacity: 0.88;
   transform: scale(1.08);
-  box-shadow: 0 4px 14px rgba(0,255,157,0.35);
+  box-shadow: 0 4px 14px rgba(232, 163, 61, 0.35);
 }
 
 .song-card-play.is-playing {
@@ -2053,7 +2079,7 @@ html.light .song-card:hover {
 }
 
 .song-card-tag-idea { background: rgba(245, 166, 35, 0.15); color: var(--amber); }
-.song-card-tag-lyric { background: rgba(0, 255, 157, 0.12); color: var(--audio-mint); }
+.song-card-tag-lyric { background: rgba(232, 163, 61, 0.12); color: var(--audio-mint); }
 .song-card-tag-demo { background: rgba(100, 180, 255, 0.12); color: #64b4ff; }
 .song-card-tag-out { background: rgba(200, 255, 87, 0.12); color: var(--accent); }
 
@@ -2635,7 +2661,7 @@ html.light .interactive-waveform-bar.is-played {
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(0, 255, 157, 0.04);
+  background: rgba(232, 163, 61, 0.04);
 }
 
 .board-onboarding h3 {
@@ -2965,7 +2991,7 @@ html.light .song-card-tag-overflow {
 }
 
 .board-switcher-item.is-active {
-  background: rgba(0, 255, 157, 0.08);
+  background: rgba(232, 163, 61, 0.08);
 }
 
 .board-switcher-role {
@@ -2999,7 +3025,7 @@ html.light .song-card-tag-overflow {
 
 .sync-auth-btn--signed-in {
   color: var(--audio-mint);
-  border-color: rgba(0, 255, 157, 0.25);
+  border-color: rgba(232, 163, 61, 0.25);
 }
 
 .sync-auth-panel {
@@ -3379,7 +3405,7 @@ html.light .song-card-tag-overflow {
   transform: translateX(-50%);
   padding: 10px 16px;
   border-radius: 10px;
-  border: 1px solid rgba(0, 255, 157, 0.35);
+  border: 1px solid rgba(232, 163, 61, 0.35);
   background: rgba(12, 28, 22, 0.96);
   font-family: var(--font-sans);
   font-size: 0.72rem;
@@ -3757,8 +3783,8 @@ html.light .song-card-tag-overflow {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.1);
-  border: 1px solid rgba(0, 255, 157, 0.2);
+  background: rgba(232, 163, 61, 0.1);
+  border: 1px solid rgba(232, 163, 61, 0.2);
   padding: 4px 10px;
   border-radius: 100px;
   letter-spacing: 0.06em;
@@ -3786,7 +3812,7 @@ html.light .song-card-tag-overflow {
 }
 
 .scp-audio-item:hover {
-  border-color: rgba(0, 255, 157, 0.3);
+  border-color: rgba(232, 163, 61, 0.3);
   box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
@@ -3801,12 +3827,12 @@ html.light .song-card-tag-overflow {
   font-size: 0.62rem;
   color: var(--accent-on);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,255,157,0.25);
+  box-shadow: 0 2px 8px rgba(232, 163, 61, 0.25);
   transition: transform 0.1s, box-shadow 0.1s;
 }
 .scp-audio-item:hover .scp-play {
   transform: scale(1.06);
-  box-shadow: 0 3px 12px rgba(0,255,157,0.35);
+  box-shadow: 0 3px 12px rgba(232, 163, 61, 0.35);
 }
 
 .scp-play-muted {
@@ -3850,14 +3876,14 @@ html.light .song-card-tag-overflow {
   font-weight: 500;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 255, 157, 0.3);
-  background: rgba(0, 255, 157, 0.08);
+  border: 1px solid rgba(232, 163, 61, 0.3);
+  background: rgba(232, 163, 61, 0.08);
   color: var(--audio-mint);
   cursor: pointer;
 }
 
 .song-detail-action:hover {
-  background: rgba(0, 255, 157, 0.14);
+  background: rgba(232, 163, 61, 0.14);
 }
 
 .song-detail-section {
@@ -3932,7 +3958,7 @@ html.light .song-card-tag-overflow {
 }
 
 .song-detail-notes:focus {
-  border-color: rgba(0, 255, 157, 0.35);
+  border-color: rgba(232, 163, 61, 0.35);
   color: var(--text);
 }
 
@@ -4122,7 +4148,7 @@ html.light .project-switcher-panel {
   border-radius: 8px;
   transition: background 0.1s;
 }
-.project-switcher-add:hover { background: rgba(0,255,157,0.07); }
+.project-switcher-add:hover { background: rgba(232, 163, 61, 0.07); }
 
 .project-switcher-inline-form {
   display: flex;
@@ -4230,7 +4256,7 @@ html.light .project-switcher-panel {
 .listen-view-shuffle.is-active {
   border-color: var(--audio-mint);
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.08);
+  background: rgba(232, 163, 61, 0.08);
 }
 
 .listen-view-play-all {
@@ -4274,9 +4300,9 @@ html.light .project-switcher-panel {
 }
 
 .listen-view-row.is-active {
-  border-color: rgba(0, 255, 157, 0.4);
-  background: rgba(0, 255, 157, 0.04);
-  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08), 0 2px 8px rgba(0,0,0,0.12);
+  border-color: rgba(232, 163, 61, 0.4);
+  background: rgba(232, 163, 61, 0.04);
+  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.08), 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .listen-view-index {
@@ -4298,12 +4324,12 @@ html.light .project-switcher-panel {
   cursor: pointer;
   flex-shrink: 0;
   transition: opacity 0.1s, transform 0.1s, box-shadow 0.1s;
-  box-shadow: 0 2px 6px rgba(0,255,157,0.2);
+  box-shadow: 0 2px 6px rgba(232, 163, 61, 0.2);
 }
 .listen-view-play:hover {
   opacity: 0.88;
   transform: scale(1.08);
-  box-shadow: 0 3px 10px rgba(0,255,157,0.32);
+  box-shadow: 0 3px 10px rgba(232, 163, 61, 0.32);
 }
 
 .listen-view-meta {
@@ -4763,8 +4789,8 @@ html.light .project-switcher-panel {
 }
 
 .library-card-wrap.is-active .library-card {
-  border-color: rgba(0, 255, 157, 0.35);
-  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.08);
+  border-color: rgba(232, 163, 61, 0.35);
+  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.08);
 }
 
 .library-card-wrap.is-active .library-card.has-project-accent {
@@ -4954,7 +4980,7 @@ html.light .project-switcher-panel {
 }
 
 .version-compare-play.is-active {
-  border-color: rgba(0, 255, 157, 0.4);
+  border-color: rgba(232, 163, 61, 0.4);
   color: var(--audio-mint);
 }
 
@@ -4969,11 +4995,11 @@ html.light .project-switcher-panel {
 }
 
 .version-stack-item--current {
-  border-color: rgba(0, 255, 157, 0.12);
+  border-color: rgba(232, 163, 61, 0.12);
 }
 
 .version-stack-item--active {
-  border-color: rgba(0, 255, 157, 0.2);
+  border-color: rgba(232, 163, 61, 0.2);
 }
 
 .version-row {
@@ -5192,8 +5218,8 @@ html.light .version-menu-item--danger {
   font-size: 0.62rem;
   font-weight: 500;
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.08);
-  border: 1px solid rgba(0, 255, 157, 0.2);
+  background: rgba(232, 163, 61, 0.08);
+  border: 1px solid rgba(232, 163, 61, 0.2);
   border-radius: 999px;
   padding: 2px 8px;
 }
@@ -5222,8 +5248,8 @@ html.light .version-menu-item--danger {
 }
 
 .version-clip-tag-pick-btn {
-  background: rgba(0, 255, 157, 0.12);
-  border: 1px solid rgba(0, 255, 157, 0.35);
+  background: rgba(232, 163, 61, 0.12);
+  border: 1px solid rgba(232, 163, 61, 0.35);
   border-radius: 20px;
   color: var(--audio-mint);
   font-family: var(--font-sans);
@@ -5235,13 +5261,13 @@ html.light .version-menu-item--danger {
 }
 
 .version-clip-tag-pick-btn:hover {
-  background: rgba(0, 255, 157, 0.25);
+  background: rgba(232, 163, 61, 0.25);
 }
 
 .version-clip-tag-input {
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(0, 255, 157, 0.4);
+  border-bottom: 1px solid rgba(232, 163, 61, 0.4);
   color: var(--audio-mint);
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -5899,7 +5925,7 @@ html.light .version-menu-item--danger {
 }
 
 .onboarding-tour-next {
-  background: rgba(0, 255, 157, 0.12);
+  background: rgba(232, 163, 61, 0.12);
   border-color: var(--audio-mint-dim);
   color: var(--audio-mint);
 }
@@ -6063,10 +6089,12 @@ html.light .version-menu-item--danger {
 .column-play-btn.is-active {
   border-color: var(--audio-mint-dim);
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.08);
+  background: rgba(232, 163, 61, 0.08);
 }
 
 .column-play-btn:disabled {
+  /* Dim, never smaller. A smaller disabled variant changed the header height
+     between empty and non-empty columns. */
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -6102,7 +6130,7 @@ html.light .version-menu-item--danger {
 .player-loop-btn.is-active {
   border-color: var(--audio-mint-dim);
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.08);
+  background: rgba(232, 163, 61, 0.08);
 }
 
 .player-loop-label {
@@ -6144,7 +6172,7 @@ html.light .version-menu-item--danger {
 .board-select-toggle.is-active {
   border-color: var(--audio-mint-dim);
   color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.08);
+  background: rgba(232, 163, 61, 0.08);
 }
 
 .bulk-actions-bar {
@@ -6156,7 +6184,7 @@ html.light .version-menu-item--danger {
   padding: 10px 12px;
   border: 1px solid var(--audio-mint-dim);
   border-radius: 12px;
-  background: rgba(0, 255, 157, 0.06);
+  background: rgba(232, 163, 61, 0.06);
 }
 
 .bulk-actions-count {
@@ -6282,7 +6310,7 @@ html.light .version-menu-item--danger {
 
 .song-card.is-selected {
   border-color: var(--audio-mint);
-  box-shadow: 0 0 0 1px rgba(0, 255, 157, 0.25);
+  box-shadow: 0 0 0 1px rgba(232, 163, 61, 0.25);
 }
 
 .song-card-select {
@@ -6300,7 +6328,7 @@ html.light .version-menu-item--danger {
 
 .song-card-select.is-checked {
   border-color: var(--audio-mint);
-  background: rgba(0, 255, 157, 0.12);
+  background: rgba(232, 163, 61, 0.12);
 }
 
 /* Library search */
@@ -6514,7 +6542,7 @@ html.light .version-menu-item--danger {
 
 .player-queue-item.is-current {
   border-color: var(--audio-mint-dim);
-  background: rgba(0, 255, 157, 0.06);
+  background: rgba(232, 163, 61, 0.06);
   box-shadow: inset 3px 0 0 var(--audio-mint);
 }
 
@@ -6604,8 +6632,8 @@ html.light .version-menu-item--danger {
   gap: 4px;
   padding: 4px 8px;
   border-radius: 20px;
-  background: rgba(0, 255, 157, 0.12);
-  border: 1px solid rgba(0, 255, 157, 0.3);
+  background: rgba(232, 163, 61, 0.12);
+  border: 1px solid rgba(232, 163, 61, 0.3);
   color: var(--audio-mint);
   font-size: 0.7rem;
   cursor: pointer;
@@ -6613,7 +6641,7 @@ html.light .version-menu-item--danger {
 }
 
 .feedback-badge-btn:hover {
-  background: rgba(0, 255, 157, 0.2);
+  background: rgba(232, 163, 61, 0.2);
 }
 
 .feedback-badge-count {
@@ -7437,8 +7465,8 @@ html.light .version-stack-item--active .scp-audio-item {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1.5px rgba(0, 184, 107, 0.3);
 }
 .version-stack-item--active .scp-audio-item {
-  border-color: rgba(0, 255, 157, 0.3);
-  background: rgba(0, 255, 157, 0.04);
+  border-color: rgba(232, 163, 61, 0.3);
+  background: rgba(232, 163, 61, 0.04);
 }
 
 /* Audio item border-radius bump */
@@ -7861,7 +7889,7 @@ html.light .add-playlist-input { background: #f5f5f7; }
   cursor: pointer;
   transition: background 0.15s;
 }
-.playlists-new-btn:hover { background: rgba(0,255,157,0.08); }
+.playlists-new-btn:hover { background: rgba(232, 163, 61, 0.08); }
 .playlists-create-row {
   display: flex;
   gap: 6px;
@@ -7926,7 +7954,7 @@ html.light .add-playlist-input { background: #f5f5f7; }
 .playlists-row-icon {
   width: 44px;
   height: 44px;
-  background: rgba(0,255,157,0.12);
+  background: rgba(232, 163, 61, 0.12);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -8069,7 +8097,7 @@ html.light .playlists-row:hover {
   transition: background 0.1s;
 }
 .playlist-song-row:hover { background: var(--bg-3); }
-.playlist-song-row--active { background: rgba(0,255,157,0.05); }
+.playlist-song-row--active { background: rgba(232, 163, 61, 0.05); }
 .playlist-song-num {
   width: 24px;
   text-align: center;
@@ -8241,8 +8269,8 @@ html.light .listen-now-playing-inner {
   animation: npPlayGlow 2.4s ease-in-out infinite;
 }
 @keyframes npPlayGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,157,0); }
-  50%       { box-shadow: 0 0 0 6px rgba(0,255,157,0.18); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(232, 163, 61, 0.18); }
 }
 
 /* ── Listen mode tabs ────────────────────────────────────── */
@@ -8296,7 +8324,7 @@ html.light .listen-now-playing-inner {
 .listen-playlist-icon {
   width: 42px;
   height: 42px;
-  background: rgba(0,255,157,0.1);
+  background: rgba(232, 163, 61, 0.1);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -8417,3 +8445,56 @@ html.light .listen-playlist-row {
 }
 .listen-view-row:hover .listen-row-remove { opacity: 1; }
 .listen-row-remove:hover { color: #ff6b6b; }
+
+/* ─── Filtered-board mode (brief 02, job 01) ───
+   A filter is a mode and has to look like one. Without this, a filtered board
+   is visually identical to an empty one, which in an app holding unreleased
+   songs reads as data loss. */
+.board-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 16px 10px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+}
+
+.board-filter-bar-icon { color: var(--accent); font-size: 0.9rem; }
+.board-filter-bar-text strong { font-weight: 600; }
+
+.board-filter-bar-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.board-filter-bar-clear {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-on);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.board-filter-bar-clear:hover { background: var(--accent-hover); }
+
+.board-empty-hint--filtered {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+@media (max-width: 600px) {
+  .board-filter-bar { margin: 0 10px 8px; font-size: 0.75rem; }
+  .board-filter-bar-count { margin-left: 0; }
+}

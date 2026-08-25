@@ -2,6 +2,7 @@ import { memo, useRef, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { hasActiveBoardFilters } from '@/db/repositories/projectRepo'
 import { cn } from '@/lib/cn'
 import { getSongsByColumn, renameColumn } from '@/db/repositories/boardRepo'
 import { ColumnPlayButton } from '@/components/board/ColumnPlayButton'
@@ -96,6 +97,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
   const visibleSongs = songs?.slice(0, visibleCount) ?? []
   const hiddenCount = (songs?.length ?? 0) - visibleCount
   const isEmpty = songs !== undefined && songs.length === 0
+  const filtersActive = useLiveQuery(() => hasActiveBoardFilters(), [])
   const isLoading = songs === undefined
   const allSelected =
     songIds.length > 0 && songIds.every((songId) => selectedSongIds.includes(songId))
@@ -182,7 +184,12 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
           )}
 
           {isEmpty && column.slug !== 'inbox' && (
-            <div className="board-empty-hint">Drop audio or drag a song here</div>
+            // Under an active filter this is a filtered-out column, not an
+            // empty one. Telling someone to drop audio here when their songs
+            // are merely hidden is how "my work is gone" happens.
+            <div className={cn('board-empty-hint', filtersActive && 'board-empty-hint--filtered')}>
+              {filtersActive ? 'No matches in this section' : 'Drop audio or drag a song here'}
+            </div>
           )}
 
           {/* Always render a bottom drop zone so cards can be dropped into full columns */}
@@ -195,7 +202,14 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
 
           {column.slug === 'inbox' && !readOnly && (
             <>
-              {isEmpty && <MobileImportCard />}
+              {/* An empty Inbox under a filter is filtered, not empty, so the
+                  import prompt would be equally misleading here. */}
+              {isEmpty && filtersActive && (
+                <div className="board-empty-hint board-empty-hint--filtered">
+                  No matches in this section
+                </div>
+              )}
+              {isEmpty && !filtersActive && <MobileImportCard />}
               <AddMemoButton />
             </>
           )}
