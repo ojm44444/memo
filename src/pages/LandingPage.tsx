@@ -346,7 +346,7 @@ export function LandingPage() {
               </div>
               <div className="kanban-col">
                 <div className="col-header">Half Finished Songs <span className="col-count">2</span></div>
-                <div className="audio-card featured">
+                <div className="audio-card featured is-playing">
                   <div className="card-title">Poem</div>
                   <WaveBars playedFrac={0.45} />
                   <div className="card-meta">
@@ -373,7 +373,7 @@ export function LandingPage() {
                   <WaveBars playedFrac={0.8} />
                   <div className="card-meta">
                     <span className="card-time">3:33</span>
-                    <span className="card-tag tag-stack">TRACK</span>
+                    <span className="card-tag tag-done">RELEASED</span>
                   </div>
                   <div className="card-tags-row">
                     <span className="card-pill">Full idea</span>

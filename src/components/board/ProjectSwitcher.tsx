@@ -70,7 +70,9 @@ export function ProjectSwitcher({ readOnly = false }: ProjectSwitcherProps) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="listbox"
+        title="Switch project"
       >
+        <span className="switcher-kind">Project</span>
         {activeProjectId && (
           <span
             className="project-switcher-accent"

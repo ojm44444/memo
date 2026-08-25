@@ -28,7 +28,7 @@
 }
 
 .sign-in-logo span {
-  color: var(--audio-mint, #00ff9d);
+  color: var(--audio-mint);
 }
 
 .sign-in-title {
@@ -105,7 +105,7 @@
   padding: 12px 16px;
   border: none;
   border-radius: 8px;
-  background: var(--audio-mint, #00ff9d);
+  background: var(--audio-mint);
   color: #121214;
   font-family: var(--font-sans, 'Bricolage Grotesque', sans-serif);
   font-size: 0.9rem;
@@ -123,7 +123,7 @@
   font-family: var(--font-mono, 'DM Mono', monospace);
   font-size: 0.75rem;
   line-height: 1.5;
-  color: var(--audio-mint, #00ff9d);
+  color: var(--audio-mint);
 }
 
 .sign-in-secondary {

@@ -1,85 +1,101 @@
 /**
- * songdrafts palette.
+ * songdrafts identity — LOCKED (brief 03, 25 Aug 2026).
  *
- * Every value here is contrast-checked. If you change one, re-check it — the
- * ratios in the comments are measured, not aspirational.
+ * Songs start cold and deep, and surface into green as they finish.
+ * Blue is the room. Green is the meaning. Nothing is red.
  *
- * Two rules that are not style preferences:
+ * Standing rules that outrank later requests:
  *
- * 1. NEVER put --text on an --accent fill. Amber is a light colour; light text
- *    on it measures 1.88:1. Filled accent buttons take --accent-on (dark),
- *    which measures 8.67:1.
- * 2. --accent is NOT a state colour. Success, warning and danger are held
- *    separately below so that "done" can be green while the brand is amber.
+ * 1. ONE accent element per screen. The playing card, or the primary button,
+ *    never both loud. Idle play controls are muted outlines. (The old build's
+ *    24 mint discs is the failure this rule exists to prevent.)
+ * 2. Gradients are rationed to three surfaces: the playing card / player bar,
+ *    the share-page hero, and the landing hero. Never per-card covers.
+ * 3. The neon band is forbidden. Nothing in the #00ff9d / #1DB954 saturation
+ *    zone. For reference: the accent sits at saturation 0.46, Spotify at 0.73,
+ *    the old acid mint at 1.00.
+ * 4. Theme follows the OS. Dark is the identity, mist is the train.
+ * 5. Never put --text on an --accent fill (1.44:1). Use --accent-on (10.60:1).
+ *
+ * Ratios below are measured, not aspirational. Re-check if you change a value.
  */
 
 :root {
-  /* ── Dark: warm charcoal with a brown bias, not near-black.
-     Near-black + acid mint collided with song.so at favicon size, read as
-     Spotify in a music context, and is the default look of half of current
-     software. Amber is the world this product is actually about: VU meters,
-     tape saturation, the panel glow on a 4-track at 2am. ── */
-  --bg: #14120e;
-  --bg-2: #1c1915;
-  --bg-3: #26221b;
-  --surface: #302b22;
-  --border: rgba(245, 239, 228, 0.14);
+  /* Dark is primary. Slate water, never pure black. */
+  --bg: #16303b;
+  --bg-2: #1d3a46;
+  --bg-3: #1d3a46;
+  --surface: #254a57;
+  --border: rgba(238, 245, 242, 0.14);
 
-  --text: #f5efe4;        /* 16.35:1 on --bg */
-  --text-muted: #a99c86;  /*  6.94:1 on --bg, 5.21:1 on --surface */
+  --text: #eef5f2;        /* 12.49:1 on --bg */
+  --text-muted: #a3bab7;  /*  6.75:1 on --bg, never below 6:1 */
 
-  --accent: #e8a33d;      /*  8.67:1 on --bg */
-  --accent-hover: #f2b45a;
-  --accent-on: #14120e;   /*  8.67:1 ON the accent fill. Dark, deliberately. */
-  --accent-dim: rgba(232, 163, 61, 0.15);
-  --accent-glow: rgba(232, 163, 61, 0.1);
+  --accent: #9ddbad;      /*  8.66:1 on --bg */
+  --accent-hover: #b4e5c1;
+  --accent-on: #0e1f26;   /* 10.60:1 ON the accent fill */
+  --accent-dim: rgba(157, 219, 173, 0.15);
+  --accent-glow: rgba(157, 219, 173, 0.1);
 
-  /* Semantic, independent of the brand accent. 106° of hue between accent
-     and success, so "done" can never be confused with "branded". */
-  --success: #4ade80;     /* 10.74:1 on --bg */
-  --warning: #fb923c;     /*  8.27:1 */
-  --danger: #f87171;      /*  6.76:1 */
-  --on-semantic: #14120e; /* dark text on any filled semantic colour */
+  /* The ramp: cold to alive. Edges, header rules, counts, waveforms.
+     Never fills, never body text. */
+  --stage-inbox: #5ea7b8; /* 5.06:1 */
+  --stage-ideas: #65a396; /* 4.76:1 */
+  --stage-half: #8ac4a6;  /* 6.93:1 */
+  --stage-done: #c3e8bd;  /* 10.26:1 */
 
-  /* Audio waveform tokens track the accent. */
-  --audio-mint: #e8a33d;
-  --audio-mint-dim: rgba(232, 163, 61, 0.25);
-  --audio-mint-glow: rgba(232, 163, 61, 0.12);
+  /* Semantic, held apart from the accent. Nothing is red in the identity,
+     so danger is the one place red is permitted and it is used sparingly. */
+  --success: var(--stage-done);
+  --warning: #e0b877;
+  --danger: #e08585;
+  --on-semantic: #0e1f26;
+
+  /* Waveform ink tracks the accent. */
+  --audio-mint: #9ddbad;
+  --audio-mint-dim: rgba(157, 219, 173, 0.25);
+  --audio-mint-glow: rgba(157, 219, 173, 0.12);
 
   --font-serif: 'Instrument Serif', serif;
   --font-sans: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
 
+/* Mist. Lighter, not white. This is the outdoor/train mode. */
 html.light {
   color-scheme: light;
 
-  /* ── Light is the OUTDOOR mode, not a paper mode.
-     This app's own pitch is a tunnel, a plane, a field in Wales with one bar,
-     so light mode gets used in glare. The previous palette put every surface
-     within 1.08–1.36:1 of its neighbour, which flattens into one wash outside.
-     Fewer levels, bigger steps, real borders. ── */
-  --surface: #ffffff;     /* cards: pure white so they separate hardest */
-  --bg-2: #f2ede4;
-  --bg: #e4dccb;          /* page ground, deep enough that white cards pop */
-  --bg-3: #d3c8b2;        /* inset wells, inputs */
-  --border: #aea189;      /* solid, 1.86:1 — was 13% alpha at 1.25:1 */
+  --bg: #e6edec;
+  --bg-2: #d9e3e1;
+  --bg-3: #d9e3e1;
+  --surface: #f4f8f7;
+  --border: #a9bcb9;
 
-  --text: #17140e;        /* 18.38:1 on white, 13.47:1 on --bg */
-  --text-muted: #49453b;  /*  7.01:1 on --bg (was 4.84:1) */
+  --text: #132a30;        /* 12.62:1 on --bg */
+  --text-muted: #3d5a58;  /*  6.31:1 on --bg */
 
-  --accent: #875710;      /*  4.53:1 as text on --bg, 6.17:1 on white */
-  --accent-hover: #6d4609;
-  --accent-on: #ffffff;   /*  6.17:1 on the accent fill */
-  --accent-dim: rgba(135, 87, 16, 0.12);
-  --accent-glow: rgba(135, 87, 16, 0.08);
+  --accent: #17604a;      /*  6.30:1 on --bg */
+  --accent-hover: #114b3a;
+  --accent-on: #f4f8f7;   /*  6.98:1 on the accent fill */
+  --accent-dim: rgba(23, 96, 74, 0.12);
+  --accent-glow: rgba(23, 96, 74, 0.08);
 
-  --success: #147036;     /* 4.53:1 on --bg */
-  --warning: #9e4903;     /* 4.52:1 */
-  --danger: #c50a0a;      /* 4.50:1 */
-  --on-semantic: #ffffff;
+  /* Two of the specified light ramp values failed as text against the mist
+     ground, and the ramp is used for counts and header rules, which are text:
+       ideas #2a7a64 was 4.35:1, half #37835f was 3.87:1.
+     Nudged two points darker each, hue and saturation preserved, to clear
+     4.5:1. Reported back to the brand director. */
+  --stage-inbox: #25687a; /* 5.30:1 */
+  --stage-ideas: #297762; /* 4.52:1 (was #2a7a64, 4.35:1) */
+  --stage-half: #327756;  /* 4.53:1 (was #37835f, 3.87:1) */
+  --stage-done: #2e6b45;  /* 5.35:1 */
 
-  --audio-mint: #875710;
-  --audio-mint-dim: rgba(135, 87, 16, 0.22);
-  --audio-mint-glow: rgba(135, 87, 16, 0.1);
+  --success: var(--stage-done);
+  --warning: #8a5a12;
+  --danger: #a32b2b;
+  --on-semantic: #f4f8f7;
+
+  --audio-mint: #17604a;
+  --audio-mint-dim: rgba(23, 96, 74, 0.22);
+  --audio-mint-glow: rgba(23, 96, 74, 0.1);
 }

@@ -12,12 +12,18 @@ import type { ReactNode } from 'react'
 
 interface AppShellProps {
   children: ReactNode
+  /**
+   * The board is the page, not a widget on one. When it supplies its own
+   * single merged bar, the shell's header would be a second row of chrome
+   * costing ~60px of board height for no added function.
+   */
+  chromeless?: boolean
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, chromeless = false }: AppShellProps) {
   return (
-    <div className="app-shell">
-      <header className="app-header">
+    <div className={chromeless ? 'app-shell app-shell--chromeless' : 'app-shell'}>
+      {!chromeless && <header className="app-header">
         <Link to="/app" className="app-header-logo">
           s<span>o</span>ngdrafts
         </Link>
@@ -29,7 +35,7 @@ export function AppShell({ children }: AppShellProps) {
           <FeedbackBadge />
           <SyncStatusBadge />
         </div>
-      </header>
+      </header>}
       <OfflineGraceBanner />
       <CollaboratorBanner />
       <main className="app-main">{children}</main>

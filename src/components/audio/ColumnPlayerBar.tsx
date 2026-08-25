@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, memo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
@@ -15,28 +15,7 @@ import { PlayerLoopButton } from './PlayerLoopButton'
 import { PlayerQueueDrawer } from './PlayerQueueDrawer'
 import { InteractiveWaveform } from './InteractiveWaveform'
 import { getMarkersForVersion } from '@/db/repositories/markerRepo'
-
-function seedHue(seed: string, offset: number): number {
-  let h = 0
-  for (let i = 0; i < seed.length; i++) {
-    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0
-  }
-  return Math.abs((h + offset * 137) % 360)
-}
-
-const PlayerGradient = memo(function PlayerGradient({ songId }: { songId: string }) {
-  const h1 = seedHue(songId, 0)
-  const h2 = seedHue(songId, 1)
-  return (
-    <div
-      className="player-bar-thumb"
-      style={{
-        background: `radial-gradient(circle at 35% 40%, hsl(${h1},65%,55%), hsl(${h2},80%,30%))`,
-      }}
-      aria-hidden
-    />
-  )
-})
+import { WaveformThumb } from '@/components/audio/WaveformThumb'
 
 export function ColumnPlayerBar() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -448,8 +427,17 @@ export function ColumnPlayerBar() {
           )}
 
           <div className="player-bar-inner">
-            {/* Gradient thumbnail */}
-            <PlayerGradient songId={currentSongId!} />
+            {/* The song's own waveform in its stage colour, not a generated
+                gradient cover. Same renderer as the board card. */}
+            <WaveformThumb
+              versionId={currentVersionId}
+              localBlobId={version?.localBlobId ?? null}
+              storagePath={version?.storagePath ?? null}
+              columnSlug={displaySong?.columnSlug}
+              size={44}
+              bars={14}
+              className="player-bar-thumb"
+            />
 
             {/* Centre: title/meta + scrubber */}
             <div className="player-bar-center">

@@ -110,9 +110,9 @@ textarea {
 }
 
 .pwa-update-btn {
-  border: 1px solid var(--audio-mint, #00ff9d);
+  border: 1px solid var(--audio-mint);
   background: transparent;
-  color: var(--audio-mint, #00ff9d);
+  color: var(--audio-mint);
   border-radius: 999px;
   padding: 6px 14px;
   font-family: var(--font-mono);

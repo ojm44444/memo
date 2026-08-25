@@ -55,8 +55,14 @@ export function BoardSwitcher() {
         className="board-switcher-trigger"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-label={`Switch board. Current board: ${activeBoard.name}`}
+        title="Switch board"
       >
-        {activeBoard.name}
+        {/* A board and a project can share a name, which made these two
+            controls read as one control duplicated. The kind-label
+            disambiguates without renaming anyone's board. */}
+        <span className="switcher-kind">Board</span>
+        <span className="switcher-name">{activeBoard.name}</span>
       </button>
 
       {open && (

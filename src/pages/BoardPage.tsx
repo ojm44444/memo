@@ -1,3 +1,10 @@
+import { Link } from 'react-router-dom'
+import { InviteBandmateButton } from '@/components/board/InviteBandmateButton'
+import { SyncAuthButton } from '@/components/auth/SyncAuthButton'
+import { SyncStatusBadge } from '@/components/layout/SyncStatusBadge'
+import { FeedbackBadge } from '@/components/layout/FeedbackBadge'
+import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { ThemeToggle } from '@/components/board/ThemeToggle'
 import { useEffect, useState } from 'react'
 import { ensureSeeded } from '@/db/seed'
 import { AppShell } from '@/components/layout/AppShell'
@@ -129,7 +136,7 @@ function AuthenticatedBoard() {
   return (
     <>
       <FileDropLayer enabled={boardMode === 'manage' && !readOnly} />
-      <AppShell>
+      <AppShell chromeless>
         <div className="board-page">
           <div className="board-workspace">
             <BoardFrame>
@@ -137,8 +144,12 @@ function AuthenticatedBoard() {
                 {/* The macOS traffic lights belong on the landing-page mockup,
                     where they signal "this is a screenshot of an app". Inside
                     the real app they are a window drawn inside a window. */}
+                {/* Merged bar: the shell header used to sit above this,
+                    costing ~60px of board height to show a logo twice. */}
+                <Link to="/app" className="board-titlebar-logo">
+                  s<span>o</span>ngdrafts
+                </Link>
                 <BoardProjectAccent />
-                <span className="board-titlebar-text">songdrafts · songwriting board</span>
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
                   <BoardSearch />
@@ -151,6 +162,13 @@ function AuthenticatedBoard() {
                       <AddSectionButton />
                     </>
                   )}
+                  <span className="board-titlebar-spacer" />
+                  <InviteBandmateButton />
+                  <ThemeToggle />
+                  <SettingsPanel />
+                  <SyncAuthButton />
+                  <FeedbackBadge />
+                  <SyncStatusBadge />
                 </div>
               </div>
               {boardMode === 'listen' ? (

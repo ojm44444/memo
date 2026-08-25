@@ -5,28 +5,31 @@
 .landing *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Landing carries its own palette but must match the app identity:
-     warm charcoal ground, amber accent. See src/styles/tokens.css for the
-     measured contrast ratios. */
-  --bg: #14120e;
-  --bg2: #1c1915;
-  --bg3: #26221b;
-  --border: rgba(245,239,228,0.11);
-  --text: #f5efe4;
-  --muted: #a99c86;
-  --accent: #e8a33d;
-  --accent-hover: #f2b45a;
-  --accent-on: #14120e;
-  --accent-dim: rgba(232,163,61,0.13);
-  --accent-glow: rgba(232,163,61,0.08);
-  /* CTA stays warm bone: one accent, and the button should not shout amber
-     next to an amber headline. */
-  --cta: #f5efe4;
-  --cta-hover: #ffffff;
-  --amber: #e8a33d;
-  --amber-dim: rgba(232,163,61,0.12);
-  --warm-glow: rgba(232,163,61,0.06);
-  --card1: #221d16;
+  /* Landing carries its own palette and must match the locked app identity:
+     slate water ground, surfacing green. See src/styles/tokens.css. */
+  --bg: #16303b;
+  --bg2: #1d3a46;
+  --bg3: #254a57;
+  --border: rgba(238,245,242,0.13);
+  --text: #eef5f2;
+  --muted: #a3bab7;
+  --accent: #9ddbad;
+  --accent-hover: #b4e5c1;
+  --accent-on: #0e1f26;
+  --accent-dim: rgba(157,219,173,0.13);
+  --accent-glow: rgba(157,219,173,0.09);
+  /* Stage ramp, for the hero wash and the mockup. */
+  --stage-inbox: #5ea7b8;
+  --stage-ideas: #65a396;
+  --stage-half: #8ac4a6;
+  --stage-done: #c3e8bd;
+  /* CTA is the page's single accent element (rule 1). */
+  --cta: #9ddbad;
+  --cta-hover: #b4e5c1;
+  --amber: #9ddbad;
+  --amber-dim: rgba(157,219,173,0.12);
+  --warm-glow: rgba(94,167,184,0.10);
+  --card1: #254a57;
 }
 
 .landing {
@@ -49,7 +52,7 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
-  background: rgba(18,18,20,0.88);
+  background: rgba(22, 48, 59, 0.9);
   backdrop-filter: blur(12px);
 }
 
@@ -151,8 +154,10 @@ a.nav-cta {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse 60% 55% at 72% 38%, var(--accent-glow) 0%, transparent 65%),
-              radial-gradient(ellipse 50% 55% at 8% 65%, var(--warm-glow) 0%, transparent 65%);
+  /* Permitted gradient home #3: the landing hero. The ramp as a wash, cold
+     on the left surfacing to green on the right. */
+  background: radial-gradient(ellipse 70% 60% at 78% 32%, rgba(157,219,173,0.13) 0%, transparent 62%),
+              radial-gradient(ellipse 60% 60% at 6% 72%, rgba(94,167,184,0.12) 0%, transparent 62%);
   pointer-events: none;
 }
 
@@ -1491,7 +1496,7 @@ a.nav-cta {
     z-index: 99;
     display: flex;
     flex-direction: column;
-    background: rgba(20, 18, 14, 0.97);
+    background: rgba(22, 48, 59, 0.97);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 8px 20px 16px;
@@ -1578,3 +1583,31 @@ a.nav-cta {
 @media (max-width: 768px) {
   .landing section[id] { scroll-margin-top: 68px; }
 }
+
+/* ─── Identity lock: mockup on the ramp (brief 03) ─── */
+.kanban-col:nth-child(1) .col-header { border-bottom: 2px solid var(--stage-inbox); color: var(--stage-inbox); }
+.kanban-col:nth-child(2) .col-header { border-bottom: 2px solid var(--stage-ideas); color: var(--stage-ideas); }
+.kanban-col:nth-child(3) .col-header { border-bottom: 2px solid var(--stage-half);  color: var(--stage-half); }
+.kanban-col:nth-child(4) .col-header { border-bottom: 2px solid var(--stage-done);  color: var(--stage-done); }
+
+.kanban-col:nth-child(1) .audio-card { border-left: 3px solid color-mix(in srgb, var(--stage-inbox) 55%, transparent); }
+.kanban-col:nth-child(2) .audio-card { border-left: 3px solid color-mix(in srgb, var(--stage-ideas) 55%, transparent); }
+.kanban-col:nth-child(3) .audio-card { border-left: 3px solid color-mix(in srgb, var(--stage-half) 55%, transparent); }
+.kanban-col:nth-child(4) .audio-card { border-left: 3px solid color-mix(in srgb, var(--stage-done) 55%, transparent); }
+
+/* Rule 1: exactly one accent element. The playing card, and nothing else.
+   Permitted gradient home #1. */
+.audio-card.is-playing {
+  border-color: var(--accent) !important;
+  background: linear-gradient(160deg, rgba(157,219,173,0.12), var(--card1) 70%);
+  box-shadow: 0 0 0 1px rgba(157,219,173,0.25);
+}
+
+.tag-done { background: rgba(195,232,189,0.14); color: var(--stage-done); }
+
+/* Waveform ink follows the column's stage rather than one flat colour. */
+.kanban-col:nth-child(1) .wave-bar { background: color-mix(in srgb, var(--stage-inbox) 40%, transparent); }
+.kanban-col:nth-child(2) .wave-bar { background: color-mix(in srgb, var(--stage-ideas) 40%, transparent); }
+.kanban-col:nth-child(3) .wave-bar { background: color-mix(in srgb, var(--stage-half) 40%, transparent); }
+.kanban-col:nth-child(4) .wave-bar { background: color-mix(in srgb, var(--stage-done) 40%, transparent); }
+.audio-card.is-playing .wave-bar.played { background: var(--accent); }

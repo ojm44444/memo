@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { hasActiveBoardFilters } from '@/db/repositories/projectRepo'
+import { stageColorVar } from '@/lib/stageColor'
 import { cn } from '@/lib/cn'
 import { getSongsByColumn, renameColumn } from '@/db/repositories/boardRepo'
 import { ColumnPlayButton } from '@/components/board/ColumnPlayButton'
@@ -98,6 +99,8 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
   const hiddenCount = (songs?.length ?? 0) - visibleCount
   const isEmpty = songs !== undefined && songs.length === 0
   const filtersActive = useLiveQuery(() => hasActiveBoardFilters(), [])
+  // The ramp: this column's position in the cold-to-alive progression.
+  const stageInk = stageColorVar(column.slug)
   const isLoading = songs === undefined
   const allSelected =
     songIds.length > 0 && songIds.every((songId) => selectedSongIds.includes(songId))
@@ -106,11 +109,12 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
     <div
       ref={setNodeRef}
       data-column-slug={column.slug}
+      style={{ ['--stage-ink' as string]: stageInk }}
       className={cn('board-column', isOver && 'is-over')}
     >
       <div
         className={cn('board-column-header', isActiveColumn && 'is-active-column')}
-        style={headerAccentStyle}
+        style={{ ...headerAccentStyle, ['--stage-ink' as string]: stageInk }}
       >
         {renamingTitle ? (
           <input
