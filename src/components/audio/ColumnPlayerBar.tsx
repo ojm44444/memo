@@ -158,6 +158,32 @@ export function ColumnPlayerBar() {
         audioRef.current.src = url
       }
       setAudioUrl(url)
+
+      /**
+       * Actually start playing.
+       *
+       * This step was missing entirely: loadSource armed the source and then
+       * nothing called play(), so the first click on a card only selected the
+       * song and left the element on the silent unlock placeholder. The second
+       * click hit the player bar's own toggle, which is why playback "needed
+       * two clicks" for as long as anyone can remember.
+       *
+       * Fixing it here rather than in SongCard covers every entry point at
+       * once — card play, column Play, the Recent strip, playlists — because
+       * they all funnel through the store into this effect.
+       *
+       * isPlaying is read from the store rather than closed over, so this
+       * effect does not re-run (and re-load the source) on every pause.
+       */
+      if (usePlayerStore.getState().isPlaying) {
+        try {
+          await audioRef.current.play()
+        } catch {
+          // Autoplay refused (no gesture, or the tab is backgrounded). Reflect
+          // reality in the UI rather than showing a play state that is not real.
+          if (!cancelled) setPlaying(false)
+        }
+      }
     }
 
     void loadSource()

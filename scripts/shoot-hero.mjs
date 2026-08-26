@@ -31,8 +31,8 @@ const TARGET = 'http://localhost:5173/app?demo=1&shot=1'
 const OUT = resolve(root, 'public/hero-board.png')
 const PROFILE = resolve(root, 'node_modules/.cache/shot-profile')
 const PORT = 9222
-const WIDTH = 1400
-const HEIGHT = 880
+const WIDTH = 1500
+const HEIGHT = 900
 const SCALE = 2
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -140,16 +140,61 @@ async function shoot(ws) {
       returnByValue: true,
     })
     cards = r?.result?.value ?? 0
-    if (cards >= 8) break
+    if (cards >= 6) break
   }
-  if (cards < 8) {
+  if (cards < 6) {
     throw new Error(`Board only rendered ${cards} cards; refusing to ship a thin screenshot.`)
   }
 
   // Let waveforms finish decoding so no card shows the flat placeholder bed.
   await sleep(1500)
 
-  const { data } = await send('Page.captureScreenshot', { format: 'png' })
+  /**
+   * Tight crop to ~2.5 columns.
+   *
+   * The board needs a wide viewport to render real columns at all (below its
+   * breakpoint it collapses to a one-column tab layout, which reads as a list,
+   * not a board). So: render wide, then clip. 2.5 columns is deliberate — the
+   * half-column at the edge says "this continues" without shrinking the cards.
+   */
+  const rectRes = await send('Runtime.evaluate', {
+    expression: `(() => {
+      const cols = [...document.querySelectorAll('.board-column')];
+      if (cols.length < 3) return null;
+      // Anchor on the column holding the playing card so it is fully in frame,
+      // not sliced by the crop. The half-column at the right edge says "this
+      // continues" without shrinking the cards.
+      const playing = document.querySelector('.song-card.is-active, .song-card.is-playing');
+      let startIdx = 1;
+      if (playing) {
+        const owner = cols.findIndex(c => c.contains(playing));
+        if (owner > 0) startIdx = owner - 1;
+      }
+      startIdx = Math.min(startIdx, cols.length - 3);
+      const c0 = cols[startIdx].getBoundingClientRect();
+      const pitch = cols[startIdx + 1].getBoundingClientRect().left - c0.left;
+      const width = pitch * 2.5;
+      // Landscape. A tall crop leaves dead board under the cards and reads as
+      // a spreadsheet rather than a hero.
+      const height = Math.round(width * 0.60);
+      return JSON.stringify({
+        x: Math.max(0, c0.left - 20),
+        y: Math.max(0, c0.top - 12),
+        width,
+        height
+      });
+    })()`,
+    returnByValue: true,
+  })
+
+  const rect = rectRes?.result?.value ? JSON.parse(rectRes.result.value) : null
+  if (!rect) throw new Error('Could not measure the board columns to crop to.')
+
+  const { data } = await send('Page.captureScreenshot', {
+    format: 'png',
+    clip: { ...rect, scale: SCALE },
+    captureBeyondViewport: true,
+  })
   writeFileSync(OUT, Buffer.from(data, 'base64'))
   console.log(`Wrote ${OUT} (${cards} cards, ${WIDTH}x${HEIGHT} @${SCALE}x)`)
 }

@@ -109,7 +109,7 @@ const DEMO_SONGS: DemoSong[] = [
   { title: 'folky guitar thing', column: 'inbox', versions: [{ label: 'folky guitar thing', seconds: 6 }], daysAgo: 2 },
   { title: 'shower bridge??', column: 'inbox', versions: [{ label: 'shower bridge??', seconds: 5 }], daysAgo: 3 },
   {
-    title: 'somebody home',
+    title: 'car park chorus',
     column: 'ideas',
     versions: [{ label: 'first hum', seconds: 8 }, { label: 'with chords', seconds: 11 }],
     tags: ['riff'],
@@ -132,7 +132,7 @@ const DEMO_SONGS: DemoSong[] = [
     daysAgo: 25,
   },
   {
-    title: 'Wheelwrights',
+    title: 'M6 at midnight',
     column: 'half-finished',
     versions: [{ label: 'full run through', seconds: 16 }, { label: 'alt chorus', seconds: 9 }],
     key: 'D',
@@ -140,7 +140,7 @@ const DEMO_SONGS: DemoSong[] = [
     daysAgo: 31,
   },
   {
-    title: 'Midnight Call',
+    title: 'the kettle song',
     column: 'finished-demos',
     versions: [
       { label: 'phone demo', seconds: 8 },
@@ -154,15 +154,15 @@ const DEMO_SONGS: DemoSong[] = [
     daysAgo: 48,
   },
   {
-    title: 'Coming Up For Air',
+    title: 'verse for June',
     column: 'finished-demos',
     versions: [{ label: 'demo mix', seconds: 14 }, { label: 'vocal up', seconds: 14 }],
     key: 'G', bpm: 88,
     notes: 'Drums still programmed. Fine for now.',
     daysAgo: 54,
   },
-  { title: 'Strangers', column: 'released', versions: [{ label: 'master', seconds: 18 }], key: 'C', bpm: 116, daysAgo: 90 },
-  { title: 'Ninety Nine', column: 'released', versions: [{ label: 'master', seconds: 16 }], key: 'Em', bpm: 128, daysAgo: 140 },
+  { title: 'glasgow bridge', column: 'released', versions: [{ label: 'master', seconds: 18 }], key: 'C', bpm: 116, daysAgo: 90 },
+  { title: 'half a hook', column: 'released', versions: [{ label: 'master', seconds: 16 }], key: 'Em', bpm: 128, daysAgo: 140 },
 ]
 
 /** True once the demo board has been written (idempotent across reloads). */

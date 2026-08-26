@@ -69,3 +69,13 @@ as $$
 $$;
 
 grant execute on function public.my_storage_usage() to authenticated;
+
+-- Applied in production by the Brand Director. Postgres makes new functions
+-- executable by PUBLIC by default, which would have let anon call the two
+-- helpers directly. They exist only to serve the policy above and the
+-- authenticated read, so they are internal-only. my_storage_usage keeps its
+-- grant to authenticated (see above) because the client needs it for the
+-- near-full state.
+revoke all on function public.account_storage_bytes(uuid) from public, anon;
+revoke all on function public.account_within_storage_quota(uuid) from public, anon;
+revoke all on function public.my_storage_usage() from public, anon;

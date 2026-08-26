@@ -80,15 +80,16 @@ html.light {
   --accent-dim: rgba(23, 96, 74, 0.12);
   --accent-glow: rgba(23, 96, 74, 0.08);
 
-  /* Two of the specified light ramp values failed as text against the mist
-     ground, and the ramp is used for counts and header rules, which are text:
-       ideas #2a7a64 was 4.35:1, half #37835f was 3.87:1.
-     Nudged two points darker each, hue and saturation preserved, to clear
-     4.5:1. Reported back to the brand director. */
-  --stage-inbox: #25687a; /* 5.30:1 */
-  --stage-ideas: #297762; /* 4.52:1 (was #2a7a64, 4.35:1) */
-  --stage-half: #327756;  /* 4.53:1 (was #37835f, 3.87:1) */
-  --stage-done: #2e6b45;  /* 5.35:1 */
+  /* The light ramp has to separate on HUE, not lightness.
+     The previous four all sat at lightness 0.30-0.33 and read as one dark
+     teal: adjacent pairs were 1.00-1.18:1 apart, so the ramp carried no
+     information in mist at all. Hue steps were 29/13/8 degrees; they are now
+     27/42/54, walking cold blue -> teal -> green -> alive, and every value
+     still clears 4.5:1 on the mist ground. */
+  --stage-inbox: #2b6d8c; /* 4.82:1, hue 199 */
+  --stage-ideas: #12786b; /* 4.51:1, hue 172 */
+  --stage-half: #2f793c;  /* 4.51:1, hue 131 */
+  --stage-done: #597312;  /* 4.55:1, hue  76 */
 
   --success: var(--stage-done);
   --warning: #8a5a12;

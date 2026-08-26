@@ -1629,9 +1629,12 @@ body.is-file-dragging * {
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: normal;
-  hyphens: auto;
+  /* Break at word boundaries only. `overflow-wrap: anywhere` was splitting
+     INSPIRATION into "INSPIRATIO / N". A long word may overflow its box; that
+     is better than a word cut in half. */
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
   line-height: 1.25;
 }
 
@@ -1838,9 +1841,15 @@ html.light .song-card:hover {
   border-color: rgba(0,0,0,0.1);
 }
 
+/* The one accent element on the board: the card that is playing. A visible
+   celadon ring and lift, not a tint that reads olive against slate. The
+   stage-coloured left edge still shows through. */
 .song-card.is-active {
-  border-color: rgba(157, 219, 173, 0.4);
-  box-shadow: 0 0 0 1px rgba(157, 219, 173, 0.08), 0 2px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent-dim),
+    0 0 24px -6px var(--accent-glow),
+    0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .song-card.is-dragging {
@@ -6749,8 +6758,8 @@ html.light .app-header {
 }
 
 html.light .song-card.is-active {
-  border-color: rgba(0, 184, 107, 0.4);
-  box-shadow: 0 0 0 1px rgba(0, 184, 107, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim), 0 6px 18px rgba(62, 52, 33, 0.14);
 }
 
 html.light .drag-overlay-card {
@@ -6820,8 +6829,7 @@ html.light .song-card:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 html.light .song-card.is-active {
-  box-shadow: 0 0 0 2px var(--audio-mint), 0 4px 12px rgba(0,0,0,0.08);
-  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 18px rgba(62, 52, 33, 0.14);
 }
 html.light .drag-overlay-card {
   box-shadow: 0 16px 48px rgba(0,0,0,0.2), 0 0 0 2px var(--audio-mint);
@@ -8773,3 +8781,32 @@ html[data-shot='1'] .pwa-update-banner {
   }
   .player-bar-controls { gap: var(--s-1); }
 }
+
+/* ─── Waveform bars: one definition, token-driven ───
+   Replaces .waveform-bar-idle/.waveform-bar-played (10% white, a leftover from
+   the near-black era that is a ghost on slate) and the two Tailwind colour
+   utilities that were never registered and rendered nothing. */
+.wf-bar {
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(238, 245, 236, 0.26);
+}
+
+.wf-bar.is-played {
+  background: rgba(238, 245, 236, 0.55);
+}
+
+/* On the playing card the whole waveform takes the accent, so played vs
+   unplayed stays clearly distinct rather than one of them vanishing. */
+.wf-bar.is-active {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.wf-bar.is-active.is-played {
+  background: var(--accent);
+}
+
+html.light .wf-bar { background: rgba(19, 42, 48, 0.34); }
+html.light .wf-bar.is-played { background: rgba(19, 42, 48, 0.62); }
+html.light .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+html.light .wf-bar.is-active.is-played { background: var(--accent); }

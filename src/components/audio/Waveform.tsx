@@ -36,15 +36,18 @@ export function Waveform({
       {heights.map((height, index) => (
         <div
           key={index}
+          /**
+           * Real classes, not Tailwind colour utilities.
+           *
+           * This used bg-audio-mint / bg-audio-mint-dim, and neither was ever
+           * registered in the Tailwind theme, so the bars on a PLAYING card
+           * rendered with no background at all. Tokens in CSS cannot silently
+           * evaporate the way an unregistered utility class does.
+           */
           className={cn(
-            'flex-1 rounded-[2px]',
-            index < playedCount
-              ? active
-                ? 'bg-audio-mint'
-                : 'waveform-bar-played'
-              : active
-                ? 'bg-audio-mint-dim'
-                : 'waveform-bar-idle',
+            'wf-bar',
+            index < playedCount && 'is-played',
+            active && 'is-active',
           )}
           style={{ height: `${height}%` }}
         />
