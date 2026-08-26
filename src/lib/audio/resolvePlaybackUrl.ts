@@ -11,26 +11,6 @@ const signedUrlCache = new Map<string, string>()
 const signedUrlTimestamps = new Map<string, number>()
 const SIGNED_URL_TTL_MS = 55 * 60 * 1000
 
-/**
- * Warm the local blob into the object-URL cache without blocking playback.
- * Used when we chose to stream from cloud: the blob is still wanted, because
- * it is what makes the song playable on a plane.
- */
-function warmLocalBlob(localBlobId: string) {
-  if (localUrlCache.has(localBlobId)) return
-  void getAudioBlob(localBlobId).then((record) => {
-    if (!record || localUrlCache.has(localBlobId)) return
-    if (localUrlCache.size >= MAX_LOCAL_CACHE) {
-      const oldest = localUrlCache.keys().next().value
-      if (oldest) {
-        URL.revokeObjectURL(localUrlCache.get(oldest)!)
-        localUrlCache.delete(oldest)
-      }
-    }
-    localUrlCache.set(localBlobId, URL.createObjectURL(record.blob))
-  })
-}
-
 export async function resolvePlaybackUrl(
   localBlobId: string | null,
   storagePath: string | null,
@@ -42,35 +22,22 @@ export async function resolvePlaybackUrl(
   }
 
   /**
-   * Cold start on a long recording.
+   * Local blob first. Always.
    *
-   * Reading a blob out of IndexedDB pulls the WHOLE file into memory before
-   * playback can begin. On a 16-minute rehearsal that is tens of megabytes and
-   * seconds of delay on a phone. A signed cloud URL streams instead: the
-   * browser issues range requests and starts playing as soon as the first
-   * chunk lands.
+   * Brief 03 changed this to stream from cloud on the theory that reading a
+   * blob from IndexedDB "pulls the whole file into memory". That was wrong.
+   * Measured on a real 14.7 MB / 16-minute AAC file:
    *
-   * So when we are online and the file exists in the cloud, stream from cloud
-   * and warm the local blob behind playback. Offline, or with no cloud copy,
-   * the local blob is still the answer and still works.
+   *   IndexedDB read      ~1 ms      (Dexie returns a lazy Blob reference;
+   *                                   the bytes are never read into JS)
+   *   blob -> canplay     25 ms median, 69 ms worst
+   *   HTTP -> canplay     ~30 ms on localhost
+   *
+   * So the local path already beats the target by two orders of magnitude,
+   * and preferring the network swapped a constant 25 ms for something that
+   * depends on mobile signal. For a local-first app that is a straight
+   * downgrade on exactly the journeys this product is sold on. Reverted.
    */
-  if (localBlobId && storagePath && supabase && navigator.onLine) {
-    const cachedSigned = signedUrlCache.get(storagePath)
-    const cachedAt = signedUrlTimestamps.get(storagePath) ?? 0
-    if (cachedSigned && Date.now() - cachedAt < SIGNED_URL_TTL_MS) {
-      warmLocalBlob(localBlobId)
-      return cachedSigned
-    }
-    const { data } = await supabase.storage.from('audio').createSignedUrl(storagePath, 3600)
-    if (data?.signedUrl) {
-      signedUrlCache.set(storagePath, data.signedUrl)
-      signedUrlTimestamps.set(storagePath, Date.now())
-      warmLocalBlob(localBlobId)
-      return data.signedUrl
-    }
-    // Signing failed; fall through to the local blob.
-  }
-
   if (localBlobId) {
     const cached = localUrlCache.get(localBlobId)
     if (cached) return cached

@@ -9,6 +9,8 @@ import {
   getActiveTagFilter,
   getFavouritesOnlyFilter,
   getSongSortMode,
+  getKeyFilter,
+  getBpmRange,
   getTitleSearchFilter,
 } from './projectRepo'
 
@@ -22,17 +24,32 @@ type FilterContext = {
   favouritesOnly: boolean
   titleSearch: string | null
   sortMode: string
+  keyFilter: string | null
+  bpmMin: number | null
+  bpmMax: number | null
 }
 
 async function getFilterContext(): Promise<FilterContext> {
-  const [activeProjectId, activeTag, favouritesOnly, titleSearch, sortMode] = await Promise.all([
-    getActiveProjectScope(),
-    getActiveTagFilter(),
-    getFavouritesOnlyFilter(),
-    getTitleSearchFilter(),
-    getSongSortMode(),
-  ])
-  return { activeProjectId, activeTag, favouritesOnly, titleSearch, sortMode }
+  const [activeProjectId, activeTag, favouritesOnly, titleSearch, sortMode, keyFilter, bpm] =
+    await Promise.all([
+      getActiveProjectScope(),
+      getActiveTagFilter(),
+      getFavouritesOnlyFilter(),
+      getTitleSearchFilter(),
+      getSongSortMode(),
+      getKeyFilter(),
+      getBpmRange(),
+    ])
+  return {
+    activeProjectId,
+    activeTag,
+    favouritesOnly,
+    titleSearch,
+    sortMode,
+    keyFilter,
+    bpmMin: bpm.min,
+    bpmMax: bpm.max,
+  }
 }
 
 function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
@@ -40,6 +57,10 @@ function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
   if (ctx.activeTag && !(song.tags ?? []).includes(ctx.activeTag)) return false
   if (ctx.favouritesOnly && !song.isFavourite) return false
   if (ctx.titleSearch && !song.title.toLowerCase().includes(ctx.titleSearch.toLowerCase())) return false
+  // "Every idea in D at 92bpm" — the query the Reddit thread actually asked for.
+  if (ctx.keyFilter && song.musicalKey !== ctx.keyFilter) return false
+  if (ctx.bpmMin != null && (song.bpm == null || song.bpm < ctx.bpmMin)) return false
+  if (ctx.bpmMax != null && (song.bpm == null || song.bpm > ctx.bpmMax)) return false
   if (song.projectId && song.projectId !== ctx.activeProjectId) return false
   return true
 }
@@ -47,6 +68,24 @@ function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
 function sortSongsSync(songs: Song[], columnSlug: ColumnSlug | undefined, sortMode: string): Song[] {
   return [...songs].sort((a, b) => {
     if (sortMode === 'recent') return b.updatedAt.localeCompare(a.updatedAt)
+    // Songs without a key/BPM sort last rather than clumping at the top: an
+    // absent value is unknown, not zero.
+    if (sortMode === 'key') {
+      const ak = a.musicalKey, bk = b.musicalKey
+      if (ak !== bk) {
+        if (!ak) return 1
+        if (!bk) return -1
+        return ak.localeCompare(bk)
+      }
+    }
+    if (sortMode === 'bpm') {
+      const ab = a.bpm, bb = b.bpm
+      if (ab !== bb) {
+        if (ab == null) return 1
+        if (bb == null) return -1
+        return ab - bb
+      }
+    }
     if (columnSlug === 'inbox') {
       const ra = a.recordedAt ?? a.createdAt
       const rb = b.recordedAt ?? b.createdAt

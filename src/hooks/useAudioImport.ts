@@ -3,6 +3,7 @@ import { importAudioFiles } from '@/db/repositories/audioRepo'
 import { flush } from '@/sync/syncEngine'
 import { extractAudioFiles } from '@/lib/extract-audio-files'
 import { trackFirstImport } from '@/lib/analytics'
+import { requestStoragePersistence } from '@/lib/storagePersistence'
 import type { ColumnSlug } from '@/types/column'
 
 export type ImportFilesResult = {
@@ -32,6 +33,10 @@ export function useAudioImport(defaultColumn: ColumnSlug = 'inbox') {
         if (result.versions.length > 0) {
           // Activation moment, fired once per device.
           trackFirstImport(result.versions.length)
+          // Ask to be un-evictable now that there is something worth keeping.
+          // Requested on import rather than boot: browsers weight the decision
+          // on engagement, and this is the first moment the app has earned it.
+          void requestStoragePersistence()
           await flush()
         }
         setLastCount(result.versions.length)

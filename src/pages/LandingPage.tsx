@@ -75,7 +75,7 @@ const COMPARE_ROWS = [
   { feature: 'Recording quality and monitoring', songdrafts: 'partial', dubnote: true,     samply: false,    suonote: 'partial', tapeit: true },
   { feature: 'Presenting a finished mix to a client', songdrafts: 'partial', dubnote: false, samply: true,   suonote: false,     tapeit: 'partial' },
   { feature: 'Lyrics writing tools',            songdrafts: false,     dubnote: 'partial', samply: false,    suonote: true,      tapeit: false },
-  { feature: 'Price, per month, GBP',           songdrafts: '£7',      dubnote: '£1.60',   samply: '£7.40',  suonote: 'free',    tapeit: 'free' },
+  { feature: 'Price, per month, USD',           songdrafts: '$9',      dubnote: '$2',      samply: '$10',    suonote: 'free',    tapeit: 'free' },
 ] as const
 
 const STEPS = [
@@ -334,7 +334,7 @@ export function LandingPage() {
           <p className="hero-reassure">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
-          <p className="hero-trial-note">no card · no spam · just a nudge when it opens</p>
+          <p className="hero-trial-note">no spam · just a nudge when it opens</p>
         </div>
 
         <div className="hero-right">
@@ -444,9 +444,9 @@ export function LandingPage() {
       <section className="compare" id="compare">
         <div className="section-label">vs. everything else</div>
         <h2 className="section-h2">
-          Nothing else does
+          Voice Memos syncs your recordings.
           <br />
-          the whole thing.
+          songdrafts syncs your songwriting.
         </h2>
         <p className="section-sub">
           Tape.it records. Dubnote captures. Samply shares with clients. Suonote structures.
@@ -481,11 +481,11 @@ export function LandingPage() {
             </tbody>
           </table>
           <p className="compare-footnote">
-            Checked 25 August 2026 from each product's own pricing page, converted to GBP
-            per month at that day's rate for comparison: Dubnote bills $24.99/year, Samply
-            from $10/month. Suonote and Tape.it have free tiers with paid plans above them.
-            Rates move and features change, so check before you decide. We lose three rows
-            here and left them in.
+            Checked 25 August 2026 from each product's own pricing page, converted to USD
+            per month at that day's rate: Dubnote bills $24.99/year, Samply from $10/month.
+            Suonote and Tape.it have free tiers with paid plans above them. Rates move and
+            features change, so check before you decide. We lose three rows here and left
+            them in.
           </p>
         </div>
       </section>
@@ -550,31 +550,19 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        <h2 className="section-h2">One plan. Everything included.</h2>
+        <h2 className="section-h2">$9/month. Seven days free first — everything included.</h2>
         <p className="section-sub">
-          No tiers, no upsell, nothing held back for the expensive version. £7 a month
-          for all of it.
+          One plan, nothing held back: the board, sync across your devices, offline,
+          take-stacking, share links with timestamped comments. Cancel in one tap.
         </p>
-        <div className="pricing-single">
-          <div className="pricing-card pricing-card--featured pricing-card--solo">
-            <span className="pricing-tier">memo</span>
-            <p className="pricing-price">
-              £7 <span className="pricing-period">/ month</span>
-            </p>
-            <ul className="pricing-features">
-              <li>Unlimited songs &amp; version stacks</li>
-              <li>Sync across phone, Mac &amp; PC</li>
-              <li>Adjustable playback speed</li>
-              <li>Timestamped listener feedback</li>
-              <li>Invite bandmates &amp; co-writers</li>
-              <li>Works with no signal at all</li>
-            </ul>
-            <a href="#get-started" className="btn-primary pricing-cta">
-              Get early access
-            </a>
-            <p className="pricing-small">Early access. Be first to know when we open up.</p>
-            <p className="pricing-trust">Your music stays private · Cancel any time</p>
-          </div>
+        <div className="pricing-faq">
+          <h3 className="pricing-faq-q">What happens if I stop paying?</h3>
+          <p className="pricing-faq-a">
+            songdrafts locks — your music doesn't. Download everything in one zip any
+            time, even after you stop. We keep your cloud audio 60 days in case you come
+            back (30 for unfinished trials), and we email you twice before anything is
+            removed.
+          </p>
         </div>
       </section>
 

@@ -14,7 +14,7 @@ const ARCHIVED_PROJECTS_KEY = 'archivedProjectIds'
 const LAST_ACTIVE_PROJECT_KEY = 'lastActiveProjectId'
 const PROJECT_ACCENTS_KEY = 'projectAccentHues'
 
-export type SongSortMode = 'board' | 'recent'
+export type SongSortMode = 'board' | 'recent' | 'key' | 'bpm'
 const DEFAULT_NAME = 'My Project'
 
 export async function getProjectAccentMap(): Promise<Record<string, number>> {
@@ -180,14 +180,19 @@ export async function getTitleSearchFilter() {
  * seeing empty columns needs to know their work is filtered, not gone.
  */
 export async function getBoardFilterSummary() {
-  const [tag, favouritesOnly, titleSearch, projectId] = await Promise.all([
+  const [tag, favouritesOnly, titleSearch, projectId, keyFilter, bpm] = await Promise.all([
     getActiveTagFilter(),
     getFavouritesOnlyFilter(),
     getTitleSearchFilter(),
     getActiveProjectId(),
+    getKeyFilter(),
+    getBpmRange(),
   ])
+  const { min: bpmMin, max: bpmMax } = bpm
 
-  const active = Boolean(tag || favouritesOnly || titleSearch)
+  const active = Boolean(
+    tag || favouritesOnly || titleSearch || keyFilter || bpmMin != null || bpmMax != null,
+  )
   if (!active) return { active: false as const }
 
   const inProject = await db.songs
@@ -198,6 +203,9 @@ export async function getBoardFilterSummary() {
     if (tag && !(song.tags ?? []).includes(tag)) return false
     if (favouritesOnly && !song.isFavourite) return false
     if (titleSearch && !song.title.toLowerCase().includes(titleSearch.toLowerCase())) return false
+    if (keyFilter && song.musicalKey !== keyFilter) return false
+    if (bpmMin != null && (song.bpm == null || song.bpm < bpmMin)) return false
+    if (bpmMax != null && (song.bpm == null || song.bpm > bpmMax)) return false
     return true
   }).length
 
@@ -205,6 +213,12 @@ export async function getBoardFilterSummary() {
   if (titleSearch) parts.push(`"${titleSearch}"`)
   if (tag) parts.push(tag)
   if (favouritesOnly) parts.push('favourites')
+  if (keyFilter) parts.push(`key of ${keyFilter}`)
+  if (bpmMin != null || bpmMax != null) {
+    if (bpmMin != null && bpmMax != null) parts.push(`${bpmMin}-${bpmMax} bpm`)
+    else if (bpmMin != null) parts.push(`${bpmMin}+ bpm`)
+    else parts.push(`up to ${bpmMax} bpm`)
+  }
 
   return { active: true as const, parts, matched, total: inProject.length }
 }
@@ -213,11 +227,46 @@ export async function clearAllBoardFilters() {
   await db.syncMeta.delete(ACTIVE_TAG_KEY)
   await db.syncMeta.delete(FAVOURITES_ONLY_KEY)
   await db.syncMeta.delete(TITLE_SEARCH_KEY)
+  await db.syncMeta.delete(KEY_FILTER_KEY)
+  await db.syncMeta.delete(BPM_MIN_KEY)
+  await db.syncMeta.delete(BPM_MAX_KEY)
+}
+
+const KEY_FILTER_KEY = 'songKeyFilter'
+const BPM_MIN_KEY = 'songBpmMin'
+const BPM_MAX_KEY = 'songBpmMax'
+
+export async function getKeyFilter() {
+  return (await db.syncMeta.get(KEY_FILTER_KEY))?.value ?? null
+}
+
+export async function setKeyFilter(key: string | null) {
+  if (key) await db.syncMeta.put({ key: KEY_FILTER_KEY, value: key })
+  else await db.syncMeta.delete(KEY_FILTER_KEY)
+}
+
+export async function getBpmRange(): Promise<{ min: number | null; max: number | null }> {
+  const [min, max] = await Promise.all([
+    db.syncMeta.get(BPM_MIN_KEY),
+    db.syncMeta.get(BPM_MAX_KEY),
+  ])
+  return {
+    min: min?.value ? Number(min.value) : null,
+    max: max?.value ? Number(max.value) : null,
+  }
+}
+
+export async function setBpmRange(min: number | null, max: number | null) {
+  if (min != null) await db.syncMeta.put({ key: BPM_MIN_KEY, value: String(min) })
+  else await db.syncMeta.delete(BPM_MIN_KEY)
+  if (max != null) await db.syncMeta.put({ key: BPM_MAX_KEY, value: String(max) })
+  else await db.syncMeta.delete(BPM_MAX_KEY)
 }
 
 export async function getSongSortMode(): Promise<SongSortMode> {
   const meta = await db.syncMeta.get(SONG_SORT_KEY)
-  return meta?.value === 'recent' ? 'recent' : 'board'
+  const v = meta?.value
+  return v === 'recent' || v === 'key' || v === 'bpm' ? v : 'board'
 }
 
 export async function setSongSortMode(mode: SongSortMode) {
@@ -246,7 +295,8 @@ export async function hasActiveBoardFilters() {
     getFavouritesOnlyFilter(),
     getTitleSearchFilter(),
   ])
-  return Boolean(tag || favouritesOnly || titleSearch)
+  const [keyFilter, bpm] = await Promise.all([getKeyFilter(), getBpmRange()])
+  return Boolean(tag || favouritesOnly || titleSearch || keyFilter || bpm.min != null || bpm.max != null)
 }
 
 export async function setTitleSearchFilter(query: string) {

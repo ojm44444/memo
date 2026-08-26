@@ -46,7 +46,20 @@ export async function uploadAudioVersion(
       upsert: true,
     })
 
-  if (uploadError) throw uploadError
+  if (uploadError) {
+    // The quota policy (migration 017) refuses the insert at the database, so
+    // this surfaces as an RLS violation. Translate it into something true and
+    // actionable instead of leaking "new row violates row-level security".
+    const msg = String(uploadError.message ?? '')
+    if (/row-level security|violates|42501/i.test(msg)) {
+      throw new Error(
+        'Cloud storage is full, so this take stayed on your device. ' +
+          'Your music is safe and still plays here. Free up space by removing ' +
+          'old takes from the cloud, or export and delete what you no longer need.',
+      )
+    }
+    throw uploadError
+  }
 
   const { error: dbError } = await supabase.from('audio_versions').upsert({
     id: versionId,

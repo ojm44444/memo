@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { tagHueStyle } from '@/lib/tagColors'
+import { KeyBpmFilter } from '@/components/board/KeyBpmFilter'
 import {
   createProject,
   getActiveProjectId,
@@ -60,6 +61,7 @@ export function BoardFilters({ readOnly = false }: BoardFiltersProps) {
 
       {open && (
         <div className="board-filter-panel">
+          <KeyBpmFilter />
           {(projects?.length ?? 0) > 1 && (
             <label className="board-filter-group">
               <span className="board-filter-label">Project</span>
