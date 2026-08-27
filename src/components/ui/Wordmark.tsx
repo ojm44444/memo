@@ -19,11 +19,17 @@ export function WordmarkMark({ size = 20, className }: { size?: number; classNam
       className={cn('wordmark-mark', className)}
       aria-hidden
     >
-      <circle cx="500" cy="500" r="310" fill="#1b333d" />
-      <rect x="306.7" y="423.4" width="66.7" height="153.3" rx="33.3" fill="var(--stage-inbox)" />
-      <rect x="413.4" y="360.0" width="66.7" height="279.9" rx="33.3" fill="var(--stage-ideas)" />
-      <rect x="520.0" y="406.7" width="66.7" height="186.6" rx="33.3" fill="var(--stage-half)" />
-      <rect x="626.6" y="333.4" width="66.7" height="333.2" rx="33.3" fill="var(--stage-done)" />
+      {/*
+        The pack's #1b333d disc measures 11.14:1 on mist and 1.04:1 on the
+        slate nav — invisible on dark, so the mark read as floating bars in a
+        gap where the "o" should be. The disc is theme-aware here: it exists
+        to separate the bars from whatever is behind them.
+      */}
+      <circle cx="500" cy="500" r="310" fill="var(--mark-disc)" />
+      <rect x="306.7" y="423.4" width="66.7" height="153.3" rx="33.3" fill="var(--mark-bar-1)" />
+      <rect x="413.4" y="360.0" width="66.7" height="279.9" rx="33.3" fill="var(--mark-bar-2)" />
+      <rect x="520.0" y="406.7" width="66.7" height="186.6" rx="33.3" fill="var(--mark-bar-3)" />
+      <rect x="626.6" y="333.4" width="66.7" height="333.2" rx="33.3" fill="var(--mark-bar-4)" />
     </svg>
   )
 }

@@ -54,6 +54,25 @@ const FEATURES = [
   },
 ] as const
 
+/**
+ * Section divider drawn from the product's own graphic language: an oversized,
+ * quiet waveform. Brand-native rather than a stock shape, and decorative, so
+ * it is hidden from assistive tech.
+ */
+function WaveDivider({ flip = false }: { flip?: boolean }) {
+  // Fixed heights so the divider is identical on every render and never
+  // shifts layout between visits.
+  const bars = [18, 42, 30, 66, 24, 54, 36, 78, 28, 48, 34, 62, 22, 70, 40, 56,
+                26, 46, 32, 74, 20, 58, 38, 64, 30, 50, 44, 68, 24, 52]
+  return (
+    <div className={`wave-divider${flip ? ' is-flipped' : ''}`} aria-hidden>
+      {bars.map((h, i) => (
+        <span key={i} style={{ height: `${h}%` }} />
+      ))}
+    </div>
+  )
+}
+
 function Tick({ val }: { val: boolean | 'partial' | string }) {
   if (val === true) return <span className="tick tick--yes" aria-label="Yes">✓</span>
   if (val === false) return <span className="tick tick--no" aria-label="No">✕</span>
@@ -387,11 +406,24 @@ export function LandingPage() {
           That's the entire system — the board remembers so you don't have to.
         </p>
         <div className="howitworks-ramp">
-          <div className="ramp-step ramp-step--inbox"><span>Inbox</span></div>
-          <div className="ramp-step ramp-step--ideas"><span>Ideas</span></div>
-          <div className="ramp-step ramp-step--done"><span>Finished</span></div>
+          {[
+            ['inbox', 'Inbox', 'Everything lands here.'],
+            ['ideas', 'Ideas', 'Worth another listen.'],
+            ['half', 'Half finished', 'It has a shape now.'],
+            ['done', 'Finished', 'Send it to someone.'],
+          ].map(([key, title, sub]) => (
+            <div key={key} className={`ramp-step ramp-step--${key}`}>
+              <span className="ramp-step-bars" aria-hidden>
+                <i /><i /><i /><i />
+              </span>
+              <span className="ramp-step-title">{title}</span>
+              <span className="ramp-step-sub">{sub}</span>
+            </div>
+          ))}
         </div>
       </section>
+
+      <WaveDivider />
 
       {/* Merge, promoted out of the grid to a full-width band */}
       <section className="merge-band">
@@ -534,6 +566,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <WaveDivider flip />
 
       <section className="trust">
         <div className="trust-inner">

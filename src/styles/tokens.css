@@ -56,6 +56,16 @@
   --audio-mint-dim: rgba(157, 219, 173, 0.25);
   --audio-mint-glow: rgba(157, 219, 173, 0.12);
 
+  /* The mark, using the official pack's own two recipes rather than one
+     tinted disc. On dark grounds the pack uses a LIGHT disc with the dark
+     ramp on it (wordmark-paper); on mist it flips (wordmark-ink). A single
+     slate disc measured 1.04:1 on the slate nav, i.e. invisible. */
+  --mark-disc: #eef5f2;
+  --mark-bar-1: #0d6d80;
+  --mark-bar-2: #0e7361;
+  --mark-bar-3: #2a7449;
+  --mark-bar-4: #4d7526;
+
   --font-serif: 'Instrument Serif', serif;
   --font-sans: 'Bricolage Grotesque', sans-serif;
   --font-mono: 'DM Mono', monospace;
@@ -95,6 +105,12 @@ html.light {
   --warning: #8a5a12;
   --danger: #a32b2b;
   --on-semantic: #f4f8f7;
+
+  --mark-disc: #1b333d;
+  --mark-bar-1: #5ea7b8;
+  --mark-bar-2: #65a396;
+  --mark-bar-3: #8ac4a6;
+  --mark-bar-4: #c3e8bd;
 
   --audio-mint: #17604a;
   --audio-mint-dim: rgba(23, 96, 74, 0.22);

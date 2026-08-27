@@ -1846,3 +1846,146 @@ a.nav-cta {
   opacity: 0.18;
   user-select: none;
 }
+
+/* ═══ Brief 06: theatre ═══════════════════════════════════════════════
+   A landing page is theatre. The tool's one-accent restraint is a rule for
+   the tool; here we spend the colour system. Contrast is never the currency:
+   every text pair below stays WCAG-clean, and the theatre comes from colour
+   fields and graphics. */
+
+/* Chapters, not one long wash. Alternating grounds give the page rhythm. */
+.features        { background: var(--bg); }
+.howitworks      { background: var(--bg2); }
+.merge-band      { background: var(--bg); }
+.offline-section { background: var(--bg2); }
+.compare         { background: var(--bg); }
+.workflow        { background: var(--bg2); }
+.trust           { background: var(--bg); }
+.pricing         { background: var(--bg2); }
+.faq-section     { background: var(--bg); }
+
+/* Section eyebrows carry the ramp, so the colour story runs down the page. */
+.features .section-label        { color: var(--stage-inbox); }
+.howitworks .section-label      { color: var(--stage-ideas); }
+.compare .section-label         { color: var(--stage-half); }
+.workflow .section-label        { color: var(--stage-done); }
+.pricing .section-label         { color: var(--stage-ideas); }
+.faq-section .section-label     { color: var(--stage-inbox); }
+
+/* The hero wash: deep teal low-left surfacing to green up-right, glowing
+   behind the app frame. One of the three permitted gradient homes. */
+.hero::before {
+  background:
+    radial-gradient(ellipse 55% 50% at 82% 22%, rgba(157, 219, 173, 0.20) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 55% at 60% 40%, rgba(138, 196, 166, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 4% 88%, rgba(94, 167, 184, 0.20) 0%, transparent 62%);
+}
+
+/* ── The ramp made visible: four steps, cold to alive ── */
+.howitworks-ramp {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-3, 12px);
+  margin-top: 40px;
+}
+
+.ramp-step {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 20px;
+  border-radius: 12px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  border-top: 3px solid currentColor;
+}
+
+.ramp-step--inbox { color: var(--stage-inbox); }
+.ramp-step--ideas { color: var(--stage-ideas); }
+.ramp-step--half  { color: var(--stage-half); }
+.ramp-step--done  { color: var(--stage-done); }
+
+/* A little waveform per step, growing as the song does. */
+.ramp-step-bars { display: flex; align-items: flex-end; gap: 3px; height: 22px; }
+.ramp-step-bars i { width: 4px; border-radius: 2px; background: currentColor; opacity: 0.9; }
+.ramp-step--inbox .ramp-step-bars i:nth-child(1) { height: 34% }
+.ramp-step--inbox .ramp-step-bars i:nth-child(2) { height: 22% }
+.ramp-step--inbox .ramp-step-bars i:nth-child(3) { height: 40% }
+.ramp-step--inbox .ramp-step-bars i:nth-child(4) { height: 26% }
+.ramp-step--ideas .ramp-step-bars i:nth-child(1) { height: 52% }
+.ramp-step--ideas .ramp-step-bars i:nth-child(2) { height: 36% }
+.ramp-step--ideas .ramp-step-bars i:nth-child(3) { height: 62% }
+.ramp-step--ideas .ramp-step-bars i:nth-child(4) { height: 44% }
+.ramp-step--half  .ramp-step-bars i:nth-child(1) { height: 70% }
+.ramp-step--half  .ramp-step-bars i:nth-child(2) { height: 54% }
+.ramp-step--half  .ramp-step-bars i:nth-child(3) { height: 82% }
+.ramp-step--half  .ramp-step-bars i:nth-child(4) { height: 60% }
+.ramp-step--done  .ramp-step-bars i:nth-child(1) { height: 88% }
+.ramp-step--done  .ramp-step-bars i:nth-child(2) { height: 72% }
+.ramp-step--done  .ramp-step-bars i:nth-child(3) { height: 100% }
+.ramp-step--done  .ramp-step-bars i:nth-child(4) { height: 80% }
+
+/* Titles and body stay on --text/--muted: the colour is in the field and the
+   graphic, never in the reading text. */
+.ramp-step-title { color: var(--text); font-weight: 600; font-size: 1rem; }
+.ramp-step-sub   { color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
+
+/* ── Waveform section dividers ── */
+.wave-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 84px;
+  padding: 0 24px;
+  max-width: 1140px;
+  margin: 0 auto;
+  opacity: 0.16;
+}
+
+.wave-divider.is-flipped { transform: scaleX(-1); }
+
+.wave-divider span {
+  flex: 1;
+  max-width: 10px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--stage-done), var(--stage-inbox));
+}
+
+@media (max-width: 768px) {
+  .howitworks-ramp { grid-template-columns: repeat(2, 1fr); }
+  .wave-divider { height: 56px; gap: 3px; }
+}
+
+/* Motion 1 of 3: one living element. A celadon sweep travels across the hero
+   shot's playing card, reading as playback advancing. Done with a masked
+   overlay rather than by animating the screenshot, so the shot stays the real
+   product and the motion costs one compositor layer. */
+.hero-shot { position: relative; }
+
+.hero-shot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(157, 219, 173, 0.09) 42%,
+    rgba(157, 219, 173, 0.16) 50%,
+    rgba(157, 219, 173, 0.09) 58%,
+    transparent 100%
+  );
+  background-size: 260% 100%;
+  animation: hero-playhead 9s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes hero-playhead {
+  from { background-position: 120% 0; }
+  to   { background-position: -160% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-shot::after { animation: none; opacity: 0; }
+}
