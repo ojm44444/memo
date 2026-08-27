@@ -2136,3 +2136,107 @@ a.nav-cta {
   text-transform: uppercase;
   color: var(--muted);
 }
+
+.pricing-not-live {
+  margin-top: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-xs, 12px);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* ═══ Colour across the page (Owen: "could be way more exciting") ══════
+   The alternating bg/bg2 grounds measured 1.07:1 — invisible. Chapters now
+   get real stage-tinted washes, and the components inside carry their hue.
+   Text stays on --text/--muted throughout; the colour is in fields, rules,
+   icons and glows. */
+
+.features {
+  background:
+    radial-gradient(ellipse 70% 55% at 12% 0%, color-mix(in srgb, var(--stage-inbox) 14%, transparent), transparent 62%),
+    var(--bg);
+}
+.howitworks {
+  background:
+    radial-gradient(ellipse 72% 60% at 88% 8%, color-mix(in srgb, var(--stage-ideas) 15%, transparent), transparent 64%),
+    var(--bg2);
+}
+.merge-band {
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 110%, color-mix(in srgb, var(--stage-half) 16%, transparent), transparent 66%),
+    var(--bg);
+}
+.offline-section {
+  background:
+    radial-gradient(ellipse 68% 58% at 10% 100%, color-mix(in srgb, var(--stage-inbox) 15%, transparent), transparent 62%),
+    var(--bg2);
+}
+.compare {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--stage-half) 10%, transparent), transparent 60%),
+    var(--bg);
+}
+.workflow {
+  background:
+    radial-gradient(ellipse 75% 62% at 92% 100%, color-mix(in srgb, var(--stage-done) 14%, transparent), transparent 64%),
+    var(--bg2);
+}
+.trust {
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 115%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
+    var(--bg);
+}
+.pricing {
+  background:
+    radial-gradient(ellipse 64% 52% at 50% -8%, color-mix(in srgb, var(--stage-done) 12%, transparent), transparent 60%),
+    var(--bg2);
+}
+
+/* Feature cards walk the ramp: each gets its stage hue on icon + top rule. */
+.features-grid .feature-card { position: relative; border-top: 3px solid transparent; transition: transform 150ms ease-out, background 150ms ease-out; }
+.features-grid .feature-card:hover { transform: translateY(-2px); }
+.features-grid .feature-card:nth-child(6n+1) { border-top-color: var(--stage-inbox); }
+.features-grid .feature-card:nth-child(6n+2) { border-top-color: var(--stage-ideas); }
+.features-grid .feature-card:nth-child(6n+3) { border-top-color: var(--stage-half); }
+.features-grid .feature-card:nth-child(6n+4) { border-top-color: var(--stage-done); }
+.features-grid .feature-card:nth-child(6n+5) { border-top-color: var(--stage-ideas); }
+.features-grid .feature-card:nth-child(6n+6) { border-top-color: var(--accent); }
+.features-grid .feature-card:nth-child(6n+1) .feature-icon { color: var(--stage-inbox); background: color-mix(in srgb, var(--stage-inbox) 14%, transparent); border-color: color-mix(in srgb, var(--stage-inbox) 35%, transparent); }
+.features-grid .feature-card:nth-child(6n+2) .feature-icon { color: var(--stage-ideas); background: color-mix(in srgb, var(--stage-ideas) 14%, transparent); border-color: color-mix(in srgb, var(--stage-ideas) 35%, transparent); }
+.features-grid .feature-card:nth-child(6n+3) .feature-icon { color: var(--stage-half); background: color-mix(in srgb, var(--stage-half) 14%, transparent); border-color: color-mix(in srgb, var(--stage-half) 35%, transparent); }
+.features-grid .feature-card:nth-child(6n+4) .feature-icon { color: var(--stage-done); background: color-mix(in srgb, var(--stage-done) 14%, transparent); border-color: color-mix(in srgb, var(--stage-done) 35%, transparent); }
+.features-grid .feature-card:nth-child(6n+5) .feature-icon { color: var(--stage-ideas); background: color-mix(in srgb, var(--stage-ideas) 14%, transparent); border-color: color-mix(in srgb, var(--stage-ideas) 35%, transparent); }
+.features-grid .feature-card:nth-child(6n+6) .feature-icon { color: var(--accent); background: var(--accent-dim); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.feature-icon { font-size: 1.3rem; width: 48px; height: 48px; }
+
+/* Ramp steps: turn the volume up, add the glow. */
+.ramp-step {
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, currentColor 30%, transparent),
+              0 12px 32px -18px currentColor;
+}
+.ramp-step-bars i { box-shadow: 0 0 12px color-mix(in srgb, currentColor 55%, transparent); }
+
+/* Offline: the signal card joins the identity instead of a grey ghost. */
+.signal-card {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background:
+    radial-gradient(ellipse 90% 70% at 50% -20%, var(--accent-dim), transparent 65%),
+    var(--card1);
+  box-shadow: 0 24px 60px -30px var(--accent);
+}
+.signal-bar { background: var(--stage-inbox); border-radius: 3px; }
+.signal-bars .signal-bar:nth-child(2) { background: var(--stage-ideas); }
+.signal-bars .signal-bar:nth-child(3) { background: var(--stage-half); }
+.signal-bars .signal-bar:nth-child(4) { background: var(--stage-done); }
+
+/* Compare: the wordmark column header was stacking vertically. */
+.compare-logo { display: inline-flex; align-items: center; white-space: nowrap; }
+.compare-col--memo { background: color-mix(in srgb, var(--accent) 7%, transparent); border-bottom-color: var(--accent); }
+
+/* Nav lockup: tighten the mark into the o-gap. */
+.logo .wordmark-mark, .wordmark-mark { vertical-align: -0.12em; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .features-grid .feature-card:hover { transform: none; }
+}

@@ -332,12 +332,12 @@ export function LandingPage() {
           </h1>
           <p className="hero-sub">
             You've got 400 voice memos called "New Recording 47". Somewhere in there
-            are three good songs. songdrafts is a board for your music — drag a song
-            right as it gets better, and actually finish it.
+            is the single. songdrafts is a board for your music — drag a song right
+            as it gets better, and actually finish it.
           </p>
           <WaitlistForm className="hero-form" />
           <p className="hero-trial-note">
-            Keep recording in Voice Memos. songdrafts is what happens next. · no spam
+            Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
         </div>
 
@@ -411,8 +411,9 @@ export function LandingPage() {
         <div className="merge-band-inner">
           <h2 className="section-h2">Two half-songs make one whole one.</h2>
           <p>
-            The chorus from March fits the verse from last week. Drag one onto the other —
-            takes, tags and all. Fire and Rain was three fragments once.
+            The chorus from March fits the verse from last week. Drag one card onto the
+            other and they become one song — takes, tags, comments, all of it. And when
+            you need the idea in D at 92bpm, filter for exactly that.
           </p>
         </div>
       </section>
@@ -440,15 +441,15 @@ export function LandingPage() {
           <div className="offline-visual">
             <div className="signal-card">
               <div className="signal-bars">
-                <div className="signal-bar" style={{ height: '30%', opacity: 0.2 }} />
-                <div className="signal-bar" style={{ height: '50%', opacity: 0.2 }} />
-                <div className="signal-bar" style={{ height: '70%', opacity: 0.2 }} />
-                <div className="signal-bar" style={{ height: '100%', opacity: 0.2 }} />
+                <div className="signal-bar" style={{ height: '30%' }} />
+                <div className="signal-bar" style={{ height: '50%' }} />
+                <div className="signal-bar" style={{ height: '70%' }} />
+                <div className="signal-bar" style={{ height: '100%' }} />
               </div>
               <span className="signal-label">No signal</span>
               <div className="signal-status">
                 <span className="signal-dot" />
-                memo still works
+                songdrafts still works
               </div>
             </div>
           </div>
@@ -538,7 +539,7 @@ export function LandingPage() {
       <section className="trust">
         <div className="trust-inner">
           <h2 className="section-h2">Your music is yours.</h2>
-          <p className="trust-lead">Boringly, legally, actually.</p>
+          <p className="trust-lead">Not a promise in the small print. How it is built.</p>
           <ul className="trust-list">
             <li>On your device by default.</li>
             <li>Synced encrypted only if you sign in.</li>
@@ -551,10 +552,13 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        <h2 className="section-h2">$9/month. Seven days free first — everything included.</h2>
+        <h2 className="section-h2">$9/month. Your first week is <em>$1.</em></h2>
         <p className="section-sub">
-          One plan, nothing held back: the board, sync across your devices, offline,
+          Everything included, one plan: the board, sync across your devices, offline,
           take-stacking, share links with timestamped comments. Cancel in one tap.
+        </p>
+        <p className="pricing-not-live">
+          Not open yet. The waitlist above is the door — no payment details exist here to give.
         </p>
         <div className="pricing-faq">
           <h3 className="pricing-faq-q">What happens if I stop paying?</h3>

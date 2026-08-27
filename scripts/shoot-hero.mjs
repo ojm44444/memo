@@ -170,13 +170,13 @@ async function shoot(ws) {
         const owner = cols.findIndex(c => c.contains(playing));
         if (owner > 0) startIdx = owner - 1;
       }
-      startIdx = Math.min(startIdx, cols.length - 3);
+      startIdx = Math.min(startIdx, cols.length - 4);
       const c0 = cols[startIdx].getBoundingClientRect();
       const pitch = cols[startIdx + 1].getBoundingClientRect().left - c0.left;
-      const width = pitch * 2.5;
+      const width = pitch * 3.5;
       // Landscape. A tall crop leaves dead board under the cards and reads as
       // a spreadsheet rather than a hero.
-      const height = Math.round(width * 0.60);
+      const height = Math.round(width * 0.56);
       return JSON.stringify({
         x: Math.max(0, c0.left - 20),
         y: Math.max(0, c0.top - 12),
