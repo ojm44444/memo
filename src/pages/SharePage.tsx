@@ -14,6 +14,7 @@ import {
   type ShareListenComment,
 } from '@/db/repositories/shareRepo'
 import { supabaseConfigured } from '@/lib/supabase/client'
+import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
 import { WordmarkMark } from '@/components/ui/Wordmark'
 
@@ -33,6 +34,7 @@ export function SharePage() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [versionLabel, setVersionLabel] = useState('')
+  const [columnSlug, setColumnSlug] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [allowDownload, setAllowDownload] = useState(false)
@@ -65,6 +67,7 @@ export function SharePage() {
       const payload = await getSongShareListen(token, pwd)
       setTitle(payload.song_title)
       setVersionLabel(payload.version_label)
+      setColumnSlug((payload as { column_slug?: string }).column_slug ?? null)
       setDurationMs(payload.duration_ms)
       setAllowDownload(payload.allow_download)
       setComments(payload.comments ?? [])
@@ -199,16 +202,16 @@ export function SharePage() {
         <Link to="/" className="share-logo">
           s<WordmarkMark />ngdrafts
         </Link>
-        <span className="share-badge">Demo listen</span>
+        <span className="share-badge">a demo, shared from the board</span>
       </header>
 
       <main className="share-main">
-        {loading && <p className="share-muted">Loading demo…</p>}
+        {loading && <p className="share-muted">Finding the take…</p>}
 
         {needsPassword && !loading && (
           <div className="share-password-card">
-            <h1>Password required</h1>
-            <p className="share-muted">Enter the password shared with you.</p>
+            <h1>This one is locked.</h1>
+            <p className="share-muted">Whoever sent it gave you a password. Type it in and press play.</p>
             <input
               type="password"
               className="share-password-input"
@@ -227,7 +230,7 @@ export function SharePage() {
         {error && <p className="share-error">{error}</p>}
 
         {!loading && !needsPassword && !error && audioUrl && (
-          <div className="share-player-card">
+          <div className="share-player-card" style={{ ['--stage-ink' as string]: stageColorVar(columnSlug) }}>
             <h1 className="share-title">{title}</h1>
             <p className="share-version">{versionLabel}</p>
 

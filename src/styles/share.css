@@ -270,3 +270,97 @@
   resize: vertical;
   font-family: inherit;
 }
+
+/* ═══ Share page: the outsider surface (Brand Director queue #1) ═══
+   The acceptance test: blur the text and nobody could mistake this for a
+   Samply link. Samply's share is a neat client-review card; ours is the song
+   itself — a poster title in the serif, the waveform as the hero in the
+   song's stage colour, comments as pinned notes along it. */
+
+.share-player-card,
+.share-password-card {
+  max-width: 720px;
+  padding: 40px 36px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--accent)) 30%, transparent);
+  border-top: 3px solid var(--stage-ink, var(--accent));
+  /* Permitted gradient home #2: the share hero. */
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 12%, transparent) 0%, transparent 60%),
+    var(--surface);
+}
+
+.share-title {
+  font-family: var(--font-serif);
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.share-version {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stage-ink, var(--text-muted));
+  margin-bottom: 24px;
+}
+
+/* The waveform is the hero: tall, inked in the song's stage colour. */
+.share-waveform {
+  margin: 20px 0 8px;
+}
+
+.share-waveform .interactive-waveform-bar {
+  background: color-mix(in srgb, var(--stage-ink, var(--accent)) 34%, transparent);
+  max-width: 5px;
+  border-radius: 2px;
+}
+
+.share-waveform .interactive-waveform-bar.is-played {
+  background: var(--stage-ink, var(--accent));
+}
+
+.share-waveform.is-active .interactive-waveform-bar.is-played {
+  background: var(--accent);
+}
+
+.share-play {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-on);
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.share-badge {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* Comments read as notes pinned to moments, timestamps in the stage ink. */
+.share-comment-time {
+  font-family: var(--font-mono);
+  background: color-mix(in srgb, var(--stage-ink, var(--accent)) 14%, transparent);
+  color: var(--stage-ink, var(--accent));
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.share-comment-item {
+  border-left: 2px solid color-mix(in srgb, var(--stage-ink, var(--accent)) 45%, transparent);
+  padding-left: 14px;
+}
+
+@media (max-width: 600px) {
+  .share-player-card, .share-password-card { padding: 28px 20px; }
+}
