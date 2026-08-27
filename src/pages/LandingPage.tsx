@@ -340,37 +340,34 @@ export function LandingPage() {
       )}
 
       <section className="hero">
-        <div className="hero-left">
+        <div className="hero-stage">
           <h1 className="hero-h1">
-            Stop losing ideas.
-            {' '}<em>Start finishing songs.</em>
+            Stop losing <em>ideas.</em>
+            <br />
+            Start finishing <em>songs.</em>
           </h1>
           <p className="hero-sub">
-            You've got 400 voice memos called "New Recording 47". Somewhere in there are
-            three good songs. songdrafts is a board for your music — drag a song right as
-            it gets better, and actually finish it.
+            You've got 400 voice memos called "New Recording 47". Somewhere in there
+            are three good songs. songdrafts is a board for your music — drag a song
+            right as it gets better, and actually finish it.
           </p>
-          <WaitlistForm />
-          <p className="hero-reassure">
-            Keep recording in Voice Memos. songdrafts is what happens next.
+          <WaitlistForm className="hero-form" />
+          <p className="hero-trial-note">
+            Keep recording in Voice Memos. songdrafts is what happens next. · no spam
           </p>
-          <p className="hero-trial-note">no spam · just a nudge when it opens</p>
         </div>
 
-        <div className="hero-right">
-          {/* A real screenshot of the real app, re-shot by scripts/shoot-hero.mjs
-              on every visual release. This was a hand-drawn mockup of an
-              interface that no longer existed. */}
-          <div className="hero-shot">
-            <img
-              src="/hero-board.png"
-              width={1400}
-              height={880}
-              alt="The songdrafts board: five columns from Inbox to Released, eleven songs with waveforms, one playing."
-              loading="eager"
-              decoding="async"
-            />
-          </div>
+        {/* The real app, full width, the second beat of the page. Re-shot by
+            scripts/shoot-hero.mjs on every visual release. */}
+        <div className="hero-shot">
+          <img
+            src="/hero-board.png"
+            width={1446}
+            height={868}
+            alt="The songdrafts board: columns from Inbox to Released, songs with waveforms, one playing."
+            loading="eager"
+            decoding="async"
+          />
         </div>
       </section>
 
