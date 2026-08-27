@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
-import { WordmarkLockup, WordmarkMark } from '@/components/ui/Wordmark'
+import { Wordmark, WordmarkLockup } from '@/components/ui/Wordmark'
 
 
 const FEATURES = [
@@ -268,7 +268,7 @@ export function LandingPage() {
     <div className="landing">
       <nav>
         <div className="logo">
-          s<WordmarkMark />ngdrafts
+          <Wordmark />
         </div>
         <ul className="nav-links">
           <li><a href="#features">Features</a></li>
@@ -474,7 +474,7 @@ export function LandingPage() {
               <tr>
                 <th />
                 <th className="compare-col compare-col--memo">
-                  <span className="compare-logo">s<WordmarkMark />ngdrafts</span>
+                  <span className="compare-logo"><Wordmark /></span>
                 </th>
                 <th className="compare-col">Tape.it</th>
                 <th className="compare-col">Dubnote</th>

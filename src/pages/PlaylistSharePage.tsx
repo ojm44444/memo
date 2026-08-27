@@ -10,7 +10,7 @@ import {
 import { supabaseConfigured } from '@/lib/supabase/client'
 import '@/styles/share.css'
 import '@/styles/playlist-share.css'
-import { WordmarkMark } from '@/components/ui/Wordmark'
+import { Wordmark } from '@/components/ui/Wordmark'
 
 type TrackState = {
   song: PlaylistShareSong
@@ -126,7 +126,7 @@ export function PlaylistSharePage() {
   return (
     <div className="share-page">
       <header className="share-header">
-        <Link to="/" className="share-logo">s<WordmarkMark />ngdrafts</Link>
+        <Link to="/" className="share-logo"><Wordmark /></Link>
         <span className="share-badge">Playlist</span>
       </header>
 

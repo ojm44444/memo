@@ -9,7 +9,7 @@ import { KeyboardShortcutsHelp } from '@/components/board/KeyboardShortcutsHelp'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { ThemeToggle } from '@/components/board/ThemeToggle'
 import type { ReactNode } from 'react'
-import { WordmarkMark } from '@/components/ui/Wordmark'
+import { Wordmark } from '@/components/ui/Wordmark'
 
 interface AppShellProps {
   children: ReactNode
@@ -26,7 +26,7 @@ export function AppShell({ children, chromeless = false }: AppShellProps) {
     <div className={chromeless ? 'app-shell app-shell--chromeless' : 'app-shell'}>
       {!chromeless && <header className="app-header">
         <Link to="/app" className="app-header-logo">
-          s<WordmarkMark />ngdrafts
+          <Wordmark />
         </Link>
         <div className="app-header-actions">
           <InviteBandmateButton />

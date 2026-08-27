@@ -8873,3 +8873,24 @@ html.light .board-column-header {
   font-size: var(--t-xs);
   cursor: pointer;
 }
+
+/* ─── The wordmark is one image, never rebuilt from text ─── */
+
+/* ─── Waveforms take their column's stage colour (app + hero) ───
+   The board read as a monochrome grey grid on slate: the one place the ramp
+   should be loudest was the one place it was absent. The playing card keeps
+   the accent alone (rule 1). --stage-ink is set per column. */
+.board-column .wf-bar {
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 40%, transparent);
+}
+.board-column .wf-bar.is-played {
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 72%, transparent);
+}
+.board-column .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 34%, transparent); }
+.board-column .wf-bar.is-active.is-played { background: var(--accent); }
+
+/* Light mode: the stage colouring must still win over the neutral light bars above. */
+html.light .board-column .wf-bar { background: color-mix(in srgb, var(--stage-ink, var(--text)) 46%, transparent); }
+html.light .board-column .wf-bar.is-played { background: color-mix(in srgb, var(--stage-ink, var(--text)) 78%, transparent); }
+html.light .board-column .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+html.light .board-column .wf-bar.is-active.is-played { background: var(--accent); }

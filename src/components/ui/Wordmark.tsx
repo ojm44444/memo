@@ -35,12 +35,26 @@ export function WordmarkMark({ size = 20, className }: { size?: number; classNam
 }
 
 /**
- * Full lockup for hero-scale moments, from the official pack.
+ * THE wordmark, everywhere. One image from the pack, never rebuilt from text.
  *
- * The letterforms are paths, not live text, so the wordmark never depends on
- * Instrument Serif having loaded and never reflows. Use this where the mark is
- * the subject; use the inline `s<WordmarkMark />ngdrafts` treatment in bars and
- * headers where it sits alongside UI text.
+ * The live-text reconstruction (s<mark/>ngdrafts) rendered as three pieces
+ * with gaps: an inline SVG carries its own advance width plus whitespace, and
+ * its size is set independently of the font, so it can never match the o's
+ * x-height. The pack ships outlined paths precisely so spacing and disc size
+ * are baked in and cannot drift. Theme-aware: paper letterforms on dark
+ * grounds, ink on light, both rendered and toggled in CSS.
+ */
+export function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={cn('wordmark-img', className)}>
+      <img src="/brand/wordmark-paper.svg" alt="songdrafts" className="wm-on-dark" decoding="async" />
+      <img src="/brand/wordmark-ink.svg" alt="" aria-hidden className="wm-on-light" decoding="async" />
+    </span>
+  )
+}
+
+/**
+ * Hero-scale lockup (footer sign-off etc.), explicit tone.
  */
 export function WordmarkLockup({
   className,

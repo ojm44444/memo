@@ -4,7 +4,7 @@ import { resolveBoardAuth } from '@/lib/auth/session'
 import { supabase, supabaseConfigured } from '@/lib/supabase/client'
 import '@/styles/globals.css'
 import '@/styles/sign-in.css'
-import { WordmarkMark } from '@/components/ui/Wordmark'
+import { Wordmark } from '@/components/ui/Wordmark'
 
 export function SignInPage() {
   const navigate = useNavigate()
@@ -51,7 +51,7 @@ export function SignInPage() {
       <div className="sign-in-page">
         <div className="sign-in-card">
           <h1>
-            s<WordmarkMark />ngdrafts
+            <Wordmark />
           </h1>
           <p>Cloud sync isn&apos;t configured on this deployment.</p>
           <p className="sign-in-muted">Sign-in is required to use your board.</p>
@@ -105,7 +105,7 @@ export function SignInPage() {
     <div className="sign-in-page">
       <div className="sign-in-card">
         <Link to="/" className="sign-in-logo">
-          s<WordmarkMark />ngdrafts
+          <Wordmark />
         </Link>
         <h2 className="sign-in-title">Sign in to your board</h2>
         <p className="sign-in-sub">

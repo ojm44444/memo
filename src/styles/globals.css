@@ -153,3 +153,10 @@ textarea {
   font-size: 0.72rem;
   cursor: pointer;
 }
+
+/* Wordmark: one image from the pack, theme-toggled. Never rebuilt from text. */
+.wordmark-img { display: inline-flex; align-items: center; line-height: 0; }
+.wordmark-img img { height: 22px; width: auto; display: block; }
+.wordmark-img .wm-on-light { display: none; }
+html.light .wordmark-img .wm-on-dark { display: none; }
+html.light .wordmark-img .wm-on-light { display: block; }

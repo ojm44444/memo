@@ -16,7 +16,7 @@ import {
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
-import { WordmarkMark } from '@/components/ui/Wordmark'
+import { Wordmark } from '@/components/ui/Wordmark'
 
 const AUTHOR_KEY = 'memo-share-author'
 
@@ -200,7 +200,7 @@ export function SharePage() {
     <div className="share-page">
       <header className="share-header">
         <Link to="/" className="share-logo">
-          s<WordmarkMark />ngdrafts
+          <Wordmark />
         </Link>
         <span className="share-badge">a demo, shared from the board</span>
       </header>
