@@ -2109,3 +2109,30 @@ a.nav-cta {
   .hero-shot { margin-top: 40px; }
   .hero-right { display: block !important; padding: 0 !important; }
 }
+
+/* The workflow visual is the voice, not a fake UI card. */
+.workflow-quote {
+  align-self: center;
+  padding: 40px 36px;
+  border-radius: var(--r-md, 12px);
+  border-left: 3px solid var(--stage-done);
+  background: color-mix(in srgb, var(--stage-done) 7%, transparent);
+}
+
+.workflow-quote-text {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.workflow-quote-text em { color: var(--accent); font-style: italic; }
+
+.workflow-quote-sub {
+  margin-top: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-xs, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

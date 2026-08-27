@@ -25,9 +25,12 @@ const PORT = 9223
 // apple-touch-icon has no rounding of its own: iOS masks it, and a rounded
 // source inside that mask leaves pale corners.
 const TARGETS = [
-  { src: 'icon.svg', out: 'pwa-192x192.png', size: 192 },
-  { src: 'icon.svg', out: 'pwa-512x512.png', size: 512 },
-  { src: 'icon.svg', out: 'apple-touch-icon.png', size: 180 },
+  { src: 'icon.svg', out: 'pwa-192x192.png', w: 192, h: 192 },
+  { src: 'icon.svg', out: 'pwa-512x512.png', w: 512, h: 512 },
+  { src: 'icon.svg', out: 'apple-touch-icon.png', w: 180, h: 180 },
+  // Link previews (og:image / twitter:image). A square app icon in a
+  // 1200x630 slot is what WhatsApp/iMessage were showing before.
+  { src: 'wordmark-on-block.svg', out: 'og-card.png', w: 1200, h: 630, pad: 0.14 },
 ]
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -90,16 +93,19 @@ try {
   const send = rpc(await connect())
   await send('Page.enable')
 
-  for (const { src, out, size } of TARGETS) {
+  for (const { src, out, w, h, pad = 0 } of TARGETS) {
     const svg = readFileSync(resolve(root, 'public/brand', src), 'utf8')
-    // Transparent page so the icon's own shape defines the edges.
+    // Non-square targets sit centred on the slate ground with padding; square
+    // icons fill the frame (their own shape defines the edges).
+    const inner = `display:flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;` +
+      (pad ? `background:#16303b;padding:${Math.round(w * pad)}px;box-sizing:border-box;` : '')
     const html = `<html><body style="margin:0;background:transparent">
-      <div style="width:${size}px;height:${size}px">${svg.replace(/width="\d+"|height="\d+"/g, '')}</div>
+      <div style="${inner}">${svg.replace(/^(<svg[^>]*?)\s+width="[\d.]+"\s+height="[\d.]+"/, '$1')}</div>
     </body></html>`
 
     await send('Emulation.setDeviceMetricsOverride', {
-      width: size,
-      height: size,
+      width: w,
+      height: h,
       deviceScaleFactor: 1,
       mobile: false,
     })
@@ -108,7 +114,7 @@ try {
 
     const { data } = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true })
     writeFileSync(resolve(root, 'public', out), Buffer.from(data, 'base64'))
-    console.log(`  ${out}  ${size}x${size}`)
+    console.log(`  ${out}  ${w}x${h}`)
   }
 } finally {
   chrome.kill()

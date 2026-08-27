@@ -4,22 +4,6 @@ import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
 import { WordmarkLockup, WordmarkMark } from '@/components/ui/Wordmark'
 
-const WAVE_HEIGHTS = [42, 68, 55, 82, 38, 71, 48, 90, 35, 64, 52, 78, 44, 86, 58, 72, 40, 66, 50, 84, 36, 74, 46, 80, 54, 70]
-
-function WaveBars({ playedFrac = 0, count = 26 }: { playedFrac?: number; count?: number }) {
-  const played = Math.floor(count * playedFrac)
-  return (
-    <div className="waveform">
-      {WAVE_HEIGHTS.slice(0, count).map((height, i) => (
-        <div
-          key={i}
-          className={`wave-bar${i < played ? ' played' : ''}`}
-          style={{ height: `${height}%` }}
-        />
-      ))}
-    </div>
-  )
-}
 
 const FEATURES = [
   {
@@ -539,27 +523,12 @@ export function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="song-card-preview">
-            <div className="scp-header">
-              <span className="scp-title">Midnight Call</span>
-              <span className="scp-status">3 versions</span>
-            </div>
-            <div className="scp-body">
-              <div className="scp-audio-item">
-                <div className="scp-play">▶</div>
-                <WaveBars count={20} playedFrac={0.35} />
-                <span className="scp-dur">4:18</span>
-              </div>
-              <div className="scp-audio-item scp-audio-item--dim">
-                <div className="scp-play scp-play--dim">▶</div>
-                <WaveBars count={20} playedFrac={0} />
-                <span className="scp-dur">3:02</span>
-              </div>
-              <span className="scp-label">Version stack · 2× speed</span>
-              <div className="scp-notes">
-                Hummed on the walk home. Listened back properly on Tuesday. Producer had it by Friday.
-              </div>
-            </div>
+          <div className="workflow-quote">
+            <p className="workflow-quote-text">
+              Hummed on the walk home. Listened back <em>properly</em> on Tuesday.
+              Producer had it by <em>Friday.</em>
+            </p>
+            <p className="workflow-quote-sub">That is the whole product.</p>
           </div>
         </div>
       </section>

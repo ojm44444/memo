@@ -14,11 +14,21 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const seed = readFileSync(resolve(root, 'src/db/devSeed.ts'), 'utf8')
+// The landing page is MORE public than the seed, and a real title survived
+// there after the seed was cleaned. Guard both.
+const seed =
+  readFileSync(resolve(root, 'src/db/devSeed.ts'), 'utf8') +
+  readFileSync(resolve(root, 'src/pages/LandingPage.tsx'), 'utf8')
 
 const titles = [...seed.matchAll(/title: '([^']*)'/g)].map((m) => m[1])
 
 const failures = []
+
+// Known real names as plain page text, not just as seed titles — this is how
+// "Midnight Call" survived on the landing page after the seed was cleaned.
+for (const real of ['Midnight Call', 'Wheelwrights', 'Ninety Nine', 'Coming Up For Air']) {
+  if (seed.includes(real)) failures.push(`"${real}" appears as page text`)
+}
 
 // UK address-like: a house number followed by a street-type word.
 const ADDRESS = /\b\d+\s+\w+|(?:street|road|lane|avenue|way|close|drive|court|terrace|crescent|wheelwrights)\b/i
