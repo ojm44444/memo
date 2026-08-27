@@ -15,6 +15,7 @@ import {
 } from '@/db/repositories/shareRepo'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import '@/styles/share.css'
+import { WordmarkMark } from '@/components/ui/Wordmark'
 
 const AUTHOR_KEY = 'memo-share-author'
 
@@ -196,7 +197,7 @@ export function SharePage() {
     <div className="share-page">
       <header className="share-header">
         <Link to="/" className="share-logo">
-          s<span>o</span>ngdrafts
+          s<WordmarkMark />ngdrafts
         </Link>
         <span className="share-badge">Demo listen</span>
       </header>

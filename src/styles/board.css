@@ -1289,8 +1289,9 @@ body.is-file-dragging * {
 }
 
 .sync-status-badge--ok {
-  color: var(--text-muted);
-  background: var(--bg-3);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .sync-status-badge--warn {
@@ -1799,7 +1800,7 @@ body.is-file-dragging * {
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 html.light .song-card {
-  box-shadow: 0 1px 3px rgba(62,52,33,0.1), 0 4px 14px rgba(62,52,33,0.07);
+  box-shadow: 0 1px 3px rgba(28, 42, 40,0.1), 0 4px 14px rgba(28, 42, 40,0.07);
 }
 
 .song-card:active {
@@ -1976,7 +1977,9 @@ html.light .song-card:hover {
 }
 
 .song-favourite-btn.is-active {
-  color: var(--amber);
+  /* Was --amber, the last survivor of the warm identity. A favourite is a
+     positive mark, so it belongs to the accent family. */
+  color: var(--accent);
 }
 
 .song-favourite-btn:hover {
@@ -2421,11 +2424,11 @@ html.light .player-bar {
 }
 
 html.light .interactive-waveform-bar {
-  background: rgba(62, 52, 33, 0.38);
+  background: rgba(28, 42, 40, 0.38);
 }
 
 html.light .interactive-waveform-bar.is-played {
-  background: rgba(62, 52, 33, 0.66);
+  background: rgba(28, 42, 40, 0.66);
 }
 
 .interactive-waveform-skeleton {
@@ -2787,8 +2790,8 @@ html.light .song-card-tag-pill {
 }
 
 html.light .song-card-tag-overflow {
-  background: rgba(62,52,33,0.08) !important;
-  color: rgba(62,52,33,0.55) !important;
+  background: rgba(28, 42, 40,0.08) !important;
+  color: rgba(28, 42, 40,0.55) !important;
 }
 
 .song-tags-editor {
@@ -5101,7 +5104,7 @@ html.light .project-switcher-panel {
 }
 
 html.light .version-menu {
-  box-shadow: 0 12px 32px rgba(62, 52, 33, 0.18);
+  box-shadow: 0 12px 32px rgba(28, 42, 40, 0.18);
 }
 
 .version-menu-item {
@@ -6748,8 +6751,8 @@ html.light .version-menu-item--danger {
 /* Waveform bars — theme-aware */
 .waveform-bar-idle { background: rgba(255, 255, 255, 0.1); }
 .waveform-bar-played { background: rgba(255, 255, 255, 0.35); }
-html.light .waveform-bar-idle { background: rgba(62, 52, 33, 0.38); }
-html.light .waveform-bar-played { background: rgba(62, 52, 33, 0.66); }
+html.light .waveform-bar-idle { background: rgba(28, 42, 40, 0.38); }
+html.light .waveform-bar-played { background: rgba(28, 42, 40, 0.66); }
 
 /* Light mode component overrides */
 html.light .app-header {
@@ -6759,11 +6762,11 @@ html.light .app-header {
 
 html.light .song-card.is-active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-dim), 0 6px 18px rgba(62, 52, 33, 0.14);
+  box-shadow: 0 0 0 2px var(--accent-dim), 0 6px 18px rgba(28, 42, 40, 0.14);
 }
 
 html.light .drag-overlay-card {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 184, 107, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(23, 96, 74, 0.3);
 }
 
 html.light .board-drop-overlay.is-active {
@@ -6772,7 +6775,7 @@ html.light .board-drop-overlay.is-active {
 
 html.light .board-drop-banner {
   background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 184, 107, 0.25);
+  border-color: rgba(23, 96, 74, 0.25);
 }
 
 html.light .column-player-bar {
@@ -6795,9 +6798,9 @@ html.light .board-tag-chip {
   box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 45%, 35%, 0.18);
 }
 html.light .board-tag-chip:not([style]) {
-  background: rgba(62,52,33,0.06);
+  background: rgba(28, 42, 40,0.06);
   color: var(--text-muted);
-  box-shadow: inset 0 0 0 1px rgba(62,52,33,0.12);
+  box-shadow: inset 0 0 0 1px rgba(28, 42, 40,0.12);
 }
 html.light .board-tag-chip.is-active[style] {
   background: hsla(var(--tag-h, 150), 50%, 38%, 0.2);
@@ -6825,11 +6828,11 @@ html.light .song-card {
 }
 html.light .song-card:hover {
   border-color: rgba(0, 0, 0, 0.18);
-  border-left-color: rgba(0, 184, 107, 0.35);
+  border-left-color: rgba(23, 96, 74, 0.35);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 html.light .song-card.is-active {
-  box-shadow: 0 0 0 2px var(--accent), 0 6px 18px rgba(62, 52, 33, 0.14);
+  box-shadow: 0 0 0 2px var(--accent), 0 6px 18px rgba(28, 42, 40, 0.14);
 }
 html.light .drag-overlay-card {
   box-shadow: 0 16px 48px rgba(0,0,0,0.2), 0 0 0 2px var(--audio-mint);
@@ -6838,8 +6841,8 @@ html.light .drag-overlay-card {
 /* Light mode: metadata chips on white cards — quiet neutral, not bg-3 beige */
 html.light .song-card-meta-pill,
 html.light .song-card-merge {
-  background: rgba(62,52,33,0.05);
-  border-color: rgba(62,52,33,0.1);
+  background: rgba(28, 42, 40,0.05);
+  border-color: rgba(28, 42, 40,0.1);
   color: var(--text-muted);
 }
 
@@ -6858,7 +6861,7 @@ html.light .board-scroll {
 html.light .pwa-update-banner {
   background: #e8f5ee;
   color: #1a4d2e;
-  border-color: rgba(0,184,107,0.3);
+  border-color: rgba(23, 96, 74,0.3);
 }
 
 /* ─── Light mode: remaining hardcoded-white fixes ─── */
@@ -6920,7 +6923,7 @@ html.light .merge-picker-column-select {
   background: var(--surface);
 }
 html.light .merge-picker-search:focus {
-  border-color: rgba(0, 184, 107, 0.45);
+  border-color: rgba(23, 96, 74, 0.45);
 }
 
 /* Song drawer modal shadow */
@@ -6931,8 +6934,8 @@ html.light .song-drawer {
 /* Board column drop highlight — keep visible in light */
 html.light .board-column.is-over,
 html.light .board-column.is-file-drop {
-  background: rgba(0, 184, 107, 0.06);
-  outline-color: rgba(0, 184, 107, 0.3);
+  background: rgba(23, 96, 74, 0.06);
+  outline-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Version stack action row */
@@ -6963,35 +6966,35 @@ html.light .scp-audio-item {
 }
 
 html.light .scp-audio-item:hover {
-  border-color: rgba(0, 184, 107, 0.35);
+  border-color: rgba(23, 96, 74, 0.35);
   box-shadow: 0 4px 16px rgba(0,0,0,0.09);
 }
 
 /* Active version stack item border */
 html.light .version-stack-item--active {
-  border-color: rgba(0, 184, 107, 0.3);
+  border-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Version clip tags: use light-mode mint */
 html.light .version-clip-tag {
   color: var(--audio-mint);
-  background: rgba(0, 184, 107, 0.08);
-  border-color: rgba(0, 184, 107, 0.2);
+  background: rgba(23, 96, 74, 0.08);
+  border-color: rgba(23, 96, 74, 0.2);
 }
 
 html.light .version-clip-tag-pick-btn {
-  background: rgba(0, 184, 107, 0.1);
-  border-color: rgba(0, 184, 107, 0.3);
+  background: rgba(23, 96, 74, 0.1);
+  border-color: rgba(23, 96, 74, 0.3);
   color: var(--audio-mint);
 }
 
 html.light .version-clip-tag-pick-btn:hover {
-  background: rgba(0, 184, 107, 0.2);
+  background: rgba(23, 96, 74, 0.2);
 }
 
 html.light .version-clip-tag-input {
   color: var(--text);
-  border-bottom-color: rgba(0, 184, 107, 0.4);
+  border-bottom-color: rgba(23, 96, 74, 0.4);
 }
 
 /* "primary" label next to primary clip */
@@ -7006,12 +7009,12 @@ html.light .song-drawer-close:hover {
 
 /* scp-status badge (if used) */
 html.light .scp-status {
-  background: rgba(0, 184, 107, 0.08);
-  border-color: rgba(0, 184, 107, 0.2);
+  background: rgba(23, 96, 74, 0.08);
+  border-color: rgba(23, 96, 74, 0.2);
 }
 
 /* Waveform bars: make idle bars more visible on white song-cards */
-html.light .waveform-bar-idle { background: rgba(62, 52, 33, 0.38); }
+html.light .waveform-bar-idle { background: rgba(28, 42, 40, 0.38); }
 html.light .waveform-bar-played { background: rgba(0, 0, 0, 0.45); }
 
 /* Player queue focused item */
@@ -7055,133 +7058,133 @@ html.light .voice-memos-connect-ghost {
 
 /* Column tabs active state */
 html.light .board-column-tabs button.is-active {
-  border-color: rgba(0, 184, 107, 0.35);
-  background: rgba(0, 184, 107, 0.08);
+  border-color: rgba(23, 96, 74, 0.35);
+  background: rgba(23, 96, 74, 0.08);
 }
 html.light .board-column-tabs button.is-active .board-column-tab-count {
-  background: rgba(0, 184, 107, 0.15);
+  background: rgba(23, 96, 74, 0.15);
 }
 
 /* Active song card */
 html.light .song-card.is-active {
-  border-color: rgba(0, 184, 107, 0.35);
-  box-shadow: 0 0 0 1px rgba(0, 184, 107, 0.08);
+  border-color: rgba(23, 96, 74, 0.35);
+  box-shadow: 0 0 0 1px rgba(23, 96, 74, 0.08);
 }
 
 /* Drag overlay */
 html.light .drag-overlay-card {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 184, 107, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(23, 96, 74, 0.25);
 }
 
 /* Song card tag: lyric type */
 html.light .song-card-tag-lyric {
-  background: rgba(0, 184, 107, 0.1);
+  background: rgba(23, 96, 74, 0.1);
 }
 
 /* Add card / add section drag state */
 html.light .board-add-card.is-dragging {
-  border-color: rgba(0, 184, 107, 0.35);
-  background: rgba(0, 184, 107, 0.05);
+  border-color: rgba(23, 96, 74, 0.35);
+  background: rgba(23, 96, 74, 0.05);
 }
 html.light .board-add-section {
-  border-color: rgba(0, 184, 107, 0.3);
+  border-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Song detail actions */
 html.light .song-detail-action {
-  background: rgba(0, 184, 107, 0.07);
-  border-color: rgba(0, 184, 107, 0.25);
+  background: rgba(23, 96, 74, 0.07);
+  border-color: rgba(23, 96, 74, 0.25);
 }
 html.light .song-detail-action:hover {
-  background: rgba(0, 184, 107, 0.13);
+  background: rgba(23, 96, 74, 0.13);
 }
 
 /* Notes focus ring */
 html.light .song-detail-notes:focus {
-  border-color: rgba(0, 184, 107, 0.35);
+  border-color: rgba(23, 96, 74, 0.35);
 }
 
 /* Clip audio item hover */
 html.light .scp-audio-item:hover {
-  border-color: rgba(0, 184, 107, 0.35);
+  border-color: rgba(23, 96, 74, 0.35);
 }
 
 /* Listen view active row */
 html.light .listen-view-row.is-active {
-  border-color: rgba(0, 184, 107, 0.35);
+  border-color: rgba(23, 96, 74, 0.35);
 }
 html.light .listen-view-shuffle.is-active {
-  background: rgba(0, 184, 107, 0.08);
+  background: rgba(23, 96, 74, 0.08);
 }
 
 /* Library active card */
 html.light .library-card-wrap.is-active .library-card {
-  border-color: rgba(0, 184, 107, 0.35);
-  box-shadow: 0 0 0 1px rgba(0, 184, 107, 0.08);
+  border-color: rgba(23, 96, 74, 0.35);
+  box-shadow: 0 0 0 1px rgba(23, 96, 74, 0.08);
 }
 
 /* Version compare active play btn */
 html.light .version-compare-play.is-active {
-  border-color: rgba(0, 184, 107, 0.4);
+  border-color: rgba(23, 96, 74, 0.4);
 }
 
 /* Board switcher active */
 html.light .board-switcher-item.is-active {
-  background: rgba(0, 184, 107, 0.08);
+  background: rgba(23, 96, 74, 0.08);
 }
 
 /* Share/import status badge */
 html.light .share-import-status {
-  border-color: rgba(0, 184, 107, 0.3);
+  border-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Sync auth signed-in button */
 html.light .sync-auth-btn--signed-in {
-  border-color: rgba(0, 184, 107, 0.2);
+  border-color: rgba(23, 96, 74, 0.2);
 }
 
 /* Mobile import card */
 html.light .mobile-import-card {
-  border-color: rgba(0, 184, 107, 0.15);
-  background: rgba(0, 184, 107, 0.03);
+  border-color: rgba(23, 96, 74, 0.15);
+  background: rgba(23, 96, 74, 0.03);
 }
 
 /* File drop column highlight */
 html.light .board-column.is-file-drop {
-  background: rgba(0, 184, 107, 0.05);
-  outline-color: rgba(0, 184, 107, 0.3);
+  background: rgba(23, 96, 74, 0.05);
+  outline-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Onboarding backdrop tint */
 html.light .board-onboarding {
-  background: rgba(0, 184, 107, 0.03);
+  background: rgba(23, 96, 74, 0.03);
 }
 
 /* Drop overlay edge dashes + banner */
 html.light .board-drop-edge {
-  border-color: rgba(0, 184, 107, 0.5);
+  border-color: rgba(23, 96, 74, 0.5);
 }
 html.light .board-drop-banner {
-  border-color: rgba(0, 184, 107, 0.25);
+  border-color: rgba(23, 96, 74, 0.25);
 }
 
 /* Success toast */
 html.light .import-error-toast--success {
-  border-color: rgba(0, 184, 107, 0.3);
+  border-color: rgba(23, 96, 74, 0.3);
 }
 
 /* Voice memos share cards */
 html.light .voice-memos-share {
-  border-color: rgba(0, 184, 107, 0.15);
+  border-color: rgba(23, 96, 74, 0.15);
 }
 html.light .voice-memos-share-primary {
-  border-color: rgba(0, 184, 107, 0.35);
+  border-color: rgba(23, 96, 74, 0.35);
 }
 html.light .voice-memos-connect-secondary {
-  border-color: rgba(0, 184, 107, 0.25);
+  border-color: rgba(23, 96, 74, 0.25);
 }
 html.light .voice-memos-connect-primary.is-busy {
-  background: rgba(0, 184, 107, 0.15);
+  background: rgba(23, 96, 74, 0.15);
 }
 
 /* ═══════════════════════════════════════════════
@@ -7203,14 +7206,14 @@ html.light .voice-memos-connect-primary.is-busy {
 
 /* Light mode: drawer → Apple "systemGroupedBackground" — gray outer, white inset cards */
 html.light .song-drawer {
-  background: #f2f2f7;
+  background: var(--bg-2);
   border-color: rgba(0, 0, 0, 0.05);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 /* Light mode: header sits on the gray, lighter divider */
 html.light .scp-header {
-  background: #f2f2f7;
+  background: var(--bg-2);
   border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -7229,13 +7232,13 @@ html.light .scp-audio-item {
 }
 html.light .scp-audio-item:hover {
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 2px rgba(0, 184, 107, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 2px rgba(23, 96, 74, 0.2);
 }
 
 /* Light mode: waveform bars inside white audio card */
 html.light .scp-audio-item .waveform-bar-idle,
 html.light .scp-audio-item .interactive-waveform-bar {
-  background: rgba(62, 52, 33, 0.38);
+  background: rgba(28, 42, 40, 0.38);
 }
 
 /* Light mode: comments + notes textareas = white inset cards */
@@ -7257,7 +7260,7 @@ html.light .song-project-input {
 }
 html.light .song-stage-input:focus,
 html.light .song-project-input:focus {
-  outline: 2px solid rgba(0, 184, 107, 0.4);
+  outline: 2px solid rgba(23, 96, 74, 0.4);
   background: rgba(0, 0, 0, 0.05);
 }
 
@@ -7293,16 +7296,16 @@ html.light .song-card.is-favourite {
 html.light .scp-body textarea:focus,
 html.light .scp-body input[type="text"]:focus,
 html.light .song-note-input:focus {
-  outline: 2px solid rgba(0, 184, 107, 0.5);
+  outline: 2px solid rgba(23, 96, 74, 0.5);
   outline-offset: 1px;
-  border-color: rgba(0, 184, 107, 0.4) !important;
+  border-color: rgba(23, 96, 74, 0.4) !important;
 }
 
 /* Light mode: song-comments textarea */
 html.light .song-comments-input:focus {
-  outline: 2px solid rgba(0, 184, 107, 0.4);
+  outline: 2px solid rgba(23, 96, 74, 0.4);
   outline-offset: 1px;
-  border-color: rgba(0, 184, 107, 0.35) !important;
+  border-color: rgba(23, 96, 74, 0.35) !important;
 }
 
 /* Drawer handle/close: cleaner on white */
@@ -7431,7 +7434,7 @@ html.light .custom-select-popover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 html.light .custom-select-option:hover {
-  background: #f2f2f7;
+  background: var(--bg-2);
 }
 
 /* ── Samply-style listening polish ─────────────────────────── */
@@ -7441,12 +7444,12 @@ html.light .custom-select-option:hover {
   width: 36px;
   height: 36px;
   font-size: 0.65rem;
-  box-shadow: 0 2px 8px rgba(0, 184, 107, 0.35);
+  box-shadow: 0 2px 8px rgba(23, 96, 74, 0.35);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .scp-play:hover {
   transform: scale(1.08);
-  box-shadow: 0 4px 14px rgba(0, 184, 107, 0.45);
+  box-shadow: 0 4px 14px rgba(23, 96, 74, 0.45);
 }
 .scp-audio-item:hover .scp-play {
   transform: scale(1.08);
@@ -7475,8 +7478,8 @@ html.light .custom-select-option:hover {
 
 /* Active version-stack-item: clear visual when playing */
 html.light .version-stack-item--active .scp-audio-item {
-  background: rgba(0, 184, 107, 0.05);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1.5px rgba(0, 184, 107, 0.3);
+  background: rgba(23, 96, 74, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1.5px rgba(23, 96, 74, 0.3);
 }
 .version-stack-item--active .scp-audio-item {
   border-color: rgba(157, 219, 173, 0.3);
@@ -7518,8 +7521,8 @@ html.light .song-share-trigger {
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 html.light .song-share-trigger:hover {
-  border-color: rgba(0,184,107,0.5);
-  color: #00b86b;
+  border-color: rgba(23, 96, 74,0.5);
+  color: var(--accent);
 }
 
 /* ── "Add note" button → ghost pill ─────────────────────── */
@@ -7665,8 +7668,8 @@ html.light .song-comments-send {
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 html.light .song-comments-send:not(:disabled):hover {
-  border-color: rgba(0,184,107,0.5);
-  color: #00b86b;
+  border-color: rgba(23, 96, 74,0.5);
+  color: var(--accent);
 }
 
 /* ── Drawer footer actions (Duplicate / Delete) → cleaner ─── */
@@ -8601,15 +8604,7 @@ html.light .listen-playlist-row {
   margin-right: 4px;
 }
 
-.board-titlebar-logo span {
-  display: inline-block;
-  width: 0.6em;
-  height: 0.6em;
-  background: var(--accent) url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='2,13 5,7 8,15 11,5 14,13 17,9 20,11' stroke='%230e1f26' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / 75% 75%;
-  border-radius: 50%;
-  color: transparent;
-  margin-top: 0.1em;
-}
+
 
 .board-titlebar-spacer { flex: 1; }
 
@@ -8810,3 +8805,26 @@ html.light .wf-bar { background: rgba(19, 42, 48, 0.34); }
 html.light .wf-bar.is-played { background: rgba(19, 42, 48, 0.62); }
 html.light .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 html.light .wf-bar.is-active.is-played { background: var(--accent); }
+
+/* ─── P0-3: the ramp has to survive a 2px rule ───
+   A hairline in a stage colour is too little ink to read as a colour at all.
+   Tinting each column's count pill 12% in the same colour gives the ramp a
+   second, larger surface, so the progression is legible even when the rule
+   itself is thin. */
+.board-column-header .board-column-count {
+  background: color-mix(in srgb, var(--stage-ink, var(--accent)) 12%, transparent);
+  border-color: color-mix(in srgb, var(--stage-ink, var(--accent)) 40%, transparent);
+  color: var(--stage-ink, var(--text-muted));
+}
+
+/* Thicker rule in light: the same 2px reads weaker on a pale ground. */
+html.light .board-column-header {
+  border-bottom-width: 3px;
+}
+
+/* The mark sits in the o-gap, optically centred on the x-height. */
+.wordmark-mark {
+  display: inline-block;
+  vertical-align: -0.14em;
+  margin: 0 0.02em;
+}

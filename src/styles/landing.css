@@ -64,16 +64,7 @@
   align-items: center;
 }
 
-.logo span {
-  display: inline-block;
-  width: 0.62em;
-  height: 0.62em;
-  background: var(--accent) url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='2,13 5,7 8,15 11,5 14,13 17,9 20,11' stroke='%230a0c10' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / 75% 75%;
-  border-radius: 50%;
-  margin-top: 0.12em;
-  font-style: normal;
-  color: transparent;
-}
+
 
 .nav-links { display: flex; gap: 32px; list-style: none; }
 
@@ -1758,17 +1749,7 @@ a.nav-cta {
   justify-content: center;
 }
 
-.footer-wordmark span {
-  display: inline-block;
-  width: 0.58em;
-  height: 0.58em;
-  background: var(--accent);
-  border-radius: 50%;
-  color: transparent;
-  margin: 0 0.02em;
-  /* The dot is the only thing that ever animates on load. */
-  animation: dot-fade-up 400ms ease-out both;
-}
+
 
 @keyframes dot-fade-up {
   from { opacity: 0; transform: translateY(4px); }
@@ -1823,9 +1804,7 @@ a.nav-cta {
 @media (prefers-reduced-motion: reduce) {
   .hero-shot img,
   .landing section,
-  .footer-wordmark span {
-    animation: none !important;
-  }
+  
   .waitlist-btn:hover, .btn-primary:hover, .nav-cta:hover { transform: none; }
 }
 
@@ -1848,4 +1827,22 @@ a.nav-cta {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.7;
+}
+
+/* The footer sign-off scales the mark with the type. */
+.footer-wordmark .wordmark-mark {
+  width: 0.72em;
+  height: 0.72em;
+  vertical-align: -0.06em;
+}
+
+/* The footer sign-off: one confident appearance, quiet. */
+.footer-wordmark-img {
+  width: 100%;
+  max-width: 1140px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  opacity: 0.18;
+  user-select: none;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
+import { WordmarkLockup, WordmarkMark } from '@/components/ui/Wordmark'
 
 const WAVE_HEIGHTS = [42, 68, 55, 82, 38, 71, 48, 90, 35, 64, 52, 78, 44, 86, 58, 72, 40, 66, 50, 84, 36, 74, 46, 80, 54, 70]
 
@@ -264,7 +265,7 @@ export function LandingPage() {
     <div className="landing">
       <nav>
         <div className="logo">
-          s<span>o</span>ngdrafts
+          s<WordmarkMark />ngdrafts
         </div>
         <ul className="nav-links">
           <li><a href="#features">Features</a></li>
@@ -459,7 +460,7 @@ export function LandingPage() {
               <tr>
                 <th />
                 <th className="compare-col compare-col--memo">
-                  <span className="compare-logo">s<span>o</span>ngdrafts</span>
+                  <span className="compare-logo">s<WordmarkMark />ngdrafts</span>
                 </th>
                 <th className="compare-col">Tape.it</th>
                 <th className="compare-col">Dubnote</th>
@@ -588,9 +589,9 @@ export function LandingPage() {
 
       <footer>
         {/* A04: one confident hero-scale appearance beats five timid ones. */}
-        <div className="footer-wordmark" aria-hidden>
-          s<span>o</span>ngdrafts
-        </div>
+        {/* A04: one hero-scale moment per page. The official lockup, whose
+            letterforms are paths, so it never waits on a webfont. */}
+        <WordmarkLockup tone="paper" className="footer-wordmark-img" />
         <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
       </footer>
     </div>

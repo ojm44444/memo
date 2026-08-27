@@ -39,6 +39,7 @@ import { OnboardingTour } from '@/components/board/OnboardingTour'
 import { ImportErrorToast } from '@/components/import/ImportErrorToast'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
+import { WordmarkMark } from '@/components/ui/Wordmark'
 
 const DROP_ERRORS: Record<DropRejectReason, string> = {
   empty: "Couldn't read that file. Drag from Finder or use + Import audio.",
@@ -147,7 +148,7 @@ function AuthenticatedBoard() {
                 {/* Merged bar: the shell header used to sit above this,
                     costing ~60px of board height to show a logo twice. */}
                 <Link to="/app" className="board-titlebar-logo">
-                  s<span>o</span>ngdrafts
+                  s<WordmarkMark />ngdrafts
                 </Link>
                 <BoardProjectAccent />
                 <div className="board-titlebar-actions">
