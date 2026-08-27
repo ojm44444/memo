@@ -308,7 +308,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
                 className="library-view-archive-empty"
                 onClick={() => void archiveAllEmpty()}
               >
-                Archive empty ({emptyProjectCount})
+                Archive {emptyProjectCount} empty {emptyProjectCount === 1 ? 'project' : 'projects'}
               </button>
             )}
             {(archivedCount ?? 0) > 0 && (

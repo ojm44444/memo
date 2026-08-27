@@ -24,6 +24,7 @@ import {
 import { scheduleFlush } from '@/sync/syncEngine'
 import { BoardFilterEmpty } from '@/components/board/BoardFilterEmpty'
 import { BoardFilterBar } from '@/components/board/BoardFilterBar'
+import { DuplicateProjectNotice } from '@/components/board/DuplicateProjectNotice'
 import { RecentSongsRow } from '@/components/board/RecentSongsRow'
 import { BoardActivityFeed } from '@/components/board/BoardActivityFeed'
 import { BulkActionsBar } from '@/components/board/BulkActionsBar'
@@ -267,6 +268,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       <RecentSongsRow />
       <BoardActivityFeed />
       <BoardOnboarding readOnly={readOnly} />
+      <DuplicateProjectNotice />
       <BoardFilterBar />
       <BoardFilterEmpty />
 

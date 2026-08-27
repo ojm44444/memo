@@ -143,7 +143,9 @@ const favouriteTotal = useLiveQuery(async () => {
             <div>
               {favourites?.length ? (
                 <>
-                  <p className="listen-view-sub">{favourites.length} songs</p>
+                  <p className="listen-view-sub">
+                    {favourites.length} {favourites.length === 1 ? 'song' : 'songs'}
+                  </p>
                   <p className="listen-view-kbd-hint">Tap title to open · tap section for board</p>
                 </>
               ) : (

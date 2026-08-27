@@ -7,12 +7,8 @@ interface SpeedControlProps {
   className?: string
 }
 
-const SLIDER_MIN = 0.75
-const SLIDER_MAX = 2
-const SLIDER_STEP = 0.05
 
 export function SpeedControl({ value, onChange, className }: SpeedControlProps) {
-  const pct = ((value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100
 
   return (
     <div className={cn('speed-control', className)}>
@@ -33,21 +29,9 @@ export function SpeedControl({ value, onChange, className }: SpeedControlProps) 
         ))}
       </div>
 
-      {/* Slider */}
-      <div className="speed-slider-wrap">
-        <input
-          type="range"
-          className="speed-slider"
-          min={SLIDER_MIN}
-          max={SLIDER_MAX}
-          step={SLIDER_STEP}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          aria-label="Playback speed"
-          style={{ '--speed-pct': `${pct}%` } as React.CSSProperties}
-        />
-        <span className="speed-readout">{value.toFixed(2).replace(/\.?0+$/, '')}×</span>
-      </div>
+      {/* P1-8: the slider is gone. The presets are the useful control, and two
+          controls for one value invite the question of which one is real. The
+          rate is still keyboard-reachable via the preset buttons. */}
     </div>
   )
 }

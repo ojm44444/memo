@@ -332,9 +332,30 @@ export async function ensureDefaultProject(id = createId()) {
   return project
 }
 
+/**
+ * Is this name already taken by another project?
+ *
+ * Two projects called "My Project" is the root of the switcher confusion Owen
+ * hit: one held 235 songs, the other none, and nothing on screen told them
+ * apart. Case- and whitespace-insensitive, because "my project " reads as the
+ * same name to a person.
+ */
+export async function findProjectByName(name: string, excludeId?: string) {
+  const target = name.trim().toLowerCase()
+  const projects = await getProjects()
+  return projects.find((p) => p.id !== excludeId && p.name.trim().toLowerCase() === target) ?? null
+}
+
 export async function createProject(name: string) {
   const trimmed = name.trim()
   if (!trimmed) throw new Error('Project name is required')
+
+  const clash = await findProjectByName(trimmed)
+  if (clash) {
+    throw new Error(
+      `You already have a project called "${clash.name}". Pick a different name, or open that one.`,
+    )
+  }
 
   const projects = await getProjects()
   const project: Project = {
@@ -369,6 +390,11 @@ export async function createProjectWithTemplate(
 export async function renameProject(projectId: string, name: string) {
   const trimmed = name.trim()
   if (!trimmed) throw new Error('Project name is required')
+
+  const clash = await findProjectByName(trimmed, projectId)
+  if (clash) {
+    throw new Error(`Another project is already called "${clash.name}".`)
+  }
 
   const now = new Date().toISOString()
   await db.projects.update(projectId, { name: trimmed })
@@ -553,6 +579,71 @@ export async function getEmptyProjectIds() {
   }
 
   return emptyIds
+}
+
+/**
+ * Projects that share a name with another project.
+ *
+ * Grouped by normalised name and only returned when a group has more than one
+ * member, so the caller can offer to clean up the exact duplicate that caused
+ * the confusion rather than every empty project on the board.
+ */
+export async function getDuplicateNameGroups() {
+  const projects = await getProjects()
+  const byName = new Map<string, typeof projects>()
+
+  for (const project of projects) {
+    const key = project.name.trim().toLowerCase()
+    const group = byName.get(key) ?? []
+    group.push(project)
+    byName.set(key, group)
+  }
+
+  const groups: { name: string; projects: { id: string; name: string; songCount: number }[] }[] = []
+
+  for (const [, group] of byName) {
+    if (group.length < 2) continue
+    const withCounts = []
+    for (const project of group) {
+      const songCount = await db.songs
+        .filter((song) => !song.deletedAt && song.projectId === project.id)
+        .count()
+      withCounts.push({ id: project.id, name: project.name, songCount })
+    }
+    // Fullest first: that is the one worth keeping.
+    withCounts.sort((a, b) => b.songCount - a.songCount)
+    groups.push({ name: group[0].name, projects: withCounts })
+  }
+
+  return groups
+}
+
+/**
+ * Delete the empty members of a duplicate-name group, keeping the one that
+ * holds the songs.
+ *
+ * Refuses if more than one member has songs: merging real content is a
+ * different, destructive decision and belongs to the user, not a tidy-up
+ * button. Returns how many were removed.
+ */
+export async function resolveDuplicateNameGroup(name: string) {
+  const groups = await getDuplicateNameGroups()
+  const group = groups.find((g) => g.name.trim().toLowerCase() === name.trim().toLowerCase())
+  if (!group) return { removed: 0, skipped: 'not-found' as const }
+
+  const withSongs = group.projects.filter((p) => p.songCount > 0)
+  if (withSongs.length > 1) {
+    return { removed: 0, skipped: 'multiple-non-empty' as const }
+  }
+
+  const keepId = (withSongs[0] ?? group.projects[0]).id
+  let removed = 0
+  for (const project of group.projects) {
+    if (project.id === keepId) continue
+    await deleteProject(project.id)
+    removed++
+  }
+  return { removed, skipped: null }
 }
 
 export async function getArchivedEmptyProjectIds() {

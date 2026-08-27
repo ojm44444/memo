@@ -233,7 +233,9 @@ function BulkMergeModal({ songIds, masterId, busy, onChangeMaster, onConfirm, on
   return (
     <div className="bulk-merge-overlay" role="dialog" aria-modal="true" aria-label="Merge songs">
       <div className="bulk-merge-modal">
-        <p className="bulk-merge-title">Merge {songIds.length} songs</p>
+        <p className="bulk-merge-title">
+          Merge {songIds.length} {songIds.length === 1 ? 'song' : 'songs'}
+        </p>
         <p className="bulk-merge-desc">
           All audio clips will stack onto the master song. The others are removed.
         </p>

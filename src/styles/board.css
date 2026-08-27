@@ -8250,6 +8250,8 @@ html.light .listen-now-playing-inner {
 .listen-now-playing-wave {
   flex: 1;
   min-width: 0;
+  /* Height is bounded so a failed peak decode cannot render as a slab. */
+  max-height: 40px;
   overflow: hidden;
 }
 .listen-now-playing-controls {
@@ -8434,13 +8436,16 @@ html.light .listen-playlist-row {
 .listen-playlist-play-all:disabled { opacity: 0.35; cursor: default; }
 
 /* waveform in listen rows */
+/* P1-4: container opacity multiplied the bar token's own alpha
+   (0.26 x 0.55 = 0.14), which is the "far below spec" ghosting. Idle vs
+   active is expressed in the bar colour now, not by fading the container. */
 .listen-row-waveform {
   display: block;
   width: 100%;
+  max-width: 100%;
   margin-top: 4px;
-  opacity: 0.55;
+  overflow: hidden;
 }
-.listen-view-row.is-active .listen-row-waveform { opacity: 1; }
 
 /* remove button */
 .listen-row-remove {
@@ -8827,4 +8832,44 @@ html.light .board-column-header {
   display: inline-block;
   vertical-align: -0.14em;
   margin: 0 0.02em;
+}
+
+/* P1-6: duplicate project names, named and fixable. */
+.dupe-project-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  margin: 0 var(--s-4) var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-card);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: var(--t-sm);
+  color: var(--text-muted);
+}
+
+.dupe-project-text strong { color: var(--text); font-weight: 600; }
+.dupe-project-actions { display: flex; gap: var(--s-2); margin-left: auto; }
+
+.dupe-project-fix {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-on);
+  border-radius: var(--r-pill);
+  padding: 3px var(--s-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dupe-project-dismiss {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--r-pill);
+  padding: 3px var(--s-3);
+  font-size: var(--t-xs);
+  cursor: pointer;
 }

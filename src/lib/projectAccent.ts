@@ -31,12 +31,14 @@ export function hashProjectHue(projectId: string) {
   return HUE_MIN + (Math.abs(hash) % HUE_SPAN)
 }
 
-/** Deterministic accent gradient from project id, or a chosen hue. */
+/** Deterministic flat accent tint from project id, or a chosen hue. */
 export function projectAccentStyle(projectId: string, accentHue?: number | null): { background: string } {
   const hue = accentHue ?? hashProjectHue(projectId)
-  const hue2 = (hue + 42) % 360
   return {
-    background: `linear-gradient(135deg, hsl(${hue} 62% 42%) 0%, hsl(${hue2} 58% 32%) 100%)`,
+    // Flat, not a gradient. Gradients are rationed to the playing card /
+    // player bar, the share hero and the landing hero; a grid of generated
+    // gradient tiles is the Samply library look the identity rules out.
+    background: `hsl(${hue} 46% 34%)`,
   }
 }
 
