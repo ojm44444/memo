@@ -13,7 +13,7 @@ const FEATURES = [
   },
   {
     icon: '▦',
-    title: 'A home for every idea',
+    title: 'Somewhere to come back to',
     desc: 'Inbox → Ideas → Half Finished → Finished Demo → Released. Drag a song right when it gets better. That\'s the whole system.',
   },
   {
@@ -464,6 +464,42 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Brief 08's biggest addition, shipped with two sentences CUT after
+          checking the code. The draft claimed a 30-day hold and "a copy, not a
+          mirror". Neither is true today: deleteSong enqueues a delete that
+          propagates to every signed-in device, and no purge window or restore
+          UI exists. The r/Songwriting thread this came from was started by a
+          software engineer, so this is exactly the audience that checks. What
+          is left is verified: the local library and the zip export. */}
+      <section className="backup-section" id="backup">
+        <div className="backup-inner">
+          <div className="section-label">The thing nobody tells you</div>
+          <h2 className="section-h2">
+            iCloud is not a backup.<br /><em>It is a mirror.</em>
+          </h2>
+          <p className="section-sub">
+            Delete a memo on your phone to free up space and it goes from everywhere at
+            once. That is not a bug, it is what syncing means, and it is how most people
+            find out. There is no undo and no copy left behind.
+          </p>
+          <div className="backup-grid">
+            <div className="backup-col backup-col--them">
+              <div className="backup-col-label">A synced folder</div>
+              <p>One library, reflected on every device. Remove it once and it is removed.</p>
+            </div>
+            <div className="backup-col backup-col--us">
+              <div className="backup-col-label">songdrafts</div>
+              <p>
+                Your recordings are stored on your device, not streamed from somewhere
+                else. The board opens and plays with the internet off. And you can pull
+                the whole library out as a zip whenever you want, so the copy that
+                matters is one you are holding.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="compare" id="compare">
         <div className="section-label">vs. everything else</div>
         <h2 className="section-h2">
@@ -507,8 +543,8 @@ export function LandingPage() {
             Checked 25 August 2026 from each product's own pricing page, converted to USD
             per month at that day's rate: Dubnote bills $24.99/year, Samply from $10/month.
             Suonote and Tape.it have free tiers with paid plans above them. Rates move and
-            features change, so check before you decide. We lose three rows here and left
-            them in.
+            features change, so check before you decide. Three rows on this table go
+            against us. We left them in.
           </p>
         </div>
       </section>
