@@ -277,19 +277,6 @@ export function LandingPage() {
           <li><a href="#faq">FAQ</a></li>
         </ul>
 
-        {/* Below 768px the nav links are hidden with nothing replacing them,
-            so Compare, Pricing and FAQ were only reachable by scrolling
-            8,000+ pixels. */}
-        <button
-          type="button"
-          className="nav-burger"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          {menuOpen ? '\u2715' : '\u2630'}
-        </button>
         <div className="nav-right">
           <Link
             to="/sign-in"
@@ -302,6 +289,21 @@ export function LandingPage() {
           <a href="#get-started" className="nav-cta nav-cta--app">
             Get early access
           </a>
+          {/* Below 768px the nav links are hidden with nothing replacing them,
+              so Compare, Pricing and FAQ were only reachable by scrolling
+              8,000+ pixels. It lives inside nav-right because the <nav> is
+              space-between: as a third top-level child it got distributed to
+              the middle of the bar, reading as a box stuck to the wordmark. */}
+          <button
+            type="button"
+            className="nav-burger"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? '\u2715' : '\u2630'}
+          </button>
         </div>
       </nav>
 
