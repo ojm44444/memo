@@ -8880,17 +8880,22 @@ html.light .board-column-header {
    The board read as a monochrome grey grid on slate: the one place the ramp
    should be loudest was the one place it was absent. The playing card keeps
    the accent alone (rule 1). --stage-ink is set per column. */
+/* 70%, not 40%. Measured over --surface, the four stage inks at 40% land on
+   #3c6f7e #3f6e70 #4d7b77 #648980 — adjacent columns differ by as little as
+   14.4 in RGB distance, so the ramp collapsed and every waveform read grey
+   even though the colour was being applied. At 70% the minimum adjacent gap
+   is 24.7 and the ramp is legible across the board. */
 .board-column .wf-bar {
-  background: color-mix(in srgb, var(--stage-ink, var(--text)) 40%, transparent);
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 70%, transparent);
 }
 .board-column .wf-bar.is-played {
-  background: color-mix(in srgb, var(--stage-ink, var(--text)) 72%, transparent);
+  background: var(--stage-ink, var(--text));
 }
 .board-column .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 34%, transparent); }
 .board-column .wf-bar.is-active.is-played { background: var(--accent); }
 
 /* Light mode: the stage colouring must still win over the neutral light bars above. */
-html.light .board-column .wf-bar { background: color-mix(in srgb, var(--stage-ink, var(--text)) 46%, transparent); }
-html.light .board-column .wf-bar.is-played { background: color-mix(in srgb, var(--stage-ink, var(--text)) 78%, transparent); }
+html.light .board-column .wf-bar { background: color-mix(in srgb, var(--stage-ink, var(--text)) 72%, transparent); }
+html.light .board-column .wf-bar.is-played { background: var(--stage-ink, var(--text)); }
 html.light .board-column .wf-bar.is-active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 html.light .board-column .wf-bar.is-active.is-played { background: var(--accent); }

@@ -1618,6 +1618,13 @@ a.nav-cta {
     0 32px 70px rgba(0, 0, 0, 0.55),
     0 4px 12px rgba(0, 0, 0, 0.4);
   line-height: 0;
+  /* The crop lands mid-card on the right ("glasgow b...", "half a hoo..."),
+     which reads as a broken layout rather than a board that continues. A
+     short fade at that edge makes the cut deliberate: the board runs off the
+     side, it is not chopped. Masked rather than overlaid so it works on any
+     ground and costs no extra element. */
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
 }
 
 .hero-shot img {
