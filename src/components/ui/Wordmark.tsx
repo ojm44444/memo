@@ -35,8 +35,8 @@ export function WordmarkLockup({
       src={`/brand/wordmark-${tone}.svg`}
       alt="songdrafts"
       className={cn('wordmark-lockup', className)}
-      width={3872}
-      height={1259}
+      width={586}
+      height={124}
       decoding="async"
     />
   )
