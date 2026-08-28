@@ -1839,11 +1839,14 @@ a.nav-cta {
 /* The footer sign-off: one confident appearance, quiet. */
 .footer-wordmark-img {
   width: 100%;
-  max-width: 1140px;
+  /* The serif lockup is far lighter than the sans it replaced, and its block
+     is taller (3.08:1, was 4.7:1). Same visual weight needs less width and
+     more opacity. */
+  max-width: 820px;
   height: auto;
   display: block;
   margin: 0 auto;
-  opacity: 0.18;
+  opacity: 0.32;
   user-select: none;
 }
 
