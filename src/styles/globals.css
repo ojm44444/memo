@@ -103,8 +103,8 @@ textarea {
   gap: 12px;
   padding: 10px 16px;
   padding-top: max(10px, env(safe-area-inset-top));
-  background: #1a2e24;
-  border-bottom: 1px solid var(--audio-mint-dim, rgba(0, 255, 157, 0.25));
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent));
+  border-bottom: 1px solid var(--border);
   color: var(--text);
   font-size: 0.85rem;
 }
@@ -121,15 +121,27 @@ textarea {
   text-transform: uppercase;
 }
 
+/* Anchored to the bottom, not the top: the landing nav is position:fixed, so
+   a banner in normal document flow at the top of the page rendered underneath
+   it with its message cut in half. Bottom is also where an install prompt
+   belongs on a phone — in reach of a thumb, not fighting the header. */
 .pwa-install-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 10px 16px;
-  background: rgba(0, 255, 157, 0.06);
-  border-bottom: 1px solid var(--border);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  /* Was rgba(0,255,157,.06) — the forbidden neon band, left over from the
+     pre-identity palette. */
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent));
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
   font-size: 0.78rem;
   color: var(--text-muted);
 }
@@ -137,8 +149,8 @@ textarea {
 .pwa-install-btn {
   border: none;
   border-radius: 999px;
-  background: var(--audio-mint);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--accent-on);
   padding: 6px 14px;
   font-family: var(--font-mono);
   font-size: 0.65rem;

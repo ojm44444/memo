@@ -5,9 +5,9 @@
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(ellipse 60% 50% at 70% 20%, rgba(0, 255, 157, 0.06) 0%, transparent 70%),
-    var(--bg, #121214);
-  color: var(--text, #f2f0ec);
+    radial-gradient(ellipse 60% 50% at 70% 20%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
+    var(--bg);
+  color: var(--text);
 }
 
 .sign-in-card {
@@ -97,7 +97,7 @@
 
 .sign-in-input:focus {
   outline: none;
-  border-color: rgba(0, 255, 157, 0.4);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .sign-in-submit {
