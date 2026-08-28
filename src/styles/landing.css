@@ -557,7 +557,7 @@ a.nav-cta {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.62);
   margin-bottom: 16px;
 }
 
@@ -1165,15 +1165,15 @@ a.nav-cta {
 }
 
 .tick--yes  { color: var(--accent); }
-.tick--no   { color: rgba(255,255,255,0.18); }
-.tick--partial { color: rgba(255,255,255,0.35); font-size: 1rem; }
+.tick--no   { color: rgba(255,255,255,0.55); }  /* was 0.18 = 1.77:1; this is meaning, not decoration */
+.tick--partial { color: rgba(255,255,255,0.62); font-size: 1rem; }  /* was 0.35 = 2.99:1 */
 .tick--price { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
 
 .compare-footnote {
   padding: 10px 16px;
   font-family: 'DM Mono', monospace;
   font-size: 0.58rem;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.60);
   border-top: 1px solid var(--border);
   text-align: left;
 }
@@ -1316,7 +1316,7 @@ a.nav-cta {
 .footer-text {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.60);
   letter-spacing: 0.06em;
 }
 
@@ -1461,6 +1461,8 @@ a.nav-cta {
 
 .nav-burger {
   display: none;
+  min-width: 44px;
+  min-height: 44px;
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text);
@@ -1633,6 +1635,9 @@ a.nav-cta {
   display: block;
 }
 
+/* The zoom tapers instead of cliff-edging. A flat 175% across the whole
+   <=768px band meant 769px showed the board whole and 768px lost 43% of its
+   width, and 600-768px has room for far more board than 175% allowed. */
 @media (max-width: 768px) {
   .hero-shot {
     max-width: 100%;
@@ -1641,9 +1646,17 @@ a.nav-cta {
     aspect-ratio: 4 / 3;
   }
   .hero-shot img {
-    width: 175%;
+    width: 118%;
     max-width: none;
   }
+}
+
+@media (max-width: 600px) {
+  .hero-shot img { width: 140%; }
+}
+
+@media (max-width: 480px) {
+  .hero-shot img { width: 165%; }
 }
 
 /* ─── A05: one container, one spacing scale (multiples of 8) ─── */
@@ -2239,6 +2252,11 @@ a.nav-cta {
 
 /* Compare: the wordmark column header was stacking vertically. */
 .compare-logo { display: inline-flex; align-items: center; white-space: nowrap; }
+/* The wordmark is a 3.06:1 image. Inside the narrow compare <th>, the global
+   `height: 22px; width: auto` plus an inherited max-width:100% clamped it to
+   9.9px wide while the height stayed pinned, squashing it 9.3x. Drive it from
+   width here and let height follow, so it letterboxes instead of crushing. */
+.compare-logo img { width: 100%; max-width: 90px; height: auto; object-fit: contain; }
 .compare-col--memo { background: color-mix(in srgb, var(--accent) 7%, transparent); border-bottom-color: var(--accent); }
 
 /* Nav lockup: tighten the mark into the o-gap. */

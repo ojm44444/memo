@@ -185,11 +185,17 @@ function WaitlistForm({ className }: { className?: string }) {
   }
 
   return (
+    /* aria-label + name + autoComplete: a placeholder is not an accessible
+       name (it vanishes on focus), and without autocomplete the browser cannot
+       fill the only field on the page that matters. */
     <form className={`waitlist-form ${className ?? ''}`} onSubmit={(e) => void submit(e)}>
       <input
         type="email"
         className="waitlist-input"
         placeholder="your@email.com"
+        aria-label="Your email address"
+        name="email"
+        autoComplete="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
@@ -348,8 +354,8 @@ export function LandingPage() {
         <div className="hero-shot">
           <img
             src="/hero-board.png"
-            width={1446}
-            height={868}
+            width={4048}
+            height={2268}
             alt="The songdrafts board: columns from Inbox to Released, songs with waveforms, one playing."
             loading="eager"
             decoding="async"
