@@ -91,7 +91,10 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   // A file that arrived with no audio in it. Clicking play on one of these did
   // nothing and said nothing, so it read as the app being broken. The card now
   // states what happened rather than offering a control that cannot work.
-  const isEmptyRecording = primary != null && (primary.durationMs ?? 0) === 0
+  // Two ways a card ends up unplayable: no audio version at all, or a version
+  // that transferred as a zero-length file. Owen's board has the first kind and
+  // my first attempt only caught the second, so the dead click survived.
+  const isEmptyRecording = primary == null || (primary.durationMs ?? 0) === 0
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
