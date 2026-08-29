@@ -8,7 +8,6 @@ import { formatDuration } from '@/lib/audio-utils'
 import { tagHueStyle } from '@/lib/tagColors'
 import { db } from '@/db/database'
 import { getShareFeedbackCount } from '@/db/repositories/shareFeedbackRepo'
-import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
@@ -57,7 +56,6 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     [song.id],
   )
   const primary = versions?.[0]
-  const mergeCount = (versions?.length ?? 0) - 1
 
   const { currentSongId, progress, isPlaying } = usePlayerStore()
   const { openDrawer } = useUiStore()
@@ -165,9 +163,6 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         </div>
         <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
         <FeedbackBadge songId={song.id} />
-        {!readOnly && (
-          <FavouriteButton songId={song.id} isFavourite={song.isFavourite ?? false} />
-        )}
         {!readOnly && !selectionMode && (
           <div
             className="song-card-drag-handle"
@@ -191,50 +186,17 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         />
       )}
 
-      {/* Footer: tags / meta / offline */}
-      {((song.tags?.length ?? 0) > 0 || song.notes.trim() || (song.musicalKey || song.bpm) || primary || mergeCount > 0) && (
+      {/* One tag, nothing else. The collapsed card carries five things: play,
+          title, duration, waveform, one tag (the most recently added). Star,
+          notes, key/bpm, merge count, date and the rest of the tags live in
+          the open drawer — on open, not hover, because hover does not exist on
+          a phone. The old footer put all of them on every card, which is how a
+          240px card ended up giving its own title 68px. */}
+      {(song.tags?.length ?? 0) > 0 && (
         <div className="song-card-footer">
-          <div className="song-card-footer-left">
-            {song.notes.trim() && <p className="song-card-notes-snippet">{song.notes.trim()}</p>}
-            {(song.musicalKey || song.bpm) && (
-              <div className="song-card-meta-pills">
-                {song.musicalKey && <span className="song-card-meta-pill">{song.musicalKey}</span>}
-                {song.bpm && <span className="song-card-meta-pill">{song.bpm} bpm</span>}
-              </div>
-            )}
-            {(song.tags?.length ?? 0) > 0 && (
-              <div className="song-card-tags">
-                {song.tags.slice(0, 3).map((tag) => (
-                  <span
-                    key={tag}
-                    className="song-card-tag-pill"
-                    style={tagHueStyle(tag)}
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {song.tags.length > 3 && (
-                  <span className="song-card-tag-pill song-card-tag-overflow">
-                    +{song.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
-            {mergeCount > 0 && <span className="song-card-merge">+{mergeCount} merged</span>}
-          </div>
-          <div className="song-card-footer-right">
-            {song.recordedAt && (
-              <span className="song-card-recorded-date">
-                {new Date(song.recordedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-            {primary && (
-              <span
-                className={cn('song-card-offline-dot', primary.localBlobId ? 'is-cached' : 'is-cloud')}
-                title={primary.localBlobId ? 'Available offline' : 'Cloud only'}
-              />
-            )}
-          </div>
+          <span className="song-card-tag-pill" style={tagHueStyle(song.tags[song.tags.length - 1])}>
+            {song.tags[song.tags.length - 1]}
+          </span>
         </div>
       )}
 
