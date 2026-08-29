@@ -378,13 +378,12 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Brief 08's biggest addition, shipped with two sentences CUT after
-          checking the code. The draft claimed a 30-day hold and "a copy, not a
-          mirror". Neither is true today: deleteSong enqueues a delete that
-          propagates to every signed-in device, and no purge window or restore
-          UI exists. The r/Songwriting thread this came from was started by a
-          software engineer, so this is exactly the audience that checks. What
-          is left is verified: the local library and the zip export. */}
+      {/* Brief 08's biggest addition. Originally shipped with "a copy, not a
+          mirror" and the 30-day hold CUT, because neither was true: deletes
+          propagated everywhere and no trash existed. Both are true now - the
+          trash (Library) holds deleted songs 30 days with restore, and the
+          boot sweep enforces the window - so the claim is back in. If the
+          trash is ever removed, this copy goes with it. */}
       <section className="backup-section" id="backup">
         <div className="backup-inner">
           <div className="section-label">The thing nobody tells you</div>
@@ -405,9 +404,10 @@ export function LandingPage() {
               <div className="backup-col-label">songdrafts</div>
               <p>
                 Your recordings are stored on your device, not streamed from somewhere
-                else. The board opens and plays with the internet off. And you can pull
-                the whole library out as a zip whenever you want, so the copy that
-                matters is one you are holding.
+                else. Deleting here does not delete it everywhere: deleted songs wait
+                30 days in the trash, and you can put them back. And you can pull the
+                whole library out as a zip whenever you want. That is the difference
+                between a copy and a mirror.
               </p>
             </div>
           </div>

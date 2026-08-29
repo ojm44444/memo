@@ -26,6 +26,14 @@ export async function bootstrapDatabase(): Promise<void> {
   await ensureSeeded()
   void backfillSongTitlesFromVersionLabels()
 
+  // The trash's stated window has to be enforced somewhere or it is a lie:
+  // anything soft-deleted more than 30 days ago goes for good on boot.
+  void import('@/db/repositories/trashRepo').then(({ purgeExpiredTrash }) =>
+    purgeExpiredTrash().catch((err) =>
+      console.error('[songdrafts] trash purge failed:', err),
+    ),
+  )
+
   // Dev-only: seed a demo board when the auth bypass is active (UI testing).
   if (import.meta.env.DEV) {
     const { isDevAuthBypass, isShotMode } = await import('@/lib/auth/devBypass')

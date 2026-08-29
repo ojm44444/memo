@@ -35,6 +35,7 @@ import {
 } from '@/lib/projectTemplates'
 import { useUiStore } from '@/stores/uiStore'
 import { useCallback, useState } from 'react'
+import { TrashSection } from './TrashSection'
 import { LibrarySearch } from './LibrarySearch'
 import { RecentSongsRow } from './RecentSongsRow'
 import { PlaylistsView } from '@/components/playlists/PlaylistsView'
@@ -605,6 +606,8 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
           </div>
         </section>
       )}
+
+      <TrashSection readOnly={readOnly} />
         </>
       )}
     </div>

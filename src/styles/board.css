@@ -8924,3 +8924,110 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   color: var(--text-muted);
   margin: 2px 0 0;
 }
+
+/* ─── Trash (in the Library). The build that makes "a copy, not a mirror"
+   true: deleted songs wait 30 days, visibly, before they go for good. ─── */
+.library-trash {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.library-trash-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+.library-trash-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.library-trash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-trash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card, 12px);
+  opacity: 0.92;
+}
+
+.library-trash-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.library-trash-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-trash-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.library-trash-actions,
+.library-trash-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.library-trash-confirm-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.library-trash-restore,
+.library-trash-purge {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.library-trash-restore {
+  background: var(--accent);
+  color: var(--accent-on);
+  border: none;
+  font-weight: 600;
+}
+
+.library-trash-purge {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.library-trash-purge.is-armed {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+}
