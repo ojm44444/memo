@@ -8,8 +8,17 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#16303b" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#e6edec" media="(prefers-color-scheme: light)" />
+    <!-- Dark by default (Owen, 29 Aug): the app no longer follows the OS, so
+         the browser chrome matches the dark ground unless the user chose light. -->
+    <meta name="theme-color" content="#16303b" />
+    <script>
+      // Before first paint: apply a stored light choice so there is no dark
+      // flash for light users, and nothing else - dark is the default.
+      try {
+        if (localStorage.getItem('memo-theme') === 'light')
+          document.documentElement.classList.add('light')
+      } catch {}
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="songdrafts" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
