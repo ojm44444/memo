@@ -120,23 +120,16 @@ export function SignInPage() {
           </p>
         )}
 
-        <button
-          type="button"
-          className="sign-in-google"
-          disabled={busy || offline}
-          onClick={() => void signInWithGoogle()}
-        >
-          Continue with Google
-        </button>
-
-        <div className="sign-in-divider">
-          <span>or</span>
-        </div>
-
+        {/* First party before third party (BD ruling 4). The email path is
+            ours; Google is a convenience. The old order led with a pure white
+            Google button that was the loudest element on a dark screen and
+            made Google the brand on our own front door. */}
         <input
           type="email"
           className="sign-in-input"
           placeholder="your@email.com"
+          aria-label="Your email address"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={busy}
@@ -151,6 +144,19 @@ export function SignInPage() {
           onClick={() => void signInWithEmail()}
         >
           {busy ? 'Sending…' : 'Send magic link'}
+        </button>
+
+        <div className="sign-in-divider">
+          <span>or</span>
+        </div>
+
+        <button
+          type="button"
+          className="sign-in-google"
+          disabled={busy || offline}
+          onClick={() => void signInWithGoogle()}
+        >
+          Continue with Google
         </button>
 
         {message && <p className="sign-in-message">{message}</p>}

@@ -1,3 +1,10 @@
+/* The sign-in page: the first authenticated surface anyone sees.
+   BD ruling 4: design it against the landing page's confidence. Deep ground,
+   the ramp present as a single element (the rule across the card's top, the
+   same element a column header wears), the wordmark at real size, and the
+   Google button demoted to the same visual weight as the email field so
+   Google is not the brand on our own front door. */
+
 .sign-in-page {
   min-height: 100dvh;
   display: flex;
@@ -5,94 +12,88 @@
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(ellipse 60% 50% at 70% 20%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 55% at 70% 12%, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 70%),
     var(--bg);
   color: var(--text);
 }
 
 .sign-in-card {
   width: 100%;
-  max-width: 400px;
-  padding: 32px 28px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--bg-2, #18181b);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card, 12px);
+  padding: 40px 36px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* The one ramp element on this page: the stage rule, cold to alive. */
+.sign-in-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--stage-inbox),
+    var(--stage-ideas),
+    var(--stage-half),
+    var(--stage-done)
+  );
 }
 
 .sign-in-logo {
-  font-family: var(--font-serif, 'Instrument Serif', serif);
-  font-size: 1.8rem;
-  color: inherit;
-  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 28px;
+  line-height: 0;
 }
 
-.sign-in-logo span {
-  color: var(--audio-mint);
+.sign-in-logo .wordmark-img img {
+  height: 28px;
 }
 
 .sign-in-title {
-  margin: 20px 0 8px;
-  font-family: var(--font-serif, 'Instrument Serif', serif);
-  font-size: 1.5rem;
+  font-family: 'Instrument Serif', serif;
   font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 1.15;
+  margin: 0 0 10px;
 }
 
-.sign-in-sub,
-.sign-in-muted {
-  margin: 0 0 24px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text-muted, #7a7780);
+.sign-in-sub {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin: 0 0 26px;
 }
 
+/* Email field and both buttons share one height and one radius: nothing on
+   this card shouts over anything else. */
+.sign-in-input,
+.sign-in-submit,
 .sign-in-google {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: #fff;
-  color: #121214;
+  height: 48px;
+  border-radius: 10px;
   font-family: var(--font-sans, 'Bricolage Grotesque', sans-serif);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.sign-in-google:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.sign-in-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0;
-  color: var(--text-muted, #7a7780);
-  font-family: var(--font-mono, 'DM Mono', monospace);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-}
-
-.sign-in-divider::before,
-.sign-in-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.92rem;
+  box-sizing: border-box;
 }
 
 .sign-in-input {
-  width: 100%;
-  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0 14px;
   margin-bottom: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: var(--bg-3, #1f1f23);
-  color: inherit;
-  font-family: var(--font-sans, 'Bricolage Grotesque', sans-serif);
-  font-size: 0.9rem;
+}
+
+.sign-in-input::placeholder {
+  color: var(--text-muted);
 }
 
 .sign-in-input:focus {
@@ -101,40 +102,81 @@
 }
 
 .sign-in-submit {
-  width: 100%;
-  padding: 12px 16px;
+  background: var(--accent);
+  color: var(--accent-on);
   border: none;
-  border-radius: 8px;
-  background: var(--audio-mint);
-  color: #121214;
-  font-family: var(--font-sans, 'Bricolage Grotesque', sans-serif);
-  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-.sign-in-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.sign-in-submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* Google on the deep surface with a hairline border and our type. */
+.sign-in-google {
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sign-in-google:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--text) 30%, transparent);
+}
+
+.sign-in-submit:disabled,
+.sign-in-google:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.sign-in-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono, 'DM Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sign-in-divider::before,
+.sign-in-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
 .sign-in-message {
-  margin: 16px 0 0;
-  font-family: var(--font-mono, 'DM Mono', monospace);
-  font-size: 0.75rem;
+  margin: 14px 0 0;
+  font-size: 0.85rem;
   line-height: 1.5;
-  color: var(--audio-mint);
+  color: var(--text-muted);
+}
+
+.sign-in-message a {
+  color: var(--accent);
+}
+
+.sign-in-muted {
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
 .sign-in-secondary {
   display: inline-block;
-  margin-top: 24px;
+  margin-top: 22px;
   font-family: var(--font-mono, 'DM Mono', monospace);
   font-size: 0.72rem;
-  color: var(--text-muted, #7a7780);
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
   text-decoration: none;
 }
 
 .sign-in-secondary:hover {
-  color: var(--text, #f2f0ec);
+  color: var(--text);
 }
