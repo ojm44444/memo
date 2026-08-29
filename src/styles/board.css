@@ -9031,3 +9031,85 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   border: none;
   font-weight: 600;
 }
+
+/* ─── Help, bottom right ─────────────────────────────────────────────────── */
+.help-fab {
+  position: fixed;
+  right: 18px;
+  /* sits above the player bar */
+  bottom: 84px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.help-fab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.help-sheet {
+  position: fixed;
+  right: 18px;
+  bottom: 134px;
+  z-index: 61;
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(70dvh, 560px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card, 12px);
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.help-sheet-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  margin: 0 0 14px;
+}
+
+.help-sheet-section { margin-bottom: 12px; }
+
+.help-sheet-section h4 {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 4px;
+}
+
+.help-sheet-section p,
+.help-sheet-note,
+.help-sheet-contact {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.help-sheet-note {
+  padding: 10px 12px;
+  margin: 14px 0;
+  border-left: 2px solid var(--stage-inbox);
+  background: color-mix(in srgb, var(--stage-inbox) 7%, transparent);
+  border-radius: 0 8px 8px 0;
+}
+
+.help-sheet-contact { margin-top: 14px; }
+.help-sheet-contact a { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .help-fab { bottom: 96px; }
+  .help-sheet { bottom: 146px; }
+}

@@ -37,6 +37,7 @@ import { useGlobalFileDrop } from '@/hooks/useGlobalFileDrop'
 import type { DropRejectReason } from '@/lib/extract-audio-files'
 import { OnboardingTour } from '@/components/board/OnboardingTour'
 import { ImportErrorToast } from '@/components/import/ImportErrorToast'
+import { HelpButton } from '@/components/board/HelpButton'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
 import { Wordmark } from '@/components/ui/Wordmark'
@@ -65,15 +66,19 @@ function FileDropLayer({ enabled }: { enabled: boolean }) {
     onImport: (files) => {
       void importFiles(files, 'inbox').then(({ imported, duplicates }) => {
         if (imported > 0) {
+          // B6 done-state copy: the nudge to rename lands at the exact moment
+          // you still remember which recording was which.
           setImportSuccess(
-            imported === 1 ? '1 memo added to Inbox' : `${imported} memos added to Inbox`,
+            imported === 1
+              ? '1 song in your Inbox. Give it a name while you remember which one it is.'
+              : `${imported} songs in your Inbox. Give the good ones a name while you remember which is which.`,
           )
         }
         if (duplicates.length > 0) {
           setImportError(
             duplicates.length === 1
               ? `Already imported: ${duplicates[0]}`
-              : `${duplicates.length} files already imported — skipped`,
+              : `${duplicates.length} files already imported, skipped`,
           )
         }
       })
@@ -102,6 +107,7 @@ function FileDropLayer({ enabled }: { enabled: boolean }) {
           </div>
         </div>
       </div>
+      <HelpButton />
       <ImportErrorToast message={importError} onDismiss={() => setImportError(null)} />
       <ImportErrorToast
         message={importSuccess}

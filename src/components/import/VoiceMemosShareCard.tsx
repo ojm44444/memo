@@ -27,7 +27,7 @@ export function MobileImportCard() {
               <span>Watching {folderName ?? 'Voice Memos'}</span>
             </div>
             <p className="voice-memos-connect-copy">
-              New recordings appear in Inbox automatically when you open memo.
+              New recordings appear in Inbox automatically when you open songdrafts.
             </p>
             {lastImportCount > 0 && (
               <p className="voice-memos-connect-copy">
@@ -84,15 +84,15 @@ export function MobileImportCard() {
       <p className="voice-memos-share-eyebrow">Import from your phone</p>
       <ol className="voice-memos-share-steps">
         <li>
-          Open Voice Memos → tap a memo → <strong>Share</strong> → Save to Files
+          In Voice Memos, select your recordings, then <strong>Save to Files</strong>
         </li>
         <li>
-          Tap <strong>+ Import audio</strong> below and pick the file
+          Tap <strong>+ Import audio</strong> below and pick them all in one go
         </li>
-        <li>It lands in Inbox and syncs across your devices</li>
+        <li>They land in Inbox and sync across your devices</li>
       </ol>
       <p className="voice-memos-share-note">
-        Add memo to your Home Screen for offline access — import still works via Files.
+        Add songdrafts to your Home Screen for offline access. Import still works via Files.
       </p>
     </div>
   )
