@@ -75,15 +75,20 @@
   --font-mono: 'DM Mono', monospace;
 }
 
-/* Mist. Lighter, not white. This is the outdoor/train mode. */
+/* Light. Not "outdoor mode", not a degraded dark: macOS defaults to light,
+   so most new users meet this mode first, and it has to be as good as dark
+   (BD ruling 5). Ground #eef1ef, never white. Borders carry the accent tint
+   rather than grey: nothing on this theme is grey except timestamps. All
+   inks re-measured on the new ground - text 13.17:1, muted 6.59:1, every
+   stage colour >= 4.7:1. */
 html.light {
   color-scheme: light;
 
-  --bg: #e6edec;
-  --bg-2: #d9e3e1;
-  --bg-3: #d9e3e1;
-  --surface: #f4f8f7;
-  --border: #a9bcb9;
+  --bg: #eef1ef;
+  --bg-2: #e2e9e5;
+  --bg-3: #e2e9e5;
+  --surface: #f7faf8;
+  --border: rgba(23, 96, 74, 0.26);
 
   --text: #132a30;        /* 12.62:1 on --bg */
   --text-muted: #3d5a58;  /*  6.31:1 on --bg */

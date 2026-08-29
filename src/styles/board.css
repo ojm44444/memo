@@ -2783,10 +2783,13 @@ html.light .interactive-waveform-bar.is-played {
   white-space: nowrap;
 }
 
+/* Filled, not outlined (BD ruling 5). The washed 10%-alpha pill with a
+   hairline was the "degraded dark" look; a filled chip at 30% lightness
+   carries its hue and keeps white-ish text above 4.5:1 for any --tag-h. */
 html.light .song-card-tag-pill {
-  background: hsla(var(--tag-h, 150), 45%, 38%, 0.1);
-  color: hsl(var(--tag-h, 150), 55%, 28%);
-  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 45%, 35%, 0.18);
+  background: hsl(var(--tag-h, 150), 45%, 30%);
+  color: #f4f8f7;
+  box-shadow: none;
 }
 
 .song-card-tag-overflow {
