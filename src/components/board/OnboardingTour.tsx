@@ -6,26 +6,30 @@ import {
 import { useBoardRole } from '@/hooks/useBoardRole'
 import { useUiStore } from '@/stores/uiStore'
 
+/**
+ * Three steps, not five, and named after what the UI actually says.
+ *
+ * The previous copy taught "Manage" and "Favourites" as two of the three modes.
+ * The nav has always said Board and Listen, so onboarding was teaching a
+ * vocabulary that does not exist in the product. It also ran to five modal
+ * steps before the user had seen anything, which is reading, not learning.
+ *
+ * The BD's ruling is to teach in place and drop the modal entirely. That is a
+ * larger build; these are the three steps it approved for as long as the modal
+ * survives, so the wrong names are not shipping in the meantime.
+ */
 const TOUR_STEPS = [
   {
-    title: 'Welcome to songdrafts',
-    body: 'Your songwriting board. Every recording in one place, sorted by how finished it is.',
+    title: 'Everything starts in the Inbox',
+    body: 'Import a folder or drop files in.',
   },
   {
-    title: 'Import memos',
-    body: 'Tap + Import audio in Inbox, or drag files from Finder on Mac. Voice Memos work great on mobile.',
+    title: 'Move a song right when it gets better',
+    body: 'Nothing expires, nothing nags you.',
   },
   {
-    title: 'Three modes',
-    body: 'Manage is your Kanban. Favourites plays your starred songs. Library holds all projects and collaborators.',
-  },
-  {
-    title: 'Organise takes',
-    body: 'Drag songs between sections, star favourites, and open a song for versions, tags, and notes.',
-  },
-  {
-    title: 'Share & collaborate',
-    body: 'Create password-protected listen links with timestamped feedback. Invite bandmates from Library.',
+    title: 'Every take stacks on one card',
+    body: 'So you hear it turn into something.',
   },
 ] as const
 

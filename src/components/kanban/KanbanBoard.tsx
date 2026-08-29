@@ -277,10 +277,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
         ref={kanbanRef}
         style={{ '--column-count': columns?.length ?? 1 } as CSSProperties}
       >
-        {columns?.map((column) => (
+        {columns?.map((column, index) => (
           <KanbanColumn
             key={column.id}
             column={column}
+            stageIndex={index}
+            stageTotal={columns?.length ?? 1}
             readOnly={readOnly}
             optimisticHideSongId={optimisticMove?.toColumn !== column.slug ? (optimisticMove?.songId ?? null) : null}
             optimisticShowSong={optimisticMove?.toColumn === column.slug ? optimisticMove.song : null}

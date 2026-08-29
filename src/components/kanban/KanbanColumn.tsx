@@ -3,7 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { hasActiveBoardFilters } from '@/db/repositories/projectRepo'
-import { stageColorVar } from '@/lib/stageColor'
+import { stageColorAt } from '@/lib/stageColor'
 import { cn } from '@/lib/cn'
 import { getSongsByColumn, renameColumn } from '@/db/repositories/boardRepo'
 import { ColumnPlayButton } from '@/components/board/ColumnPlayButton'
@@ -28,9 +28,12 @@ interface KanbanColumnProps {
   optimisticHideSongId?: string | null
   /** Song to show at the top of this column immediately on drop */
   optimisticShowSong?: Song | null
+  /** Position in the cold-to-alive ramp. Derived from order, never from name. */
+  stageIndex: number
+  stageTotal: number
 }
 
-export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId, optimisticShowSong }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId, optimisticShowSong, stageIndex, stageTotal }: KanbanColumnProps) {
   const [renamingTitle, setRenamingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -100,7 +103,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
   const isEmpty = songs !== undefined && songs.length === 0
   const filtersActive = useLiveQuery(() => hasActiveBoardFilters(), [])
   // The ramp: this column's position in the cold-to-alive progression.
-  const stageInk = stageColorVar(column.slug)
+  const stageInk = stageColorAt(stageIndex, stageTotal)
   const isLoading = songs === undefined
   const allSelected =
     songIds.length > 0 && songIds.every((songId) => selectedSongIds.includes(songId))

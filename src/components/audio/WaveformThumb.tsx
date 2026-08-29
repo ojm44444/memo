@@ -60,7 +60,11 @@ export function WaveformThumb({
     }
   }, [versionId, localBlobId, storagePath, bars])
 
-  const ink = stageColorVar(columnSlug)
+  // Inherit the column's ramp colour when inside a column: KanbanColumn sets
+  // --stage-ink from POSITION, which is the only correct source once sections
+  // can be renamed. The slug lookup is the fallback for surfaces with no board
+  // context (player bar, share page).
+  const ink = `var(--stage-ink, ${stageColorVar(columnSlug)})`
 
   // Before peaks decode, show a flat mid-height bed rather than an empty box,
   // so the thumbnail never pops in from nothing.

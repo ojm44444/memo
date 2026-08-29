@@ -39,10 +39,14 @@
 
   /* The ramp: cold to alive. Edges, header rules, counts, waveforms.
      Never fills, never body text. */
-  --stage-inbox: #5ea7b8; /* 5.06:1 */
-  --stage-ideas: #65a396; /* 4.76:1 */
-  --stage-half: #8ac4a6;  /* 6.93:1 */
-  --stage-done: #c3e8bd;  /* 10.26:1 */
+  /* Respaced for an even perceptual climb. The old set went DOWN in OKLab
+     lightness from inbox to ideas (0.687 -> 0.669), so the first two stages
+     were never distinguishable: a -0.018 gap against the ~0.035 threshold.
+     Measured gaps now 0.073 / 0.077 / 0.073, all >= 4.5:1 on --bg. */
+  --stage-inbox: #51a0a9; /* L 0.659,  4.57:1 */
+  --stage-ideas: #66baaf; /* L 0.733,  6.06:1 */
+  --stage-half: #8ed2b2;  /* L 0.809,  7.90:1 */
+  --stage-done: #bbe6b8;  /* L 0.882,  9.95:1 */
 
   /* Semantic, held apart from the accent. Nothing is red in the identity,
      so danger is the one place red is permitted and it is used sparingly. */

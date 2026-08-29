@@ -88,9 +88,14 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     }
   }, [primary?.id, primary?.localBlobId, primary?.storagePath])
 
+  // A file that arrived with no audio in it. Clicking play on one of these did
+  // nothing and said nothing, so it read as the app being broken. The card now
+  // states what happened rather than offering a control that cannot work.
+  const isEmptyRecording = primary != null && (primary.durationMs ?? 0) === 0
+
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
-    if (!primary) return
+    if (!primary || isEmptyRecording) return
     const store = usePlayerStore.getState()
     if (isActive) {
       store.setPlaying(false)
@@ -127,6 +132,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         isActive && 'is-active',
         song.isFavourite && 'is-favourite',
         selectionMode && isSelected && 'is-selected',
+        isEmptyRecording && 'is-empty-recording',
       )}
     >
       {/* Header row: play btn + title + duration + fav */}
@@ -139,16 +145,19 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
           <button
             type="button"
             onClick={handlePlay}
-            className={cn('song-card-play', isActive && 'is-playing')}
-            aria-label={isActive ? 'Pause' : 'Play'}
+            className={cn('song-card-play', isActive && 'is-playing', isEmptyRecording && 'is-empty')}
+            aria-label={isEmptyRecording ? 'This recording has no audio in it' : isActive ? 'Pause' : 'Play'}
+            disabled={isEmptyRecording}
           >
-            {isActive ? '❚❚' : '▶'}
+            {isEmptyRecording ? '!' : isActive ? '❚❚' : '▶'}
           </button>
         )}
         <div className="song-card-title-group">
           <p className="song-card-title">{song.title}</p>
-          {song.locationName && (
-            <p className="song-card-location">{song.locationName}</p>
+          {isEmptyRecording ? (
+            <p className="song-card-empty-note">No audio in this one. Check the original.</p>
+          ) : (
+            song.locationName && <p className="song-card-location">{song.locationName}</p>
           )}
         </div>
         <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>

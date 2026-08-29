@@ -116,98 +116,6 @@ const FAQS = [
   },
 ] as const
 
-function WaitlistForm({ className }: { className?: string }) {
-  const [email, setEmail] = useState('')
-  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle')
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = email.trim().toLowerCase()
-    if (!trimmed) return
-    setState('busy')
-
-    try {
-      // Imported here rather than at module scope so supabase-js stays out of
-      // the landing chunk. A visitor only needs it if they actually submit.
-      const { supabase } = await import('@/lib/supabase/client')
-
-      // A missing client is a failure, not a silent no-op. Previously this
-      // branch was skipped and the user still saw a green tick.
-      if (!supabase) {
-        console.error('[songdrafts] waitlist: Supabase client unavailable')
-        setState('error')
-        return
-      }
-
-      // insert, not upsert: RLS grants INSERT only (there is no UPDATE policy,
-      // so an upsert conflict fails). No .select() chained, because
-      // waitlist_leads_select_none denies SELECT to anon — in supabase-js v2
-      // omitting .select() is what keeps this a minimal-return insert.
-      const { error } = await supabase.from('waitlist_leads').insert({ email: trimmed })
-
-      // 23505 = unique violation. Already on the list is a success for the
-      // person submitting, but it is NOT a new lead, so no Pixel event.
-      if (error && error.code !== '23505') {
-        console.error('[songdrafts] waitlist insert failed:', error.message, error.code)
-        setState('error')
-        return
-      }
-
-      const isNewLead = !error
-      if (
-        isNewLead &&
-        typeof window !== 'undefined' &&
-        (window as unknown as Record<string, unknown>).fbq
-      ) {
-        ;((window as unknown as Record<string, unknown>).fbq as (...args: unknown[]) => void)(
-          'track',
-          'Lead',
-          { content_name: 'waitlist' },
-        )
-      }
-
-      setState('done')
-      setEmail('')
-    } catch (err) {
-      // Network-level failure (offline, DNS, CORS)
-      console.error('[songdrafts] waitlist request threw:', err)
-      setState('error')
-    }
-  }
-
-  if (state === 'done') {
-    return (
-      <div className={`waitlist-done ${className ?? ''}`}>
-        <span className="waitlist-done-icon">✓</span>
-        You're on the list. We'll be in touch.
-      </div>
-    )
-  }
-
-  return (
-    /* aria-label + name + autoComplete: a placeholder is not an accessible
-       name (it vanishes on focus), and without autocomplete the browser cannot
-       fill the only field on the page that matters. */
-    <form className={`waitlist-form ${className ?? ''}`} onSubmit={(e) => void submit(e)}>
-      <input
-        type="email"
-        className="waitlist-input"
-        placeholder="your@email.com"
-        aria-label="Your email address"
-        name="email"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        disabled={state === 'busy'}
-      />
-      <button type="submit" className="waitlist-btn" disabled={state === 'busy'}>
-        {state === 'busy' ? 'Joining…' : 'Get early access'}
-      </button>
-      {state === 'error' && <p className="waitlist-error">Something went wrong. Try again.</p>}
-    </form>
-  )
-}
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
@@ -292,8 +200,8 @@ export function LandingPage() {
           >
             Sign in
           </Link>
-          <a href="#get-started" className="nav-cta nav-cta--app">
-            Get early access
+          <a href="#how" className="nav-cta nav-cta--app">
+            See how it works
           </a>
           {/* Below 768px the nav links are hidden with nothing replacing them,
               so Compare, Pricing and FAQ were only reachable by scrolling
@@ -343,7 +251,13 @@ export function LandingPage() {
             is the single. songdrafts is a board for your music — drag a song right
             as it gets better, and actually finish it.
           </p>
-          <WaitlistForm className="hero-form" />
+          {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
+              and no mechanism to send one, so every signup got a tick on screen
+              and silence afterwards. A page that says "delete means delete" while
+              quietly pocketing addresses it never writes back to is the exact
+              hypocrisy this product positions against. It returns when there is a
+              real confirmation email and a promise we keep. */}
+          <p className="hero-status">Not open yet.</p>
           <p className="hero-trial-note">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
@@ -602,7 +516,8 @@ export function LandingPage() {
           take-stacking, share links with timestamped comments. Cancel in one tap.
         </p>
         <p className="pricing-not-live">
-          Not open yet. The waitlist above is the door — no payment details exist here to give.
+          Not open yet, and there is nothing here to pay with. When it opens it will be
+          $9/month, first week $1, one plan, everything included.
         </p>
         <div className="pricing-faq">
           <h3 className="pricing-faq-q">What happens if I stop paying?</h3>
@@ -632,7 +547,9 @@ export function LandingPage() {
           <em>a proper home.</em>
         </h2>
         <p>Open the board. Drag the first memo in. See what you've actually got.</p>
-        <WaitlistForm className="cta-waitlist" />
+        <p className="cta-status">
+          Not open yet. No list to join, and nothing here is collecting your email.
+        </p>
       </section>
 
       <footer>

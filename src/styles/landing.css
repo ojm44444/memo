@@ -2324,3 +2324,21 @@ a.nav-cta {
 @media (max-width: 720px) {
   .backup-grid { grid-template-columns: 1fr; }
 }
+
+/* Waitlist removed (BD ruling 6): these replace the form in the hero and the
+   closing section. Stated plainly rather than apologetically — "not open yet"
+   is a fact about the product, not an excuse. */
+.hero-status {
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-sm, 0.875rem);
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+
+.cta-status {
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-sm, 0.875rem);
+  color: var(--text-muted);
+  margin-top: 20px;
+}
