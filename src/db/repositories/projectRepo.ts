@@ -487,6 +487,17 @@ export interface ProjectSummary {
   isPinned: boolean
   isArchived: boolean
   accentHue: number | null
+  /**
+   * How many of this project's songs sit in each column, in board order.
+   *
+   * Replaces the coloured square that fronted each project card. A grid of
+   * tinted tiles with a name underneath IS the Samply library pattern
+   * whatever the fill, and Owen called it: "a copy of Samply and not
+   * original". This is the thing only songdrafts can show - whether a project
+   * is a pile of ideas or a shelf of finished records - drawn in the stage
+   * ramp, which is our own language.
+   */
+  stageCounts: { slug: string; count: number }[]
 }
 
 async function buildProjectSummary(
@@ -504,6 +515,12 @@ async function buildProjectSummary(
     if (!lastUpdated || song.updatedAt > lastUpdated) lastUpdated = song.updatedAt
   }
 
+  const columns = await db.columns.orderBy('sortOrder').toArray()
+  const stageCounts = columns.map((column) => ({
+    slug: column.slug,
+    count: songs.filter((song) => song.columnSlug === column.slug).length,
+  }))
+
   return {
     id: project.id,
     name: project.name,
@@ -514,6 +531,7 @@ async function buildProjectSummary(
     isPinned: project.id === pinnedId,
     isArchived,
     accentHue: accentMap[project.id] ?? null,
+    stageCounts,
   }
 }
 

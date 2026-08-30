@@ -9421,3 +9421,61 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   border-top: 1px solid var(--border);
   color: color-mix(in srgb, var(--text) 70%, transparent) !important;
 }
+
+/* An established user on an empty project gets one quiet line, not the full
+   welcome. Being taught how to start by software you have used for months
+   reads as the app not knowing who you are. */
+.board-onboarding.is-quiet {
+  padding: 28px 0;
+}
+
+.board-onboarding-quiet {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* ═══ PROJECT CARDS: STAGE DISTRIBUTION, NOT A COLOURED SQUARE ═════════════
+   Owen: "this is a copy of Samply and not original."
+
+   He was right, and the fix is not a different fill. A grid of tinted squares
+   with names underneath IS the Samply/Spotify library shape whatever colour
+   sits inside it. So the square goes, and each project is drawn as what is
+   actually in it: how its songs are spread across the stages, in the ramp.
+   A pile of raw ideas and a shelf of finished records now look different
+   before you read a word, and no other tool in this space can draw that. */
+.library-card-stages {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  gap: 2px;
+  padding: 14px 12px 0;
+  box-sizing: border-box;
+}
+
+.library-card-stage {
+  height: 8px;
+  border-radius: 999px;
+  min-width: 4px;
+  transition: flex-grow 300ms ease;
+}
+
+.library-card-stages.is-empty {
+  height: auto;
+  padding: 14px 12px 0;
+}
+
+.library-card-stages-empty {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* The card no longer needs to be a square-topped tile. */
+.library-card {
+  aspect-ratio: auto;
+  min-height: 0;
+}

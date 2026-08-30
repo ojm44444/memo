@@ -20,6 +20,8 @@ import {
   searchLibrary,
   setActiveProjectId,
 } from '@/db/repositories/projectRepo'
+import { stageColorAt } from '@/lib/stageColor'
+import type { ProjectSummary } from '@/db/repositories/projectRepo'
 import {
   PROJECT_ACCENT_PRESETS,
   libraryCardAccentStyle,
@@ -52,6 +54,54 @@ function formatRelativeTime(iso: string | null) {
 
 interface LibraryViewProps {
   readOnly?: boolean
+}
+
+
+/**
+ * A project, drawn as what is actually in it.
+ *
+ * The coloured square this replaces was the Samply library pattern: a grid of
+ * tinted tiles with names underneath. Owen's verdict was "a copy of Samply and
+ * not original", and he was right about the form even after the gradient came
+ * off - the shape was the copy, not the fill.
+ *
+ * This shows each project's stage distribution in the ramp, so a pile of raw
+ * ideas and a shelf of finished records look different at a glance. It is
+ * information rather than decoration, and no other tool can draw it.
+ */
+function StageBar({ summary }: { summary: ProjectSummary }) {
+  const total = summary.stageCounts.reduce((n, s) => n + s.count, 0)
+
+  if (!total) {
+    return (
+      <div className="library-card-stages is-empty" aria-hidden="true">
+        <span className="library-card-stages-empty">No songs yet</span>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="library-card-stages"
+      role="img"
+      aria-label={summary.stageCounts
+        .filter((s) => s.count > 0)
+        .map((s) => `${s.count} in ${s.slug}`)
+        .join(', ')}
+    >
+      {summary.stageCounts.map((stage, i) => (
+        <span
+          key={stage.slug}
+          className="library-card-stage"
+          style={{
+            flexGrow: stage.count,
+            background: stageColorAt(i, summary.stageCounts.length),
+            display: stage.count ? 'block' : 'none',
+          }}
+        />
+      ))}
+    </div>
+  )
 }
 
 export function LibraryView({ readOnly = false }: LibraryViewProps) {
@@ -382,10 +432,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
                 void openProject(project.id)
               }}
             >
-              <div
-                className="library-card-art"
-                style={projectAccentStyle(project.id, project.accentHue)}
-              />
+              <StageBar summary={project} />
               <div className="library-card-body">
                 {renamingId === project.id ? (
                   <input
@@ -569,10 +616,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
                   style={libraryCardAccentStyle(project.id, project.accentHue)}
                   onClick={() => void restoreProject(project.id)}
                 >
-                  <div
-                    className="library-card-art"
-                    style={projectAccentStyle(project.id, project.accentHue)}
-                  />
+                  <StageBar summary={project} />
                   <div className="library-card-body">
                     <span className="library-card-name">{project.name}</span>
                     <span className="library-card-meta">

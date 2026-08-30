@@ -14,7 +14,7 @@ export function BoardModeToggle() {
         className={boardMode === 'manage' ? 'board-mode-btn is-active' : 'board-mode-btn'}
         onClick={() => setMode('manage')}
       >
-        <span className="board-mode-label-full">Board</span>
+        <span className="board-mode-label-full">Songwriting</span>
         <span className="board-mode-label-short">▦</span>
       </button>
       <button

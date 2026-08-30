@@ -346,7 +346,7 @@ export function LandingPage() {
       {/* Merge, promoted out of the grid to a full-width band */}
       <section className="merge-band">
         <div className="merge-band-inner">
-          <h2 className="section-h2">Two half-songs make one whole one.</h2>
+          <h2 className="section-h2">The verse was already written.<br /><em>You just wrote it in March.</em></h2>
           <p>
             The chorus from March fits the verse from last week. Drag one card onto the
             other and they become one song: takes, tags, comments, all of it. And when
