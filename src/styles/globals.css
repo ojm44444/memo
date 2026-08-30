@@ -205,3 +205,26 @@ html.light .wordmark-img .wm-on-light { display: block; }
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
+/* ═══ LIGHT MODE IS THE LUMINOUS ONE ═══════════════════════════════════════
+   The ground is not a flat colour. It is the same pale teal-to-green wash the
+   landing page's pricing and closing bands use, at a fraction of the strength
+   so text stays comfortable on it. That is the whole point of Owen's idea:
+   light mode becomes the colourful world rather than a bleached dark one. */
+html.light body {
+  background:
+    radial-gradient(ellipse 70% 55% at 8% 0%, rgba(60, 139, 152, 0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 75% 60% at 95% 12%, rgba(26, 87, 38, 0.10) 0%, transparent 64%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(40, 128, 111, 0.13) 0%, transparent 66%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* Cards and panels float as near-white on the wash instead of being another
+   grey. Without this the surfaces and the ground merge and light mode goes
+   flat again, which is what it did before. */
+html.light .song-card,
+html.light .board-column-header,
+html.light .lb-frame {
+  backdrop-filter: blur(2px);
+}

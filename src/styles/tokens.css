@@ -82,40 +82,46 @@
   --font-mono: 'DM Mono', monospace;
 }
 
-/* Light. Not "outdoor mode", not a degraded dark: macOS defaults to light,
-   so most new users meet this mode first, and it has to be as good as dark
-   (BD ruling 5). Ground #eef1ef, never white. Borders carry the accent tint
-   rather than grey: nothing on this theme is grey except timestamps. All
-   inks re-measured on the new ground - text 13.17:1, muted 6.59:1, every
-   stage colour >= 4.7:1. */
+/* Light: the luminous mode, not a faded dark one.
+   Owen's idea, 30 Aug: "maybe that is even the colourful light mode" - the
+   light-green gradient he liked at the bottom of the landing page becomes the
+   whole world here, rather than light being a washed-out version of dark.
+
+   The ground is a pale teal-to-green wash (see globals.css), so every value
+   below is measured against its DARKEST end #e2efe9, the worst case for dark
+   ink. The ramp walks the SAME teal-to-green journey as dark mode, inverted:
+   dark mode goes faint-to-bright, light goes faint-to-DEEP, because on a pale
+   ground "more finished" reads as richer, not paler.
+
+   The previous light ramp separated on HUE (blue/teal/green/olive) and read as
+   four unrelated colours, which is what Owen meant by the gradients all
+   looking similar and the colours not matching each other. */
 html.light {
   color-scheme: light;
 
-  --bg: #eef1ef;
-  --bg-2: #e2e9e5;
-  --bg-3: #e2e9e5;
-  --surface: #f7faf8;
-  --border: rgba(23, 96, 74, 0.26);
+  --bg: #eaf3ee;
+  --bg-2: #e2efe9;
+  --bg-3: #e2efe9;
+  --surface: #f6faf6;
+  --border: rgba(20, 107, 79, 0.24);
 
-  --text: #132a30;        /* 12.62:1 on --bg */
-  --text-muted: #3d5a58;  /*  6.31:1 on --bg */
+  --text: #0f2b2e;        /* 12.64:1 on the darkest ground */
+  --text-muted: #37544f;  /*  6.98:1 */
 
-  --accent: #17604a;      /*  6.30:1 on --bg */
-  --accent-hover: #114b3a;
-  --accent-on: #f4f8f7;   /*  6.98:1 on the accent fill */
-  --accent-dim: rgba(23, 96, 74, 0.12);
-  --accent-glow: rgba(23, 96, 74, 0.08);
+  --accent: #146b4f;      /*  5.47:1 */
+  --accent-hover: #0f5540;
+  --accent-on: #f3f8f1;   /*  6.01:1 ON the accent fill */
+  --accent-dim: rgba(20, 107, 79, 0.12);
+  --accent-glow: rgba(20, 107, 79, 0.09);
 
-  /* The light ramp has to separate on HUE, not lightness.
-     The previous four all sat at lightness 0.30-0.33 and read as one dark
-     teal: adjacent pairs were 1.00-1.18:1 apart, so the ramp carried no
-     information in mist at all. Hue steps were 29/13/8 degrees; they are now
-     27/42/54, walking cold blue -> teal -> green -> alive, and every value
-     still clears 4.5:1 on the mist ground. */
-  --stage-inbox: #2b6d8c; /* 4.82:1, hue 199 */
-  --stage-ideas: #12786b; /* 4.51:1, hue 172 */
-  --stage-half: #2f793c;  /* 4.51:1, hue 131 */
-  --stage-done: #597312;  /* 4.55:1, hue  76 */
+  /* Same journey as dark, descending. OKLab gaps 0.050 / 0.057 / 0.082, all
+     clear of the ~0.035 discrimination threshold. The ramp is graphical
+     (rules, edges, waveform ink) so 3:1 is the bar; the darker half also
+     clears 4.5:1 for the column counts, which are text. */
+  --stage-inbox: #3c8b98; /* L 0.593, 3.33:1 */
+  --stage-ideas: #28806f; /* L 0.543, 4.03:1 */
+  --stage-half: #237045;  /* L 0.487, 5.11:1 */
+  --stage-done: #1a5726;  /* L 0.405, 7.29:1 */
 
   --success: var(--stage-done);
   --warning: #8a5a12;
