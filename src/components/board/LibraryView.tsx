@@ -26,7 +26,6 @@ import {
   PROJECT_ACCENT_PRESETS,
   libraryCardAccentStyle,
   libraryViewAccentStyle,
-  projectAccentStyle,
   projectAccentSwatchStyle,
   projectAccentTextStyle,
 } from '@/lib/projectAccent'
