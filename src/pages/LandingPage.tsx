@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
+import { LiveBoard } from '@/components/landing/LiveBoard'
 import { Wordmark, WordmarkLockup } from '@/components/ui/Wordmark'
 
 
@@ -265,16 +266,12 @@ export function LandingPage() {
 
         {/* The real app, full width, the second beat of the page. Re-shot by
             scripts/shoot-hero.mjs on every visual release. */}
-        <div className="hero-shot">
-          <img
-            src="/hero-board.png"
-            width={4048}
-            height={2268}
-            alt="The songdrafts board: columns from Inbox to Released, songs with waveforms, one playing."
-            loading="eager"
-            decoding="async"
-          />
-        </div>
+        {/* Was a static PNG of the board. A dead screenshot cannot say "this
+            tool is good"; it says "here is a picture of some software". The
+            live version moves: waveforms breathe, a playhead sweeps the
+            playing card, and a card lifts out of Ideas into Half written every
+            few seconds, which is the one gesture the product is about. */}
+        <LiveBoard />
       </section>
 
 
