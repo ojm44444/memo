@@ -118,10 +118,14 @@ html.light {
      clear of the ~0.035 discrimination threshold. The ramp is graphical
      (rules, edges, waveform ink) so 3:1 is the bar; the darker half also
      clears 4.5:1 for the column counts, which are text. */
-  --stage-inbox: #3c8b98; /* L 0.593, 3.33:1 */
-  --stage-ideas: #28806f; /* L 0.543, 4.03:1 */
-  --stage-half: #237045;  /* L 0.487, 5.11:1 */
-  --stage-done: #1a5726;  /* L 0.405, 7.29:1 */
+  /* Same widened journey as dark, deep instead of bright. On a pale ground
+     dark inks cannot vary much in lightness, so hue does the separating: 133
+     degrees end to end, ~27 per step at six columns. Measured against
+     #e2efe9, the darkest end of the light wash. */
+  --stage-inbox: #2f6f9e; /* hue 205, 4.57:1 */
+  --stage-ideas: #12706b; /* hue 177, 4.99:1 */
+  --stage-half: #2f7440;  /* hue 135, 4.81:1 */
+  --stage-done: #5c6d16;  /* hue  72, 4.86:1 */
 
   --success: var(--stage-done);
   --warning: #8a5a12;
