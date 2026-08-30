@@ -9,6 +9,15 @@ export interface Song {
   isFavourite: boolean
   /** Optional — set from file metadata or drawer; never auto-detected from audio */
   musicalKey: string | null
+  /**
+   * Alternate tuning, free text (DADGAD, Open D, half step down).
+   *
+   * From the threads: someone spent 50 hours on a guitar piece in an alternate
+   * tuning, produced 70 near-identical memos, never wrote the tuning down, and
+   * cannot play the piece any more. Key and BPM come off the file; tuning
+   * cannot, so it has to be a field.
+   */
+  tuning?: string | null
   bpm: number | null
   sortOrder: number
   notes: string

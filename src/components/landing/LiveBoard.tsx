@@ -105,7 +105,13 @@ export function LiveBoard() {
             <div className="lb-col" key={col.name} style={{ ['--stage' as string]: STAGE[ci] }}>
               <div className="lb-col-head">
                 <span className="lb-col-name">{col.name}</span>
-                <span className="lb-col-count">{col.cards.length}</span>
+                {/* The count has to follow the travelling card, or the board
+                    says "2" above three cards mid-flight - which reads as a
+                    duplicate rather than a move. Caught in review of the live
+                    page. */}
+                <span className="lb-col-count">
+                  {col.cards.length + (ci === 0 && moved ? -1 : 0) + (ci === 1 && moved ? 1 : 0)}
+                </span>
               </div>
               <div className="lb-col-rule" />
               <div className="lb-cards">

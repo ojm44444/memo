@@ -14,7 +14,7 @@ const FEATURES = [
     size: 'wide',
     icon: '\u25a6',
     title: 'Somewhere to come back to',
-    desc: 'Inbox \u2192 Ideas \u2192 Half Finished \u2192 Finished Demo \u2192 Released. Drag a song right when it gets better. That\'s the whole system.',
+    desc: 'Inbox \u2192 Ideas \u2192 Half Finished \u2192 Finished Demo \u2192 Released, or whatever you call them. Rename the columns, add your own, put them in your order. Drag a song right when it gets better. That\'s the whole system.',
   },
   {
     size: 'tall',
@@ -31,8 +31,8 @@ const FEATURES = [
   {
     size: 'small',
     icon: '\u25ce',
-    title: '0.75\u00d7 to 2\u00d7',
-    desc: 'Slow it down to catch what you actually mumbled. Speed it up to get through 40 memos on the walk to work.',
+    title: 'Get through forty on a walk',
+    desc: 'Triage the pile at 2x on the way to work, then drop to 0.75x to catch what you actually mumbled. Speed is the mechanism; getting through them is the point.',
   },
   {
     size: 'wide',
@@ -75,29 +75,27 @@ function Tick({ val }: { val: boolean | 'partial' | string }) {
 }
 
 const COMPARE_ROWS = [
-  // Cut from twelve rows to seven. Twelve rows across six columns is a
-  // spreadsheet, and nobody reads a spreadsheet on a landing page: the rows
-  // that carry the argument were buried among rows that carried nothing.
-  //
-  // Kept: the four we win that MATTER (the workflow claim), the one everybody
-  // draws on which proves the table is not rigged, and the two we lose. Cut:
-  // playback speed and "listener needs no account" (both subsets of rows
-  // already here), and the price row, which invited a straight cheapest-wins
-  // comparison against two free tools in a table about workflow.
-  { feature: 'A board your songs move across', songdrafts: true,      dubnote: false,     samply: false,     suonote: false,     tapeit: false },
-  { feature: 'Every take stacked on one song', songdrafts: true,      dubnote: false,     samply: 'partial',  suonote: false,     tapeit: false },
-  { feature: 'Merge two half-songs into one',  songdrafts: true,      dubnote: false,     samply: false,     suonote: false,     tapeit: false },
-  { feature: 'Comments pinned to a timestamp', songdrafts: true,      dubnote: false,     samply: true,      suonote: false,     tapeit: false },
-  { feature: 'Works fully offline',            songdrafts: true,      dubnote: true,      samply: true,      suonote: true,      tapeit: true },
-  // Conceded, and kept. A table that wins every row gets discounted wholesale,
-  // including the rows it genuinely wins.
-  { feature: 'Recording quality',              songdrafts: 'partial', dubnote: true,      samply: false,     suonote: 'partial', tapeit: true },
-  { feature: 'Lyrics writing tools',           songdrafts: false,     dubnote: 'partial', samply: false,     suonote: true,      tapeit: false },
+  // Columns changed after reading 12 r/Songwriting threads: Samply and Suonote
+  // were not mentioned ONCE across any of them, while Voice Memos and Apple
+  // Notes are where nearly everyone in those threads actually lives. A table
+  // that beats two products your buyer has never heard of proves nothing; a
+  // table that beats the thing on their home screen is the argument.
+  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  dubnote: false,     tapeit: false },
+  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
+  { feature: 'Lyrics and the recording together', songdrafts: false,  voicememos: false,  notes: true,       dubnote: false,     tapeit: false },
+  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
+  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      dubnote: 'partial', tapeit: 'partial' },
+  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
+  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  dubnote: 'partial', tapeit: 'partial' },
+  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       dubnote: true,      tapeit: true },
+  // Conceded. Apple Notes genuinely beats us on lyrics today, and that row
+  // stays until we ship a lyrics field.
+  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   dubnote: true,      tapeit: true },
 ] as const
 
 const STEPS = [
   ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox.'],
-  ['02', 'Give it a name', 'Ten seconds of typing now saves you scrolling past "New Recording 47" for the next two years.'],
+  ['02', 'Give it a name', 'Ten seconds of typing now saves you scrolling past "New Recording 612" for the next two years.'],
   ['03', 'Move it when it earns it', 'A song shifts right when it gets better. Nothing expires, nothing nags you, nothing gets archived behind your back.'],
   ['04', 'Send it out', 'One link to whoever needs to hear it. Their notes come back stuck to the second they mean.'],
 ] as const
@@ -258,7 +256,7 @@ export function LandingPage() {
             and where it is before the headline has to do any work. */}
         <span className="hero-eyebrow">
           <span className="hero-eyebrow-dot" />
-          Local-first. Built by a songwriter with 400 voice memos.
+          Local-first. Built by a songwriter with 1,247 voice memos.
         </span>
         <h1 className="hero-h1">
             Stop losing <em>ideas.</em>
@@ -266,7 +264,7 @@ export function LandingPage() {
             Start finishing <em>songs.</em>
           </h1>
           <p className="hero-sub">
-            You've got 400 voice memos called "New Recording 47". Somewhere in there
+            You've got 1,247 voice memos called "New Recording 612". Somewhere in there
             is the single. songdrafts is a board for your music. Drag a song right
             as it gets better, and actually finish it.
           </p>
@@ -301,7 +299,7 @@ export function LandingPage() {
           finally organised.
         </h2>
         <p className="section-sub">
-          No renaming files. No scrolling past the same 400 untitled memos looking for
+          No renaming files. No scrolling past the same 1,247 untitled memos looking for
           the one with the good chorus.
         </p>
         <div className="features-grid">
@@ -429,6 +427,34 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* The discipline objection, met head on.
+          Across 12 r/Songwriting threads this is the loudest recurring reply,
+          and one high-karma regular posted a version of it in three separate
+          ones: "your problem isn't organisation, it's discipline". Any
+          organisation-first pitch draws it within an hour. Nothing on this page
+          touched it, so the page was walking into its own worst comment.
+          Concede it completely, then reframe. */}
+      <section className="discipline">
+        <div className="discipline-inner">
+          <div className="section-label">The fair criticism</div>
+          <h2 className="section-h2">
+            An app will not give you discipline.<br />
+            <em>That was never the missing part.</em>
+          </h2>
+          <p className="discipline-lead">
+            If you have a thousand unfinished memos, a tidier list will not make you finish
+            them. That is true, and anyone who tells you otherwise is selling something.
+          </p>
+          <p className="discipline-turn">
+            Here is the part that is actually broken. You already were disciplined, on a
+            Tuesday in March, at 2am, in the car. You caught it. Then it went into a pile of a
+            thousand identical files and you have not heard it since. songdrafts will not
+            finish your song. It makes sure the one you would have finished is still there when
+            you are ready.
+          </p>
+        </div>
+      </section>
+
       <section className="compare" id="compare">
         <div className="section-label">vs. everything else</div>
         <h2 className="section-h2">
@@ -437,9 +463,10 @@ export function LandingPage() {
           songdrafts syncs your songwriting.
         </h2>
         <p className="section-sub">
-          Tape.it records. Dubnote captures. Samply shares with clients. Suonote structures.
-          They're all good at their bit. None of them cover the messy stretch between
-          a voice note and a finished demo, which is where songs actually go to die.
+          Most songwriters are already running a system: Voice Memos for the humming, Apple
+          Notes for the lyrics, a folder somewhere for the bounces. It works right up until
+          the pile gets big. None of it covers the messy stretch between a voice note and a
+          finished demo, which is where songs actually go to die.
         </p>
         <div className="compare-wrap">
           <table className="compare-table">
@@ -449,10 +476,10 @@ export function LandingPage() {
                 <th className="compare-col compare-col--memo">
                   <span className="compare-logo"><Wordmark /></span>
                 </th>
-                <th className="compare-col">Tape.it</th>
+                <th className="compare-col">Voice Memos</th>
+                <th className="compare-col">Apple Notes</th>
                 <th className="compare-col">Dubnote</th>
-                <th className="compare-col">Samply</th>
-                <th className="compare-col">Suonote</th>
+                <th className="compare-col">Tape.it</th>
               </tr>
             </thead>
             <tbody>
@@ -460,18 +487,17 @@ export function LandingPage() {
                 <tr key={row.feature}>
                   <td className="compare-feature">{row.feature}</td>
                   <td className="compare-cell compare-cell--memo"><Tick val={row.songdrafts} /></td>
-                  <td className="compare-cell"><Tick val={row.tapeit} /></td>
+                  <td className="compare-cell"><Tick val={row.voicememos} /></td>
+                  <td className="compare-cell"><Tick val={row.notes} /></td>
                   <td className="compare-cell"><Tick val={row.dubnote} /></td>
-                  <td className="compare-cell"><Tick val={row.samply} /></td>
-                  <td className="compare-cell"><Tick val={row.suonote} /></td>
+                  <td className="compare-cell"><Tick val={row.tapeit} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
           <p className="compare-footnote">
-            Checked 25 August 2026 against each product's own site. Features change, so
-            check before you decide. Two rows here go against us and we left them in,
-            because a table that wins everything is one nobody believes.
+            Checked 25 August 2026. Apple Notes beats us on lyrics today and that row stays
+            until we fix it. A table that wins every row is one nobody believes.
           </p>
         </div>
       </section>

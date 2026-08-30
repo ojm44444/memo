@@ -3515,3 +3515,32 @@ a.nav-cta {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 100%);
 }
+
+/* The discipline objection. Given its own band because conceding the strongest
+   criticism against you is the most persuasive thing on a page like this, and
+   it should not read as a footnote. */
+.discipline { position: relative; z-index: 1; }
+
+.discipline-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.discipline-lead {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 54ch;
+  margin: 0 0 20px;
+}
+
+.discipline-turn {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 58ch;
+  margin: 0;
+  padding-left: 20px;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
