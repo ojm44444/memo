@@ -3,7 +3,7 @@ import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
 } from '@/lib/audio/playbackPosition'
-import { registerAudioEl, consumeSrcSwitchPending, markSrcSwitch } from '@/lib/audio/globalAudioEl'
+import { registerAudioEl, consumeSrcSwitchPending, markSrcSwitch, markRealSrcSet } from '@/lib/audio/globalAudioEl'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
@@ -155,6 +155,10 @@ export function ColumnPlayerBar() {
       const sameUrl = audioRef.current.src === url
       if (!sameUrl) {
         markSrcSwitch()
+        // Claim the element before the unlock's SILENT promise resolves and
+        // tries to restore the old src. Without this the first play of a
+        // session loads correctly and is then paused and wiped.
+        markRealSrcSet()
         audioRef.current.src = url
       }
       setAudioUrl(url)

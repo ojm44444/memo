@@ -117,6 +117,25 @@ export function seekAudioTo(ms: number): boolean {
   return true
 }
 
+/**
+ * Claim the element for real audio.
+ *
+ * THE FIRST-CLICK-DOES-NOTHING BUG. The unlock plays a SILENT wav on the first
+ * pointerdown, then in its .then() restores the previous src and PAUSES -
+ * unless realSrcSet says real audio took over. Only playAudioImmediately()
+ * ever set that flag, and it is skipped when the URL is not cached yet, which
+ * is exactly the first play of a session. So the sequence was:
+ *   pointerdown -> src = SILENT, play()
+ *   click       -> async load sets the REAL src and plays
+ *   SILENT then -> realSrcSet false -> pause() and wipe the src
+ * The first click loaded the song and then had it torn out from under it. The
+ * second click hit the cache, went through playAudioImmediately, set the flag,
+ * and worked - which is why it always took exactly two clicks.
+ */
+export function markRealSrcSet() {
+  realSrcSet = true
+}
+
 export function unlockAudioEl() {
   if (!audioEl || !audioEl.paused) return
   void audioEl.play().catch(() => {})

@@ -89,16 +89,17 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   // A file that arrived with no audio in it. Clicking play on one of these did
   // nothing and said nothing, so it read as the app being broken. The card now
   // states what happened rather than offering a control that cannot work.
-  // Two DIFFERENT unplayable states, and conflating them was alarming.
+  // durationMs === 0 does NOT mean "no audio". Checked against production:
+  // both of Owen's zero-duration versions have real files in cloud storage
+  // (102 KB and 52 KB) - only the duration failed to read on import. An
+  // earlier version of this code treated 0 as empty and DISABLED PLAY on two
+  // perfectly good songs. Unknown duration is a display problem, never a
+  // reason to block playback.
   //
-  // A zero-length version is a genuine problem: the file transferred empty.
-  // A card with no version at all is usually just a note the person made
-  // before recording anything - or a take that has not synced to this device
-  // yet. Labelling that "no audio, check the original" made Owen think his
-  // music had gone missing. It had not: his 256 versions all have cloud files.
+  // The only genuinely unplayable card is one with no version at all.
   const hasTake = primary != null
-  const isZeroLength = hasTake && (primary.durationMs ?? 0) === 0
-  const isEmptyRecording = !hasTake || isZeroLength
+  const durationUnknown = hasTake && (primary.durationMs ?? 0) === 0
+  const isEmptyRecording = !hasTake
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
@@ -153,15 +154,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
             type="button"
             onClick={handlePlay}
             className={cn('song-card-play', isActive && 'is-playing', isEmptyRecording && 'is-empty')}
-            aria-label={
-              isZeroLength
-                ? 'This file came across empty'
-                : isEmptyRecording
-                  ? 'No take on this song yet'
-                  : isActive
-                    ? 'Pause'
-                    : 'Play'
-            }
+            aria-label={isEmptyRecording ? 'No take on this song yet' : isActive ? 'Pause' : 'Play'}
             disabled={isEmptyRecording}
           >
             {isEmptyRecording ? '!' : isActive ? '❚❚' : '▶'}
@@ -170,14 +163,14 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         <div className="song-card-title-group">
           <p className="song-card-title">{song.title}</p>
           {isEmptyRecording ? (
-            <p className="song-card-empty-note">
-              {isZeroLength ? 'This file came across empty.' : 'No take on this one yet.'}
-            </p>
+            <p className="song-card-empty-note">No take on this one yet.</p>
           ) : (
             song.locationName && <p className="song-card-location">{song.locationName}</p>
           )}
         </div>
-        <span className="song-card-time">{formatDuration(primary?.durationMs)}</span>
+        <span className="song-card-time" title={durationUnknown ? 'Length unknown until this plays' : undefined}>
+          {durationUnknown ? '--:--' : formatDuration(primary?.durationMs)}
+        </span>
         <FeedbackBadge songId={song.id} />
         {!readOnly && !selectionMode && (
           <div
