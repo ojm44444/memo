@@ -9915,3 +9915,126 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
       color-mix(in srgb, var(--bg) 92%, var(--surface))
     );
 }
+
+/* ═══ Avatars ══════════════════════════════════════════════════════════════
+   Initials sit UNDER the picture rather than instead of it, so a Google URL
+   that fails to load degrades to a face-shaped thing rather than a broken
+   image icon. */
+.avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  user-select: none;
+}
+
+.avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-comment-header { align-items: center; }
+
+/* Account picture */
+.settings-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.settings-avatar-actions { display: flex; align-items: center; gap: 8px; }
+
+.settings-avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--accent) 12%, transparent),
+    transparent
+  );
+  color: var(--text);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.settings-avatar-btn:hover { border-color: var(--accent); }
+
+.settings-avatar-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.settings-avatar-error {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  color: var(--danger, #ef4444);
+}
+
+/* ═══ Version stacks in Listen ═════════════════════════════════════════════
+   V3 supersedes V2 supersedes V1. The room plays the top of each stack, so
+   the top chip is the default and carries a "top" label; the others are there
+   for when you want to hear where it came from. */
+.mix-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 6px;
+}
+
+.mix-stack-v {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.mix-stack-v:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--text);
+}
+
+.mix-stack-v.is-chosen {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+}
+
+.mix-stack-top {
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}

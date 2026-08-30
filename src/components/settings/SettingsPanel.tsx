@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import { SpeedControl } from '@/components/audio/SpeedControl'
+import { Avatar } from '@/components/ui/Avatar'
+import { clearMyAvatar, getMyAvatarUrl, setMyAvatar } from '@/lib/avatar'
 import { MobileImportCard } from '@/components/import/VoiceMemosShareCard'
 import { markExplicitSignOut } from '@/lib/auth/session'
 import { clearLocalUserBoard } from '@/db/clearLocalUserBoard'
@@ -18,6 +20,11 @@ import { useUiStore } from '@/stores/uiStore'
 
 export function SettingsPanel() {
   const navigate = useNavigate()
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  useEffect(() => {
+    void getMyAvatarUrl().then(setAvatarUrl)
+  }, [])
   const [open, setOpen] = useState(false)
   const [defaultRate, setDefaultRate] = useState<PlaybackRate>(1)
   const [email, setEmail] = useState<string | null>(null)
@@ -266,6 +273,53 @@ export function SettingsPanel() {
             {supabaseConfigured && email && (
               <section className="settings-section">
                 <h3 className="settings-section-title">Account</h3>
+
+                {/* Signing in with Google already gives us a picture, so most
+                    people never touch this. It is here for everyone else, and
+                    for anyone who would rather not use the Google one. */}
+                <div className="settings-avatar-row">
+                  <Avatar label={email} url={avatarUrl} size={44} />
+                  <div className="settings-avatar-actions">
+                    <label className="settings-avatar-btn">
+                      {avatarUrl ? 'Change picture' : 'Add a picture'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          e.target.value = ''
+                          if (!file) return
+                          setAvatarError(null)
+                          try {
+                            setAvatarUrl(await setMyAvatar(file))
+                          } catch (err) {
+                            setAvatarError(err instanceof Error ? err.message : 'Could not save that picture')
+                          }
+                        }}
+                      />
+                    </label>
+                    {avatarUrl && (
+                      <button
+                        type="button"
+                        className="settings-avatar-clear"
+                        onClick={async () => {
+                          setAvatarError(null)
+                          try {
+                            await clearMyAvatar()
+                            setAvatarUrl(await getMyAvatarUrl())
+                          } catch (err) {
+                            setAvatarError(err instanceof Error ? err.message : 'Could not remove it')
+                          }
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {avatarError && <p className="settings-avatar-error">{avatarError}</p>}
+
                 <p className="settings-account-email">{email}</p>
                 <button type="button" className="settings-sign-out" onClick={() => void signOut()}>
                   Sign out

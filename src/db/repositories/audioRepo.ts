@@ -477,7 +477,7 @@ export async function setAudioVersionKind(
  * own work, and Listen is the room where other people's work arrives.
  */
 export async function getSongsWithMixes(): Promise<
-  { song: Song; latest: AudioVersion; mixCount: number }[]
+  { song: Song; latest: AudioVersion; mixCount: number; versions: AudioVersion[] }[]
 > {
   const mixes = await db.audioVersions
     .filter((v) => v.kind === 'mix' || v.kind === 'master')
@@ -490,12 +490,14 @@ export async function getSongsWithMixes(): Promise<
     bySong.set(v.songId, list)
   }
 
-  const out: { song: Song; latest: AudioVersion; mixCount: number }[] = []
+  const out: { song: Song; latest: AudioVersion; mixCount: number; versions: AudioVersion[] }[] = []
   for (const [songId, versions] of bySong) {
     const song = await db.songs.get(songId)
     if (!song || song.deletedAt) continue
     versions.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
-    out.push({ song, latest: versions[0], mixCount: versions.length })
+    // Newest first, so versions[0] is the top of the stack: the one that
+    // plays unless you reach into the stack and pick another.
+    out.push({ song, latest: versions[0], mixCount: versions.length, versions })
   }
 
   out.sort((a, b) => (b.latest.createdAt ?? '').localeCompare(a.latest.createdAt ?? ''))

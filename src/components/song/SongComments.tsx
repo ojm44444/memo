@@ -8,6 +8,8 @@ import {
 import { db } from '@/db/database'
 import { getBoardUserId } from '@/lib/auth/session'
 import { usePlayerStore } from '@/stores/playerStore'
+import { Avatar } from '@/components/ui/Avatar'
+import { getMyAvatarUrl } from '@/lib/avatar'
 import { scheduleFlush } from '@/sync/syncEngine'
 
 interface SongCommentsProps {
@@ -43,6 +45,7 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
   const [stampRemoved, setStampRemoved] = useState(false)
   const comments = useLiveQuery(() => getCommentsForSong(songId), [songId])
   const userId = useLiveQuery(async () => getBoardUserId(), [])
+  const myAvatar = useLiveQuery(async () => getMyAvatarUrl(), [])
 
   const { currentSongId, currentVersionId, progress } = usePlayerStore()
   const isThisSongPlaying = currentSongId === songId
@@ -78,6 +81,11 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
           {comments?.map((comment) => (
             <li key={comment.id} className="song-comment">
               <div className="song-comment-header">
+                <Avatar
+                  label={comment.authorLabel}
+                  url={comment.userId === userId ? myAvatar : null}
+                  size={20}
+                />
                 {comment.timestampMs != null && (
                   <span className="song-comment-timestamp">{formatMs(comment.timestampMs)}</span>
                 )}
@@ -131,7 +139,12 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void submit()
+              // Enter sends, Shift+Enter breaks the line. Cmd/Ctrl+Enter kept
+              // because anyone who learned it should not be punished for it.
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void submit()
+              }
             }}
           />
           <button

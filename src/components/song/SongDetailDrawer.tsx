@@ -25,7 +25,6 @@ import { SongTagsEditor } from './SongTagsEditor'
 import { SongComments } from './SongComments'
 import { SongSharePanel } from './SongSharePanel'
 import { AddToPlaylistModal } from './AddToPlaylistModal'
-import { VersionCompare } from './VersionCompare'
 
 export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   const { selectedSongId, drawerOpen, closeDrawer } = useUiStore()
@@ -196,7 +195,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               sections below the audio is not pinned to anything you can see. */}
           <SongComments songId={song.id} readOnly={readOnly} />
 
-          <VersionCompare songId={song.id} />
 
           {!readOnly && mergeOpen && (
             <MergeSongPicker targetSongId={song.id} onClose={() => setMergeOpen(false)} />
