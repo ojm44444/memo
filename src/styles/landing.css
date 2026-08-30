@@ -2645,3 +2645,156 @@ a.nav-cta {
   .hero-sub { margin-left: auto; margin-right: auto; }
   .hero-status, .hero-trial-note { text-align: center; }
 }
+
+/* ═══ FEATURE CARDS AS COLOUR ═══════════════════════════════════════════════
+   From Owen's references (meansmgmt): the thing that makes that page feel
+   designed rather than typed is a row of cards each carrying a real gradient
+   fill, not a tinted border on a dark box. We have better content for it than
+   they do, because our six cards can walk the stage ramp.
+
+   This is the deliberate opposite of the old "one accent per screen" rule.
+   That rule is for the TOOL. A landing page is theatre and it should spend
+   the palette. */
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 26px 24px 28px;
+  background:
+    linear-gradient(150deg,
+      color-mix(in srgb, var(--card-hue) 26%, transparent) 0%,
+      color-mix(in srgb, var(--card-hue) 8%, transparent) 46%,
+      transparent 78%),
+    color-mix(in srgb, var(--bg-2) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-hue) 34%, transparent);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 260ms ease;
+}
+
+/* A soft bloom in the corner, the way the reference cards carry light. */
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -25%;
+  width: 70%;
+  height: 90%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--card-hue) 42%, transparent) 0%, transparent 70%);
+  filter: blur(34px);
+  pointer-events: none;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42),
+              0 0 0 1px color-mix(in srgb, var(--card-hue) 50%, transparent);
+}
+
+/* Each card takes its own step of the ramp, so the grid reads as the journey
+   the product is about rather than six identical boxes. */
+.feature-card:nth-child(1) { --card-hue: var(--stage-inbox); }
+.feature-card:nth-child(2) { --card-hue: var(--stage-ideas); }
+.feature-card:nth-child(3) { --card-hue: var(--stage-half); }
+.feature-card:nth-child(4) { --card-hue: var(--stage-done); }
+.feature-card:nth-child(5) { --card-hue: var(--stage-ideas); }
+.feature-card:nth-child(6) { --card-hue: var(--stage-half); }
+
+.feature-icon {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  color: var(--card-hue);
+  background: color-mix(in srgb, var(--card-hue) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-hue) 30%, transparent);
+}
+
+.feature-title,
+.feature-desc { position: relative; z-index: 1; }
+
+.feature-title { color: var(--text); }
+
+/* ═══ PILL NAV (intellijend) ═══════════════════════════════════════════════ */
+.landing nav {
+  padding: 14px 28px;
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom: none;
+}
+
+.landing nav::after { display: none; }
+
+.nav-links {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 999px;
+  padding: 8px 10px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.nav-links li a {
+  padding: 6px 14px;
+  border-radius: 999px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.nav-links li a:hover {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text);
+}
+
+/* ═══ EYEBROW PILL above the headline (intellijend) ════════════════════════ */
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 15px 7px 11px;
+  margin-bottom: 26px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  backdrop-filter: blur(10px);
+}
+
+.hero-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* Section subheads follow the headings left, now that the page is
+   left-aligned. A centred paragraph under a left-aligned heading reads as a
+   mistake rather than a choice. */
+.features .section-sub,
+.howitworks .section-sub,
+.compare .section-sub,
+.pricing .section-sub {
+  margin-left: 0;
+  margin-right: 0;
+  max-width: 52ch;
+}
+
+.features,
+.howitworks,
+.compare,
+.pricing,
+.backup-inner {
+  text-align: left;
+}
+
+.features .section-label,
+.howitworks .section-label,
+.compare .section-label,
+.pricing .section-label { text-align: left; }

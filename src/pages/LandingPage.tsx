@@ -242,7 +242,13 @@ export function LandingPage() {
 
       <section className="hero">
         <div className="hero-stage">
-          <h1 className="hero-h1">
+          {/* Eyebrow pill, from Owen's intellijend reference. Says what this is
+            and where it is before the headline has to do any work. */}
+        <span className="hero-eyebrow">
+          <span className="hero-eyebrow-dot" />
+          Local-first. Built by a songwriter with 400 voice memos.
+        </span>
+        <h1 className="hero-h1">
             Stop losing <em>ideas.</em>
             <br />
             Start finishing <em>songs.</em>
