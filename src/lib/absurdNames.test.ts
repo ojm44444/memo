@@ -29,21 +29,21 @@ describe('absurd names', () => {
   })
 
   it('never touches a name a person chose', () => {
-    for (const t of ['car park chorus', 'the kettle song', 'Poem', '9 Wheelwrights Way 6']) {
+    for (const t of ['car park chorus', 'the kettle song', 'Poem', '14 Kiln Lane 6']) {
       expect(looksUnnamed(t), t).toBe(false)
     }
   })
 })
 
-describe('repeatedStems, from Owen\'s real library', () => {
+describe('repeatedStems, on a realistic imported library', () => {
   const REAL = [
-    'The Good Rehearsal Rooms 2', 'The Good Rehearsal Rooms 3',
-    'The Good Rehearsal Rooms 4', 'The Good Rehearsal Rooms 5',
-    'The Good Rehearsal Rooms 13', 'The Good Rehearsal Rooms 14',
-    'Maple Leaf Business Park 16', 'Maple Leaf Business Park 17',
-    'Maple Leaf Business Park 18',
-    '9 Wheelwrights Way 6', '9 Wheelwrights Way 7', '9 Wheelwrights Way 10',
-    'Five Bells Inn', 'Dover District Leisure Centre',
+    'Northgate Rehearsal Rooms 2', 'Northgate Rehearsal Rooms 3',
+    'Northgate Rehearsal Rooms 4', 'Northgate Rehearsal Rooms 5',
+    'Northgate Rehearsal Rooms 13', 'Northgate Rehearsal Rooms 14',
+    'Pinefield Business Park 16', 'Pinefield Business Park 17',
+    'Pinefield Business Park 18',
+    '14 Kiln Lane 6', '14 Kiln Lane 7', '14 Kiln Lane 10',
+    'The Anchor Inn', 'Riverside Leisure Centre',
     'A617', 'A617 2',
     '? - am I enough?', '? - maybe I’ve fucked it',
     'too good to sit on a hard drive',
@@ -53,14 +53,14 @@ describe('repeatedStems, from Owen\'s real library', () => {
   const stems = repeatedStems(REAL)
 
   it('flags location auto-names that repeat', () => {
-    expect(looksUnnamedInLibrary('The Good Rehearsal Rooms 14', stems)).toBe(true)
-    expect(looksUnnamedInLibrary('Maple Leaf Business Park 18', stems)).toBe(true)
-    expect(looksUnnamedInLibrary('9 Wheelwrights Way 7', stems)).toBe(true)
+    expect(looksUnnamedInLibrary('Northgate Rehearsal Rooms 14', stems)).toBe(true)
+    expect(looksUnnamedInLibrary('Pinefield Business Park 18', stems)).toBe(true)
+    expect(looksUnnamedInLibrary('14 Kiln Lane 7', stems)).toBe(true)
   })
 
   it('leaves a one-off location alone: it may well be the title', () => {
-    expect(looksUnnamedInLibrary('Five Bells Inn', stems)).toBe(false)
-    expect(looksUnnamedInLibrary('Dover District Leisure Centre', stems)).toBe(false)
+    expect(looksUnnamedInLibrary('The Anchor Inn', stems)).toBe(false)
+    expect(looksUnnamedInLibrary('Riverside Leisure Centre', stems)).toBe(false)
   })
 
   it('two of a stem is a coincidence, not a rehearsal room', () => {

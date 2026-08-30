@@ -70,7 +70,7 @@ export function looksUnnamed(title: string): boolean {
 }
 
 /**
- * Strip a trailing counter: "The Good Rehearsal Rooms 14" -> "The Good
+ * Strip a trailing counter: "Northgate Rehearsal Rooms 14" -> "The Good
  * Rehearsal Rooms". Used to spot iOS location auto-names in bulk.
  */
 function stemOf(title: string): string {
@@ -79,10 +79,10 @@ function stemOf(title: string): string {
 
 /**
  * iOS names a voice memo after where you were standing, then appends a
- * counter: "The Good Rehearsal Rooms 2" through "14", "9 Wheelwrights Way 6",
- * "Maple Leaf Business Park 18". Owen's real library is mostly these.
+ * counter: "Northgate Rehearsal Rooms 2" through "14", "14 Kiln Lane 6",
+ * "Pinefield Business Park 18". A real library is mostly these.
  *
- * No regex can tell "Five Bells Inn" from a title someone chose, because in
+ * No regex can tell "The Anchor Inn" from a title someone chose, because in
  * isolation it IS one. The tell is repetition: nobody writes eight songs and
  * calls them all the same place with a number on the end. So the judgement has
  * to be made across the whole library, not per card.

@@ -9716,3 +9716,50 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   .song-meta { grid-template-columns: 1fr 1fr; }
   .song-meta-field--wide { grid-column: span 2; }
 }
+
+/* ═══ Cards, matched to the landing hero ══════════════════════════════════
+   The hero board on the landing page reads better than the real one, and the
+   difference is two things, not a redesign.
+
+   1. The hero card's border is its column's stage colour. The real card used a
+      flat neutral --border, so the ramp Owen built stopped at the column head
+      and never reached the cards inside it.
+
+   2. The hero shows an outline play control at rest and fills it solid only on
+      the card that is playing. The real board filled EVERY card's button with
+      solid mint, so the loudest element on screen appeared 244 times and the
+      playing card had nothing left to distinguish it. The accent is worth more
+      when it is spent once.
+
+   Size is deliberately unchanged: the hero's 18px circle is a picture, the
+   real one is a touch target. */
+.board-column .song-card {
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 30%, transparent);
+}
+
+.board-column .song-card:hover {
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 55%, transparent);
+}
+
+.board-column .song-card-play {
+  background: transparent;
+  color: var(--stage-ink, var(--text));
+  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--text)) 45%, transparent);
+  box-shadow: none;
+}
+
+.board-column .song-card-play:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 14%, transparent);
+  border-color: var(--stage-ink, var(--text));
+  box-shadow: none;
+}
+
+/* The one card that is playing keeps the solid accent fill. */
+.board-column .song-card.is-active .song-card-play,
+.board-column .song-card-play.is-playing {
+  background: var(--accent);
+  color: var(--accent-on);
+  border-color: transparent;
+  box-shadow: 0 2px 10px var(--accent-glow, rgba(157, 219, 173, 0.3));
+}
