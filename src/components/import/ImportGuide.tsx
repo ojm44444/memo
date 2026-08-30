@@ -86,6 +86,24 @@ export function ImportGuide() {
         </div>
       </div>
 
+      <div className="import-phone">
+        <h3>Using it on your phone</h3>
+        <p>
+          The board is built for a proper screen: dragging songs between sections wants a mouse
+          or a big display. On a phone what you actually want is to listen back to what you have
+          got, and that works well.
+        </p>
+        <p>
+          Add it to your home screen and it opens like an app, full screen, and works with no
+          signal. On an iPhone: open songdrafts in Safari, tap <strong>Share</strong>, then{' '}
+          <strong>Add to Home Screen</strong>. On Android, Chrome offers to install it.
+        </p>
+        <p className="import-phone-note">
+          You do not need anything from the App Store to use songdrafts, and there is no separate
+          app to buy. It runs in the browser, and your account is the same everywhere.
+        </p>
+      </div>
+
       <div className="import-vision">
         <h3>Where this is going</h3>
         <p>
