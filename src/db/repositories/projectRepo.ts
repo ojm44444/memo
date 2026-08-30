@@ -328,7 +328,21 @@ export async function ensureDefaultProject(id = createId()) {
   }
   await db.projects.add(project)
   await db.syncMeta.put({ key: ACTIVE_PROJECT_KEY, value: project.id })
-  await enqueueSync('create', 'project', project.id, project)
+
+  // Deliberately NOT enqueued for sync.
+  //
+  // This runs whenever the LOCAL database is empty, which happens on any fresh
+  // browser, cleared site data, or new device - not only for a new account. It
+  // used to push straight away, so it raced the first pull: if the push won,
+  // a phantom empty "My Project" landed in the cloud permanently. That is why
+  // Owen kept deleting the empty duplicate and kept seeing it return. His
+  // account had EIGHT of them, all soft-deleted, created on the days he opened
+  // it somewhere new.
+  //
+  // A genuinely new account still gets its project uploaded: bootstrapProjects
+  // in pushChanges upserts every local project once the board exists. And if
+  // the server already had one, the pull reconciles this placeholder away
+  // instead of duplicating it.
   return project
 }
 

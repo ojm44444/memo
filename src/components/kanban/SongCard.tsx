@@ -89,10 +89,16 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   // A file that arrived with no audio in it. Clicking play on one of these did
   // nothing and said nothing, so it read as the app being broken. The card now
   // states what happened rather than offering a control that cannot work.
-  // Two ways a card ends up unplayable: no audio version at all, or a version
-  // that transferred as a zero-length file. Owen's board has the first kind and
-  // my first attempt only caught the second, so the dead click survived.
-  const isEmptyRecording = primary == null || (primary.durationMs ?? 0) === 0
+  // Two DIFFERENT unplayable states, and conflating them was alarming.
+  //
+  // A zero-length version is a genuine problem: the file transferred empty.
+  // A card with no version at all is usually just a note the person made
+  // before recording anything - or a take that has not synced to this device
+  // yet. Labelling that "no audio, check the original" made Owen think his
+  // music had gone missing. It had not: his 256 versions all have cloud files.
+  const hasTake = primary != null
+  const isZeroLength = hasTake && (primary.durationMs ?? 0) === 0
+  const isEmptyRecording = !hasTake || isZeroLength
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
@@ -147,7 +153,15 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
             type="button"
             onClick={handlePlay}
             className={cn('song-card-play', isActive && 'is-playing', isEmptyRecording && 'is-empty')}
-            aria-label={isEmptyRecording ? 'This recording has no audio in it' : isActive ? 'Pause' : 'Play'}
+            aria-label={
+              isZeroLength
+                ? 'This file came across empty'
+                : isEmptyRecording
+                  ? 'No take on this song yet'
+                  : isActive
+                    ? 'Pause'
+                    : 'Play'
+            }
             disabled={isEmptyRecording}
           >
             {isEmptyRecording ? '!' : isActive ? '❚❚' : '▶'}
@@ -156,7 +170,9 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         <div className="song-card-title-group">
           <p className="song-card-title">{song.title}</p>
           {isEmptyRecording ? (
-            <p className="song-card-empty-note">No audio in this one. Check the original.</p>
+            <p className="song-card-empty-note">
+              {isZeroLength ? 'This file came across empty.' : 'No take on this one yet.'}
+            </p>
           ) : (
             song.locationName && <p className="song-card-location">{song.locationName}</p>
           )}
