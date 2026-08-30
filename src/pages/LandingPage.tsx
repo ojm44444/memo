@@ -20,7 +20,7 @@ const FEATURES = [
   {
     icon: '⧉',
     title: 'Every take on one card',
-    desc: 'Second voice note for the same idea. A new riff. That bridge you sang in the shower. They all stack onto one song, in order, so you can hear it turn into something.',
+    desc: 'Second voice note for the same idea. A new riff. That bridge you sang in the shower. Drop each one onto the same song and they line up in order, so you can hear it turn into something.',
   },
   {
     icon: '◎',

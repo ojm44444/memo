@@ -26,6 +26,29 @@ export async function bootstrapDatabase(): Promise<void> {
   await ensureSeeded()
   void backfillSongTitlesFromVersionLabels()
 
+  // Import integrity. Silent orphan cards are the failure mode that makes
+  // someone think their music is gone, so they get named in the console rather
+  // than sitting there quietly. Never blocks boot.
+  void import('@/db/repositories/integrityRepo').then(async ({ runIntegrityCheck }) => {
+    try {
+      const report = await runIntegrityCheck()
+      if (report.songsWithoutTakes.length) {
+        console.warn(
+          `[songdrafts] ${report.songsWithoutTakes.length} card(s) have no take:`,
+          report.songsWithoutTakes.map((s) => s.title),
+        )
+      }
+      if (report.unrecoverableVersions.length) {
+        console.error(
+          `[songdrafts] ${report.unrecoverableVersions.length} take(s) have no bytes on this device OR in the cloud:`,
+          report.unrecoverableVersions.map((v) => v.label),
+        )
+      }
+    } catch (err) {
+      console.error('[songdrafts] integrity check failed:', err)
+    }
+  })
+
   // The trash's stated window has to be enforced somewhere or it is a lie:
   // anything soft-deleted more than 30 days ago goes for good on boot.
   void import('@/db/repositories/trashRepo').then(({ purgeExpiredTrash }) =>

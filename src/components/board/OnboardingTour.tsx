@@ -28,8 +28,11 @@ const TOUR_STEPS = [
     body: 'Nothing expires, nothing nags you.',
   },
   {
-    title: 'Every take stacks on one card',
-    body: 'So you hear it turn into something.',
+    // "stacks" read as automatic - as if the app groups takes for you. It does
+    // not: you add the new take to the song it belongs to. Copy is now active,
+    // so nobody waits for magic that is not coming.
+    title: 'Put every take on the same card',
+    body: 'Add a new recording to the song it belongs to, then play them back to back.',
   },
 ] as const
 

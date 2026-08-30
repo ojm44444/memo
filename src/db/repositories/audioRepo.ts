@@ -9,7 +9,7 @@ import { smartTitleFromFileName } from '@/lib/audio/smartTitle'
 import { evictLocalUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { supabase } from '@/lib/supabase/client'
 import { createSong, getSong, updateSong } from './boardRepo'
-import { enqueueSync } from './outboxRepo'
+import { enqueueSync, getSyncQueue, removeSyncItem } from './outboxRepo'
 
 export async function getAudioVersions(songId: string) {
   return db.audioVersions.where('songId').equals(songId).sortBy('sortOrder')
@@ -90,6 +90,8 @@ export type ImportAudioResult = {
   versions: AudioVersion[]
   /** File names skipped because they match an existing import (same name + size). */
   duplicates: string[]
+  /** Files that could not be brought in. Nothing was created for these. */
+  failed: { name: string; reason: string }[]
 }
 
 async function findDuplicateImport(file: File): Promise<boolean> {
@@ -113,10 +115,18 @@ export async function importAudioFiles(
 ): Promise<ImportAudioResult> {
   const versions: AudioVersion[] = []
   const duplicates: string[] = []
+  const failed: ImportAudioResult['failed'] = []
 
   for (const file of files) {
     if (await findDuplicateImport(file)) {
       duplicates.push(file.name)
+      continue
+    }
+
+    // A file with no bytes cannot become a take, and a card with no take is
+    // indistinguishable from lost music. Refuse before anything is created.
+    if (file.size === 0) {
+      failed.push({ name: file.name, reason: 'The file is empty (0 bytes).' })
       continue
     }
 
@@ -129,6 +139,17 @@ export async function importAudioFiles(
     // If the ID3 title differs from the filename (e.g. iPhone location name
     // like "Obermattliebweg 4"), keep it as a subtitle shown under the card title.
     const locationName = metadata.title && metadata.title !== title ? metadata.title : null
+    /**
+     * IMPORT IS ATOMIC: no take, no card.
+     *
+     * createSong used to run first and sync immediately, then the version was
+     * added. If that second step threw - a non-audio file, a decode failure, a
+     * storage error - the song row survived forever with no audio, and the
+     * board showed a card whose music appeared to have vanished. That is
+     * exactly how "Export" and "IMG 2085" ended up on Owen's real board, and
+     * it is the scariest possible failure for a product holding unreleased
+     * songs. If the take cannot be created, the card is rolled back.
+     */
     const song = await createSong({
       title,
       columnSlug,
@@ -137,11 +158,46 @@ export async function importAudioFiles(
       recordedAt: metadata.recordedAt,
       locationName,
     })
-    const version = await addAudioVersionToSong(song.id, file, undefined, metadata)
-    versions.push(version)
+
+    try {
+      const version = await addAudioVersionToSong(song.id, file, undefined, metadata)
+      versions.push(version)
+    } catch (err) {
+      await rollbackSongCreate(song.id)
+      failed.push({
+        name: file.name,
+        reason: err instanceof Error ? err.message : 'Could not read the audio.',
+      })
+    }
   }
 
-  return { versions, duplicates }
+  return { versions, duplicates, failed }
+}
+
+/**
+ * Undo a song that was created moments ago for an import that then failed.
+ *
+ * A plain deleteSong would soft-delete and push a tombstone, leaving a ghost
+ * in the cloud for a song that never really existed. This removes the local
+ * row and drops its queued create from the outbox, so nothing is ever
+ * published. If the create already went out, fall back to a real delete so the
+ * server does not keep an empty song.
+ */
+async function rollbackSongCreate(songId: string) {
+  const queue = await getSyncQueue()
+  const pendingCreate = queue.find(
+    (item) => item.entityType === 'song' && item.entityId === songId && item.op === 'create',
+  )
+
+  if (pendingCreate) {
+    await removeSyncItem(pendingCreate.id)
+    await db.songs.delete(songId)
+    return
+  }
+
+  const { deleteSong } = await import('./boardRepo')
+  await deleteSong(songId)
+  await db.songs.delete(songId)
 }
 
 export async function updateAudioVersionStoragePath(
