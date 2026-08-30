@@ -17,7 +17,7 @@ export function AddMemoButton({ columnSlug = 'inbox', compact = false }: AddMemo
       <input
         ref={inputRef}
         type="file"
-        accept="audio/*,.m4a,.mp3,.wav,.aac,.caf"
+        accept="audio/*,.m4a,.mp3,.wav,.aac,.caf,.aiff,.flac,.ogg"
         multiple
         className="hidden"
         disabled={importing}

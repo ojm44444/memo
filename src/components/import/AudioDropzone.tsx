@@ -62,9 +62,15 @@ export function AudioDropzone({ columnSlug = 'inbox', className }: AudioDropzone
         void handleFiles(e.dataTransfer.files)
       }}
     >
+      {/* accept is NOT plain "audio/*". Voice Memos .m4a files saved to Files
+          often arrive with an empty or non-standard MIME type, and iOS greys
+          out anything the accept filter does not match - so the picker can
+          show a folder full of memos that cannot be selected. That is the very
+          first thing a new person does, so extensions are listed explicitly
+          alongside the wildcard. */}
       <input
         type="file"
-        accept="audio/*"
+        accept="audio/*,.m4a,.mp3,.wav,.aac,.caf,.aiff,.flac,.ogg"
         multiple
         className="hidden"
         id="audio-import"
