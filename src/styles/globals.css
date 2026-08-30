@@ -172,3 +172,36 @@ textarea {
 .wordmark-img .wm-on-light { display: none; }
 html.light .wordmark-img .wm-on-dark { display: none; }
 html.light .wordmark-img .wm-on-light { display: block; }
+
+/* ─── Scrollbars: quiet until needed (Owen, 30 Aug) ──────────────────────
+   The default chrome scrollbars rendered as fat light rails inside the dark
+   drawer and along every column. Slim overlay-style thumbs, no track, and
+   the thumb only reaches full presence while you are actually over the
+   scrolling region. True auto-hide is an OS setting we cannot override, but
+   a 6px transparent-tracked thumb reads as gone until used. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text) 18%, transparent) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 999px;
+}
+
+:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 26%, transparent);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
