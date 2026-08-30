@@ -3300,3 +3300,75 @@ a.nav-cta {
 /* The hero and the two luminous bands paint their own ground and must sit
    ABOVE the overlay, not under it. */
 .hero, .pricing, .cta-section { position: relative; z-index: 2; }
+
+/* ═══ STOP WASHING. BAND IT. ═══════════════════════════════════════════════
+   Owen has asked for a more colourful page roughly eight times, and three of
+   my answers were coloured glows at 20-30% alpha over a dark ground. Those
+   read in a side-by-side and vanish in use. His verdict each time: looks the
+   same.
+
+   The only things he has consistently praised are the two FULL-STRENGTH
+   luminous bands. So two more sections become bands. The page now alternates
+   dark and light down its whole length, which is a structural change you
+   cannot miss rather than an atmospheric one you can. */
+.offline-section,
+.trust {
+  background: linear-gradient(135deg, #51a0a9 0%, #66baaf 34%, #8ed2b2 67%, #bbe6b8 100%) !important;
+  color: #0e1f26;
+  position: relative;
+  z-index: 2;
+}
+
+/* Everything inside a band takes dark ink. Without this the copy keeps the
+   dark-theme colours and disappears into the light. */
+.offline-section .section-label,
+.trust .section-label { color: rgba(14, 31, 38, 0.62) !important; }
+
+.offline-section .section-h2,
+.trust .section-h2,
+.offline-section h2,
+.trust h2 { color: #0e1f26 !important; }
+
+.offline-section .section-h2 em,
+.trust .section-h2 em,
+.offline-section h2 em,
+.trust h2 em { color: #0d4a52 !important; }
+
+.offline-section p,
+.trust p,
+.offline-section li,
+.trust li { color: rgba(14, 31, 38, 0.80) !important; }
+
+.offline-section .offline-sub { color: rgba(14, 31, 38, 0.80) !important; }
+.offline-section .offline-list li { color: rgba(14, 31, 38, 0.82) !important; }
+.offline-section .offline-list li::before,
+.trust li::marker { color: #0d4a52 !important; }
+
+/* The signal card inverts to dark ON the band, the same move the pricing card
+   makes. That inversion is what stops a band reading as flat colour. */
+.offline-section .signal-card {
+  background: rgba(14, 31, 38, 0.92) !important;
+  border: 1px solid rgba(14, 31, 38, 0.3) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24) !important;
+}
+.offline-section .signal-label,
+.offline-section .signal-status { color: #a3bab7 !important; }
+.offline-section .signal-status { color: #9ddbad !important; }
+.offline-section .signal-bar { background: #9ddbad !important; }
+.offline-section .signal-dot { background: #9ddbad !important; }
+
+/* The page overlay must not tint the bands. */
+.landing::after { z-index: 0; }
+
+/* The nav is fixed and transparent, so a light band scrolling under it turned
+   the wordmark and "Sign in" invisible. With bands now running down the page
+   the nav has to survive both grounds, so it carries its own dark scrim. */
+.landing nav {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 88%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 62%, transparent) 70%,
+    transparent 100%
+  );
+  backdrop-filter: blur(10px);
+}
