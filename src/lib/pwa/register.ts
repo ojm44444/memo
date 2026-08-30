@@ -26,6 +26,43 @@ export function initPwa() {
   applyUpdate = registerSW({
     immediate: true,
     onNeedRefresh() {
+      /**
+       * Take the update automatically on a fresh page load.
+       *
+       * THIS IS THE BUG THAT MADE THE SITE "LOOK THE SAME EVERY TIME".
+       * The service worker serves the PRECACHED index.html for every
+       * navigation (NavigationRoute -> createHandlerBoundToURL), and it
+       * deliberately does not skipWaiting on install. So a new build installs,
+       * sits in "waiting", and the OLD worker keeps answering every navigation
+       * with the OLD index.html and therefore the OLD asset hashes. Reloading
+       * does not help - the reload is served by the same waiting-blocked
+       * worker. The only escapes were clicking the update banner or closing
+       * every window, so anyone who missed the banner was pinned to a stale
+       * build permanently, however many times they visited.
+       *
+       * A fresh navigation is the safe moment to activate: there is no
+       * in-flight session to break, which was the original reason for not
+       * calling skipWaiting on install. Mid-session updates still go through
+       * the banner. sessionStorage guards against a reload loop.
+       */
+      const RELOAD_GUARD = 'sd-sw-autoreload'
+      let alreadyReloaded = false
+      try {
+        alreadyReloaded = sessionStorage.getItem(RELOAD_GUARD) === '1'
+      } catch {}
+
+      const isFreshLoad = performance.now() < 20_000
+
+      if (isFreshLoad && !alreadyReloaded) {
+        try {
+          sessionStorage.setItem(RELOAD_GUARD, '1')
+        } catch {}
+        // Deferred: onNeedRefresh can fire before registerSW() has returned,
+        // so applyUpdate may not be assigned yet at this point.
+        setTimeout(() => applyUpdate?.(), 0)
+        return
+      }
+
       notifyUpdateReady()
     },
     onRegisteredSW(_url, registration) {

@@ -35,7 +35,13 @@ function requireSupabaseEnv(mode: string): Plugin {
   }
 }
 
+// A visible build stamp. Owen and Claude have both lost hours to "it looks the
+// same" where the real answer was a stale service worker serving an old build.
+// With this on the page, which build you are looking at is a fact, not a guess.
+const BUILD_ID = new Date().toISOString().slice(0, 16).replace('T', ' ')
+
 export default defineConfig(({ mode }) => ({
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   plugins: [
     requireSupabaseEnv(mode),
     react(),

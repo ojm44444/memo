@@ -558,6 +558,12 @@ export function LandingPage() {
             letterforms are paths, so it never waits on a webfont. */}
         <WordmarkLockup tone="paper" className="footer-wordmark-img" />
         <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
+        {/* Build stamp. Not decoration: "it looks the same" has cost hours,
+            and the cause has been a stale service worker every time. Now the
+            build you are looking at is checkable at a glance. */}
+        <span className="footer-build" title="Build currently served to this device">
+          build {__BUILD_ID__}
+        </span>
       </footer>
     </div>
   )

@@ -2344,3 +2344,12 @@ a.nav-cta {
   position: relative;
   z-index: 1;
 }
+
+.footer-build {
+  display: block;
+  margin-top: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+}
