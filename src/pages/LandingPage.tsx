@@ -277,7 +277,7 @@ export function LandingPage() {
             and where it is before the headline has to do any work. */}
         <span className="hero-eyebrow">
           <span className="hero-eyebrow-dot" />
-          Local-first. Built by a songwriter with 1,247 voice memos.
+          Local-first. Built by a songwriter with 247 voice memos.
         </span>
         <h1 className="hero-h1">
             Stop losing <em>ideas.</em>
@@ -285,7 +285,7 @@ export function LandingPage() {
             Start finishing <em>songs.</em>
           </h1>
           <p className="hero-sub">
-            You've got 1,247 voice memos called "New Recording 612". Somewhere in there
+            You've got hundreds of voice memos called "New Recording 612". Somewhere in there
             is the single. songdrafts is a board for your music. Drag a song right
             as it gets better, and actually finish it.
           </p>
@@ -329,7 +329,7 @@ export function LandingPage() {
           finally organised.
         </h2>
         <p className="section-sub">
-          No renaming files. No scrolling past the same 1,247 untitled memos looking for
+          No renaming files. No scrolling past the same few hundred untitled memos looking for
           the one with the good chorus.
         </p>
         <div className="features-grid">
@@ -481,6 +481,26 @@ export function LandingPage() {
             thousand identical files and you have not heard it since. songdrafts will not
             finish your song. It makes sure the one you would have finished is still there when
             you are ready.
+          </p>
+          {/* Owen's own record, and it belongs HERE rather than in the hero.
+              The hero works because it is peer to peer: "a songwriter with
+              247 voice memos" stands level with the reader. Two million
+              streams in that slot turns him into someone selling down to them,
+              which is precisely what r/Songwriting punishes: the founder who
+              plugged constantly in those threads got downvoted and called out,
+              while the one who led with his own mess got a real user defending
+              him in the same thread.
+
+              In THIS section it does work he cannot do anywhere else. The
+              section's whole argument is that discipline was never the missing
+              part, and that argument needs someone who demonstrably finishes
+              to make it. Streams and sold-out rooms prove finishing. Press
+              hits (Earmilk, Wonderland) do not, so they are left out.
+
+              The sentence deliberately ends on the failure, not the record. */}
+          <p className="discipline-credential">
+            Two million streams, BBC Introducing, sold out rooms in the UK and Europe.
+            <span> I still lost the good ones in a list of a thousand files.</span>
           </p>
         </div>
       </section>

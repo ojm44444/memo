@@ -3545,6 +3545,27 @@ a.nav-cta {
   color: var(--text);
 }
 
+/* The credential, set as a signature under the argument rather than a boast.
+   Mono and muted so it reads as a byline, not a headline: the persuasive work
+   is done by WHO is making the discipline argument, which does not need size.
+   The second clause takes solid --text because the admission is the point of
+   the sentence, and it is the half that keeps the first half from bragging.
+   No accent here: the section already spends its one accent on the
+   .discipline-turn border, per the one-accent-per-screen rule in tokens.css. */
+.discipline-credential {
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-xs, 0.72rem);
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 58ch;
+  margin: 22px 0 0;
+  padding-left: 20px;
+}
+
+.discipline-credential span {
+  color: var(--text);
+}
+
 /* Platform answer above the fold. People in the research rejected tools purely
    because sync did not cross their devices, and ours was only answered in a
    buried FAQ. Worded to what actually works today and no further. */
