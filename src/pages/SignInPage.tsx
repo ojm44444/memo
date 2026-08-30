@@ -109,7 +109,7 @@ export function SignInPage() {
         </Link>
         <h2 className="sign-in-title">Sign in to your board</h2>
         <p className="sign-in-sub">
-          Sign in once. After that, songdrafts works offline on planes and trains — changes save on this
+          Sign in once. After that, songdrafts works offline on planes and trains. Changes save on this
           device and upload automatically when you&apos;re back online.
         </p>
 

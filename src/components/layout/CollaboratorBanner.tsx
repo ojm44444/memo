@@ -6,7 +6,7 @@ export function CollaboratorBanner() {
   if (role === 'viewer') {
     return (
       <div className="board-collaborator-banner" role="status">
-        View-only — you can listen and comment, but can&apos;t move songs or edit the board.
+        View-only: you can listen and comment, but can&apos;t move songs or edit the board.
       </div>
     )
   }
@@ -14,7 +14,7 @@ export function CollaboratorBanner() {
   if (role === 'editor') {
     return (
       <div className="board-collaborator-banner" role="status">
-        Editor — listen and leave comments; board edits come from the project owner.
+        Editor: listen and leave comments; board edits come from the project owner.
       </div>
     )
   }

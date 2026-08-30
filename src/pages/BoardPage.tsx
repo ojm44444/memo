@@ -102,7 +102,7 @@ function FileDropLayer({ enabled }: { enabled: boolean }) {
           <div>
             <p className="board-drop-banner-title">Drop to Inbox</p>
             <p className="board-drop-banner-sub">
-              {importing ? 'Importing…' : 'Release anywhere — file goes to Inbox'}
+              {importing ? 'Importing…' : 'Release anywhere. It goes to Inbox'}
             </p>
           </div>
         </div>

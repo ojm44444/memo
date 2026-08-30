@@ -153,7 +153,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
       setQrCopied(true)
       setTimeout(() => setQrCopied(false), 2500)
     } catch {
-      setError('Could not copy QR image — try Download PNG instead')
+      setError('Could not copy QR image. Try Download PNG instead')
     }
   }
 
@@ -177,7 +177,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
     setError(null)
     try {
       if (!hasCloudAudio) {
-        throw new Error('Upload to cloud first — stay online until the badge says In cloud')
+        throw new Error('Upload to cloud first. Stay online until the badge says In cloud')
       }
       const url = await createSongShare(songId, {
         allowDownload,
@@ -362,7 +362,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           </div>
 
           <p className="song-share-sub">
-            Anyone with the link can listen — no account needed.
+            Anyone with the link can listen. No account needed.
           </p>
 
           {uploadsPending && (
@@ -438,7 +438,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           {expiringCount > 0 && (
             <p className="song-share-expiry-warning">
               {expiringCount} link{expiringCount === 1 ? '' : 's'} expire
-              {expiringCount === 1 ? 's' : ''} within a week — create a fresh link if you still need
+              {expiringCount === 1 ? 's' : ''} within a week. Create a fresh link if you still need
               feedback.
             </p>
           )}

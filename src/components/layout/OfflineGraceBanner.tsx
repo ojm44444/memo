@@ -7,7 +7,7 @@ export function OfflineGraceBanner() {
   if (auth.offlineGrace) {
     return (
       <div className="offline-grace-banner offline-grace-banner--grace" role="status">
-        Session paused offline — you can keep working. Reconnect to Wi‑Fi to sync (no data lost).
+        Session paused offline. You can keep working. Reconnect to Wi‑Fi to sync (no data lost).
       </div>
     )
   }
@@ -15,7 +15,7 @@ export function OfflineGraceBanner() {
   if (!navigator.onLine) {
     return (
       <div className="offline-grace-banner" role="status">
-        Offline — changes save on this device and upload when you&apos;re back online.
+        Offline. Changes save on this device and upload when you&apos;re back online.
       </div>
     )
   }

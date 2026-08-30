@@ -36,7 +36,7 @@ export function MobileImportCard() {
             )}
             {stubCount > 0 && (
               <p className="voice-memos-connect-warning">
-                {stubCount} file{stubCount === 1 ? '' : 's'} still in iCloud — download in Finder
+                {stubCount} file{stubCount === 1 ? '' : 's'} still in iCloud. Download in Finder
                 first.
               </p>
             )}
@@ -57,7 +57,7 @@ export function MobileImportCard() {
         ) : (
           <>
             <p className="voice-memos-connect-copy">
-              Link your Voice Memos folder once — new takes land in Inbox without dragging files.
+              Link your Voice Memos folder once and new takes land in Inbox without dragging files.
             </p>
             <p className="voice-memos-connect-path">
               Pick this folder in the dialog:

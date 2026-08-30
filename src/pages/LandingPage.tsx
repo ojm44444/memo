@@ -10,7 +10,7 @@ const FEATURES = [
   {
     icon: '✈',
     title: 'Works in a tunnel',
-    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar — listen, sort, write. It syncs itself later.',
+    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar. Listen, sort, write. It syncs itself later.',
   },
   {
     icon: '▦',
@@ -30,7 +30,7 @@ const FEATURES = [
   {
     icon: '↔',
     title: 'Send it before it\'s ready',
-    desc: 'One link to your producer or your drummer. They press play in the browser and leave a comment pinned to 1:43 — no account, no app, no "can you WeTransfer it again".',
+    desc: 'One link to your producer or your drummer. They press play in the browser and leave a comment pinned to 1:43. No account, no app, no "can you WeTransfer it again".',
   },
   {
     icon: '♯',
@@ -255,7 +255,7 @@ export function LandingPage() {
           </h1>
           <p className="hero-sub">
             You've got 400 voice memos called "New Recording 47". Somewhere in there
-            is the single. songdrafts is a board for your music — drag a song right
+            is the single. songdrafts is a board for your music. Drag a song right
             as it gets better, and actually finish it.
           </p>
           {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
@@ -309,7 +309,7 @@ export function LandingPage() {
         <h2 className="section-h2">Inbox → Ideas → Finished.</h2>
         <p className="section-sub">
           Bring the recordings in. Drag a song one column right whenever it gets better.
-          That's the entire system — the board remembers so you don't have to.
+          That's the entire system. The board remembers so you don't have to.
         </p>
         <div className="howitworks-ramp">
           {[
@@ -337,7 +337,7 @@ export function LandingPage() {
           <h2 className="section-h2">Two half-songs make one whole one.</h2>
           <p>
             The chorus from March fits the verse from last week. Drag one card onto the
-            other and they become one song — takes, tags, comments, all of it. And when
+            other and they become one song: takes, tags, comments, all of it. And when
             you need the idea in D at 92bpm, filter for exactly that.
           </p>
         </div>
@@ -506,7 +506,7 @@ export function LandingPage() {
             <li>Synced encrypted only if you sign in.</li>
             <li>Export everything, any time, in one zip.</li>
             <li>Delete means delete.</li>
-            <li>And nothing you record trains an AI — not ours, not anyone's.</li>
+            <li>And nothing you record trains an AI. Not ours, not anyone's.</li>
           </ul>
         </div>
       </section>
@@ -525,7 +525,7 @@ export function LandingPage() {
         <div className="pricing-faq">
           <h3 className="pricing-faq-q">What happens if I stop paying?</h3>
           <p className="pricing-faq-a">
-            songdrafts locks — your music doesn't. Download everything in one zip any
+            songdrafts locks, your music doesn't. Download everything in one zip any
             time, even after you stop. We keep your cloud audio 60 days in case you come
             back (30 for unfinished trials), and we email you twice before anything is
             removed.

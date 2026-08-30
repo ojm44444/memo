@@ -101,7 +101,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
             result.clipsCopied === 1 ? '' : 's'
           }. ${result.clipsSkipped} cloud-only clip${
             result.clipsSkipped === 1 ? ' was' : 's were'
-          } skipped — download them first from Settings.`,
+          } skipped. Download them first from Settings.`,
         )
       }
       useUiStore.getState().openDrawer(result.song.id)

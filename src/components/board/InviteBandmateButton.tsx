@@ -164,8 +164,8 @@ export function InviteBandmateButton() {
               onChange={(e) => setRole(e.target.value as InviteRole)}
               className="invite-bandmate-select"
             >
-              <option value="viewer">Viewer — read only, can't edit</option>
-              <option value="editor">Editor — can reorder & edit</option>
+              <option value="viewer">Viewer: read only, can't edit</option>
+              <option value="editor">Editor: can reorder and edit</option>
             </select>
           </label>
 

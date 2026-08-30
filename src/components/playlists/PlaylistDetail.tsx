@@ -156,7 +156,7 @@ export function PlaylistDetail({ playlistId, onBack }: PlaylistDetailProps) {
         })}
 
         {songData?.length === 0 && (
-          <p className="playlist-empty">No songs yet — open a song and tap "Add to playlist"</p>
+          <p className="playlist-empty">No songs yet. Open a song and tap "Add to playlist"</p>
         )}
       </div>
     </div>

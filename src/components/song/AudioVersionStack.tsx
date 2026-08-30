@@ -163,7 +163,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                           {version.trimStartMs ? (
                             <span
                               className="version-trim-chip"
-                              title="Playback starts here — clear via ⋯ menu"
+                              title="Playback starts here. Clear via the ⋯ menu"
                             >
                               ▷ {(version.trimStartMs / 1000).toFixed(1)}s
                             </span>

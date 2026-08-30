@@ -196,7 +196,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
             // are merely hidden is how "my work is gone" happens.
             <div className={cn('board-empty-hint', filtersActive && 'board-empty-hint--filtered')}>
               {filtersActive
-                ? 'No matches — try fewer words.'
+                ? 'No matches. Try fewer words.'
                 : column.slug === 'inbox'
                   ? 'Nothing waiting. Suspiciously organised.'
                   : 'Drop audio or drag a song here'}
@@ -217,7 +217,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
                   import prompt would be equally misleading here. */}
               {isEmpty && filtersActive && (
                 <div className="board-empty-hint board-empty-hint--filtered">
-                  No matches — try fewer words.
+                  No matches. Try fewer words.
                 </div>
               )}
               {isEmpty && !filtersActive && <MobileImportCard />}

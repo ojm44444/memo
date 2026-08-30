@@ -126,7 +126,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
       const result = await duplicateProject(projectId)
       if (result.clipsSkipped > 0) {
         alert(
-          `Created "${result.project.name}" with ${result.songsCopied} songs. ${result.clipsSkipped} cloud-only clips were skipped — download them first from Settings.`,
+          `Created "${result.project.name}" with ${result.songsCopied} songs. ${result.clipsSkipped} cloud-only clips were skipped. Download them first from Settings.`,
         )
       }
       setBoardMode('manage')
@@ -140,7 +140,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
   const stashProject = async (projectId: string, projectName: string, songCount: number) => {
     const detail =
       songCount > 0
-        ? `Archive "${projectName}"? Its ${songCount} ${songCount === 1 ? 'song' : 'songs'} stay saved — you can restore later.`
+        ? `Archive "${projectName}"? Its ${songCount} ${songCount === 1 ? 'song' : 'songs'} stay saved, and you can restore later.`
         : `Archive "${projectName}"? You can restore it later.`
     if (!confirm(detail)) return
     try {

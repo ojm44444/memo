@@ -47,7 +47,7 @@ export function ShareCommentThread({
       {expanded && (
         <>
           <p className="share-muted share-comments-hint">
-            Pin a note to a moment — click &ldquo;Comment here&rdquo; while listening, or use the current
+            Pin a note to a moment. Click &ldquo;Comment here&rdquo; while listening, or use the current
             playhead.
           </p>
 
@@ -68,7 +68,7 @@ export function ShareCommentThread({
                 </div>
               </li>
             ))}
-            {comments.length === 0 && <li className="share-muted">No feedback yet — be the first.</li>}
+            {comments.length === 0 && <li className="share-muted">No feedback yet. Be the first.</li>}
           </ul>
 
           <div className="share-comment-form">
