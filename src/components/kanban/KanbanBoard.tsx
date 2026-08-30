@@ -34,6 +34,8 @@ import { columnHeaderAccentStyle, projectAccentTextStyle } from '@/lib/projectAc
 import { cn } from '@/lib/cn'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
+import { repeatedStems } from '@/lib/absurdNames'
+import { db } from '@/db/db'
 import { KanbanColumn } from './KanbanColumn'
 import { DragOverlayCard } from './DragOverlay'
 import type { ColumnSlug } from '@/types/column'
@@ -54,6 +56,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     [columns],
   )
   const activeProjectId = useLiveQuery(() => getActiveProjectId(), [])
+  // Computed once for the whole board, not per card: whether a title is an
+  // iOS location auto-name is a fact about the library, not the title.
+  const unnamedStems = useLiveQuery(
+    async () => repeatedStems((await db.songs.toArray()).map((s) => s.title)),
+    [],
+  )
   const accentHue = useLiveQuery(
     () => (activeProjectId ? getProjectAccentHue(activeProjectId) : Promise.resolve(null)),
     [activeProjectId],
@@ -279,6 +287,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       >
         {columns?.map((column, index) => (
           <KanbanColumn
+            unnamedStems={unnamedStems}
             key={column.id}
             column={column}
             stageIndex={index}

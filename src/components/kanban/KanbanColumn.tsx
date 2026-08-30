@@ -24,6 +24,7 @@ const PAGE_SIZE = 50
 interface KanbanColumnProps {
   column: Column
   readOnly?: boolean
+  unnamedStems?: Set<string>
   /** Song ID to hide from this column (it's optimistically moving away) */
   optimisticHideSongId?: string | null
   /** Song to show at the top of this column immediately on drop */
@@ -33,7 +34,7 @@ interface KanbanColumnProps {
   stageTotal: number
 }
 
-export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, optimisticHideSongId, optimisticShowSong, stageIndex, stageTotal }: KanbanColumnProps) {
+export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = false, unnamedStems, optimisticHideSongId, optimisticShowSong, stageIndex, stageTotal }: KanbanColumnProps) {
   const [renamingTitle, setRenamingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const titleInputRef = useRef<HTMLInputElement>(null)
@@ -170,6 +171,7 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
           )}
           {optimisticExtra && (
             <SongCard
+              unnamedStems={unnamedStems}
               key={optimisticExtra.id}
               song={{ ...optimisticExtra, columnSlug: column.slug }}
               columnSlug={column.slug}
@@ -177,7 +179,13 @@ export const KanbanColumn = memo(function KanbanColumn({ column, readOnly = fals
             />
           )}
           {visibleSongs.map((song) => (
-            <SongCard key={song.id} song={song} columnSlug={column.slug} readOnly={readOnly} />
+            <SongCard
+              key={song.id}
+              song={song}
+              columnSlug={column.slug}
+              readOnly={readOnly}
+              unnamedStems={unnamedStems}
+            />
           ))}
 
           {hiddenCount > 0 && (

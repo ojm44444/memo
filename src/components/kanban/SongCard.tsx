@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
-import { absurdNameFor, looksUnnamed } from '@/lib/absurdNames'
+import { absurdNameFor, looksUnnamedInLibrary } from '@/lib/absurdNames'
 import { updateSong } from '@/db/repositories/boardRepo'
 import { tagHueStyle } from '@/lib/tagColors'
 import { db } from '@/db/database'
@@ -29,12 +29,13 @@ interface SongCardProps {
   song: Song
   columnSlug: ColumnSlug
   readOnly?: boolean
+  unnamedStems?: Set<string>
 }
 
 const isTouchOnlyDevice =
   typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches
 
-export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = false }: SongCardProps) {
+export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = false, unnamedStems }: SongCardProps) {
   const selectionMode = useUiStore((state) => state.selectionMode)
   const draggingCardId = useUiStore((state) => state.draggingCardId)
   const isSelected = useUiStore((state) => state.selectedSongIds.includes(song.id))
@@ -111,7 +112,9 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   // people to type a name, which is demanding typing at the exact moment
   // nobody wants to type. A suggestion you accept with one tap is a different
   // ask. Only offered on titles that are clearly still filenames.
-  const suggestion = looksUnnamed(song.title) ? absurdNameFor(song.id) : null
+  const suggestion = looksUnnamedInLibrary(song.title, unnamedStems)
+    ? absurdNameFor(song.id)
+    : null
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
