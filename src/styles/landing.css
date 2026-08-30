@@ -3010,3 +3010,74 @@ a.nav-cta {
 }
 
 .ramp-step-label { color: var(--step-hue) !important; }
+
+/* ═══ FOOTER: the ramp signs off, not a giant faded word ══════════════════ */
+.footer-rule {
+  height: 3px;
+  border-radius: 3px;
+  max-width: 1180px;
+  margin: 0 auto 28px;
+  background: linear-gradient(to right,
+    var(--stage-inbox), var(--stage-ideas), var(--stage-half), var(--stage-done));
+  box-shadow: 0 0 22px color-mix(in srgb, var(--stage-half) 45%, transparent);
+}
+
+.footer-row {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-row .wordmark-img img { height: 26px; }
+
+/* ═══ PRICING AS A LIGHT BAND ══════════════════════════════════════════════
+   Owen: "the light green at the very bottom is really cool... I was hoping
+   there'd be more of a stripe section where the payment thing could look a lot
+   more slick... I like the dark, but there needs to be more light weaved into
+   it."
+
+   So pricing becomes the page's SECOND luminous band. Two light bands (here
+   and the close) breaking a dark page is a rhythm; light everywhere would
+   flatten it again, which is the trap the page was already in. */
+.pricing {
+  background: linear-gradient(135deg, #51a0a9 0%, #66baaf 34%, #8ed2b2 67%, #bbe6b8 100%) !important;
+  color: #0e1f26;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing .section-label { color: rgba(14, 31, 38, 0.62) !important; }
+.pricing .section-h2 { color: #0e1f26; }
+.pricing .section-h2 em { color: #0d4a52; font-style: italic; }
+.pricing .section-sub { color: rgba(14, 31, 38, 0.78); }
+.pricing .pricing-not-live { color: rgba(14, 31, 38, 0.72); }
+
+/* The price card sits ON the band as dark ink, inverting the usual
+   relationship: the page is dark, this stripe is light, and the card inside
+   it goes dark again. That alternation is what makes a band feel deliberate. */
+.pricing-faq {
+  background: rgba(14, 31, 38, 0.9) !important;
+  border: 1px solid rgba(14, 31, 38, 0.25) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.pricing-faq-q { color: var(--accent); }
+.pricing-faq-a { color: color-mix(in srgb, #eef5f2 82%, transparent); }
+
+/* The price card followed an old centred rule while the section is now
+   left-aligned, so it floated off to the right of its own text. */
+.pricing-faq {
+  margin-left: 0;
+  margin-right: auto;
+  max-width: 640px;
+}
+
+.pricing .pricing-not-live {
+  max-width: 58ch;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}

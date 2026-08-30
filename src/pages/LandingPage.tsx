@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
 import { LiveBoard } from '@/components/landing/LiveBoard'
-import { Wordmark, WordmarkLockup } from '@/components/ui/Wordmark'
+import { Wordmark } from '@/components/ui/Wordmark'
 
 
 const FEATURES = [
@@ -556,11 +556,16 @@ export function LandingPage() {
       </section>
 
       <footer>
-        {/* A04: one confident hero-scale appearance beats five timid ones. */}
-        {/* A04: one hero-scale moment per page. The official lockup, whose
-            letterforms are paths, so it never waits on a webfont. */}
-        <WordmarkLockup tone="paper" className="footer-wordmark-img" />
-        <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
+        {/* The giant faded wordmark is gone (Owen, 30 Aug: "I don't like the
+            big songdrafts at the bottom"). An 11rem 18%-opacity word is the
+            oldest trick in the SaaS footer and it says nothing. The ramp
+            hairline does the sign-off instead: the identity, at actual
+            strength, in one line. */}
+        <div className="footer-rule" aria-hidden="true" />
+        <div className="footer-row">
+          <Wordmark />
+          <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
+        </div>
         {/* Build stamp. Not decoration: "it looks the same" has cost hours,
             and the cause has been a stale service worker every time. Now the
             build you are looking at is checkable at a glance. */}
