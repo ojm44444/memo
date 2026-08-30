@@ -3372,3 +3372,41 @@ a.nav-cta {
   );
   backdrop-filter: blur(10px);
 }
+
+/* ═══ BAND TEXT CONTRAST FIX ═══════════════════════════════════════════════
+   Measured properly against the band's DARKEST end (#51a0a9), which is the
+   worst case for dark ink. My first pass failed twice:
+
+     body at 0.80 alpha  ->  4.07:1   (needs 4.5)
+     labels at 0.62      ->  2.93:1   (needs 4.5)
+
+   Both are small text, so 4.5 is the bar, not 3. Body goes to 0.88 (4.6:1)
+   and the labels take solid ink (5.59:1) since a mono eyebrow at 0.66rem has
+   no business being faint on a coloured ground. Headings were already fine at
+   5.59:1 against a bar of 3. */
+.offline-section p,
+.trust p,
+.offline-section li,
+.trust li,
+.offline-section .offline-sub,
+.offline-section .offline-list li,
+.pricing .section-sub,
+.cta-section p {
+  color: rgba(14, 31, 38, 0.88) !important;
+}
+
+.offline-section .section-label,
+.trust .section-label,
+.pricing .section-label,
+.cta-section .section-label {
+  /* Solid, not 0.78: that opacity dropped it back to 3.95:1. A 0.66rem mono
+     eyebrow is small text and needs the full 4.5, which solid ink clears at
+     5.59:1. */
+  color: #0e1f26 !important;
+  opacity: 1;
+}
+
+.pricing .pricing-not-live,
+.cta-status {
+  color: rgba(14, 31, 38, 0.88) !important;
+}
