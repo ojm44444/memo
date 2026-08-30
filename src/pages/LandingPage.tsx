@@ -139,12 +139,14 @@ const FAQS = [
     a: 'Your audio sits on your device first and syncs to storage you control. Nobody reads it, nobody trains anything on it, nobody at this end listens to your demos.',
   },
   {
+    // The "What if songdrafts shuts down?" question was withdrawn by Owen and
+    // must not come back. Pre-launch, with no track record, a heading carrying
+    // the words "shuts down" plants the doubt rather than settling it, and the
+    // evidence behind it was one comment in 25 threads. The reassurance itself
+    // is worth keeping, so it folds into this answer as a clause: same fact,
+    // no question inviting the reader to imagine the product dying.
     q: 'What if I stop paying?',
-    a: 'Your audio is on your device, so cancelling doesn\'t take anything away from you. Sync and sharing go quiet until you come back.',
-  },
-  {
-    q: 'What if songdrafts shuts down?',
-    a: 'Fair question to ask a small product. Your audio is already on your device, not held hostage on a server, and you can pull the whole library out as a zip whenever you want, including after you cancel. If this disappears tomorrow you still have every recording, in a plain folder, playable in anything.',
+    a: 'Your audio is on your device, so cancelling doesn\'t take anything away from you. Sync and sharing go quiet until you come back. The zip export works whatever happens, so the library is never trapped anywhere.',
   },
 ] as const
 
@@ -626,14 +628,21 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        <h2 className="section-h2">$9/month. Your first week is <em>$1.</em></h2>
+        {/* $49/year, monthly stays $9.
+            Hobbyist songwriters cap around EUR 40/year and an artist-side
+            competitor charges $49. The mix engineer paying $28/month for
+            Samply is not the buyer here. At $9/month alone we were $108/year,
+            above the songwriter band and below the professional one, which is
+            the one price that suits nobody. */}
+        <h2 className="section-h2">$49 a year. <em>Or $9 a month.</em></h2>
         <p className="section-sub">
           Everything included, one plan: the board, sync across your devices, offline,
           take-stacking, share links with timestamped comments. Cancel in one tap.
         </p>
         <p className="pricing-not-live">
-          Not open yet, and there is nothing here to pay with. When it opens it will be
-          $9/month, first week $1, one plan, everything included.
+          A year costs less than five months of monthly, because most people writing songs
+          are not putting this on a company card. Not open yet, and there is nothing here to
+          pay with. When it opens it will be $49/year or $9/month, first week $1.
         </p>
         <div className="pricing-faq">
           <h3 className="pricing-faq-q">What happens if I stop paying?</h3>

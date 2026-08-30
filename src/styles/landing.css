@@ -141,15 +141,36 @@ a.nav-cta {
   overflow: hidden;
 }
 
+/* Permitted gradient home #3: the landing hero. The ramp as a mesh, cold on
+   the left surfacing to green on the right.
+ *
+ * THIS IS THE ONLY .hero::before. There used to be four of them, at lines
+ * 144, 1912, 2099 and 2589, and only the last one rendered. Three were dead,
+ * including one whose comment carefully justified alphas of 0.26 / 0.18 /
+ * 0.28 that never reached a screen. Every previous attempt to dim the hero
+ * edited a dead rule, which is why the hero never got dimmer. If you are
+ * adding another .hero::before, edit this one instead.
+ *
+ * Note that the structural half below (content, position, inset,
+ * pointer-events) only ever existed here: the other three set `background`
+ * alone. Deleting this rule rather than the duplicates would have removed the
+ * pseudo-element altogether. */
 .hero::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  /* Permitted gradient home #3: the landing hero. The ramp as a wash, cold
-     on the left surfacing to green on the right. */
-  background: radial-gradient(ellipse 70% 60% at 78% 32%, rgba(157,219,173,0.13) 0%, transparent 62%),
-              radial-gradient(ellipse 60% 60% at 6% 72%, rgba(94,167,184,0.12) 0%, transparent 62%);
   pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 50% at 10% 14%, var(--stage-inbox) 0%, transparent 62%),
+    radial-gradient(ellipse 50% 46% at 88% 8%, var(--stage-done) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 52% at 64% 78%, var(--stage-half) 0%, transparent 64%),
+    radial-gradient(ellipse 52% 50% at 18% 86%, var(--stage-ideas) 0%, transparent 64%);
+  filter: blur(80px);
+  /* Was 0.9, which is not a wash, it is the stage ramp at nearly full
+     strength behind running text. See the measured contrast note on
+     .hero-sub below. */
+  opacity: 0.62;
+  animation: hero-mesh 22s ease-in-out infinite alternate;
 }
 
 .hero-left {
@@ -159,6 +180,43 @@ a.nav-cta {
   padding: 80px 60px;
   position: relative;
   z-index: 2;
+}
+
+/* A scrim, because dimming the mesh was not enough on its own.
+ *
+ * Measured, worst case, with the mesh at opacity 0.62 and --text-muted
+ * (#a3bab7) as the ink:
+ *
+ *     over --stage-inbox   2.77:1
+ *     over --stage-ideas   2.24:1
+ *     over --stage-half    1.82:1
+ *     over --stage-done    1.52:1
+ *
+ * All four fail 4.5:1, and the sub was previously reading at 1.22:1 with the
+ * mesh at 0.9. Turning the mesh down far enough to fix this on its own would
+ * take it to roughly opacity 0.2, which is the washed-out hero that was
+ * already rejected. So the mesh keeps its brightness where nobody is reading
+ * and the text column gets its own ground.
+ *
+ * At 0.7 the same measurement gives 5.08:1 against the brightest stop and
+ * 5.79:1 against the stops actually under this column. Those are upper-bound
+ * pessimistic: blur(80px) spreads each blob, so no pixel reaches an undiluted
+ * stop colour. Real contrast is better than the numbers above, never worse.
+ *
+ * The fade over the last 15% stops it reading as a rectangle. Text never gets
+ * there, the column has 60px of padding. */
+.hero-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bg) 70%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 70%, transparent) 85%,
+    transparent 100%
+  );
 }
 
 .hero-tag {
@@ -662,7 +720,14 @@ a.nav-cta {
   padding-top: 3px;
 }
 
-.step h4 { font-weight: 600; margin-bottom: 6px; font-size: 0.98rem; }
+/* Step titles carry the same voice as the section headings they sit under,
+   rather than the mono used for data. */
+.step h4 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+}
 .step p { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
 
 /* Song card */
@@ -1104,11 +1169,22 @@ a.nav-cta {
   border-bottom: none;
 }
 
+/* Bricolage, not mono.
+   Bricolage was at 9 uses in this file against DM Mono's 45, which left the
+   wordmark reading as an orphan rather than as the brand's voice. These are
+   PRODUCT NAMES - Voice Memos, Apple Notes, Trello, songdrafts - and a product
+   name set in monospace reads as a variable name, which is exactly the wrong
+   register for the row that decides whether the reader recognises themselves
+   in the comparison.
+
+   Mono keeps every job where it is doing UI-language work: the LiveBoard
+   mockup, card metadata, durations, labels. That is mono earning its place. */
 .compare-col {
   padding: 14px 12px 10px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
@@ -1166,10 +1242,12 @@ a.nav-cta {
 .tick--partial { color: rgba(255,255,255,0.62); font-size: 1rem; }  /* was 0.35 = 2.99:1 */
 .tick--price { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
 
+/* Running prose, so it takes the sans. Mono here was setting a sentence as
+   though it were data. */
 .compare-footnote {
   padding: 10px 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.58rem;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
   color: rgba(255,255,255,0.60);
   border-top: 1px solid var(--border);
   text-align: left;
@@ -1891,13 +1969,6 @@ a.nav-cta {
 
 /* The hero wash: deep teal low-left surfacing to green up-right, glowing
    behind the app frame. One of the three permitted gradient homes. */
-.hero::before {
-  background:
-    radial-gradient(ellipse 55% 50% at 82% 22%, rgba(157, 219, 173, 0.20) 0%, transparent 62%),
-    radial-gradient(ellipse 60% 55% at 60% 40%, rgba(138, 196, 166, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 60% at 4% 88%, rgba(94, 167, 184, 0.20) 0%, transparent 62%);
-}
-
 /* ── The ramp made visible: four steps, cold to alive ── */
 .howitworks-ramp {
   display: grid;
@@ -2078,13 +2149,6 @@ a.nav-cta {
 /* Wash strengthened to hold a poster-scale hero, using the icon's own ends
    (#5ea7b8 teal, #c3e8bd pale green) at real presence. "A bit dark and sad"
    was the correct diagnosis: the previous alphas (0.10-0.16) read as murk. */
-.hero::before {
-  background:
-    radial-gradient(ellipse 56% 46% at 55% 6%, rgba(195, 232, 189, 0.26) 0%, transparent 60%),
-    radial-gradient(ellipse 64% 52% at 92% 62%, rgba(138, 196, 166, 0.18) 0%, transparent 62%),
-    radial-gradient(ellipse 72% 60% at 2% 80%, rgba(94, 167, 184, 0.28) 0%, transparent 62%);
-}
-
 /* ── Section headers join the poster logic ── */
 .section-h2 {
   font-size: var(--t-2xl);
@@ -2400,9 +2464,17 @@ a.nav-cta {
   overflow: hidden;
 }
 
+/* Four columns at full width plus a fifth running off the edge.
+ *
+ * Sizing the grid to five equal columns would squeeze every card to fit the
+ * new one, which makes the mockup look cramped rather than deep. Instead the
+ * first four keep the width they always had and Released overflows the frame,
+ * which .lb-frame already clips. What the reader sees is a board that carries
+ * on past the edge of the picture, which is both truer and the reason to have
+ * added the column at all. */
 .lb-cols {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, calc((100% - 3 * 14px) / 4));
   gap: 14px;
 }
 
@@ -2560,7 +2632,7 @@ a.nav-cta {
 }
 
 @media (max-width: 900px) {
-  .lb-cols { grid-template-columns: repeat(2, 1fr); }
+  .lb-cols { grid-template-columns: repeat(2, calc((100% - 14px) / 2)); }
   .lb-col:nth-child(n + 3) { display: none; }
 }
 
@@ -2568,17 +2640,6 @@ a.nav-cta {
    The previous hero background was three radial gradients at 0.18-0.28 alpha.
    Measured against the icon, that is murk: the icon is these colours at FULL
    strength. This is the same palette, at real presence, and it moves. */
-.hero::before {
-  background:
-    radial-gradient(ellipse 55% 50% at 10% 14%, var(--stage-inbox) 0%, transparent 62%),
-    radial-gradient(ellipse 50% 46% at 88% 8%, var(--stage-done) 0%, transparent 62%),
-    radial-gradient(ellipse 58% 52% at 64% 78%, var(--stage-half) 0%, transparent 64%),
-    radial-gradient(ellipse 52% 50% at 18% 86%, var(--stage-ideas) 0%, transparent 64%);
-  filter: blur(80px);
-  opacity: 0.9;
-  animation: hero-mesh 22s ease-in-out infinite alternate;
-}
-
 @keyframes hero-mesh {
   from { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
   to   { transform: translate3d(1.5%, 1.5%, 0) scale(1.12); }

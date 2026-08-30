@@ -74,9 +74,31 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
       { id: 'f', title: 'verse for June', time: '4:18', tag: 'sent to producer', bars: seedBars(5) },
     ],
   },
+  {
+    /* Released is the payoff and the mockup used to stop one column short of
+       it, which undercut a headline about finishing songs. Five columns is the
+       ceiling: more starts to read as configuration work, which fights the
+       "that is the whole system" line. The fifth is deliberately cropped at
+       the right edge, because a cropped column reads as "the board continues"
+       rather than as five columns squeezed evenly into a space built for
+       four. */
+    name: 'Released',
+    count: 2,
+    cards: [
+      { id: 'g', title: 'glasgow bridge', time: '3:37', tag: 'released', bars: seedBars(6) },
+    ],
+  },
 ]
 
-const STAGE = ['var(--stage-inbox)', 'var(--stage-ideas)', 'var(--stage-half)', 'var(--stage-done)']
+/* Five columns off a four-stop ramp: the fifth takes the accent, which is
+   what "finished" looks like everywhere else in the product. */
+const STAGE = [
+  'var(--stage-inbox)',
+  'var(--stage-ideas)',
+  'var(--stage-half)',
+  'var(--stage-done)',
+  'var(--accent)',
+]
 
 function Waveform({ bars, playing, progress }: { bars: number[]; playing?: boolean; progress?: number }) {
   return (

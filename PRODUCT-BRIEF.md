@@ -1,5 +1,13 @@
 # songdrafts: product brief from Reddit research wave 2
 
+> STATUS 30 Aug 2026, evening. Shipped since this was written: Trello in the compare
+> table and as a feature card, the Music Memos line, the hero platform line, the
+> "they never make an account" card, the absurd-name feature (real, tested, in
+> `src/lib/absurdNames.ts`), the search reframe, and the credential line.
+> NOT done: the type rebalance (P1 below), the small-size wordmark, the voice
+> isolation section (still blocked on device testing), and PRICING.
+> WITHDRAWN by Owen: the "shuts down" FAQ, see 3a.
+
 Written 30 August 2026. Source of evidence: `RESEARCH-REDDIT.md` (25 threads).
 Audience: whoever picks up the landing page and app next.
 
@@ -164,21 +172,20 @@ One line, no new section. Best home is the compare section sub or the isolation 
 
 ## P1. Two gaps that cost sign-ups
 
-### 3a. "What if you disappear" belongs in the FAQ
+### 3a. WITHDRAWN. Do not ship the "shuts down" FAQ.
 
-A user said plainly they stick with Dropbox because small companies get bought, overcharge,
-or cease to exist. This is a real objection to a one-person product and the zip export
-already answers it. Right now that answer is buried inside "What if I stop paying?", which
-is a different worry.
+**Owen rejected this on 30 Aug: "let's not do #2 as dont want to cause fear".**
 
-**Where:** `FAQS` array (line ~101). New entry, place it last.
+It shipped anyway, because a session read this brief after he had said no and the
+brief still recommended it. That is my fault for not withdrawing it here. It is
+live now as "What if songdrafts shuts down?" and it should come out.
 
-```
-{
-  q: 'What if songdrafts shuts down?',
-  a: 'Fair question to ask a small product. Your audio is already on your device, not held hostage on a server, and you can pull the whole library out as a zip whenever you want, including after you cancel. If this disappears tomorrow you still have every recording, in a plain folder, playable in anything.',
-}
-```
+The reasoning he overruled, recorded so it is not re-argued: the evidence was ONE
+comment in 25 threads, against Trello's five. Pre-launch, with no track record, a
+heading containing the words "shuts down" plants the doubt rather than settling it.
+
+If the reassurance is wanted, fold one sentence into the existing "What if I stop
+paying?" answer instead. Never as its own question.
 
 ### 3b. Say what platforms this runs on, above the fold
 

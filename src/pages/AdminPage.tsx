@@ -114,7 +114,13 @@ export function AdminPage() {
   }
 
   const accounts = summary.accounts ?? 0
-  const costCovered = accounts * 9 >= 25
+  /* Two plans now: $9/month or $49/year. With no customers there is no plan
+     mix to go on, so this reports the FLOOR, which assumes everyone took the
+     annual plan at $49/12 = $4.08 a month. Reporting the $9 figure would
+     overstate revenue on a page that exists to tell the truth about it. */
+  const MONTHLY_FLOOR = 49 / 12
+  const monthlyFloor = accounts * MONTHLY_FLOOR
+  const costCovered = monthlyFloor >= 25
 
   return (
     <div className="admin">
@@ -182,11 +188,13 @@ export function AdminPage() {
         <div className={`admin-break${costCovered ? ' is-covered' : ''}`}>
           <p className="admin-k">Break even</p>
           <p>
-            {accounts} {accounts === 1 ? 'account' : 'accounts'} at $9 is{' '}
-            <strong>${accounts * 9}</strong> against <strong>$25</strong> of hosting.{' '}
+            {accounts} {accounts === 1 ? 'account' : 'accounts'} is{' '}
+            <strong>${monthlyFloor.toFixed(2)}</strong> to{' '}
+            <strong>${accounts * 9}</strong> a month against <strong>$25</strong> of
+            hosting, depending how many took the year up front.{' '}
             {costCovered
-              ? 'Costs are covered.'
-              : `${Math.max(0, 3 - accounts)} more paying and it pays for itself.`}
+              ? 'Covered even if every one of them is on the annual plan.'
+              : `${Math.max(0, Math.ceil((25 - monthlyFloor) / MONTHLY_FLOOR))} more and it pays for itself on annual alone.`}
           </p>
         </div>
       </section>
