@@ -9650,3 +9650,69 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   font-size: 0.72rem;
   color: var(--text-muted);
 }
+
+/* The name suggestion. Quiet by default: an offer, not a nag. It sits under
+   the title on cards that are still called New Recording 612, and vanishes the
+   moment the song has a real name. */
+.song-card-suggest {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  cursor: pointer;
+  color: var(--stage-ink, var(--text-muted));
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 10%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--stage-ink, var(--text)) 34%, transparent);
+  opacity: 0.75;
+  transition: opacity 140ms ease, background 140ms ease;
+}
+
+.song-card-suggest:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--accent);
+}
+
+/* Key, tempo, tuning. One row, not a panel: the research warned that heavy
+   metadata entry becomes a duplicate database nobody maintains. */
+.song-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.6fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.song-meta-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.song-meta-field span {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.song-meta-field input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.song-meta-field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+@media (max-width: 480px) {
+  .song-meta { grid-template-columns: 1fr 1fr; }
+  .song-meta-field--wide { grid-column: span 2; }
+}

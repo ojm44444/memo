@@ -3544,3 +3544,15 @@ a.nav-cta {
   border-left: 3px solid var(--accent);
   color: var(--text);
 }
+
+/* Platform answer above the fold. People in the research rejected tools purely
+   because sync did not cross their devices, and ours was only answered in a
+   buried FAQ. Worded to what actually works today and no further. */
+.hero-platforms {
+  font-family: 'DM Mono', monospace;
+  font-size: var(--t-xs, 0.72rem);
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--text-muted) 88%, transparent);
+  margin: 10px 0 0;
+  max-width: 46ch;
+}

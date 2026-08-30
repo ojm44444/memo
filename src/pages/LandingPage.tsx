@@ -37,8 +37,14 @@ const FEATURES = [
   {
     size: 'wide',
     icon: '\u2194',
-    title: 'Send it before it\'s ready',
-    desc: 'One link to your producer or your drummer. They press play in the browser and leave a comment pinned to 1:43. No account, no app, no "can you WeTransfer it again".',
+    title: 'They never make an account',
+    desc: 'One link to your producer, your drummer, an A&R. They press play in the browser and leave a comment pinned to 1:43. No sign-up wall, no app, no "can you WeTransfer it again". Sending someone a link that makes them register is the fastest way to look unprofessional.',
+  },
+  {
+    size: 'small',
+    icon: '\u2564',
+    title: 'You already built this in Trello',
+    desc: 'Cards, columns, an mp3 dragged onto each one. It works, right up until you need to hear it. A board that cannot play audio, stack a take or read a key is a list with attachments.',
   },
   {
     size: 'small',
@@ -80,22 +86,29 @@ const COMPARE_ROWS = [
   // Notes are where nearly everyone in those threads actually lives. A table
   // that beats two products your buyer has never heard of proves nothing; a
   // table that beats the thing on their home screen is the argument.
-  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  dubnote: false,     tapeit: false },
-  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
-  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  dubnote: false,     tapeit: false },
-  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
-  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      dubnote: 'partial', tapeit: 'partial' },
-  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
-  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  dubnote: 'partial', tapeit: 'partial' },
-  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       dubnote: true,      tapeit: true },
-  // Conceded. Apple Notes genuinely beats us on lyrics today, and that row
-  // stays until we ship a lyrics field.
-  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   dubnote: true,      tapeit: true },
+  // Trello replaces Dubnote. Dubnote was named once across 25 threads; Trello
+  // was named FIVE times, unprompted, by songwriters who had hand-built this
+  // product inside it: columns for stage, one card per idea, an mp3 dragged
+  // onto the card, a fresh one on every iteration. People already building
+  // your product by hand is stronger evidence than people saying they want it.
+  //
+  // Trello WINS the first row, honestly. Conceding the row it deserves is what
+  // makes the rest of the table land.
+  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  trello: true,       tapeit: false },
+  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
+  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  tapeit: false },
+  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
+  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      trello: false,      tapeit: 'partial' },
+  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
+  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  tapeit: 'partial' },
+  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  tapeit: true },
+  // Still conceded, and it stays.
+  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   trello: false,      tapeit: true },
 ] as const
 
 const STEPS = [
   ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox.'],
-  ['02', 'Give it a name', 'Ten seconds of typing now saves you scrolling past "New Recording 612" for the next two years.'],
+  ['02', 'Give it a name', 'songdrafts suggests one, and it will be something like Unicorn Pants. Keep it or type your own. You will remember Unicorn Pants. You will never remember New Recording 612.'],
   ['03', 'Move it when it earns it', 'A song shifts right when it gets better. Nothing expires, nothing nags you, nothing gets archived behind your back.'],
   ['04', 'Send it out', 'One link to whoever needs to hear it. Their notes come back stuck to the second they mean.'],
 ] as const
@@ -124,6 +137,10 @@ const FAQS = [
   {
     q: 'What if I stop paying?',
     a: 'Your audio is on your device, so cancelling doesn\'t take anything away from you. Sync and sharing go quiet until you come back.',
+  },
+  {
+    q: 'What if songdrafts shuts down?',
+    a: 'Fair question to ask a small product. Your audio is already on your device, not held hostage on a server, and you can pull the whole library out as a zip whenever you want, including after you cancel. If this disappears tomorrow you still have every recording, in a plain folder, playable in anything.',
   },
 ] as const
 
@@ -278,6 +295,10 @@ export function LandingPage() {
           <p className="hero-trial-note">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
+          <p className="hero-platforms">
+            Runs in the browser on any desktop, and on your phone. Nothing to buy from the
+            App Store.
+          </p>
         </div>
 
         {/* The real app, full width, the second beat of the page. Re-shot by
@@ -348,7 +369,7 @@ export function LandingPage() {
           <p>
             The chorus from March fits the verse from last week. Drag one card onto the
             other and they become one song: takes, tags, comments, all of it. And when
-            you need the idea in D at 92bpm, filter for exactly that.
+            you are hunting the one in D at 92bpm, stop scrolling and just ask for it.
           </p>
         </div>
       </section>
@@ -463,10 +484,12 @@ export function LandingPage() {
           songdrafts syncs your songwriting.
         </h2>
         <p className="section-sub">
-          Most songwriters are already running a system: Voice Memos for the humming, Apple
-          Notes for the lyrics, a folder somewhere for the bounces. It works right up until
-          the pile gets big. None of it covers the messy stretch between a voice note and a
-          finished demo, which is where songs actually go to die.
+          Most songwriters are already running a system. Voice Memos for the humming, Apple
+          Notes for the lyrics, a folder somewhere for the bounces, and if you are organised,
+          a Trello board with the mp3s dragged onto the cards. It works right up until the
+          pile gets big. None of it covers the messy stretch between a voice note and a
+          finished demo, which is where songs actually go to die. Apple made an app for
+          songwriters once, and then deleted it.
         </p>
         <div className="compare-wrap">
           <table className="compare-table">
@@ -478,7 +501,7 @@ export function LandingPage() {
                 </th>
                 <th className="compare-col">Voice Memos</th>
                 <th className="compare-col">Apple Notes</th>
-                <th className="compare-col">Dubnote</th>
+                <th className="compare-col">Trello</th>
                 <th className="compare-col">Tape.it</th>
               </tr>
             </thead>
@@ -489,7 +512,7 @@ export function LandingPage() {
                   <td className="compare-cell compare-cell--memo"><Tick val={row.songdrafts} /></td>
                   <td className="compare-cell"><Tick val={row.voicememos} /></td>
                   <td className="compare-cell"><Tick val={row.notes} /></td>
-                  <td className="compare-cell"><Tick val={row.dubnote} /></td>
+                  <td className="compare-cell"><Tick val={row.trello} /></td>
                   <td className="compare-cell"><Tick val={row.tapeit} /></td>
                 </tr>
               ))}
@@ -543,6 +566,10 @@ export function LandingPage() {
             <li>Synced encrypted only if you sign in.</li>
             <li>Export everything, any time, in one zip.</li>
             <li>Delete means delete.</li>
+            {/* Verified before writing: importAudioFiles stores the File object
+                itself (audioRepo, `blob: file`). Nothing re-encodes, so this is
+                a fact rather than a marketing line. */}
+            <li>We never touch the audio. The file you import is the file we store, the file we play back, and the file that comes out in the zip.</li>
             <li>And nothing you record trains an AI. Not ours, not anyone's.</li>
           </ul>
         </div>

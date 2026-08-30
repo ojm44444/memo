@@ -14,6 +14,7 @@ import { SongProjectSelect } from './SongProjectSelect'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { useUiStore } from '@/stores/uiStore'
 import { LyricsEditor } from './LyricsEditor'
+import { SongMetaFields } from './SongMetaFields'
 import { NotesEditor } from './NotesEditor'
 import { ExternalLinks } from './ExternalLinks'
 import { AudioVersionStack } from './AudioVersionStack'
@@ -210,6 +211,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
                 + Add to playlist
               </button>
               <SongSharePanel songId={song.id} />
+              <SongMetaFields song={song} />
               <SongTagsEditor songId={song.id} initialTags={song.tags ?? []} />
               {/* Lyrics sit ABOVE notes deliberately: across twelve threads
                   keeping the words with the recording was the most requested
