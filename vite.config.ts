@@ -42,6 +42,10 @@ const BUILD_ID = new Date().toISOString().slice(0, 16).replace('T', ' ')
 
 export default defineConfig(({ mode }) => ({
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+  // Sourcemaps in production: a minified "React error #185" is unactionable,
+  // and this is a pre-launch app where the person hitting the crash is the
+  // founder. Costs bytes only when devtools is open.
+  build: { sourcemap: true },
   plugins: [
     requireSupabaseEnv(mode),
     react(),
