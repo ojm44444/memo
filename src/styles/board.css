@@ -9117,3 +9117,86 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   .help-fab { bottom: 96px; }
   .help-sheet { bottom: 146px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE TOOL, BROUGHT UP TO THE MOCKUP
+   Owen, 30 Aug: "this mock-up of the tool looks better than the tool itself.
+   We can make the tool more like that."
+
+   He is right, and the difference was never the data - it is that the mockup
+   spends light and the tool does not. The board obeyed "one accent element per
+   screen", written when the concern was a garish app. The result is a grey
+   working surface. These rules bring the mockup's language inward: lit column
+   rules, cards that sit in light rather than on a flat panel, and a playing
+   card that actually glows.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Column header: the stage rule, lit, like the mockup ────────────────── */
+.board-column-header {
+  border-bottom: 2px solid var(--stage-ink, var(--border));
+  box-shadow: 0 2px 14px -4px color-mix(in srgb, var(--stage-ink, transparent) 55%, transparent);
+}
+
+.board-column-count {
+  color: var(--stage-ink, var(--text-muted));
+  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--border)) 42%, transparent);
+  background: color-mix(in srgb, var(--stage-ink, transparent) 12%, transparent);
+}
+
+/* ── Cards: depth and a stage-tinted edge, not a flat surface swatch ────── */
+.song-card {
+  background:
+    linear-gradient(158deg,
+      color-mix(in srgb, var(--stage-ink, transparent) 10%, transparent) 0%,
+      transparent 58%),
+    var(--surface);
+  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--border)) 26%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.song-card:hover {
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 52%, transparent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ── The playing card: the one accent moment, and it should glow ────────── */
+.song-card.is-active {
+  border-color: color-mix(in srgb, var(--accent) 62%, transparent) !important;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 62%),
+    var(--surface);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent),
+    0 14px 38px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.song-card.is-active .song-card-play {
+  background: var(--accent);
+  color: var(--accent-on);
+  border-color: transparent;
+}
+
+/* ── The board ground gets the same light the mockup sits in ────────────── */
+.board-kanban {
+  position: relative;
+}
+
+.board-kanban::before {
+  content: '';
+  position: absolute;
+  inset: -10% -4% 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 42% 55% at 8% 12%, color-mix(in srgb, var(--stage-inbox) 22%, transparent) 0%, transparent 68%),
+    radial-gradient(ellipse 44% 55% at 92% 20%, color-mix(in srgb, var(--stage-done) 18%, transparent) 0%, transparent 68%);
+  filter: blur(70px);
+  opacity: 0.5;
+}
+
+.board-column { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .song-card:hover { transform: none; }
+}
