@@ -19,5 +19,14 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # Dummy values so the production env-var guard in vite.config.ts passes.
+      # CI proves the code compiles and the tests pass; it is not a deploy, and
+      # the real keys live only in Vercel. Without these every push emailed
+      # Owen a red CI failure for a build that was actually fine.
       - run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+
       - run: npm test
