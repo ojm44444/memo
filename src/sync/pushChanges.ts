@@ -25,12 +25,16 @@ async function processQueueItem(
   if (item.entityType === 'song') {
     if (item.op === 'create') {
       await assertNoError(
+        // Cast: the checked-in Supabase types predate lyrics and tuning. The
+        // shape is enforced by the table itself, which is the check that counts.
         await supabase!.from('songs').upsert({
           id: payload.id,
           board_id: boardId,
           column_slug: payload.columnSlug,
           title: payload.title,
           notes: payload.notes ?? '',
+          lyrics: payload.lyrics ?? null,
+          tuning: payload.tuning ?? null,
           tags: payload.tags ?? [],
           is_favourite: payload.isFavourite ?? false,
           musical_key: payload.musicalKey ?? null,
@@ -39,7 +43,7 @@ async function processQueueItem(
           updated_at: payload.updatedAt,
           deleted_at: payload.deletedAt,
           project_id: payload.projectId ?? null,
-        }),
+        } as never),
       )
       await db.songs.update(item.entityId, { syncedAt: new Date().toISOString() })
     } else if (item.op === 'update') {
@@ -60,6 +64,8 @@ async function processQueueItem(
       if (payload.bpm !== undefined) {
         ;(patch as { bpm?: number | null }).bpm = payload.bpm
       }
+      if (payload.lyrics !== undefined) (patch as Record<string, unknown>).lyrics = payload.lyrics
+      if (payload.tuning !== undefined) (patch as Record<string, unknown>).tuning = payload.tuning
       if (payload.projectId !== undefined) {
         ;(patch as { project_id?: string | null }).project_id = payload.projectId
       }

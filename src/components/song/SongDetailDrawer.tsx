@@ -13,6 +13,7 @@ import { SongStageSelect } from './SongStageSelect'
 import { SongProjectSelect } from './SongProjectSelect'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { useUiStore } from '@/stores/uiStore'
+import { LyricsEditor } from './LyricsEditor'
 import { NotesEditor } from './NotesEditor'
 import { ExternalLinks } from './ExternalLinks'
 import { AudioVersionStack } from './AudioVersionStack'
@@ -210,6 +211,10 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               </button>
               <SongSharePanel songId={song.id} />
               <SongTagsEditor songId={song.id} initialTags={song.tags ?? []} />
+              {/* Lyrics sit ABOVE notes deliberately: across twelve threads
+                  keeping the words with the recording was the most requested
+                  thing full stop, and notes are the lesser field. */}
+              <LyricsEditor songId={song.id} initial={song.lyrics ?? null} />
               <NotesEditor songId={song.id} initialNotes={song.notes} />
               <ExternalLinks songId={song.id} />
             </>

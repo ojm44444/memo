@@ -191,6 +191,8 @@ export async function pullChanges(userId: string) {
         recordedAt: local?.recordedAt ?? null,
         sortOrder: remote.position,
         notes: remote.notes ?? '',
+        lyrics: (remote as { lyrics?: string | null }).lyrics ?? null,
+        tuning: (remote as { tuning?: string | null }).tuning ?? null,
         createdAt: local?.createdAt ?? remote.updated_at,
         updatedAt: remote.updated_at,
         syncedAt: new Date().toISOString(),

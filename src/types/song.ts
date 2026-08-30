@@ -21,6 +21,16 @@ export interface Song {
   bpm: number | null
   sortOrder: number
   notes: string
+  /**
+   * The words, kept with the recording.
+   *
+   * The most requested thing across twelve r/Songwriting threads, ahead of
+   * search, merge and sharing. WHITESPACE IS SIGNIFICANT: the near-universal
+   * hack today is an Apple Note with chords written above the lyrics, and a
+   * chord chart is positioned with spaces. Rendered in a monospace field and
+   * stored verbatim so those charts survive.
+   */
+  lyrics?: string | null
   /** When the audio was originally recorded (from file.lastModified or ID3 tag). */
   recordedAt: string | null
   /** Original ID3 title (e.g. iPhone location name like "Obermattliebweg 4") when it

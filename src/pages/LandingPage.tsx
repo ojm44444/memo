@@ -82,7 +82,7 @@ const COMPARE_ROWS = [
   // table that beats the thing on their home screen is the argument.
   { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  dubnote: false,     tapeit: false },
   { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
-  { feature: 'Lyrics and the recording together', songdrafts: false,  voicememos: false,  notes: true,       dubnote: false,     tapeit: false },
+  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  dubnote: false,     tapeit: false },
   { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
   { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      dubnote: 'partial', tapeit: 'partial' },
   { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      dubnote: false,     tapeit: false },
@@ -496,8 +496,9 @@ export function LandingPage() {
             </tbody>
           </table>
           <p className="compare-footnote">
-            Checked 25 August 2026. Apple Notes beats us on lyrics today and that row stays
-            until we fix it. A table that wins every row is one nobody believes.
+            Checked 25 August 2026. Apple Notes holds lyrics but not the recording, which is
+            why that row is a half. One row here still goes against us and it stays in, because
+            a table that wins everything is one nobody believes.
           </p>
         </div>
       </section>

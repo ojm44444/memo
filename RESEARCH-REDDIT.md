@@ -370,3 +370,345 @@ Needs its own research pass before it goes anywhere near an ad.
 - Is "search by what I sang" buildable well enough to claim, given the rough-audio objection?
 - Does the before/after demo format (thread 8) work as an ad, given that thread's commenters
   immediately challenged whether the after was real?
+
+---
+---
+
+# WAVE 2: added 30 August 2026
+
+Thirteen further threads across r/Songwriting, r/audioengineering, r/musicmarketing,
+r/iosapps, r/iphone, plus three off-topic subs. Read in full.
+
+## Sources, wave 2
+
+**Useful:**
+
+| Thread | Sub | Age | Value |
+|---|---|---|---|
+| How do you organize your music? | Songwriting | 3y | Very rich, best filing systems |
+| How do you organize the songs you have written? | Songwriting | 2y | Rich, the one-folder-per-song wish |
+| strategies for organizing your (guitar) song ideas | Songwriting | 1y | Trello again, direct name clash |
+| Good app for organising song ideas? | Songwriting | 1y | Short, Trello again |
+| What Do You Use to Organize your Songs and Lyrics? | Songwriting | 6y | Thin but old baseline |
+| Looking for organizational advice | Songwriting | 3y | One enormous filing-system answer |
+| Lyric Organization and Brainstorming | Songwriting | 3y | Lyrics only, paper-heavy |
+| What tools to project manage your music | musicmarketing | 2y | Trello and Notion, release-side |
+| A better alternative to VoiceMemos for musicians | iosapps | 2y | Music Memos is dead |
+| Voice Memos App useless for recording samples | iphone | 1y | Apple's AI is wrecking recordings |
+| I'm building a Samply alternative (Trello board?) | audioengineering | 8mo | Kanban tested and rejected |
+| I'm building a Samply alternative (features?) | audioengineering | 6mo | Pipeline validated by a pro |
+| Looking for Samply Alternative | audioengineering | 6mo | Incumbent decay in detail |
+| I'm building the tool I wish existed | audioengineering | 1y | How this market answers builders |
+| What file sharing do you use as an engineer? | audioengineering | 2y | Samply entrenchment |
+| How do you deliver mixes/masters to clients? | audioengineering | 1y | Samply entrenchment |
+| What do you use to share/stream mixes? | audioengineering | 3y | Samply entrenchment |
+| Turning voice memos into full productions | audioengineering | 3y | Audio quality ceiling |
+
+**Duds, do not revisit:**
+
+- r/SamplyComps and r/SamplyMusic are Kanye West unreleased-track trading communities.
+  Nothing to do with Samply the app. The name collision is a coincidence.
+- "Songwriting Orgs" is about NSAI and songwriter associations, not organising songs.
+- "Song organization" is about lyrical structure in a single song, not file organisation.
+- r/salesdevelopment, r/writing and r/productivity voice-memo threads are other domains
+  entirely. One transferable line from the writing thread: the worst part is not losing
+  the idea, it is remembering that there had been an idea at all.
+
+---
+
+## THE BIGGEST FINDING: songwriters already build this in Trello
+
+Trello came up unprompted in **five separate r/Songwriting and r/musicmarketing threads**,
+and one user recommended it in three different threads across two years, each time
+describing the same setup:
+
+- A board, with **columns for stage of production**.
+- One card per idea.
+- **Audio files attached to the card.**
+- Colour labels, checklists, notes, due dates.
+- Bounced mp3 attached to the card on every iteration, so the card holds the version history.
+- A naming convention of date plus note, with key and BPM being added later.
+
+Other Trello and Trello-like sightings: a user pairing Trello with paper for lyrics; a user
+running a board with a column per month and a template checklist per track; users on Notion,
+ClickUp, Coda, Airtable and SmartSuite doing the same thing.
+
+**This is songdrafts, hand-built, by people who were never asked to build it.** It is the
+strongest validation in the entire corpus, and it is much stronger evidence than anyone
+saying "I would use that", because they already went and did the work.
+
+Two consequences:
+
+1. **The pitch is not "here is a new way to organise songs". It is "you already built this
+   in Trello and it does not know what audio is."** Trello has no waveform, no playback
+   speed, no take stacking, no offline audio, no key or BPM read off the file. songdrafts
+   is the version that understands the files.
+2. It reinforces customisable columns (Part 2). Every Trello board described had
+   different columns.
+
+One user was explicit about the limit: they had tried Coda, Airtable, Trello, SmartSuite and
+Google Sheets, and abandoned them all because they ended up spending more time planning
+than making music. That is the ceiling of the general-purpose tool and the opening for a
+purpose-built one.
+
+---
+
+## THE SECOND BIGGEST FINDING: there are two markets, and only one is yours
+
+This is the most important strategic conclusion from wave 2.
+
+### Market A: songwriters (r/Songwriting). This is songdrafts.
+
+The job: capture a fragment, find it again, turn it into a finished song.
+The incumbent: Apple Voice Memos plus Apple Notes.
+State of the market: **badly served, actively complaining, inventing their own systems.**
+Kanban: **independently invented by multiple users.**
+
+### Market B: engineers and mastering engineers (r/audioengineering). This is Samply.
+
+The job: deliver a finished mix to a paying client and get approval.
+The incumbent: Samply, and it is entrenched and genuinely loved.
+Across four threads, Samply was recommended by roughly twenty different professionals,
+repeatedly, without prompting. Verbatim register: it is the only answer; it is a life
+changer; they will never go back.
+
+**Kanban was explicitly tested in this market and rejected.** A builder asked r/audioengineering
+directly whether a built-in Trello board showing Approved vs Needs Revision would make them
+switch. The answers were no. The clearest one: version approval is simply not a pain point.
+Others said Samply already does everything they need.
+
+### What this means for songdrafts
+
+1. **Do not market songdrafts in r/audioengineering.** Two separate builders were told they
+   were in the wrong forum for artist-side tools. It is the wrong audience and a hostile one.
+2. **Reconsider having Samply in the compare table at all.** Samply is winning a different
+   job, for a different buyer, and its users love it. Putting it in the table invites a
+   comparison songdrafts cannot win and does not need to win. The table currently already
+   says Samply shares with clients, which is correct, so the framing is right; the risk is
+   that the table's existence implies competition.
+3. **The engineer market is saturated.** Named in these threads: Samply, Boombox, Highnote,
+   Filepass, Digital Pigeon, Disco, Crate, Stacktune, Bounce Boss, Mixup Audio, Pibox,
+   Audome, Opusonix, Dropbox Replay, Bridge.Audio, Suite Studios, Echoe, Hummify, Whyp,
+   Frame.io, Gatefolded, Mixlounge, BandNation, StudioManager. One commenter noted that
+   earlier entrants either pivoted or gave up because the niche was too small. Stay out.
+
+### One thing worth stealing from Market B
+
+A senior audio software commenter, unprompted, said what the industry actually needs is a
+**managed project pipeline**, modelled on Shotgrid and ftrack from the film world, and that
+without version control and real project management you are beating a dead horse. That is
+Owen's pipeline thesis, stated independently by a professional in a different subreddit.
+It is a strong line of argument even though that person is not the buyer.
+
+Caution from the same commenter: heavy metadata entry is a duplicate-database problem, more
+typing and more conflicts. songdrafts' answer is already correct, which is reading key and
+BPM off the file rather than asking anyone to type it. Keep it automatic.
+
+Also validated from Market B, since songdrafts shares these features:
+- Versioning plus timestamped comments is the single most valued thing about Samply.
+- Making the listener create an account to get the file is the most complained-about
+  decision Samply ever made, repeatedly, angrily, by professionals who say it makes them
+  look unprofessional to A&R and managers. songdrafts' "listener needs no account" is
+  exactly right. Say it louder.
+- "Do not be Samply and make unnecessary changes every three months and slowly ruin it"
+  was listed as an actual product requirement by a mastering engineer. Stability is a
+  feature you can promise.
+
+---
+
+## Apple is handing you two gifts
+
+### 1. Apple killed Music Memos
+
+Apple built a songwriter-specific recording app, Music Memos, and discontinued it. Users in
+r/iosapps still ask for a replacement and are told it is gone. Tape It is the recommendation
+that fills the hole.
+
+Angle: Apple built the right app for songwriters and then killed it. Voice Memos is what
+you were left with.
+
+### 2. Apple's AI is actively ruining instrument recordings
+
+Voice Memos now applies AI voice isolation that strips or mangles anything that is not a
+voice. A user documented five recent recordings rendered unusable: their voice captured
+perfectly, everything else destroyed. They were never told the processing was on and could
+not find the setting. The fix is buried in Settings, Accessibility, Audio and Visual,
+Voice Isolation.
+
+**This is the single best ad angle in the entire corpus** because it is concrete, current,
+verifiable, and it is the incumbent breaking itself:
+
+- Voice Memos is optimised for voices. Your guitar is not a voice.
+- Apple decided your room noise was a problem. It was your demo.
+- Five recordings, all ruined, by a setting nobody told you about.
+
+Verify the current iOS behaviour before running any of this. It should be tested on a real
+device, not asserted from a Reddit thread.
+
+---
+
+## More pain, wave 2
+
+### Confirmed and strengthened
+
+- **One place per song is the explicit, stated wish.** One user described exactly the
+  product: a single place where opening a song's folder gives you the recordings, the lead
+  sheets and the lyrics. They were describing songdrafts, unprompted, two years ago.
+- **The overwhelm framing is confirmed.** One user with roughly a thousand songs written over
+  ten years said they have never completed any, because they get stuck wading in ideas, and
+  that they may never know whether they have an album in there. Another said the organisation
+  nightmare is the thing they cannot get past.
+- **Voice memo counts, wave 2 additions:** 1,000 in two years on one phone; "hundreds";
+  400 to 500 iPhone voice notes per year; 40 melody ideas in a single month; three years
+  of songs waiting to be recorded.
+- **Anxiety is named directly.** The mess of inspiration creates anxiety. ADHD is named
+  repeatedly across both waves, unprompted, as the reason organisation fails.
+
+### New pain not seen in wave 1
+
+- **Losing the lyric while starting the recording.** A user described the specific failure of
+  having a line that makes them hit record, and the line being gone by the time recording
+  starts. Sometimes never returning.
+- **Default filenames are location names.** Voice Memos names recordings after where you were
+  when you recorded. Users find this useless. Interestingly the oudyo founder found the
+  opposite in interviews, that place is a strong memory trigger. Worth testing rather than
+  assuming.
+- **Evernote's collapse is a live wound.** Two users described Evernote losing notes,
+  degrading, and raising prices from about $76 to about $130 a year. Both had used it for
+  songwriting for years. There is a displaced, burned, willing-to-pay audience here.
+- **Fear of small tools disappearing.** A user said plainly that they stick with Dropbox
+  because small companies get bought, overcharge, or cease to exist. **This is a real
+  objection for songdrafts and the export-everything-as-a-zip promise is the answer.**
+  Put it in the FAQ.
+- **Cross-platform matters more than assumed.** Multiple users are on Android phone plus
+  Mac, or Windows plus iPhone. One asked specifically for MacBook plus Android. Obsidian
+  was rejected because free-tier sync does not cross devices.
+
+### Naming: the strongest tactical advice in the corpus
+
+Two users independently arrived at the same trick, and one gave the reasoning in full:
+abandon descriptive or rated filenames and give every idea a **surrealist, absurd, memorable
+name** instead, kept for the life of the idea. The argument is that "waltz in D 6/8 number 6"
+means nothing to you later, whereas an absurd two-word name is instantly recognisable to you
+and to your band. A third user in wave 1 gave the same advice independently.
+
+The other half of the same system: date every file YYMMDDv1, year first so it sorts, and
+never trust file metadata to survive.
+
+**Product opportunity.** songdrafts' step 02 currently asks the user to type a name and
+justifies it as ten seconds now saving two years of scrolling. That is right but weak. A
+generated absurd-name suggestion on every imported card, editable, one tap to accept, would
+be a genuinely delightful feature grounded in advice real songwriters give each other. It
+also solves the blank-field problem at the exact moment the user is least willing to type.
+
+### Merge, further validated
+
+A user organises DAW demos by key specifically so that when they have a chorus and need a
+verse, they can pull up compatible ideas. That is the merge feature and the key filter,
+described as an existing manual workaround.
+
+---
+
+## Direct competitors, wave 2 additions
+
+Songwriter-side, named by users:
+
+- **Trello**, the real incumbent for anyone organised (see above)
+- **Untitled** (iOS), praised for cover art, share links, and listen counts
+- **Dropperly**, described as Trello crossed with SoundCloud
+- **hexi_mp3's web tool**, which takes phone recordings and tries to match ideas together
+  into **song drafts**. That is a direct concept and near-name collision. Worth finding.
+- Songwritersdb.com, "Demo" app, Just Press Record, Music Memos (dead), Tape It,
+  BandLab, Session Studio
+
+Adjacent: Notion, ClickUp, Coda, Airtable, SmartSuite, Obsidian, Evernote (declining),
+Google Docs and Drive, OneNote, Google Keep, Apple Notes, Dropbox.
+
+---
+
+## Pricing signals
+
+Real numbers people said out loud:
+
+- A competitor pitching artist-side sharing at **$49/year per artist**.
+- An engineer happily paying **$28/month** for Samply with 5TB, because it is a business cost.
+- A hobbyist who would pay about **€40/year** and no more.
+- Multiple people asking mainly for a **bigger free tier**, not lower prices.
+- One noting the price is fine in USD or EUR but not in their currency.
+- Evernote losing users at **$130/year**.
+- Samply restricting free-tier versioning from unlimited to three, which sent at least one
+  user looking for alternatives that day.
+
+songdrafts is $9/month, which is $108/year. That sits above the hobbyist songwriter band
+and below the professional engineer band. The engineers will pay it and are the wrong
+market; the songwriters are the right market and are the more price-sensitive one.
+
+**Recommendation: this needs a decision, not a copy tweak.** Either a free tier that holds
+a real number of songs, or an annual price near $49 to $60, or an explicit position that
+songdrafts is for the serious songwriter and priced accordingly. The $1 first week is good
+but it does not resolve the annual-value question. Nothing in the corpus suggests songwriters
+will pay $108/year for organisation alone.
+
+---
+
+## Ad copy, wave 2 additions
+
+### H. The Trello angle (new, and probably the strongest for the organised segment)
+
+- You already built this in Trello. Trello just cannot hear it.
+- Your board does not know what a waveform is.
+- Cards, columns, attachments. Plus playback, takes, key and BPM.
+
+### I. Apple turning on you (verify the iOS behaviour first)
+
+- Voice Memos is optimised for voices. Your guitar is not a voice.
+- Apple made an app for songwriters. Then they deleted it.
+- Your demo did not sound like that when you recorded it.
+
+### J. Overwhelm, not disorganisation
+
+- A thousand songs in ten years. None of them finished.
+- You are not disorganised. You are buried.
+- The problem was never having ideas.
+
+### K. Naming
+
+- Call it Unicorn Pants. You will remember Unicorn Pants.
+- Nobody has ever found anything called Idea 47.
+
+### L. Small-tool anxiety, met head on
+
+- Export everything as a zip, any time, including after you cancel.
+- If we disappear, your music does not.
+
+---
+
+## Site changes, revised after wave 2
+
+Carrying forward the eleven from Part 9, with these changes and additions:
+
+**Upgraded to top priority:**
+
+- **Add the Trello comparison.** It is the incumbent for your best-fit customer and it is
+  absent from the compare table entirely. Replacing Samply or Suonote with Trello and Apple
+  Notes would make the table describe the real decision.
+- **Say the columns are customisable** (unchanged, still the biggest gap between shipped
+  and stated).
+
+**New:**
+
+- **Add an "if you disappear" line to the FAQ.** The fear of small tools vanishing is
+  explicit and repeated, and the zip export already answers it. It is currently buried in
+  the "what if I stop paying" answer, which is a different worry.
+- **State the platform support plainly.** Android plus Mac, and Windows plus iPhone, are
+  both real combinations in these threads. If songdrafts is iOS plus web, say so above the
+  fold rather than letting people find out.
+- **Consider dropping Samply from the compare table** for the reasons in the two-markets
+  section.
+- **Reconsider pricing before launch,** per the pricing section. This is the one item on
+  this list that is a business decision rather than a copy or product change.
+
+**Downgraded:**
+
+- The engineer-facing framing generally. Nothing on the current page targets engineers,
+  which is correct. Keep it that way.

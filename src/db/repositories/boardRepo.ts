@@ -56,7 +56,19 @@ function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
   if (song.deletedAt) return false
   if (ctx.activeTag && !(song.tags ?? []).includes(ctx.activeTag)) return false
   if (ctx.favouritesOnly && !song.isFavourite) return false
-  if (ctx.titleSearch && !song.title.toLowerCase().includes(ctx.titleSearch.toLowerCase())) return false
+  // Search reaches the LYRICS, not just the title.
+  //
+  // "Search by what I sang" was called the dream in these threads, and with
+  // lyrics stored it is nearly free. It does not search audio - nothing here
+  // listens to anything - but the moment you have typed a line in, the memo
+  // you are thinking of is findable by the words you remember rather than by
+  // "New Recording 612".
+  if (ctx.titleSearch) {
+    const q = ctx.titleSearch.toLowerCase()
+    const inTitle = song.title.toLowerCase().includes(q)
+    const inLyrics = (song.lyrics ?? '').toLowerCase().includes(q)
+    if (!inTitle && !inLyrics) return false
+  }
   // "Every idea in D at 92bpm" — the query the Reddit thread actually asked for.
   if (ctx.keyFilter && song.musicalKey !== ctx.keyFilter) return false
   if (ctx.bpmMin != null && (song.bpm == null || song.bpm < ctx.bpmMin)) return false
@@ -308,7 +320,20 @@ export async function createSong(input: {
 export async function updateSong(
   id: string,
   patch: Partial<
-    Pick<Song, 'title' | 'notes' | 'tags' | 'projectId' | 'isFavourite' | 'musicalKey' | 'bpm'>
+    Pick<
+      Song,
+      | 'title'
+      | 'notes'
+      | 'tags'
+      | 'projectId'
+      | 'isFavourite'
+      | 'musicalKey'
+      | 'bpm'
+      | 'lyrics'
+      // Key and BPM come off a DAW bounce; a raw voice memo carries neither,
+      // and tuning can never be read from a file. All three are editable here.
+      | 'tuning'
+    >
   >,
 ) {
   const song = await db.songs.get(id)

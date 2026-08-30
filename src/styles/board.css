@@ -9588,3 +9588,65 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   .mix-row { grid-template-columns: 44px 1fr; }
   .mix-time { grid-column: 2; justify-self: start; }
 }
+
+/* ═══ LYRICS ═══════════════════════════════════════════════════════════════
+   Monospace and whitespace-preserving on purpose. A chord chart is positioned
+   with spaces - the G has to land above the word you change on - so a
+   proportional font makes this field useless for the single most common way
+   songwriters actually write lyrics down. */
+.lyrics { margin-top: 18px; }
+
+.lyrics-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.lyrics-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.lyrics-status {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+
+.lyrics-field {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+  border: 1px solid var(--border);
+  color: var(--text);
+  /* The two properties this whole feature turns on. */
+  font-family: var(--font-mono);
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.75;
+  tab-size: 4;
+}
+
+.lyrics-field:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.lyrics-field::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 70%, transparent);
+}
+
+.lyrics-hint {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
