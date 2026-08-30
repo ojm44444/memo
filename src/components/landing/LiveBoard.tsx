@@ -23,17 +23,45 @@ const seedBars = (seed: number, n = 34) =>
     return 0.25 + Math.abs(x - Math.floor(x)) * 0.75
   })
 
-const COLUMNS: { name: string; cards: Card[] }[] = [
+/* The head counts are not the number of cards drawn. They are the shape of a
+   real library after a few years of using it: a stuffed inbox, a narrowing
+   middle, a handful of finished things. Owen's own board reads 153 / 24 / 9 /
+   7, and that ratio IS the pitch. Drawing four tidy columns of two hides it. */
+const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
+  {
+    // The left column is deliberately the ugliest thing on the page.
+    //
+    // A real voice memo library does not arrive with song titles on it. It
+    // arrives as whatever the phone decided: "New Recording 24", or the name
+    // of the building you happened to be standing in. Owen's own library is
+    // almost entirely the second kind. If this column shows tidy song names
+    // like the ones on the right, the hero shows a board and nothing else.
+    //
+    // Showing the mess is the pitch. Left to right is not just fewer cards,
+    // it is filenames turning into songs.
+    name: 'Voice memos',
+    count: 153,
+    cards: [
+      { id: 'a', title: 'New Recording 24', time: '0:41', bars: seedBars(1) },
+      { id: 'b', title: 'Northgate Rehearsal Rooms 12', time: '1:07', bars: seedBars(2) },
+      { id: 'c', title: 'New Recording 23', time: '0:26', bars: seedBars(9) },
+      { id: 'i', title: 'Pinefield Business Park 6', time: '2:38', bars: seedBars(11) },
+      { id: 'j', title: 'New Recording 21', time: '0:14', bars: seedBars(12) },
+      { id: 'k', title: '14 Kiln Lane 3', time: '1:52', bars: seedBars(13) },
+    ],
+  },
   {
     name: 'Ideas',
+    count: 24,
     cards: [
-      { id: 'a', title: 'car park chorus', time: '0:41', tag: 'riff', bars: seedBars(1) },
-      { id: 'b', title: 'tuesday rain', time: '1:07', bars: seedBars(2) },
-      { id: 'c', title: 'shower bridge??', time: '0:26', bars: seedBars(9) },
+      { id: 'l', title: 'car park chorus', time: '0:41', tag: 'riff', bars: seedBars(14) },
+      { id: 'm', title: 'tuesday rain', time: '1:07', bars: seedBars(15) },
+      { id: 'c2', title: 'shower bridge??', time: '0:26', bars: seedBars(9) },
     ],
   },
   {
     name: 'Half written',
+    count: 9,
     cards: [
       { id: 'd', title: 'the kettle song', time: '2:14', tag: 'lyrics drafted', bars: seedBars(3) },
       { id: 'e', title: 'M6 at midnight', time: '3:02', bars: seedBars(4) },
@@ -41,14 +69,10 @@ const COLUMNS: { name: string; cards: Card[] }[] = [
   },
   {
     name: 'Finished demos',
+    count: 7,
     cards: [
       { id: 'f', title: 'verse for June', time: '4:18', tag: 'sent to producer', bars: seedBars(5) },
-      { id: 'g', title: 'half a hook', time: '1:55', bars: seedBars(8) },
     ],
-  },
-  {
-    name: 'Released',
-    cards: [{ id: 'h', title: 'glasgow bridge', time: '3:37', tag: 'released', bars: seedBars(6) }],
   },
 ]
 
@@ -110,15 +134,15 @@ export function LiveBoard() {
                     duplicate rather than a move. Caught in review of the live
                     page. */}
                 <span className="lb-col-count">
-                  {col.cards.length + (ci === 0 && moved ? -1 : 0) + (ci === 1 && moved ? 1 : 0)}
+                  {col.count + (ci === 1 && moved ? -1 : 0) + (ci === 2 && moved ? 1 : 0)}
                 </span>
               </div>
               <div className="lb-col-rule" />
-              <div className="lb-cards">
+              <div className={`lb-cards${ci === 0 ? ' is-deep' : ''}`}>
                 {col.cards.map((card) => {
                   // "shower bridge??" travels from Ideas into Half written.
-                  const travels = card.id === 'c'
-                  const hideHere = travels && moved && ci === 0
+                  const travels = card.id === 'c2'
+                  const hideHere = travels && moved && ci === 1
                   const playing = card.id === 'd'
                   return (
                     <div
@@ -141,7 +165,7 @@ export function LiveBoard() {
                   )
                 })}
                 {/* The travelling card's landing slot in the next column */}
-                {ci === 1 && (
+                {ci === 2 && (
                   <div className={`lb-card is-traveller is-landing${moved ? '' : ' is-gone'}`}>
                     <div className="lb-card-top">
                       <span className="lb-play">▶</span>
