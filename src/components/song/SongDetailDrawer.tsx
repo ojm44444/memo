@@ -6,6 +6,7 @@ import { resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { formatDuration } from '@/lib/audio-utils'
+import { recordEvent } from '@/lib/analytics'
 import { deleteSong, getSong, updateSong } from '@/db/repositories/boardRepo'
 import { markFeedbackSeen } from '@/db/repositories/shareFeedbackRepo'
 import { SongStageSelect } from './SongStageSelect'
@@ -87,6 +88,8 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
   const saveTitle = async (title: string) => {
     await updateSong(song.id, { title })
+    // Naming is the cheapest proxy for caring about a memo.
+    void recordEvent('song_renamed')
     scheduleFlush()
   }
 

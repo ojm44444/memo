@@ -38,6 +38,7 @@ import type { DropRejectReason } from '@/lib/extract-audio-files'
 import { OnboardingTour } from '@/components/board/OnboardingTour'
 import { ImportErrorToast } from '@/components/import/ImportErrorToast'
 import { HelpButton } from '@/components/board/HelpButton'
+import { recordSessionOncePerDay } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
 import { Wordmark } from '@/components/ui/Wordmark'
@@ -56,6 +57,12 @@ function FileDropLayer({ enabled }: { enabled: boolean }) {
   const [fileDragActive, setFileDragActive] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [importSuccess, setImportSuccess] = useState<string | null>(null)
+
+  // One session event per calendar day, so "came back another day" is a real
+  // measurement rather than a page-load count.
+  useEffect(() => {
+    recordSessionOncePerDay()
+  }, [])
 
   useGlobalFileDrop({
     enabled,

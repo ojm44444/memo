@@ -415,6 +415,13 @@ export async function moveSong(
   const updated: Song = { ...song, columnSlug: targetColumnSlug, sortOrder, updatedAt: now }
   await db.songs.put(updated)
   await enqueueSync('update', 'song', songId, { columnSlug: targetColumnSlug, sortOrder, updatedAt: now })
+
+  // The single most important event in the product. If nobody ever does this,
+  // the board is not the answer and no amount of import polish saves it.
+  // Only the destination column is recorded, never the song.
+  if (song.columnSlug !== targetColumnSlug) {
+    void import('@/lib/analytics').then((m) => m.recordEvent('song_moved', undefined, targetColumnSlug))
+  }
 }
 
 export async function reorderSongInColumn(

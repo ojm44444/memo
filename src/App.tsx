@@ -17,6 +17,9 @@ import { LandingPage } from '@/pages/LandingPage'
 const BoardPage = lazy(() =>
   import('@/pages/BoardPage').then((m) => ({ default: m.BoardPage })),
 )
+const AdminPage = lazy(() =>
+  import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })),
+)
 const SignInPage = lazy(() =>
   import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })),
 )
@@ -49,6 +52,9 @@ export default function App() {
           <Route index element={<LandingPage />} />
           <Route path="sign-in" element={<SignInPage />} />
           <Route path="app/*" element={<BoardPage />} />
+          {/* Owner-only. Gated SERVER side by is_owner() and RLS, not by
+              hiding the route: anyone can visit, nobody else sees numbers. */}
+          <Route path="admin" element={<AdminPage />} />
           <Route path="invite/:token" element={<InvitePage />} />
           <Route path="share/:token" element={<SharePage />} />
           <Route path="playlist/:token" element={<PlaylistSharePage />} />
