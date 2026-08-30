@@ -2798,3 +2798,215 @@ a.nav-cta {
 .howitworks .section-label,
 .compare .section-label,
 .pricing .section-label { text-align: left; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE MIDDLE OF THE PAGE
+   Shot the full page and the diagnosis was obvious: the hero and the closing
+   band carry colour, and then ~70% of the scroll between them is dark text on
+   dark. That long grey trudge is what "boring" actually refers to. Every rule
+   below exists to put light, colour and contrast into that stretch.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Alternating grounds so the page reads as chapters, not one long wash ── */
+.merge-band,
+.backup-section,
+.workflow,
+.faq-section {
+  background:
+    radial-gradient(ellipse 60% 90% at 15% 0%, color-mix(in srgb, var(--stage-inbox) 10%, transparent) 0%, transparent 60%),
+    var(--bg-2);
+}
+
+.offline-section,
+.compare,
+.trust,
+.pricing {
+  background:
+    radial-gradient(ellipse 70% 80% at 85% 10%, color-mix(in srgb, var(--stage-half) 9%, transparent) 0%, transparent 62%),
+    var(--bg);
+}
+
+/* ── The comparison table: the single biggest dead area on the page ──────── */
+.compare-table {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+
+.compare-table thead tr {
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+/* Our column, lit. It should be obvious which one is us before you read. */
+.compare-col--memo,
+.compare-cell--memo {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 16%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 7%, transparent) 100%) !important;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.compare-col--memo { color: var(--accent); }
+
+.compare-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+}
+
+.compare-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* ── How it works: the ramp as four real cards, matching the feature grid ── */
+.howitworks-ramp { gap: 14px; }
+
+.ramp-step {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 18px;
+  border-radius: 16px;
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--step-hue) 22%, transparent) 0%,
+    color-mix(in srgb, var(--step-hue) 7%, transparent) 52%,
+    transparent 82%),
+    color-mix(in srgb, var(--bg-2) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--step-hue) 32%, transparent);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+}
+
+.ramp-step--inbox { --step-hue: var(--stage-inbox); }
+.ramp-step--ideas { --step-hue: var(--stage-ideas); }
+.ramp-step--half  { --step-hue: var(--stage-half); }
+.ramp-step--done  { --step-hue: var(--stage-done); }
+
+.ramp-step::after {
+  content: '';
+  position: absolute;
+  top: -50%; right: -30%;
+  width: 80%; height: 100%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--step-hue) 38%, transparent) 0%, transparent 70%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+/* ── Pricing: a card, lit, not a paragraph on a dark field ──────────────── */
+.pricing .section-h2,
+.pricing .section-sub,
+.pricing .pricing-not-live,
+.pricing .pricing-faq {
+  position: relative;
+  z-index: 1;
+}
+
+.pricing-faq {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--accent) 12%, transparent) 0%,
+    transparent 70%),
+    color-mix(in srgb, var(--surface) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+/* ── The offline "signal" card and the backup columns get real light ────── */
+.signal-card {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--accent) 14%, transparent) 0%,
+    transparent 70%),
+    color-mix(in srgb, var(--surface) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.backup-col--them {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--stage-inbox) 16%, transparent) 0%,
+    transparent 72%),
+    color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+.backup-col--us {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--accent) 18%, transparent) 0%,
+    transparent 72%),
+    color-mix(in srgb, var(--bg) 55%, transparent);
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* ── FAQ rows: readable separation instead of a flat list ───────────────── */
+.faq-item {
+  border-radius: 12px;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  padding-right: 16px;
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.faq-item:hover,
+.faq-item.is-open {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+/* ── Trust list: ticks in the accent, not grey bullets ──────────────────── */
+.trust li::marker { color: var(--accent); }
+
+/* Our column is now a lit green field, so an accent-coloured tick sits green
+   on green. Inside that column the tick takes the dark ink instead, which is
+   the same --accent-on rule the filled buttons follow. */
+.compare-cell--memo .tick--yes {
+  color: var(--accent-on);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* The ramp cards were rendering as grey-teal boxes: the hue mix was too weak
+   and an earlier rule was painting the labels white, so the one section whose
+   entire job is showing the colour progression showed no progression. */
+.ramp-step {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--step-hue) 34%, transparent) 0%,
+    color-mix(in srgb, var(--step-hue) 13%, transparent) 55%,
+    transparent 85%),
+    color-mix(in srgb, var(--bg) 80%, transparent);
+  border-color: color-mix(in srgb, var(--step-hue) 46%, transparent);
+}
+
+.ramp-step,
+.ramp-step span,
+.ramp-step strong { color: var(--step-hue); }
+
+/* The step's own label stays legible; the description takes the hue quietly. */
+.ramp-step-label,
+.ramp-step > strong { color: var(--step-hue); }
+
+.ramp-step span { color: color-mix(in srgb, var(--text) 78%, transparent); }
+
+.ramp-step svg,
+.ramp-step .ramp-bars span { background: var(--step-hue); }
+
+/* Subtle gradients over a dark ground do not read as "four different colours".
+   Put the hue somewhere solid: a full-width rule across the top of each card,
+   the little waveform bars, and the label. Now the progression is unmissable
+   in the one section whose entire job is to show it. */
+.ramp-step { padding-top: 26px; }
+
+.ramp-step::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--step-hue);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--step-hue) 70%, transparent);
+}
+
+.ramp-step-bars i {
+  background: var(--step-hue) !important;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--step-hue) 60%, transparent);
+}
+
+.ramp-step-label { color: var(--step-hue) !important; }
