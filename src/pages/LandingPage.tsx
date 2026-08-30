@@ -402,6 +402,24 @@ export function LandingPage() {
               <li>Syncs itself when you're back online</li>
               <li>Close the app mid-song, lose nothing</li>
             </ul>
+
+            {/* Offline was already the strongest claim on this page and it
+                was being undersold, because a browser tab you close is not a
+                thing you reach for mid-idea. Installing is what makes the
+                offline promise real, and until now the page never mentioned
+                it was possible at all. */}
+            <div className="install-note">
+              <p className="install-note-lead">
+                And it installs. Not a bookmark: its own icon, its own window, opens with no
+                internet at all.
+              </p>
+              <ul className="install-platforms">
+                <li><strong>Windows &amp; Mac</strong> Chrome or Edge, install icon in the address bar</li>
+                <li><strong>Mac, Safari</strong> File, then Add to Dock</li>
+                <li><strong>iPhone</strong> Share, then Add to Home Screen</li>
+                <li><strong>Android</strong> Chrome offers it for you</li>
+              </ul>
+            </div>
           </div>
           <div className="offline-visual">
             <div className="signal-card">

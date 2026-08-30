@@ -3577,3 +3577,58 @@ a.nav-cta {
   margin: 10px 0 0;
   max-width: 46ch;
 }
+
+/* ═══ Install, inside the offline section ══════════════════════════════════
+   Deliberately not its own section with its own hero. Installing is not a
+   separate feature, it is the thing that makes the offline claim above it
+   true, so it sits underneath that claim and reads as its conclusion. */
+.install-note {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.install-note-lead {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.install-platforms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.install-platforms li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.install-platforms strong {
+  flex: 0 0 auto;
+  min-width: 8.5em;
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* NOT var(--accent). This section paints a fixed celadon gradient, and the
+     accent measured 1.10:1 to 1.89:1 against its four stops: invisible, not
+     subtle. The section's own body ink measures 5.59:1 at worst on the same
+     band, so the label separates by weight and tracking instead of hue. */
+  color: rgb(14, 31, 38);
+  opacity: 0.72;
+}
+
+@media (max-width: 560px) {
+  .install-platforms strong { min-width: 0; flex-basis: 100%; }
+}
