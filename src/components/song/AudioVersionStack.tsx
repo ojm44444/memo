@@ -181,7 +181,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     height={isCurrent ? 64 : 24}
                     markers={(comments ?? [])
                       .filter(c => c.timestampMs != null && version.durationMs > 0)
-                      .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs }))
+                      .map(c => ({ id: c.id, progress: c.timestampMs! / version.durationMs, label: c.body }))
                     }
                     onSeek={(fraction) => {
                       const ms = fraction * (version.durationMs || 0)

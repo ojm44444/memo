@@ -9813,3 +9813,105 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   align-items: center;
   gap: 10px;
 }
+
+/* ═══ Markers and pinned notes ═════════════════════════════════════════════
+   A marker used to be an 8px mint dot with the tooltip "Jump to marker",
+   floating above the waveform with nothing tying it to the audio. It now
+   drops a hairline down through the wave, the way a cue does in an editor, so
+   the eye reads it as a position in the song rather than a bead on a string. */
+/* Contains the marker hairline. */
+.interactive-waveform { overflow: hidden; }
+
+.interactive-waveform-marker {
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  background: linear-gradient(160deg, var(--accent), var(--audio-mint));
+  box-shadow: 0 0 0 2px var(--bg-3), 0 0 10px -1px var(--accent-glow, rgba(157, 219, 173, 0.5));
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.interactive-waveform-marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  /* Clipped by .interactive-waveform's overflow. 999px here bled the line
+     down through the whole drawer and drew a rule across the comments. */
+  height: 100px;
+  margin-left: -0.5px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 55%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.interactive-waveform-marker:hover,
+.interactive-waveform-marker:focus-visible {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 2px var(--bg-3), 0 0 16px 0 var(--accent-glow, rgba(157, 219, 173, 0.65));
+}
+
+/* The time chip on a note you are about to leave. It is not a toggle any
+   more, it is a fact with an × on it: the time is already attached. */
+.song-comments-stamp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.song-comments-stamp-btn:not(.is-active) {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--text) 22%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.song-comments-stamp-btn:hover { border-color: var(--accent); }
+.song-comments-stamp-time { font-variant-numeric: tabular-nums; }
+.song-comments-stamp-x { opacity: 0.6; font-size: 0.8rem; line-height: 1; }
+.song-comments-stamp-btn:hover .song-comments-stamp-x { opacity: 1; }
+
+/* A pinned note reads as pinned: the timestamp is the thing you click. */
+.song-comment-timestamp {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* ═══ Drawer surface ═══════════════════════════════════════════════════════
+   Flat --surface everywhere read as a grey slab. A single soft gradient, warm
+   at the top where the title is and settling into the ground below, gives the
+   panel a light source without becoming a second colour. */
+.song-drawer {
+  background:
+    radial-gradient(120% 60% at 50% -10%,
+      color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--surface) 100%, transparent),
+      color-mix(in srgb, var(--bg) 92%, var(--surface))
+    );
+}

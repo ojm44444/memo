@@ -191,13 +191,12 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
           <AudioVersionStack songId={song.id} readOnly={readOnly} />
 
-          <VersionCompare songId={song.id} />
+          {/* Comments live directly under the waveform they point at, the way
+              they do on SoundCloud. A note pinned to 1:07 that sits six
+              sections below the audio is not pinned to anything you can see. */}
+          <SongComments songId={song.id} readOnly={readOnly} />
 
-          {/* Comments sit inside the editable block below, after the song's own
-              properties. A read-only viewer never reaches that block, so they
-              get them here instead: a viewer losing comments entirely would be
-              a regression, not a reorder. */}
-          {readOnly && <SongComments songId={song.id} readOnly />}
+          <VersionCompare songId={song.id} />
 
           {!readOnly && mergeOpen && (
             <MergeSongPicker targetSongId={song.id} onClose={() => setMergeOpen(false)} />
@@ -215,7 +214,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               <LyricsEditor songId={song.id} initial={song.lyrics ?? null} />
               <NotesEditor songId={song.id} initialNotes={song.notes} />
               <ExternalLinks songId={song.id} />
-              <SongComments songId={song.id} readOnly={readOnly} />
 
               {/* Actions last, and together.
                   "+ Add to playlist" and "Share demo link" used to sit between

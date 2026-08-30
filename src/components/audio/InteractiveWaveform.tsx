@@ -6,6 +6,9 @@ export interface WaveformMarker {
   id: string
   progress: number
   color?: string
+  /** The note pinned here. Shown on hover: a dot that will not say what it
+   * marks is a dot nobody clicks. */
+  label?: string
 }
 
 export interface WaveformRegion {
@@ -178,7 +181,7 @@ export function InteractiveWaveform({
             onMarkerClick?.(marker.id)
             onSeek(marker.progress)
           }}
-          title="Jump to marker"
+          title={marker.label ? `${marker.label}` : 'Jump to marker'}
         />
       ))}
     </div>
