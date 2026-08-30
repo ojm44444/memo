@@ -21,17 +21,24 @@
  */
 
 :root {
-  /* Dark is primary. Slate water, never pure black. */
-  --bg: #16303b;
-  --bg-2: #1d3a46;
-  --bg-3: #1d3a46;
-  --surface: #254a57;
-  --border: rgba(238, 245, 242, 0.14);
+  /* Dark is primary. Deep slate water, never pure black.
+     DEEPENED (30 Aug). The old ground #16303b measured 0.026 relative
+     luminance - a MID-TONE, ten times brighter than the reference dark UIs
+     (Linear sits at 0.0027). On a mid-tone ground every colour lands at a
+     similar brightness and nothing can pop, which is the actual physics
+     behind "it looks flat and sad" no matter how much colour was added.
+     Deepening the ground is what lets the ramp and the accent glow.
+     Every ink re-measured below and every one improved. */
+  --bg: #0d1f27;
+  --bg-2: #142a34;
+  --bg-3: #142a34;
+  --surface: #1b3a46;
+  --border: rgba(238, 245, 242, 0.16);
 
-  --text: #eef5f2;        /* 12.49:1 on --bg */
-  --text-muted: #a3bab7;  /*  6.75:1 on --bg, never below 6:1 */
+  --text: #eef5f2;        /* 15.28:1 on --bg */
+  --text-muted: #a3bab7;  /*  8.26:1 on --bg, never below 6:1 */
 
-  --accent: #9ddbad;      /*  8.66:1 on --bg */
+  --accent: #9ddbad;      /* 10.60:1 on --bg */
   --accent-hover: #b4e5c1;
   --accent-on: #0e1f26;   /* 10.60:1 ON the accent fill */
   --accent-dim: rgba(157, 219, 173, 0.15);
@@ -43,10 +50,10 @@
      lightness from inbox to ideas (0.687 -> 0.669), so the first two stages
      were never distinguishable: a -0.018 gap against the ~0.035 threshold.
      Measured gaps now 0.073 / 0.077 / 0.073, all >= 4.5:1 on --bg. */
-  --stage-inbox: #51a0a9; /* L 0.659,  4.57:1 */
-  --stage-ideas: #66baaf; /* L 0.733,  6.06:1 */
-  --stage-half: #8ed2b2;  /* L 0.809,  7.90:1 */
-  --stage-done: #bbe6b8;  /* L 0.882,  9.95:1 */
+  --stage-inbox: #51a0a9; /* L 0.659,  5.59:1 */
+  --stage-ideas: #66baaf; /* L 0.733,  7.41:1 */
+  --stage-half: #8ed2b2;  /* L 0.809,  9.67:1 */
+  --stage-done: #bbe6b8;  /* L 0.882, 12.17:1 */
 
   /* Semantic, held apart from the accent. Nothing is red in the identity,
      so danger is the one place red is permitted and it is used sparingly. */

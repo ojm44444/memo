@@ -2599,3 +2599,49 @@ a.nav-cta {
 @media (prefers-reduced-motion: reduce) {
   .hero::before { animation: none; }
 }
+
+/* ═══ HERO COMPOSITION: left-aligned, product large ════════════════════════
+   Learned by actually looking at Linear rather than reasoning from rules.
+   Two things carry their confidence, and neither is the gradient everyone
+   copies:
+     1. The headline is LEFT-ALIGNED and huge. A centred serif block reads as
+        an invitation, which is precisely the "looks like someone's wrapping
+        up" note. Left-aligned with a tight ragged edge reads as a product.
+     2. The product shot is enormous and close, not a polite thumbnail below
+        the fold.
+   The serif stays: it is the brand and it is what stops this looking like
+   every other dark SaaS page. Only the alignment and scale change. */
+.hero-stage {
+  max-width: 1180px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hero-h1 {
+  max-width: 18ch;
+  letter-spacing: -0.03em;
+}
+
+.hero-sub {
+  margin-left: 0;
+  margin-right: 0;
+  max-width: 46ch;
+}
+
+.hero-status,
+.hero-trial-note {
+  text-align: left;
+}
+
+/* The board sits closer and wider: it is the argument, not an illustration. */
+.hero .lb {
+  max-width: 1180px;
+  margin-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .hero-stage { align-items: center; text-align: center; }
+  .hero-h1 { max-width: 15ch; }
+  .hero-sub { margin-left: auto; margin-right: auto; }
+  .hero-status, .hero-trial-note { text-align: center; }
+}
