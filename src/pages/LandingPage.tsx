@@ -7,35 +7,44 @@ import { Wordmark } from '@/components/ui/Wordmark'
 
 
 const FEATURES = [
+  // Sizes drive a bento layout. Six identical boxes give six features equal
+  // weight, which is a lie: the board and the take-stacking ARE the product,
+  // and playback speed is a nice detail. The grid should say that.
   {
-    icon: '✈',
-    title: 'Works in a tunnel',
-    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar. Listen, sort, write. It syncs itself later.',
-  },
-  {
-    icon: '▦',
+    size: 'wide',
+    icon: '\u25a6',
     title: 'Somewhere to come back to',
-    desc: 'Inbox → Ideas → Half Finished → Finished Demo → Released. Drag a song right when it gets better. That\'s the whole system.',
+    desc: 'Inbox \u2192 Ideas \u2192 Half Finished \u2192 Finished Demo \u2192 Released. Drag a song right when it gets better. That\'s the whole system.',
   },
   {
-    icon: '⧉',
+    size: 'tall',
+    icon: '\u29c9',
     title: 'Every take on one card',
     desc: 'Second voice note for the same idea. A new riff. That bridge you sang in the shower. Drop each one onto the same song and they line up in order, so you can hear it turn into something.',
   },
   {
-    icon: '◎',
-    title: '0.75× to 2×',
-    desc: 'Slow it down to catch what you actually mumbled. Speed it up to get through 40 memos on the walk to work. Skip the eleven seconds of you finding the chord.',
+    size: 'small',
+    icon: '\u2708',
+    title: 'Works in a tunnel',
+    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar. Listen, sort, write. It syncs itself later.',
   },
   {
-    icon: '↔',
+    size: 'small',
+    icon: '\u25ce',
+    title: '0.75\u00d7 to 2\u00d7',
+    desc: 'Slow it down to catch what you actually mumbled. Speed it up to get through 40 memos on the walk to work.',
+  },
+  {
+    size: 'wide',
+    icon: '\u2194',
     title: 'Send it before it\'s ready',
     desc: 'One link to your producer or your drummer. They press play in the browser and leave a comment pinned to 1:43. No account, no app, no "can you WeTransfer it again".',
   },
   {
-    icon: '♯',
+    size: 'small',
+    icon: '\u266f',
     title: 'Key and tempo, read from the file',
-    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and puts them on the card. No typing. That is usually how you find out two fragments were the same song all along.',
+    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and puts them on the card. No typing.',
   },
 ] as const
 
@@ -66,21 +75,24 @@ function Tick({ val }: { val: boolean | 'partial' | string }) {
 }
 
 const COMPARE_ROWS = [
-  // Rows we lose or draw are kept deliberately. A table that wins ten out of
-  // ten gets discounted wholesale, including the rows we genuinely win.
-  { feature: 'Kanban workflow for songs',       songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
-  { feature: 'Version stacking per song',       songdrafts: true,      dubnote: false,     samply: 'partial', suonote: false,    tapeit: false },
-  { feature: 'Adjustable playback speed',       songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
-  { feature: 'Merge two songs into one',        songdrafts: true,      dubnote: false,     samply: false,    suonote: false,     tapeit: false },
-  { feature: 'Phone to desktop sync',           songdrafts: true,      dubnote: false,     samply: true,     suonote: 'partial', tapeit: true },
-  { feature: 'Timestamped listener feedback',   songdrafts: true,      dubnote: false,     samply: true,     suonote: false,     tapeit: false },
-  { feature: 'Listener needs no account',       songdrafts: true,      dubnote: false,     samply: true,     suonote: false,     tapeit: false },
-  { feature: 'Works fully offline',             songdrafts: true,      dubnote: true,      samply: true,     suonote: true,      tapeit: true },
-  // Conceded, honestly.
-  { feature: 'Recording quality and monitoring', songdrafts: 'partial', dubnote: true,     samply: false,    suonote: 'partial', tapeit: true },
-  { feature: 'Presenting a finished mix to a client', songdrafts: 'partial', dubnote: false, samply: true,   suonote: false,     tapeit: 'partial' },
-  { feature: 'Lyrics writing tools',            songdrafts: false,     dubnote: 'partial', samply: false,    suonote: true,      tapeit: false },
-  { feature: 'Price, per month, USD',           songdrafts: '$9',      dubnote: '$2',      samply: '$10',    suonote: 'free',    tapeit: 'free' },
+  // Cut from twelve rows to seven. Twelve rows across six columns is a
+  // spreadsheet, and nobody reads a spreadsheet on a landing page: the rows
+  // that carry the argument were buried among rows that carried nothing.
+  //
+  // Kept: the four we win that MATTER (the workflow claim), the one everybody
+  // draws on which proves the table is not rigged, and the two we lose. Cut:
+  // playback speed and "listener needs no account" (both subsets of rows
+  // already here), and the price row, which invited a straight cheapest-wins
+  // comparison against two free tools in a table about workflow.
+  { feature: 'A board your songs move across', songdrafts: true,      dubnote: false,     samply: false,     suonote: false,     tapeit: false },
+  { feature: 'Every take stacked on one song', songdrafts: true,      dubnote: false,     samply: 'partial',  suonote: false,     tapeit: false },
+  { feature: 'Merge two half-songs into one',  songdrafts: true,      dubnote: false,     samply: false,     suonote: false,     tapeit: false },
+  { feature: 'Comments pinned to a timestamp', songdrafts: true,      dubnote: false,     samply: true,      suonote: false,     tapeit: false },
+  { feature: 'Works fully offline',            songdrafts: true,      dubnote: true,      samply: true,      suonote: true,      tapeit: true },
+  // Conceded, and kept. A table that wins every row gets discounted wholesale,
+  // including the rows it genuinely wins.
+  { feature: 'Recording quality',              songdrafts: 'partial', dubnote: true,      samply: false,     suonote: 'partial', tapeit: true },
+  { feature: 'Lyrics writing tools',           songdrafts: false,     dubnote: 'partial', samply: false,     suonote: true,      tapeit: false },
 ] as const
 
 const STEPS = [
@@ -293,8 +305,8 @@ export function LandingPage() {
           the one with the good chorus.
         </p>
         <div className="features-grid">
-          {FEATURES.map(({ icon, title, desc }) => (
-            <div key={title} className="feature-card">
+          {FEATURES.map(({ icon, title, desc, size }) => (
+            <div key={title} className={`feature-card is-${size}`}>
               <div className="feature-icon">{icon}</div>
               <div className="feature-title">{title}</div>
               <p className="feature-desc">{desc}</p>
@@ -457,11 +469,9 @@ export function LandingPage() {
             </tbody>
           </table>
           <p className="compare-footnote">
-            Checked 25 August 2026 from each product's own pricing page, converted to USD
-            per month at that day's rate: Dubnote bills $24.99/year, Samply from $10/month.
-            Suonote and Tape.it have free tiers with paid plans above them. Rates move and
-            features change, so check before you decide. Three rows on this table go
-            against us. We left them in.
+            Checked 25 August 2026 against each product's own site. Features change, so
+            check before you decide. Two rows here go against us and we left them in,
+            because a table that wins everything is one nobody believes.
           </p>
         </div>
       </section>

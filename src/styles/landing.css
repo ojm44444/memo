@@ -3410,3 +3410,70 @@ a.nav-cta {
 .cta-status {
   color: rgba(14, 31, 38, 0.88) !important;
 }
+
+/* ═══ THE FEATURE GRID AS A BENTO ══════════════════════════════════════════
+   Owen: "the section with the six cards could be a little bit better."
+
+   The problem was never the card styling, it was that six identical boxes in
+   a 3x2 grid give six features equal weight. That is a lie about the product:
+   the board and the take-stacking ARE songdrafts; playback speed is a nice
+   detail. A grid of clones also has no focal point, so the eye slides off it,
+   which is exactly what "a bit boring" describes.
+
+   Now the layout carries the hierarchy. Two wide cards, one tall, three small.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(150px, auto);
+  gap: 14px;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.feature-card.is-wide { grid-column: span 2; }
+.feature-card.is-tall { grid-row: span 2; }
+
+/* The tall card gets room to breathe: it holds the longest copy and it is the
+   feature most people have never seen anywhere else. */
+.feature-card.is-tall {
+  display: flex;
+  flex-direction: column;
+}
+.feature-card.is-tall .feature-desc { margin-top: auto; }
+
+.feature-card.is-wide .feature-title { font-size: 1.28rem; }
+.feature-card.is-wide .feature-desc { max-width: 52ch; }
+
+.feature-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.feature-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* Re-assign the ramp across the new order so colour still walks the grid. */
+.feature-card:nth-child(1) { --card-hue: var(--stage-inbox); }
+.feature-card:nth-child(2) { --card-hue: var(--stage-ideas); }
+.feature-card:nth-child(3) { --card-hue: var(--stage-half); }
+.feature-card:nth-child(4) { --card-hue: var(--stage-done); }
+.feature-card:nth-child(5) { --card-hue: var(--stage-half); }
+.feature-card:nth-child(6) { --card-hue: var(--stage-ideas); }
+
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .feature-card.is-tall { grid-row: auto; }
+}
+
+@media (max-width: 620px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card.is-wide { grid-column: auto; }
+}
