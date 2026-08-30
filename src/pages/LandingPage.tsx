@@ -94,16 +94,20 @@ const COMPARE_ROWS = [
   //
   // Trello WINS the first row, honestly. Conceding the row it deserves is what
   // makes the rest of the table land.
-  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  trello: true,       tapeit: false },
-  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
-  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  tapeit: false },
-  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
-  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      trello: false,      tapeit: 'partial' },
-  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,      tapeit: false },
-  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  tapeit: 'partial' },
-  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  tapeit: true },
+  //
+  // Dubnote is BACK as a sixth column (Owen, 30 Aug): Trello was an addition,
+  // not a replacement. There is no cost to naming one more thing we beat, and
+  // dropping a real competitor from the table reads worse than carrying it.
+  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  trello: true,  dubnote: false,       tapeit: false },
+  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
+  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  dubnote: false,  tapeit: false },
+  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
+  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      trello: false,  dubnote: 'partial',      tapeit: 'partial' },
+  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
+  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial' },
+  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true },
   // Still conceded, and it stays.
-  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   trello: false,      tapeit: true },
+  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   trello: false,  dubnote: true,      tapeit: true },
 ] as const
 
 const STEPS = [
@@ -295,6 +299,11 @@ export function LandingPage() {
           <p className="hero-trial-note">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
+          {/* Platform, said above the fold. Wave 2 research turned up people on
+              Android phone + Mac and on Windows + iPhone, and one person who
+              rejected Obsidian purely because free-tier sync does not cross
+              devices. Worded to what actually ships today: a browser app, plus
+              import via Files on iPhone. Nothing promised beyond that. */}
           <p className="hero-platforms">
             Runs in the browser on any desktop, and on your phone. Nothing to buy from the
             App Store.
@@ -502,6 +511,7 @@ export function LandingPage() {
                 <th className="compare-col">Voice Memos</th>
                 <th className="compare-col">Apple Notes</th>
                 <th className="compare-col">Trello</th>
+                <th className="compare-col">Dubnote</th>
                 <th className="compare-col">Tape.it</th>
               </tr>
             </thead>
@@ -513,6 +523,7 @@ export function LandingPage() {
                   <td className="compare-cell"><Tick val={row.voicememos} /></td>
                   <td className="compare-cell"><Tick val={row.notes} /></td>
                   <td className="compare-cell"><Tick val={row.trello} /></td>
+                  <td className="compare-cell"><Tick val={row.dubnote} /></td>
                   <td className="compare-cell"><Tick val={row.tapeit} /></td>
                 </tr>
               ))}
