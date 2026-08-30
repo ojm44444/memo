@@ -10038,3 +10038,194 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   text-transform: uppercase;
   opacity: 0.7;
 }
+
+/* ═══ Listen: sections, stacks, upload ═════════════════════════════════════ */
+.mixes-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mixes-section { margin-top: 26px; }
+
+.mixes-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.mixes-section-title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.mixes-section-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* A master reads as finished: the stack chip for it carries the accent even
+   when it is not the one armed. */
+.mix-stack-v.is-master {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.mix-stack-hint {
+  align-self: center;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+/* .mix-row is a three-column grid (play | body | time). Wrapping that in a
+   row so the comments can sit underneath means the LI becomes a block and the
+   grid moves down onto .mix-row-main, or the three children collapse into one
+   narrow column on top of each other. */
+.mix-row {
+  display: block;
+}
+
+.mix-row-main {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Expanding a row gets the comments, not a song drawer. A stack is a simpler
+   object than a song and should not pretend otherwise. */
+.mix-row-comments {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.mix-row.is-open {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Add a mix */
+.mix-upload-btn,
+.mix-upload-save {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 24%, transparent),
+    color-mix(in srgb, var(--accent) 9%, transparent)
+  );
+  color: var(--accent);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.mix-upload-btn:hover,
+.mix-upload-save:hover { border-color: var(--accent); }
+.mix-upload-save:disabled { opacity: 0.55; cursor: default; }
+
+.mix-upload-panel {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 7%, transparent),
+    transparent
+  ),
+  var(--surface);
+  min-width: min(560px, 100%);
+}
+
+.mix-upload-title {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.mix-upload-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mix-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mix-upload-name {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.mix-upload-select {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: var(--bg-3, var(--bg));
+  color: var(--text);
+  font-size: 0.74rem;
+}
+
+.mix-upload-kind { display: inline-flex; gap: 4px; }
+
+.mix-upload-kind-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.mix-upload-kind-btn.is-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+.mix-upload-actions { display: flex; align-items: center; gap: 10px; }
+
+.mix-upload-cancel {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.mix-upload-error {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: var(--danger, #ef4444);
+}

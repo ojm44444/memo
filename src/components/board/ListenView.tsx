@@ -39,6 +39,12 @@ type ListenScope = 'project' | 'library'
  * own work and belongs to none of those, so it moves from the front to a
  * secondary tab rather than defining the room.
  */
+/**
+ * "Favourites" here never meant favourite MIXES. You do not pick a favourite
+ * mix: the last version is the one that gets used, which is why the stack in
+ * the Mixes tab arms its top by default. The star is a song-level thing set on
+ * the Songwriting board, so the tab is named for what it actually lists.
+ */
 type ListenTab = 'mixes' | 'favourites' | 'playlists'
 
 export function ListenView() {
@@ -128,7 +134,7 @@ const favouriteTotal = useLiveQuery(async () => {
           className={cn('listen-tab-btn', tab === 'favourites' && 'listen-tab-btn--active')}
           onClick={() => setTab('favourites')}
         >
-          ★ Favourites
+          ★ Starred songs
         </button>
         <button
           type="button"
