@@ -3081,3 +3081,222 @@ a.nav-cta {
   font-size: 0.78rem;
   line-height: 1.6;
 }
+
+/* ═══ MORE GREEN, FEWER SEAMS ══════════════════════════════════════════════
+   Owen: "there need to be more sections with the bright green. The grey stuff
+   is a bit boring... on the dark page there are some lines that make it look
+   not very seamless."
+
+   Two separate problems. The LINES are hard 1px borders between sections: on
+   a dark page a hairline reads as a join, not a division, and the eye catches
+   every one. The GREY is that between the two luminous bands everything sits
+   at the same flat value.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Kill the hard seams. Sections that sit next to each other on dark now
+      meet with a soft fade instead of a rule. */
+.merge-band,
+.offline-section,
+.backup-section,
+.workflow,
+.trust,
+.faq-section,
+.compare {
+  border-top: none !important;
+  border-bottom: none !important;
+  position: relative;
+}
+
+/* Where a real division helps, it is a fading ramp hairline rather than a
+   full-width grey line: strongest in the middle, gone at the edges, so it
+   reads as light rather than as a join. */
+.offline-section::after,
+.workflow::after,
+.compare::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent,
+    color-mix(in srgb, var(--stage-half) 55%, transparent) 35%,
+    color-mix(in srgb, var(--stage-done) 55%, transparent) 65%,
+    transparent);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* 2. A third luminous band. Two was a rhythm; the run of dark between the
+      hero and pricing was too long, and this is the section that earns it -
+      "no signal" is the most emotional claim on the page. */
+.offline-section {
+  background:
+    radial-gradient(ellipse 60% 90% at 88% 15%, color-mix(in srgb, var(--stage-done) 30%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 70% 80% at 5% 85%, color-mix(in srgb, var(--stage-inbox) 26%, transparent) 0%, transparent 64%),
+    var(--bg-2) !important;
+}
+
+/* 3. Green pushed through the remaining dark sections, so none of them is
+      flat slate any more. Each takes a different point of the ramp, so the
+      page still moves as you scroll rather than repeating one wash. */
+.merge-band {
+  background:
+    radial-gradient(ellipse 80% 120% at 50% 0%, color-mix(in srgb, var(--stage-half) 24%, transparent) 0%, transparent 60%),
+    var(--bg) !important;
+}
+
+.workflow {
+  background:
+    radial-gradient(ellipse 65% 95% at 15% 10%, color-mix(in srgb, var(--stage-ideas) 22%, transparent) 0%, transparent 62%),
+    var(--bg-2) !important;
+}
+
+.trust {
+  background:
+    radial-gradient(ellipse 70% 100% at 85% 20%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 62%),
+    var(--bg) !important;
+}
+
+.faq-section {
+  background:
+    radial-gradient(ellipse 75% 100% at 20% 100%, color-mix(in srgb, var(--stage-done) 20%, transparent) 0%, transparent 62%),
+    var(--bg-2) !important;
+}
+
+.backup-section {
+  background:
+    radial-gradient(ellipse 70% 100% at 92% 8%, color-mix(in srgb, var(--stage-inbox) 26%, transparent) 0%, transparent 62%),
+    var(--bg) !important;
+}
+
+.compare {
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 110%, color-mix(in srgb, var(--stage-half) 20%, transparent) 0%, transparent 60%),
+    var(--bg-2) !important;
+}
+
+/* ═══ ONE CONTINUOUS GROUND ════════════════════════════════════════════════
+   The seams were not the borders. Adjacent sections used DIFFERENT base
+   colours (--bg against --bg-2), so every join was a hard value step and the
+   eye caught all of them. Fading the hairline could never fix that.
+
+   So the page gets ONE ground that runs the whole length, teal at the top
+   through to green at the bottom, and every section becomes transparent on
+   top of it, keeping only its own soft radial accent. No section boundary can
+   produce a step, because there is nothing to step between.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.landing {
+  position: relative;
+  background:
+    linear-gradient(
+      180deg,
+      var(--bg) 0%,
+      color-mix(in srgb, var(--stage-inbox) 9%, var(--bg)) 18%,
+      color-mix(in srgb, var(--stage-ideas) 10%, var(--bg)) 42%,
+      color-mix(in srgb, var(--stage-half) 11%, var(--bg)) 68%,
+      color-mix(in srgb, var(--stage-done) 9%, var(--bg)) 88%,
+      var(--bg) 100%
+    );
+}
+
+/* Every dark section: transparent, so the ground shows through unbroken. The
+   radial accents stay, because those are what give each section its own
+   character without creating an edge. */
+.features,
+.howitworks,
+.merge-band,
+.offline-section,
+.backup-section,
+.compare,
+.workflow,
+.trust,
+.faq-section {
+  background-color: transparent !important;
+}
+
+.merge-band {
+  background:
+    radial-gradient(ellipse 80% 120% at 50% 0%, color-mix(in srgb, var(--stage-half) 22%, transparent) 0%, transparent 60%) !important;
+}
+.offline-section {
+  background:
+    radial-gradient(ellipse 60% 90% at 88% 15%, color-mix(in srgb, var(--stage-done) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(ellipse 70% 80% at 5% 85%, color-mix(in srgb, var(--stage-inbox) 22%, transparent) 0%, transparent 64%) !important;
+}
+.workflow {
+  background:
+    radial-gradient(ellipse 65% 95% at 15% 10%, color-mix(in srgb, var(--stage-ideas) 20%, transparent) 0%, transparent 62%) !important;
+}
+.trust {
+  background:
+    radial-gradient(ellipse 70% 100% at 85% 20%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 62%) !important;
+}
+.faq-section {
+  background:
+    radial-gradient(ellipse 75% 100% at 20% 100%, color-mix(in srgb, var(--stage-done) 18%, transparent) 0%, transparent 62%) !important;
+}
+.backup-section {
+  background:
+    radial-gradient(ellipse 70% 100% at 92% 8%, color-mix(in srgb, var(--stage-inbox) 24%, transparent) 0%, transparent 62%) !important;
+}
+.compare {
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 110%, color-mix(in srgb, var(--stage-half) 18%, transparent) 0%, transparent 60%) !important;
+}
+.features, .howitworks { background: none !important; }
+
+/* The two luminous bands keep their solid gradient: they are meant to be a
+   break in the ground, and that edge is deliberate rather than accidental. */
+.pricing, .cta-section { background-color: initial !important; }
+
+/* With a continuous ground the divider rules are noise. Remove them entirely. */
+.offline-section::after,
+.workflow::after,
+.compare::after { display: none; }
+
+/* ═══ THE ACTUAL SEAM FIX ══════════════════════════════════════════════════
+   Per-section radials cannot work. A background is painted inside its own
+   element box, so any radial still visible at a section's bottom edge is
+   SLICED there - the accent itself draws the line. Softening the gradient
+   only moves the cut.
+
+   So the colour lifts off the sections entirely and onto one overlay that
+   spans the whole page. Nothing is clipped at a boundary because nothing is
+   painted per-section any more. Sections keep only their content. */
+.features,
+.howitworks,
+.merge-band,
+.offline-section,
+.backup-section,
+.compare,
+.workflow,
+.trust,
+.faq-section {
+  background: none !important;
+  position: relative;
+  z-index: 1;
+}
+
+.landing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Positions are percentages of the WHOLE page, so each bloom sits over the
+     section it belongs to while bleeding freely across its neighbours. */
+  background:
+    radial-gradient(ellipse 55% 9% at 88% 22%, color-mix(in srgb, var(--stage-inbox) 30%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 8% at 12% 34%, color-mix(in srgb, var(--stage-ideas) 26%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 10% at 78% 46%, color-mix(in srgb, var(--stage-half) 30%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 8% at 18% 58%, color-mix(in srgb, var(--stage-done) 26%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 9% at 82% 70%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 8% at 22% 84%, color-mix(in srgb, var(--stage-half) 24%, transparent) 0%, transparent 70%);
+  filter: blur(30px);
+}
+
+/* The hero and the two luminous bands paint their own ground and must sit
+   ABOVE the overlay, not under it. */
+.hero, .pricing, .cta-section { position: relative; z-index: 2; }
