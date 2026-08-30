@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { getImportWatermark } from '@/db/repositories/integrityRepo'
 
 /**
  * Help, bottom right (Owen's ask). One sheet, three sections: how audio gets
@@ -14,6 +16,10 @@ const SUPPORT_EMAIL = 'support@songdrafts.com'
 export function HelpButton() {
   const [open, setOpen] = useState(false)
   const sheetRef = useRef<HTMLDivElement>(null)
+  // "Where did I get up to" is a question you ask while using the app, not on
+  // an empty board, so the watermark lives here as well as on the import
+  // screen - it is only computable once there ARE songs.
+  const watermark = useLiveQuery(() => (open ? getImportWatermark() : undefined), [open])
 
   useEffect(() => {
     if (!open) return
@@ -46,6 +52,22 @@ export function HelpButton() {
       {open && (
         <div className="help-sheet" ref={sheetRef} role="dialog" aria-label="Help">
           <h3 className="help-sheet-title">Getting your memos in</h3>
+
+          {watermark && (
+            <div className="help-watermark">
+              <span className="help-watermark-label">You got up to</span>
+              <strong>
+                {new Date(watermark.recordedAt).toLocaleDateString(undefined, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </strong>
+              <span className="help-watermark-sub">
+                Anything recorded after that is still only on your phone. Start there.
+              </span>
+            </div>
+          )}
 
           <div className="help-sheet-section">
             <h4>On a Mac</h4>

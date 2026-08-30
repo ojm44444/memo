@@ -9200,3 +9200,190 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
 @media (prefers-reduced-motion: reduce) {
   .song-card:hover { transform: none; }
 }
+
+/* ═══ THE IMPORT SCREEN ════════════════════════════════════════════════════ */
+.import-guide {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 8px 0 24px;
+}
+
+.import-guide-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+
+.import-guide-lead {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 56ch;
+  margin: 0 0 26px;
+}
+
+/* The watermark: the single most useful thing on this screen once there is
+   anything on the board, so it gets the accent and sits above the routes. */
+.import-watermark {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  margin-bottom: 26px;
+  border-radius: 14px;
+  background: linear-gradient(140deg,
+    color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 70%),
+    color-mix(in srgb, var(--surface) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+.import-watermark-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.import-watermark-date {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.import-watermark-sub {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: 62ch;
+}
+
+.import-routes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.import-route {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 20px;
+  border-radius: 16px;
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--route) 20%, transparent) 0%,
+    color-mix(in srgb, var(--route) 7%, transparent) 55%,
+    transparent 84%),
+    color-mix(in srgb, var(--bg-2) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--route) 36%, transparent);
+}
+
+.import-route::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--route);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--route) 65%, transparent);
+}
+
+.import-route-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 1.05rem;
+  margin-bottom: 14px;
+  color: var(--route);
+  background: color-mix(in srgb, var(--route) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--route) 32%, transparent);
+}
+
+.import-route h3 {
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.import-route p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+/* The caveats are the point of the screen, so they read as deliberate rather
+   than as small print. */
+.import-route-caveat {
+  font-size: 0.78rem !important;
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+  border-left: 2px solid color-mix(in srgb, var(--route) 60%, transparent);
+  background: color-mix(in srgb, var(--route) 8%, transparent);
+  margin-bottom: 0 !important;
+}
+
+.import-vision {
+  padding: 20px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+}
+
+.import-vision h3 {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+}
+
+.import-vision p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 68ch;
+}
+
+@media (max-width: 860px) {
+  .import-routes { grid-template-columns: 1fr; }
+}
+
+.help-watermark {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.help-watermark-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.help-watermark strong {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+.help-watermark-sub {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

@@ -73,3 +73,38 @@ export async function runIntegrityCheck(): Promise<IntegrityReport> {
   ])
   return { songsWithoutTakes, unrecoverableVersions }
 }
+
+/**
+ * The import watermark: how far through your Voice Memos you have got.
+ *
+ * Owen's ask, and it is the thing that makes a manual import survivable. The
+ * first pass is a big one-off job; after that you only ever need the memos
+ * recorded SINCE last time. Without a watermark you either re-import
+ * everything and rely on de-duplication, or you guess. With one you scroll
+ * your Voice Memos to that date and start there.
+ *
+ * recordedAt is read from the file's own metadata on import, so this is the
+ * recording date, not the import date - which is the date you are actually
+ * looking at in Voice Memos.
+ */
+export type ImportWatermark = {
+  /** ISO date of the newest recording brought in. */
+  recordedAt: string
+  /** What it was called, so it can be recognised in the Voice Memos list. */
+  title: string
+  /** Total songs on the board, for context. */
+  totalSongs: number
+}
+
+export async function getImportWatermark(): Promise<ImportWatermark | null> {
+  const songs = await db.songs.filter((s) => !s.deletedAt && !!s.recordedAt).toArray()
+  if (!songs.length) return null
+
+  let newest = songs[0]
+  for (const song of songs) {
+    if ((song.recordedAt ?? '') > (newest.recordedAt ?? '')) newest = song
+  }
+
+  const totalSongs = await db.songs.filter((s) => !s.deletedAt).count()
+  return { recordedAt: newest.recordedAt!, title: newest.title, totalSongs }
+}
