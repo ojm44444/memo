@@ -12,6 +12,7 @@ import { getCommentsForSong } from '@/db/repositories/commentRepo'
 import {
   deleteAudioVersion,
   renameAudioVersion,
+  setAudioVersionKind,
   setPrimaryVersion,
   updateAudioVersionTags,
   setAudioVersionTrimStart,
@@ -254,6 +255,25 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                             Make primary
                           </button>
                         )}
+                        {/* The whole Songwriting / Listen split, as one
+                            control. Marking a take as a mix moves nothing and
+                            copies no audio: it says this came back from a
+                            producer, so it belongs in the room you play to the
+                            band rather than the one where the bad takes live. */}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="version-menu-item"
+                          onClick={() => {
+                            setMenuOpenId(null)
+                            const next = (version.kind ?? 'take') === 'take' ? 'mix' : 'take'
+                            void setAudioVersionKind(version.id, next).then(() => scheduleFlush())
+                          }}
+                        >
+                          {(version.kind ?? 'take') === 'take'
+                            ? 'Mark as a mix'
+                            : 'Move back to takes'}
+                        </button>
                         {isCurrent && (
                           <button
                             type="button"

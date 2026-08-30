@@ -444,3 +444,60 @@ export async function deleteAudioVersion(versionId: string) {
 
   await enqueueSync('delete', 'audio_version', versionId, { id: versionId, songId: version.songId })
 }
+
+/**
+ * Mark what a take is: your own recording, or something that came back from
+ * a producer or engineer.
+ *
+ * This is the whole mechanism behind the Songwriting / Listen split. Nothing
+ * moves and no audio is copied: the same take simply becomes visible in a
+ * different room, because the rooms are about audience rather than storage.
+ */
+export async function setAudioVersionKind(
+  versionId: string,
+  kind: 'take' | 'mix' | 'master',
+) {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+
+  await db.audioVersions.update(versionId, { kind })
+  await enqueueSync('update', 'audio_version', versionId, { ...version, kind })
+
+  void import('@/lib/analytics').then((m) =>
+    m.recordEvent(kind === 'take' ? 'take_added' : 'take_added', undefined, kind),
+  )
+
+  return { ...version, kind }
+}
+
+/**
+ * Songs that have a mix or a master, newest mix first. This is Listen.
+ *
+ * Deliberately NOT "songs I starred": a favourites list is a filter on your
+ * own work, and Listen is the room where other people's work arrives.
+ */
+export async function getSongsWithMixes(): Promise<
+  { song: Song; latest: AudioVersion; mixCount: number }[]
+> {
+  const mixes = await db.audioVersions
+    .filter((v) => v.kind === 'mix' || v.kind === 'master')
+    .toArray()
+
+  const bySong = new Map<string, AudioVersion[]>()
+  for (const v of mixes) {
+    const list = bySong.get(v.songId) ?? []
+    list.push(v)
+    bySong.set(v.songId, list)
+  }
+
+  const out: { song: Song; latest: AudioVersion; mixCount: number }[] = []
+  for (const [songId, versions] of bySong) {
+    const song = await db.songs.get(songId)
+    if (!song || song.deletedAt) continue
+    versions.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+    out.push({ song, latest: versions[0], mixCount: versions.length })
+  }
+
+  out.sort((a, b) => (b.latest.createdAt ?? '').localeCompare(a.latest.createdAt ?? ''))
+  return out
+}

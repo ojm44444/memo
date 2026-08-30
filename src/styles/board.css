@@ -9479,3 +9479,112 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   aspect-ratio: auto;
   min-height: 0;
 }
+
+/* ═══ LISTEN: THE MIXES ROOM ═══════════════════════════════════════════════
+   Built for a sofa and a phone, not a desk. Big rows, one tap to play, newest
+   first, nothing to drag. The board is where you work; this is where you sit
+   back and find out whether it is any good. */
+.mixes-room { padding: 4px 0 24px; }
+
+.mixes-head { margin-bottom: 18px; }
+
+.mixes-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: 1.7rem;
+  margin: 0 0 4px;
+}
+
+.mixes-sub { color: var(--text-muted); font-size: 0.88rem; margin: 0; }
+
+.mixes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.mix-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--stage-half) 10%, transparent), transparent 60%), var(--surface);
+  border: 1px solid color-mix(in srgb, var(--stage-half) 24%, transparent);
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.mix-row:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--stage-half) 44%, transparent); }
+
+.mix-row.is-playing {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%), var(--surface);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* 48px: a sofa target, not a desk one. */
+.mix-play {
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  color: var(--accent);
+}
+
+.mix-row.is-playing .mix-play { background: var(--accent); color: var(--accent-on); border-color: transparent; }
+
+.mix-body { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+
+.mix-title {
+  background: none; border: none; padding: 0;
+  text-align: left; cursor: pointer;
+  font-family: inherit; font-size: 1rem; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mix-title:hover { color: var(--accent); }
+
+.mix-meta {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  font-size: 0.76rem; color: var(--text-muted);
+}
+
+.mix-dot { opacity: 0.5; }
+
+.mix-kind {
+  font-family: var(--font-mono);
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--stage-done) 22%, transparent);
+  color: var(--stage-done);
+}
+.mix-kind.is-master {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  color: var(--accent);
+}
+
+.mix-wave { margin-top: 3px; }
+
+.mix-time {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mixes-empty { max-width: 60ch; padding: 40px 0; }
+.mixes-empty-title {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400; font-size: 1.9rem; margin: 0 0 12px;
+}
+.mixes-empty p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.65; margin: 0 0 12px; }
+.mixes-empty-note {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem !important;
+}
+
+@media (max-width: 560px) {
+  .mix-row { grid-template-columns: 44px 1fr; }
+  .mix-time { grid-column: 2; justify-self: start; }
+}

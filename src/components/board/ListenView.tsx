@@ -18,6 +18,7 @@ import { getPlaylists, getPlaylistSongs, removeSongFromPlaylist } from '@/db/rep
 import { listenViewAccentStyle } from '@/lib/projectAccent'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
+import { MixesRoom } from './MixesRoom'
 import { formatDuration } from '@/lib/audio-utils'
 import { buildFavouritesPlaylist } from '@/lib/audio/buildFavouritesPlaylist'
 import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
@@ -29,10 +30,19 @@ import { cn } from '@/lib/cn'
 import type { ColumnSlug } from '@/types/column'
 
 type ListenScope = 'project' | 'library'
-type ListenTab = 'favourites' | 'playlists'
+/**
+ * Listen leads with MIXES now, not favourites.
+ *
+ * The three views are three audiences: Songwriting is private, Listen is what
+ * came back from the producer and what the band hears, Playlists is what goes
+ * out to people who are not in the band. A favourites list is a filter on your
+ * own work and belongs to none of those, so it moves from the front to a
+ * secondary tab rather than defining the room.
+ */
+type ListenTab = 'mixes' | 'favourites' | 'playlists'
 
 export function ListenView() {
-  const [tab, setTab] = useState<ListenTab>('favourites')
+  const [tab, setTab] = useState<ListenTab>('mixes')
   const [scope, setScope] = useState<ListenScope>('project')
   const [shuffle, setShuffle] = useState(false)
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
@@ -108,6 +118,13 @@ const favouriteTotal = useLiveQuery(async () => {
       <div className="listen-tab-bar">
         <button
           type="button"
+          className={cn('listen-tab-btn', tab === 'mixes' && 'listen-tab-btn--active')}
+          onClick={() => setTab('mixes')}
+        >
+          ◉ Mixes
+        </button>
+        <button
+          type="button"
           className={cn('listen-tab-btn', tab === 'favourites' && 'listen-tab-btn--active')}
           onClick={() => setTab('favourites')}
         >
@@ -125,7 +142,9 @@ const favouriteTotal = useLiveQuery(async () => {
         )}
       </div>
 
-      {tab === 'playlists' ? (
+      {tab === 'mixes' ? (
+        <MixesRoom />
+      ) : tab === 'playlists' ? (
         activePlaylistId ? (
           <ListenPlaylistDetail
             playlistId={activePlaylistId}

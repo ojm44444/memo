@@ -99,6 +99,9 @@ async function processQueueItem(
       }
       // song_id changes from merge operations
       if (payload.songId !== undefined) patch.song_id = payload.songId
+      // Marking a take as a mix has to reach the other devices, or Listen
+      // shows a different set on the phone than on the desktop.
+      if (payload.kind !== undefined) patch.kind = payload.kind
       await assertNoError(
         await supabase!
           .from('audio_versions')

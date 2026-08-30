@@ -237,6 +237,7 @@ export async function pullChanges(userId: string) {
             id: remote.id,
             songId: remote.song_id,
             label: remote.label,
+            kind: (remote as { kind?: 'take' | 'mix' | 'master' }).kind ?? 'take',
             durationMs: remote.duration_ms,
             mimeType: local?.mimeType ?? 'audio/mpeg',
             sortOrder: remote.position,
