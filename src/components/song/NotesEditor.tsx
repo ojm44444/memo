@@ -25,7 +25,7 @@ export function NotesEditor({ songId, initialNotes }: NotesEditorProps) {
         onChange={(e) => setNotes(e.target.value)}
         onBlur={() => void save()}
         rows={4}
-        placeholder="Key, vibe, lyric fragments…"
+        placeholder="Anything that is not the words or the key…"
         className="song-detail-notes"
       />
     </div>
