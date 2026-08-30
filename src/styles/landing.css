@@ -3477,3 +3477,41 @@ a.nav-cta {
   .features-grid { grid-template-columns: 1fr; }
   .feature-card.is-wide { grid-column: auto; }
 }
+
+/* ═══ THE BAND EDGES ═══════════════════════════════════════════════════════
+   I removed the section borders and moved the glows onto a page overlay, then
+   introduced FOUR SOLID BANDS - which have hard edges by definition. So the
+   seams came straight back, and I said the edge was "deliberate" instead of
+   looking at it.
+
+   A band now fades into the dark at its top and bottom over 90px, inside the
+   padding so no text ever sits in the fade. The colour still arrives, it just
+   stops slamming into the ground. */
+.offline-section,
+.trust,
+.pricing,
+.cta-section {
+  padding-top: 130px;
+  padding-bottom: 130px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 90px,
+    #000 calc(100% - 90px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 90px,
+    #000 calc(100% - 90px),
+    transparent 100%
+  );
+}
+
+/* The closing band is the last thing on the page, so it should not fade out
+   at the bottom into nothing. */
+.cta-section {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 100%);
+}
