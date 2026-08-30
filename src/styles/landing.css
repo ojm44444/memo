@@ -793,22 +793,19 @@ a.nav-cta {
 .collab-text strong { color: var(--text); }
 
 /* CTA */
+/* The closing band wears the icon's own treatment: the pack's ramp as a
+   LUMINOUS GROUND with dark ink (wordmark-on-block, exactly). Everywhere else
+   on the page the ramp is ink on dark; this is the one full-strength moment,
+   and it is where "these are the brand colours" finally reads. Founder ask,
+   29 Aug: the icon's colours were missing from the page. Counts as the
+   landing's second gradient surface alongside the hero wash. */
 .cta-section {
   padding: 140px 60px;
   text-align: center;
   position: relative;
   overflow: hidden;
-}
-
-.cta-section::before {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 700px; height: 500px;
-  background: radial-gradient(ellipse 55% 55% at 40% 50%, var(--warm-glow) 0%, transparent 65%),
-              radial-gradient(ellipse 45% 45% at 65% 50%, var(--accent-glow) 0%, transparent 65%);
-  pointer-events: none;
+  background: linear-gradient(135deg, #5ea7b8 0%, #65a396 32%, #8ac4a6 64%, #c3e8bd 100%);
+  color: #0e1f26;
 }
 
 .cta-section h2 {
@@ -820,10 +817,10 @@ a.nav-cta {
   z-index: 1;
 }
 
-.cta-section h2 em { font-style: italic; color: var(--amber); }
+.cta-section h2 em { font-style: italic; color: #10424e; }
 
 .cta-section p {
-  color: var(--muted);
+  color: rgba(14, 31, 38, 0.78);
   font-size: 1.05rem;
   max-width: 480px;
   margin: 0 auto 40px;
@@ -2078,12 +2075,14 @@ a.nav-cta {
   border-bottom: none;
 }
 
-/* Wash strengthened to hold a poster-scale hero. */
+/* Wash strengthened to hold a poster-scale hero, using the icon's own ends
+   (#5ea7b8 teal, #c3e8bd pale green) at real presence. "A bit dark and sad"
+   was the correct diagnosis: the previous alphas (0.10-0.16) read as murk. */
 .hero::before {
   background:
-    radial-gradient(ellipse 52% 44% at 50% 8%, rgba(157, 219, 173, 0.16) 0%, transparent 60%),
-    radial-gradient(ellipse 64% 52% at 88% 70%, rgba(138, 196, 166, 0.10) 0%, transparent 62%),
-    radial-gradient(ellipse 70% 58% at 6% 78%, rgba(94, 167, 184, 0.16) 0%, transparent 62%);
+    radial-gradient(ellipse 56% 46% at 55% 6%, rgba(195, 232, 189, 0.26) 0%, transparent 60%),
+    radial-gradient(ellipse 64% 52% at 92% 62%, rgba(138, 196, 166, 0.18) 0%, transparent 62%),
+    radial-gradient(ellipse 72% 60% at 2% 80%, rgba(94, 167, 184, 0.28) 0%, transparent 62%);
 }
 
 /* ── Section headers join the poster logic ── */
@@ -2339,6 +2338,9 @@ a.nav-cta {
 .cta-status {
   font-family: 'DM Mono', monospace;
   font-size: var(--t-sm, 0.875rem);
-  color: var(--text-muted);
+  /* sits on the luminous band, so it takes the ink, not the muted grey */
+  color: rgba(14, 31, 38, 0.72);
   margin-top: 20px;
+  position: relative;
+  z-index: 1;
 }
