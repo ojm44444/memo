@@ -10229,3 +10229,73 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   font-size: 0.72rem;
   color: var(--danger, #ef4444);
 }
+
+/* ═══ Light mode: the waveform keeps its colour ════════════════════════════
+   In dark mode every waveform carries the stage ramp, which is most of what
+   makes the board look like itself. In light mode the base rule painted them
+   rgba(19, 42, 48, 0.34), a flat slate grey, so the identity vanished the
+   moment you switched themes: the mixes room in particular was white cards
+   with grey bars and nothing else.
+
+   Board columns already had a light override using --stage-ink. Everything
+   outside a column (the mixes room, playlists, the drawer) did not, so it
+   falls back to the accent, which is the right ink for audio that is not
+   sitting in a stage. */
+html.light .wf-bar {
+  background: color-mix(in srgb, var(--stage-ink, var(--accent)) 42%, transparent);
+}
+
+html.light .wf-bar.is-played {
+  background: color-mix(in srgb, var(--stage-ink, var(--accent)) 78%, transparent);
+}
+
+html.light .interactive-waveform-bar {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+html.light .interactive-waveform-bar.is-played {
+  background: color-mix(in srgb, var(--accent) 72%, transparent);
+}
+
+/* The mix row is a card on the ground: in light it needs a real edge, since
+   two near-white surfaces cannot separate on shadow alone. */
+html.light .mix-row {
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--accent) 7%, transparent),
+    transparent 60%
+  ), var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+html.light .song-drawer {
+  background:
+    radial-gradient(120% 60% at 50% -10%,
+      color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%),
+    var(--surface);
+}
+
+.settings-install-note {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.settings-install-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.settings-install-btn:hover { border-color: var(--accent); }

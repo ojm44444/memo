@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { Avatar } from '@/components/ui/Avatar'
+import { usePwaInstall } from '@/hooks/usePwaInstall'
 import { clearMyAvatar, getMyAvatarUrl, setMyAvatar } from '@/lib/avatar'
 import { MobileImportCard } from '@/components/import/VoiceMemosShareCard'
 import { markExplicitSignOut } from '@/lib/auth/session'
@@ -20,6 +21,7 @@ import { useUiStore } from '@/stores/uiStore'
 
 export function SettingsPanel() {
   const navigate = useNavigate()
+  const { canInstall, isInstalled, install } = usePwaInstall()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   useEffect(() => {
@@ -266,6 +268,40 @@ export function SettingsPanel() {
                     ? ` · ${importResult.audioSkipped} without audio`
                     : ''}
                   {importResult.mode === 'merge' ? ' into a new project' : ''}.
+                </p>
+              )}
+            </section>
+
+            {/* The install prompt only ever appeared as a banner you could
+                dismiss, and once dismissed there was nowhere to find it again.
+                Installing is the difference between a tab you close and a
+                thing in your dock, which for a tool you are meant to reach for
+                mid-idea is most of the product. It belongs somewhere
+                permanent. */}
+            <section className="settings-section">
+              <h3 className="settings-section-title">Install</h3>
+              {isInstalled ? (
+                <p className="settings-install-note">
+                  Installed. songdrafts opens in its own window.
+                </p>
+              ) : canInstall ? (
+                <>
+                  <p className="settings-install-note">
+                    Runs in its own window, with its own icon, and works offline.
+                  </p>
+                  <button
+                    type="button"
+                    className="settings-install-btn"
+                    onClick={() => void install()}
+                  >
+                    Install songdrafts
+                  </button>
+                </>
+              ) : (
+                <p className="settings-install-note">
+                  Chrome and Edge, on Windows or Mac: look for the install icon in the address
+                  bar. Safari on Mac: File, then Add to Dock. iPhone: Share, then Add to Home
+                  Screen.
                 </p>
               )}
             </section>

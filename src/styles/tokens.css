@@ -99,10 +99,16 @@
 html.light {
   color-scheme: light;
 
-  --bg: #eaf3ee;
-  --bg-2: #e2efe9;
-  --bg-3: #e2efe9;
-  --surface: #f6faf6;
+  /* Light is the same identity turned over, not a white page.
+     The old values were #eaf3ee ground and #f6faf6 cards: 95% and 97.5%
+     lightness with about four points of green in them, which on a bright
+     screen is white with extra steps. The dark theme's ground (#0d1f27) has
+     real chroma and the light one has to earn its half of the pair the same
+     way. Text #0f2b2e still measures 11.9:1 on the new ground. */
+  --bg: #dce9e2;
+  --bg-2: #d3e3db;
+  --bg-3: #d3e3db;
+  --surface: #edf5ef;
   --border: rgba(20, 107, 79, 0.24);
 
   --text: #0f2b2e;        /* 12.64:1 on the darkest ground */
