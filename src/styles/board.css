@@ -9604,11 +9604,12 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
 }
 
 .lyrics-label {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--text-muted);
 }
 
 .lyrics-status {
@@ -9688,11 +9689,15 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
 
 .song-meta-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 
+/* Matches .song-detail-label. The drawer previously ran two label styles at
+   once: sans Title Case for "Project", "Audio", "Tags", and mono uppercase for
+   "KEY", "TEMPO", "TUNING". Two systems in one panel reads as two panels. */
 .song-meta-field span {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
   color: var(--text-muted);
 }
 
@@ -9799,4 +9804,12 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
 
 .board-column .song-card-footer {
   justify-content: center;
+}
+
+/* The two things you do with a song, grouped and on one line. */
+.song-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }

@@ -64,7 +64,7 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
 
   return (
     <div className="song-comments">
-      <span className="song-detail-label">Notes &amp; comments</span>
+      <span className="song-detail-label">Comments</span>
 
       {(comments?.length ?? 0) > 0 && (
         <ul className="song-comments-list">

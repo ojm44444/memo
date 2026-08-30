@@ -19,7 +19,7 @@ export function NotesEditor({ songId, initialNotes }: NotesEditorProps) {
 
   return (
     <div>
-      <label className="song-detail-label mb-2 block">Notes & lyrics</label>
+      <label className="song-detail-label mb-2 block">Notes</label>
       <textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}

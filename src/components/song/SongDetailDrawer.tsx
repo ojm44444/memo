@@ -191,9 +191,13 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
           <AudioVersionStack songId={song.id} readOnly={readOnly} />
 
-          <SongComments songId={song.id} readOnly={readOnly} />
-
           <VersionCompare songId={song.id} />
+
+          {/* Comments sit inside the editable block below, after the song's own
+              properties. A read-only viewer never reaches that block, so they
+              get them here instead: a viewer losing comments entirely would be
+              a regression, not a reorder. */}
+          {readOnly && <SongComments songId={song.id} readOnly />}
 
           {!readOnly && mergeOpen && (
             <MergeSongPicker targetSongId={song.id} onClose={() => setMergeOpen(false)} />
@@ -203,14 +207,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
           {!readOnly && (
             <>
-              <button
-                type="button"
-                className="song-detail-playlist-btn"
-                onClick={() => setPlaylistOpen(true)}
-              >
-                + Add to playlist
-              </button>
-              <SongSharePanel songId={song.id} />
               <SongMetaFields song={song} />
               <SongTagsEditor songId={song.id} initialTags={song.tags ?? []} />
               {/* Lyrics sit ABOVE notes deliberately: across twelve threads
@@ -219,6 +215,24 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               <LyricsEditor songId={song.id} initial={song.lyrics ?? null} />
               <NotesEditor songId={song.id} initialNotes={song.notes} />
               <ExternalLinks songId={song.id} />
+              <SongComments songId={song.id} readOnly={readOnly} />
+
+              {/* Actions last, and together.
+                  "+ Add to playlist" and "Share demo link" used to sit between
+                  the notes box and the key/tempo row, so the panel read
+                  describe, act, describe again. They are the two things you DO
+                  with a song once you have looked at it, so they belong at the
+                  end, next to each other. */}
+              <div className="song-detail-actions">
+                <button
+                  type="button"
+                  className="song-detail-playlist-btn"
+                  onClick={() => setPlaylistOpen(true)}
+                >
+                  + Add to playlist
+                </button>
+                <SongSharePanel songId={song.id} />
+              </div>
             </>
           )}
 
