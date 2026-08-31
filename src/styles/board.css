@@ -10425,3 +10425,171 @@ html.light .song-drawer {
 }
 
 
+
+/* ═══ Settings: one control language, one panel ════════════════════════════
+   The panel had accumulated five button styles, all pills, none matching:
+   paddings of 8/14, 5/11, 6/13 and 3/10, borders drawn variously from
+   var(--border), --text at 20% and --accent at 45%, backgrounds ranging from
+   transparent to a 22% accent gradient. Nothing was wrong individually and
+   the whole thing looked unconsidered, because a panel reads as designed when
+   its controls agree with each other, not when each one is nice.
+
+   Two roles only. Quiet is the default and covers almost everything. Accent
+   is for the one action a section exists to offer, and no section gets two. */
+.settings-panel {
+  border-radius: 16px;
+  padding: 20px 22px 22px;
+  background:
+    radial-gradient(120% 70% at 50% -10%,
+      color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+/* The header stays put while the body scrolls, so you always know what panel
+   you are in and where the close button is. */
+.settings-header {
+  position: sticky;
+  top: -20px;
+  z-index: 2;
+  margin: -20px -22px 18px;
+  padding: 18px 22px 12px;
+  background: linear-gradient(
+    180deg,
+    var(--surface) 70%,
+    color-mix(in srgb, var(--surface) 60%, transparent)
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+/* Sections separate on space first, with a hairline only as a hint. A full
+   strength 1px rule between every section turns a panel into a form. */
+.settings-panel .settings-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+/* ── The two button roles ── */
+.settings-panel .settings-export,
+.settings-panel .settings-sign-out,
+.settings-panel .settings-avatar-btn,
+.settings-panel .reminder-allow,
+.settings-panel .settings-install-btn,
+.settings-panel .mix-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+
+/* Quiet: the default. */
+.settings-panel .settings-export,
+.settings-panel .settings-sign-out,
+.settings-panel .settings-avatar-btn,
+.settings-panel .reminder-allow {
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+  background: transparent;
+  color: var(--text);
+}
+
+.settings-panel .settings-export:hover,
+.settings-panel .settings-sign-out:hover,
+.settings-panel .settings-avatar-btn:hover,
+.settings-panel .reminder-allow:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--text);
+}
+
+/* Accent: one per section, for the thing the section is for. */
+.settings-panel .settings-install-btn {
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+}
+
+.settings-panel .settings-install-btn:hover { border-color: var(--accent); }
+
+/* Text buttons that are genuinely links in behaviour keep reading as links,
+   but stop being three different sizes. */
+.settings-panel .settings-avatar-clear {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.settings-panel .settings-avatar-clear:hover { color: var(--text); }
+
+/* ── Inputs agree too ── */
+.settings-panel select,
+.settings-panel input[type='text'],
+.settings-panel input[type='email'] {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  transition: border-color 0.12s ease;
+}
+
+.settings-panel select:focus-visible,
+.settings-panel input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Field labels match the reminder fields, so Day and Time are not a different
+   species from every other label in the panel. */
+.settings-panel .reminder-field span {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* The folder button is the accent action of the Import section, so it joins
+   the accent role rather than keeping its own 8px radius, hardcoded rgba
+   border and 0.78rem weight-600 label. Full width is kept deliberately: it is
+   a primary action inside a card, not one option among several. */
+.settings-panel .voice-memos-connect-primary {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 500;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.settings-panel .voice-memos-connect-primary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
