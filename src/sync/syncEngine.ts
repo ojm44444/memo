@@ -17,10 +17,59 @@ let status: SyncStatus = 'idle'
 let pendingCount = 0
 let lastError: string | null = null
 let cloudSyncEnabled = false
-let syncLoopTimer: ReturnType<typeof setInterval> | null = null
+let syncLoopTimer: ReturnType<typeof setTimeout> | null = null
 let retryTimer: ReturnType<typeof setTimeout> | null = null
 let consecutiveErrors = 0
 const listeners = new Set<() => void>()
+
+/**
+ * How often to poll, and why it is not a fixed interval any more.
+ *
+ * It used to be setInterval(8s), unconditionally, for as long as the tab
+ * existed. Each tick is a pull (three queries) plus a push, so a single tab
+ * left open overnight was tens of thousands of requests to ask a question that
+ * had the same answer every time. On a board only one person edits, which is
+ * every board today, almost all of that is waste, and waste is metered.
+ *
+ * Two changes. A hidden tab does not poll at all: nobody is looking, local
+ * edits still schedule their own flush, and becoming visible flushes
+ * immediately. And a session that keeps finding nothing slows down, stepping
+ * out to five minutes, snapping back to eight seconds the moment anything
+ * actually happens.
+ *
+ * This is a cadence, not a correctness mechanism. Every real event still
+ * flushes at once: a local edit, coming online, focusing the tab, a service
+ * worker sync.
+ */
+const POLL_LADDER = [8_000, 15_000, 30_000, 60_000, 120_000, 300_000]
+let quietFlushes = 0
+
+function pollDelay(): number {
+  return POLL_LADDER[Math.min(quietFlushes, POLL_LADDER.length - 1)]
+}
+
+/** Back to attentive. Called whenever something real happened. */
+function resetPollCadence() {
+  const wasSlow = quietFlushes > 0
+  quietFlushes = 0
+  if (wasSlow) scheduleNextPoll()
+}
+
+function scheduleNextPoll() {
+  if (syncLoopTimer) clearTimeout(syncLoopTimer)
+  if (!cloudSyncEnabled) return
+
+  syncLoopTimer = setTimeout(() => {
+    syncLoopTimer = null
+    // A hidden tab is not worth a single request. visibilitychange flushes on
+    // the way back, so nothing is missed, it just is not paid for meanwhile.
+    if (navigator.onLine && !document.hidden) {
+      void flush().finally(scheduleNextPoll)
+    } else {
+      scheduleNextPoll()
+    }
+  }, pollDelay())
+}
 
 function notify() {
   listeners.forEach((fn) => fn())
@@ -49,7 +98,7 @@ export function setCloudSyncEnabled(enabled: boolean) {
   notify()
 
   if (syncLoopTimer) {
-    clearInterval(syncLoopTimer)
+    clearTimeout(syncLoopTimer)
     syncLoopTimer = null
   }
   if (retryTimer) {
@@ -59,11 +108,8 @@ export function setCloudSyncEnabled(enabled: boolean) {
 
   if (!enabled) return
 
-  void flush()
-
-  syncLoopTimer = setInterval(() => {
-    if (navigator.onLine) void flush()
-  }, 8_000)
+  quietFlushes = 0
+  void flush().finally(scheduleNextPoll)
 }
 
 export async function flush() {
@@ -107,11 +153,13 @@ export async function flush() {
     notify()
 
     let pullError: string | null = null
+    let pulled = 0
     let pushResult = { pushed: 0, failed: 0, lastFailure: null as string | null }
 
     try {
-      await pullChanges(userId)
-      await cachePendingRemoteAudio({ limit: 4 })
+      pulled = (await pullChanges(userId)).pulled
+      const audio = await cachePendingRemoteAudio({ limit: 4 })
+      if (audio.cached > 0) pulled += audio.cached
     } catch (err) {
       pullError = err instanceof Error ? err.message : 'Could not download updates'
     }
@@ -141,7 +189,18 @@ export async function flush() {
 
     if (hasError && cloudSyncEnabled && navigator.onLine) {
       consecutiveErrors++
-      const backoffMs = Math.min(4_000 * Math.pow(2, consecutiveErrors - 1), 60_000)
+      /**
+       * A project that has been restricted will still be restricted in a
+       * minute, and in an hour. Supabase says so in the body, and retrying a
+       * refusal every sixty seconds for the days until the quota refills is
+       * both pointless and, given the refusal is itself a response, not free.
+       * Ten minutes between attempts is enough to notice it coming back.
+       */
+      const restricted = /egress|quota|restricted|402/i.test(
+        `${lastError ?? ''} ${pullError ?? ''} ${pushResult.lastFailure ?? ''}`,
+      )
+      const ceiling = restricted ? 10 * 60_000 : 60_000
+      const backoffMs = Math.min(4_000 * Math.pow(2, consecutiveErrors - 1), ceiling)
       if (retryTimer) clearTimeout(retryTimer)
       retryTimer = setTimeout(() => {
         retryTimer = null
@@ -153,6 +212,19 @@ export async function flush() {
         clearTimeout(retryTimer)
         retryTimer = null
       }
+    }
+
+    /**
+     * Did this round do anything? A round that pulled nothing, pushed nothing
+     * and hit no error is the app asking a question it already knew the answer
+     * to, and the next one can wait longer. Anything at all resets to
+     * attentive, so a bandmate's change is never more than eight seconds
+     * behind once the board is moving.
+     */
+    if (pulled > 0 || pushResult.pushed > 0 || hasError) {
+      resetPollCadence()
+    } else {
+      quietFlushes++
     }
 
     notify()
@@ -167,6 +239,8 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 export function scheduleFlush() {
   void refreshPendingCount()
+  // A local edit means this session is active. Come back to attentive.
+  resetPollCadence()
 
   if (cloudSyncEnabled && navigator.onLine) {
     void flush()
@@ -196,6 +270,7 @@ export function initSyncEngine() {
   window.addEventListener('online', () => {
     consecutiveErrors = 0
     if (retryTimer) { clearTimeout(retryTimer); retryTimer = null }
+    resetPollCadence()
     void flush()
   })
 
@@ -211,7 +286,11 @@ export function initSyncEngine() {
   }
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') void flush()
+    if (document.visibilityState !== 'visible') return
+    // Polling stopped while hidden, so pick it up again here.
+    resetPollCadence()
+    void flush()
+    scheduleNextPoll()
   })
 
   window.addEventListener('focus', () => void flush())

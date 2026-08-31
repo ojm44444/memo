@@ -47,12 +47,35 @@ type EventName =
   | 'song_merged'
   | 'take_added'
 
+/**
+ * The signed-in id, remembered for this page load.
+ *
+ * getUser() is a call to Supabase, and this ran on every single event: every
+ * card moved, every play started. Analytics was making more requests than the
+ * thing it was measuring. The id does not change without a reload.
+ */
+let cachedUserId: string | null | undefined
+/**
+ * A miss is only remembered for a minute. Caching "signed out" for the whole
+ * page load would silently stop recording anything for someone who signs in
+ * without a reload, and a signed-out visitor must not pay a getUser call per
+ * event either.
+ */
+let cachedUserIdAt = 0
+const MISS_TTL_MS = 60_000
+
 export async function recordEvent(name: EventName, value?: number, bucket?: string) {
   try {
     const { supabase } = await import('@/lib/supabase/client')
     if (!supabase) return
-    const { data } = await supabase.auth.getUser()
-    const userId = data.user?.id
+
+    const stale = cachedUserId == null && Date.now() - cachedUserIdAt > MISS_TTL_MS
+    if (cachedUserId === undefined || stale) {
+      const { data } = await supabase.auth.getUser()
+      cachedUserId = data.user?.id ?? null
+      cachedUserIdAt = Date.now()
+    }
+    const userId = cachedUserId
     if (!userId) return
 
     // Cast for the same reason as the admin summary: the checked-in Supabase
