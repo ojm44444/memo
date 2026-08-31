@@ -1,5 +1,6 @@
 import { createId } from '@/lib/ids'
 import { getBoardUserId, resolveBoardAuth } from '@/lib/auth/session'
+import { resolveDisplayName } from '@/lib/displayName'
 import type { SongComment } from '@/types/song-comment'
 import { db } from '../database'
 import { enqueueSync } from './outboxRepo'
@@ -16,7 +17,12 @@ export async function addSongComment(songId: string, body: string, timestampMs?:
   const auth = await resolveBoardAuth()
   if (!auth) throw new Error('Sign in required')
 
-  const authorLabel = auth.user.email?.split('@')[0] ?? 'You'
+  // The name they chose, not the front half of their email address. A
+  // comment is the one place their identity leaves their own screen.
+  const authorLabel = resolveDisplayName(
+    auth.user.user_metadata as Record<string, unknown> | undefined,
+    auth.user.email,
+  )
   const now = new Date().toISOString()
 
   const comment: SongComment = {

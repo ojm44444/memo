@@ -9,6 +9,19 @@ import { supabase } from '@/lib/supabase/client'
  * work for a worse result and one more place to leak a card detail.
  */
 
+/**
+ * Is billing actually switched on?
+ *
+ * Stripe's keys live on the edge functions, not in the bundle, so the app
+ * cannot detect this for itself: an unconfigured checkout looks exactly like a
+ * network failure from here. Rather than showing a Subscribe button that
+ * throws, this states plainly that nobody is being charged yet.
+ *
+ * Flip to true on the same day the Stripe keys are set. It is deliberately
+ * separate from SIGNUPS_OPEN: signups can open before billing, or after.
+ */
+export const BILLING_LIVE = false
+
 export type SubscriptionStatus =
   | 'none'
   | 'trialing'

@@ -10643,3 +10643,101 @@ html.light .song-drawer {
   background: transparent;
   color: var(--text-muted);
 }
+
+/* ═══ Account name, plan status ════════════════════════════════════════════
+   The name field and the plan line, added when Settings finally got an
+   identity section worth putting first. Both sit on the same rhythm as the
+   reminder fields so the panel reads as one control language rather than
+   three. */
+.settings-field {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.settings-field-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.settings-field-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.settings-field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.settings-field-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.settings-field-save {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.72rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.12s, opacity 0.12s;
+}
+
+.settings-field-save:hover:not(:disabled) { border-color: var(--accent); }
+
+/* Disabled is the resting state here: the button only lights up once the
+   field differs from what is saved. Kept legible rather than ghosted, so it
+   reads as "nothing to save" and not as "broken". */
+.settings-field-save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.settings-field-note {
+  margin: 0 0 12px;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 46ch;
+}
+
+.settings-plan-status {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0 0 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A dot, not a coloured word. The status text has to stay readable at the
+   body ink; the state is carried alongside it instead of inside it. */
+.settings-plan-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--text-muted);
+}
+
+.settings-plan-status[data-state='on']::before { background: var(--accent); }
+
+/* Deletion is last in the panel, and looks it. */
+.settings-section-danger .settings-section-title { color: var(--text-muted); }

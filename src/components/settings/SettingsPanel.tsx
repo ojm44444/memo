@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import { SpeedControl } from '@/components/audio/SpeedControl'
-import { Avatar } from '@/components/ui/Avatar'
+import { AccountSection } from '@/components/settings/AccountSection'
+import { PlanSection } from '@/components/settings/PlanSection'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
 import {
   DAY_NAMES,
@@ -15,7 +16,6 @@ import {
   type ReminderFrequency,
   type ReminderSettings,
 } from '@/lib/reminders'
-import { clearMyAvatar, getMyAvatarUrl, setMyAvatar } from '@/lib/avatar'
 import { MobileImportCard } from '@/components/import/VoiceMemosShareCard'
 import { markExplicitSignOut } from '@/lib/auth/session'
 import { clearLocalUserBoard } from '@/db/clearLocalUserBoard'
@@ -53,11 +53,6 @@ export function SettingsPanel() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [avatarError, setAvatarError] = useState<string | null>(null)
-  useEffect(() => {
-    void getMyAvatarUrl().then(setAvatarUrl)
-  }, [])
   const [open, setOpen] = useState(false)
   const [defaultRate, setDefaultRate] = useState<PlaybackRate>(1)
   const [email, setEmail] = useState<string | null>(null)
@@ -118,8 +113,18 @@ export function SettingsPanel() {
       await supabase.auth.signOut()
       navigate('/', { replace: true })
     } catch (err) {
+      /* The commonest failure here is that the edge function is not deployed,
+         which Supabase surfaces as a bare "Failed to send a request" or a 404.
+         Raw transport errors on the button marked "Delete everything" read as
+         "it might have half worked", so say the true and reassuring thing:
+         nothing was removed. */
+      const raw = err instanceof Error ? err.message : ''
+      const notDeployed =
+        /not found|404|failed to send|failed to fetch|non-2xx/i.test(raw)
       setDeleteError(
-        err instanceof Error ? err.message : 'Could not delete the account. Nothing was removed.',
+        notDeployed
+          ? 'Account deletion is not switched on yet, so nothing was removed. Email support@songdrafts.com and it will be done by hand.'
+          : raw || 'Could not delete the account. Nothing was removed.',
       )
     } finally {
       setDeletingAccount(false)
@@ -158,6 +163,13 @@ export function SettingsPanel() {
                 ✕
               </button>
             </div>
+
+            {supabaseConfigured && email && (
+              <>
+                <AccountSection email={email} onSignOut={() => void signOut()} />
+                <PlanSection />
+              </>
+            )}
 
             <section className="settings-section">
               <h3 className="settings-section-title">Playback</h3>
@@ -473,113 +485,62 @@ export function SettingsPanel() {
             </section>
 
             {supabaseConfigured && email && (
-              <section className="settings-section">
-                <h3 className="settings-section-title">Account</h3>
-
-                {/* Signing in with Google already gives us a picture, so most
-                    people never touch this. It is here for everyone else, and
-                    for anyone who would rather not use the Google one. */}
-                <div className="settings-avatar-row">
-                  <Avatar label={email} url={avatarUrl} size={44} />
-                  <div className="settings-avatar-actions">
-                    <label className="settings-avatar-btn">
-                      {avatarUrl ? 'Change picture' : 'Add a picture'}
+              <section className="settings-section settings-section-danger">
+                <h3 className="settings-section-title">Delete account</h3>
+              <div className="settings-danger">
+                {!deleteOpen ? (
+                  <button
+                    type="button"
+                    className="settings-delete-open"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    Delete my account
+                  </button>
+                ) : (
+                  <>
+                    <p className="settings-note" style={{ marginTop: 0 }}>
+                      This removes your account, every song, every take and all of your audio
+                      from our servers. It cannot be undone and there is no trash behind it.
+                      Export your library first if you want to keep it.
+                    </p>
+                    <label className="reminder-field" style={{ marginBottom: 10 }}>
+                      <span>Type DELETE to confirm</span>
                       <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          e.target.value = ''
-                          if (!file) return
-                          setAvatarError(null)
-                          try {
-                            setAvatarUrl(await setMyAvatar(file))
-                          } catch (err) {
-                            setAvatarError(err instanceof Error ? err.message : 'Could not save that picture')
-                          }
-                        }}
+                        type="text"
+                        value={deleteConfirm}
+                        onChange={(e) => setDeleteConfirm(e.target.value)}
+                        placeholder="DELETE"
+                        autoComplete="off"
                       />
                     </label>
-                    {avatarUrl && (
+                    <div className="reminder-row" style={{ marginBottom: 0 }}>
+                      <button
+                        type="button"
+                        className="settings-delete-confirm"
+                        disabled={deleteConfirm.trim() !== 'DELETE' || deletingAccount}
+                        onClick={() => void deleteAccount()}
+                      >
+                        {deletingAccount ? 'Deleting…' : 'Delete everything'}
+                      </button>
                       <button
                         type="button"
                         className="settings-avatar-clear"
-                        onClick={async () => {
-                          setAvatarError(null)
-                          try {
-                            await clearMyAvatar()
-                            setAvatarUrl(await getMyAvatarUrl())
-                          } catch (err) {
-                            setAvatarError(err instanceof Error ? err.message : 'Could not remove it')
-                          }
+                        onClick={() => {
+                          setDeleteOpen(false)
+                          setDeleteConfirm('')
+                          setDeleteError(null)
                         }}
                       >
-                        Remove
+                        Cancel
                       </button>
-                    )}
-                  </div>
-                </div>
-                {avatarError && <p className="settings-avatar-error">{avatarError}</p>}
-
-                <p className="settings-account-email">{email}</p>
-                <button type="button" className="settings-sign-out" onClick={() => void signOut()}>
-                  Sign out
-                </button>
-
-                <div className="settings-danger">
-                  {!deleteOpen ? (
-                    <button
-                      type="button"
-                      className="settings-delete-open"
-                      onClick={() => setDeleteOpen(true)}
-                    >
-                      Delete my account
-                    </button>
-                  ) : (
-                    <>
-                      <p className="settings-note" style={{ marginTop: 0 }}>
-                        This removes your account, every song, every take and all of your audio
-                        from our servers. It cannot be undone and there is no trash behind it.
-                        Export your library first if you want to keep it.
-                      </p>
-                      <label className="reminder-field" style={{ marginBottom: 10 }}>
-                        <span>Type DELETE to confirm</span>
-                        <input
-                          type="text"
-                          value={deleteConfirm}
-                          onChange={(e) => setDeleteConfirm(e.target.value)}
-                          placeholder="DELETE"
-                          autoComplete="off"
-                        />
-                      </label>
-                      <div className="reminder-row" style={{ marginBottom: 0 }}>
-                        <button
-                          type="button"
-                          className="settings-delete-confirm"
-                          disabled={deleteConfirm.trim() !== 'DELETE' || deletingAccount}
-                          onClick={() => void deleteAccount()}
-                        >
-                          {deletingAccount ? 'Deleting…' : 'Delete everything'}
-                        </button>
-                        <button
-                          type="button"
-                          className="settings-avatar-clear"
-                          onClick={() => {
-                            setDeleteOpen(false)
-                            setDeleteConfirm('')
-                            setDeleteError(null)
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                      {deleteError && <p className="settings-avatar-error">{deleteError}</p>}
-                    </>
-                  )}
-                </div>
+                    </div>
+                    {deleteError && <p className="settings-avatar-error">{deleteError}</p>}
+                  </>
+                )}
+              </div>
               </section>
             )}
+
           </div>
         </div>
       )}
