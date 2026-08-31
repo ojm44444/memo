@@ -102,7 +102,14 @@ const COMPARE_ROWS = [
   { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
   { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  dubnote: false,  tapeit: false },
   { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
-  { feature: 'Key and tempo read off the file', songdrafts: true,     voicememos: false,  notes: false,      trello: false,  dubnote: 'partial',      tapeit: 'partial' },
+  // AUDITED 31 Aug. This row said "read off the file" with a full tick, which
+  // overclaims twice over. extractFileMetadata reads common.key and common.bpm
+  // from ID3 TAGS. It does not analyse audio. A voice memo carries no such
+  // tags, so for the primary use case these fields are always empty, and the
+  // drawer's manual key/tempo/tuning inputs exist precisely because of that.
+  // Dubnote's paywall advertises real BPM DETECTION, so on the harder
+  // capability they beat us, and the old row had that backwards.
+  { feature: 'Key and tempo filled in from the file', songdrafts: 'partial', voicememos: false, notes: false, trello: false, dubnote: true,  tapeit: 'partial' },
   { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
   { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial' },
   { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true },
@@ -576,9 +583,11 @@ export function LandingPage() {
           </table>
           <p className="compare-footnote">
             Checked 31 August 2026. Apple Notes holds lyrics but not the recording, which is
-            why that row is a half. The last row we lose outright: songdrafts does not record,
-            and it is not trying to. You keep recording in Voice Memos. It stays in, because a
-            table that wins everything is one nobody believes.
+            why that row is a half. Key and tempo are read from a file's tags, so a bounced mp3
+            arrives filled in and a raw voice memo does not, which is why you can also type them.
+            And the last row we lose outright: songdrafts does not record, and it is not trying
+            to. You keep recording in Voice Memos. Both stay in, because a table that wins
+            everything is one nobody believes.
           </p>
         </div>
       </section>
@@ -694,6 +703,14 @@ export function LandingPage() {
           <Wordmark />
           <span className="footer-text">FOR PEOPLE WHO WRITE SONGS</span>
         </div>
+        {/* Findable without being loud. A privacy page nobody can reach is the
+            same as not having one, and this audience is more likely than most
+            to actually read it before uploading unreleased music. */}
+        <nav className="footer-legal">
+          <Link to="/privacy">Privacy</Link>
+          <span aria-hidden="true">·</span>
+          <Link to="/terms">Terms</Link>
+        </nav>
         {/* Build stamp. Not decoration: "it looks the same" has cost hours,
             and the cause has been a stale service worker every time. Now the
             build you are looking at is checkable at a glance. */}

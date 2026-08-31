@@ -20,6 +20,12 @@ const BoardPage = lazy(() =>
 const AdminPage = lazy(() =>
   import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })),
 )
+const PrivacyPage = lazy(() =>
+  import('@/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+)
+const TermsPage = lazy(() =>
+  import('@/pages/TermsPage').then((m) => ({ default: m.TermsPage })),
+)
 const SignInPage = lazy(() =>
   import('@/pages/SignInPage').then((m) => ({ default: m.SignInPage })),
 )
@@ -51,6 +57,8 @@ export default function App() {
         <Routes>
           <Route index element={<LandingPage />} />
           <Route path="sign-in" element={<SignInPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="terms" element={<TermsPage />} />
           <Route path="app/*" element={<BoardPage />} />
           {/* Owner-only. Gated SERVER side by is_owner() and RLS, not by
               hiding the route: anyone can visit, nobody else sees numbers. */}

@@ -10593,3 +10593,53 @@ html.light .song-drawer {
 .settings-panel .voice-memos-connect-primary:hover:not(:disabled) {
   border-color: var(--accent);
 }
+
+/* ═══ Danger zone ══════════════════════════════════════════════════════════
+   Deliberately the only red in the app. It reads as danger precisely because
+   nothing else does, which is the same reason the accent is spent once per
+   screen. Kept visually quiet until opened: a destructive action should be
+   findable without being tempting. */
+.settings-danger {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+}
+
+.settings-panel .settings-delete-open {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 35%, transparent);
+  background: transparent;
+  color: var(--danger, #ef4444);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.settings-panel .settings-delete-open:hover {
+  border-color: var(--danger, #ef4444);
+  background: color-mix(in srgb, var(--danger, #ef4444) 10%, transparent);
+}
+
+.settings-panel .settings-delete-confirm {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--danger, #ef4444);
+  background: color-mix(in srgb, var(--danger, #ef4444) 18%, transparent);
+  color: var(--danger, #ef4444);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.settings-panel .settings-delete-confirm:disabled {
+  opacity: 0.45;
+  cursor: default;
+  border-color: color-mix(in srgb, var(--text) 20%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+}

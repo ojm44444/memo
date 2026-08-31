@@ -49,6 +49,10 @@ export function SettingsPanel() {
     }
   }
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   useEffect(() => {
@@ -80,6 +84,46 @@ export function SettingsPanel() {
     await clearLocalUserBoard()
     await supabase.auth.signOut()
     navigate('/sign-in', { replace: true })
+  }
+
+  /**
+   * Delete the account, for real.
+   *
+   * Typed confirmation rather than a second "are you sure" button, because
+   * this is unrecoverable and there is no trash behind it: the 30 day window
+   * applies to a deleted SONG, not to a deleted account. Someone has to write
+   * the word, which is the standard pattern for exactly this reason.
+   *
+   * The export sits directly above it on purpose. Offering the way out next to
+   * the door is the difference between "delete means delete" being a promise
+   * and being a trap.
+   */
+  const deleteAccount = async () => {
+    if (!supabase || deletingAccount) return
+    setDeleteError(null)
+    setDeletingAccount(true)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('Sign in again before deleting your account.')
+
+      const { error } = await supabase.functions.invoke('delete-account', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (error) throw error
+
+      usePlayerStore.getState().stop()
+      markExplicitSignOut()
+      await clearLocalUserBoard()
+      await supabase.auth.signOut()
+      navigate('/', { replace: true })
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Could not delete the account. Nothing was removed.',
+      )
+    } finally {
+      setDeletingAccount(false)
+    }
   }
 
   const updateRate = async (rate: PlaybackRate) => {
@@ -482,6 +526,58 @@ export function SettingsPanel() {
                 <button type="button" className="settings-sign-out" onClick={() => void signOut()}>
                   Sign out
                 </button>
+
+                <div className="settings-danger">
+                  {!deleteOpen ? (
+                    <button
+                      type="button"
+                      className="settings-delete-open"
+                      onClick={() => setDeleteOpen(true)}
+                    >
+                      Delete my account
+                    </button>
+                  ) : (
+                    <>
+                      <p className="settings-note" style={{ marginTop: 0 }}>
+                        This removes your account, every song, every take and all of your audio
+                        from our servers. It cannot be undone and there is no trash behind it.
+                        Export your library first if you want to keep it.
+                      </p>
+                      <label className="reminder-field" style={{ marginBottom: 10 }}>
+                        <span>Type DELETE to confirm</span>
+                        <input
+                          type="text"
+                          value={deleteConfirm}
+                          onChange={(e) => setDeleteConfirm(e.target.value)}
+                          placeholder="DELETE"
+                          autoComplete="off"
+                        />
+                      </label>
+                      <div className="reminder-row" style={{ marginBottom: 0 }}>
+                        <button
+                          type="button"
+                          className="settings-delete-confirm"
+                          disabled={deleteConfirm.trim() !== 'DELETE' || deletingAccount}
+                          onClick={() => void deleteAccount()}
+                        >
+                          {deletingAccount ? 'Deleting…' : 'Delete everything'}
+                        </button>
+                        <button
+                          type="button"
+                          className="settings-avatar-clear"
+                          onClick={() => {
+                            setDeleteOpen(false)
+                            setDeleteConfirm('')
+                            setDeleteError(null)
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {deleteError && <p className="settings-avatar-error">{deleteError}</p>}
+                    </>
+                  )}
+                </div>
               </section>
             )}
           </div>
