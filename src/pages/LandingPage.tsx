@@ -106,8 +106,13 @@ const COMPARE_ROWS = [
   { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
   { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial' },
   { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true },
-  // Still conceded, and it stays.
-  { feature: 'Recording quality',              songdrafts: 'partial', voicememos: 'partial', notes: false,   trello: false,  dubnote: true,      tapeit: true },
+  // Still conceded, and it stays, but it was WRONG rather than merely modest.
+  // "Recording quality: partial" implied songdrafts half-records. It does not
+  // record at all: there is no MediaRecorder and no getUserMedia anywhere in
+  // the codebase, and no sampling either. The row now says the true thing, and
+  // losing it four to two is on message rather than damaging, because the whole
+  // pitch is "keep recording in Voice Memos, songdrafts is what happens next".
+  { feature: 'Records the audio itself',       songdrafts: false,     voicememos: true,      notes: 'partial', trello: false, dubnote: true,      tapeit: true },
 ] as const
 
 const STEPS = [
@@ -546,7 +551,7 @@ export function LandingPage() {
               <tr>
                 <th />
                 <th className="compare-col compare-col--memo">
-                  <span className="compare-logo"><Wordmark /></span>
+                  <span className="compare-col-name">songdrafts</span>
                 </th>
                 <th className="compare-col">Voice Memos</th>
                 <th className="compare-col">Apple Notes</th>
@@ -570,9 +575,10 @@ export function LandingPage() {
             </tbody>
           </table>
           <p className="compare-footnote">
-            Checked 25 August 2026. Apple Notes holds lyrics but not the recording, which is
-            why that row is a half. One row here still goes against us and it stays in, because
-            a table that wins everything is one nobody believes.
+            Checked 31 August 2026. Apple Notes holds lyrics but not the recording, which is
+            why that row is a half. The last row we lose outright: songdrafts does not record,
+            and it is not trying to. You keep recording in Voice Memos. It stays in, because a
+            table that wins everything is one nobody believes.
           </p>
         </div>
       </section>

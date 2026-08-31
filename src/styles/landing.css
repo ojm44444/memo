@@ -1233,13 +1233,13 @@ a.nav-cta {
 
 .tick {
   font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   font-weight: 600;
 }
 
 .tick--yes  { color: var(--accent); }
-.tick--no   { color: rgba(255,255,255,0.55); }  /* was 0.18 = 1.77:1; this is meaning, not decoration */
-.tick--partial { color: rgba(255,255,255,0.62); font-size: 1rem; }  /* was 0.35 = 2.99:1 */
+.tick--no   { color: rgba(255,255,255,0.62); }  /* 0.18 was 1.77:1, then 0.55; this is meaning, not decoration */
+.tick--partial { color: rgba(255,255,255,0.70); font-size: 1.05rem; }  /* was 0.35 = 2.99:1 */
 .tick--price { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
 
 /* Running prose, so it takes the sans. Mono here was setting a sentence as
@@ -2911,6 +2911,19 @@ a.nav-cta {
 
 .compare-col--memo { color: var(--accent); }
 
+/* The word, not the lockup. The full wordmark carries the disc-and-waveform
+   mark, which at this cell's width overflowed into the neighbouring column and
+   collided with "VOICE MEMOS". A table header is a label, so it gets the name
+   set as type like every other header in the row. */
+.compare-col-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 0.86rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--accent);
+}
+
 .compare-table tbody tr:nth-child(even) {
   background: color-mix(in srgb, var(--text) 3%, transparent);
 }
@@ -3016,13 +3029,20 @@ a.nav-cta {
 /* ── Trust list: ticks in the accent, not grey bullets ──────────────────── */
 .trust li::marker { color: var(--accent); }
 
-/* Our column is now a lit green field, so an accent-coloured tick sits green
-   on green. Inside that column the tick takes the dark ink instead, which is
-   the same --accent-on rule the filled buttons follow. */
+/* This rule assumed our column was a SOLID accent fill, where dark ink would
+   be right. It is not: the cell is --accent at 16% fading to 7% over the dark
+   page, so it is still a dark ground. Measured, --accent-on on it came out at
+   1.46:1 at the top of the cell and 1.16:1 at the bottom, which is not low
+   contrast, it is invisible. Owen: "you almost can't see that they're there".
+
+   The accent measures 7.27:1 and 9.13:1 on the same two grounds. Our column is
+   the one people look at, so its ticks are now the brightest thing in the
+   table, which is also what you want them to be. */
 .compare-cell--memo .tick--yes {
-  color: var(--accent-on);
+  color: var(--accent);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* The ramp cards were rendering as grey-teal boxes: the hue mix was too weak
