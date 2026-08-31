@@ -22,6 +22,19 @@ export async function getCachedUser(): Promise<User | null> {
 }
 
 /**
+ * The identity this device last signed in as, if any.
+ *
+ * Wiped by clearLocalUserBoard, so it exists only while this device still
+ * holds a board belonging to someone.
+ */
+async function lastKnownUser(): Promise<User | null> {
+  const lastUserId = (await db.syncMeta.get('lastUserId'))?.value
+  if (!lastUserId) return null
+  const lastEmail = (await db.syncMeta.get('lastUserEmail'))?.value ?? ''
+  return { id: lastUserId, email: lastEmail } as User
+}
+
+/**
  * Who can use the board right now?
  * Offline + expired JWT is NOT game over — we trust lastUserId until explicit sign-out.
  */
@@ -33,21 +46,30 @@ export async function resolveBoardAuth(): Promise<BoardAuth | null> {
 
   // If offline, skip the network call entirely and use the cached identity.
   if (!navigator.onLine) {
-    const lastUserId = (await db.syncMeta.get('lastUserId'))?.value
-    if (lastUserId) {
-      const lastEmail = (await db.syncMeta.get('lastUserEmail'))?.value ?? ''
-      return {
-        user: { id: lastUserId, email: lastEmail } as User,
-        offlineGrace: true,
-      }
-    }
-    return null
+    const last = await lastKnownUser()
+    return last ? { user: last, offlineGrace: true } : null
   }
 
   const cached = await getCachedUser()
   if (cached) return { user: cached, offlineGrace: false }
 
-  return null
+  /**
+   * ONLINE, BUT WE COULD NOT CONFIRM. This is not the same as signed out, and
+   * treating it as such was destroying people's music.
+   *
+   * getCachedUser gives up after three seconds and returns null, and a token
+   * refresh can be refused rather than merely slow: a rate limit, a quota
+   * block, a proxy, a captive portal, a Supabase incident. In every one of
+   * those cases navigator.onLine is true, so the offline branch above never
+   * ran, this returned null, and AuthGate took null to mean signed out and
+   * wiped IndexedDB, audio blobs and the unsynced queue included.
+   *
+   * The device still holding a board is the evidence that matters. Someone who
+   * actually signs out has their lastUserId cleared along with everything
+   * else, so this cannot resurrect an account that was deliberately left.
+   */
+  const last = await lastKnownUser()
+  return last ? { user: last, offlineGrace: true } : null
 }
 
 export async function getBoardUserId(): Promise<string | null> {

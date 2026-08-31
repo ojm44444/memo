@@ -1,6 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { clearLocalUserBoard } from '@/db/clearLocalUserBoard'
 import { useAuthSession } from '@/hooks/useAuthSession'
 
 interface AuthGateProps {
@@ -8,33 +7,35 @@ interface AuthGateProps {
 }
 
 /**
- * Board requires a signed-in account (session cached on device for offline use).
- * Clears IndexedDB only when truly signed out — not when offline on a plane.
+ * The board requires a signed-in account, with the session cached on the
+ * device so it keeps working without a network.
+ *
+ * THIS COMPONENT NO LONGER DELETES ANYTHING.
+ *
+ * It used to call clearLocalUserBoard whenever it saw a signed-out state while
+ * navigator.onLine was true, on the reasoning that a signed-out device should
+ * not show the previous account's memos. The reasoning was sound and the
+ * trigger was not: "we could not confirm the session" and "this person signed
+ * out" are different events, and every way of failing to reach Supabase
+ * produced the first while looking like the second. A refused token refresh, a
+ * quota block, a captive portal, or simply a getSession call that took longer
+ * than three seconds all ended with IndexedDB cleared: songs, audio blobs, and
+ * the queue of changes that had not yet been uploaded. For a product whose
+ * entire promise is that your unreleased music is on your own machine, that is
+ * the worst bug it is possible to have, and it fires on a slow train.
+ *
+ * Deleting on sign-out is still correct, and still happens: the sign-out
+ * button clears the board itself, in the one place where the intent is
+ * unambiguous because a person pressed it. That made the wipe here redundant
+ * as well as dangerous.
+ *
+ * What is left is a gate that shows or withholds the board and never destroys
+ * data to do it.
  */
 export function AuthGate({ children }: AuthGateProps) {
   const auth = useAuthSession()
-  const [cleared, setCleared] = useState(false)
 
-  useEffect(() => {
-    if (auth.status !== 'signed_out') {
-      setCleared(false)
-      return
-    }
-
-    // Never wipe local memos while offline — session may refresh when Wi‑Fi returns.
-    if (!navigator.onLine) return
-
-    let cancelled = false
-    void clearLocalUserBoard().then(() => {
-      if (!cancelled) setCleared(true)
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [auth.status])
-
-  if (auth.status === 'loading' || (auth.status === 'signed_out' && !cleared)) {
+  if (auth.status === 'loading') {
     return (
       <div className="auth-gate-loading">
         <p>Loading your board…</p>
