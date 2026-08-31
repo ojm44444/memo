@@ -5785,20 +5785,45 @@ html.light .version-menu-item--danger {
   border-bottom: none;
 }
 
+/* A heading has to outrank the paragraph under it.
+   This was 0.65rem uppercase in --text-muted while .settings-section-copy
+   under it was 0.78rem in the SAME colour: the title was smaller and no
+   louder than its own body text, so a panel of six sections read as one
+   undifferentiated grey block with controls buried in it. An uppercase
+   micro-label works as an eyebrow above a big headline, which is what it does
+   on the landing page. It does not work as the only heading in a dense list.
+   Sentence case, full-strength ink, and bigger than the copy. */
 .settings-section-title {
   font-family: var(--font-sans);
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--text);
+  margin-bottom: 4px;
 }
 
 .settings-section-copy {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  max-width: 46ch;
+}
+
+/* Anything that is a footnote to a setting, rather than part of it. Quieter
+   and smaller than the copy so it reads as an aside instead of competing. */
+.settings-note {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  /* No opacity dimming. --text-muted at 0.8 over --surface measured 4.37:1,
+     which fails 4.5:1 for text this small. Size and the rule above it do the
+     separating instead, and the ink stays at its measured 5.9:1. */
+  color: var(--text-muted);
+  max-width: 46ch;
 }
 
 .settings-account-email {
@@ -10306,7 +10331,7 @@ html.light .song-drawer {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .reminder-chip {
@@ -10353,6 +10378,30 @@ html.light .song-drawer {
   font-weight: 400;
 }
 
+/* Permission: a compact row, not a paragraph. It is a state plus one action,
+   which is a control, and controls should not be written as prose. */
+.reminder-permission {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.reminder-allow {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.reminder-allow:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+
 /* Showing the actual sentence, because the whole value of this feature is in
    the wording rather than the schedule. */
 .reminder-preview {
@@ -10375,10 +10424,4 @@ html.light .song-drawer {
   color: var(--text-muted);
 }
 
-.reminder-caveat {
-  margin: 0;
-  font-size: 0.7rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-  opacity: 0.85;
-}
+

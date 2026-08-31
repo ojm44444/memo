@@ -312,9 +312,8 @@ export function SettingsPanel() {
                 the watermark and asks for nothing. */}
             <section className="settings-section">
               <h3 className="settings-section-title">Reminders</h3>
-              <p className="settings-install-note">
-                A nudge to bring across whatever you have recorded since last time. It tells you
-                where you got up to, so you know what to scroll past.
+              <p className="settings-section-copy">
+                A nudge to collect what you have recorded since last time.
               </p>
 
               <div className="reminder-row">
@@ -375,26 +374,27 @@ export function SettingsPanel() {
                   )}
 
                   {!notifyOk && (
-                    <p className="settings-install-note">
-                      Your browser has not allowed notifications yet, so this will show inside the
-                      app rather than on your desktop.{' '}
+                    <div className="reminder-permission">
+                      <span>Shows in the app only, until your browser allows notifications.</span>
                       <button
                         type="button"
-                        className="settings-avatar-clear"
+                        className="reminder-allow"
                         onClick={async () => setNotifyOk(await requestNotifyPermission())}
                       >
-                        Allow notifications
+                        Allow
                       </button>
-                    </p>
+                    </div>
                   )}
 
-                  {/* Said plainly, because the alternative is someone trusting
-                      it to arrive on a Sunday and quietly losing weeks. */}
-                  <p className="reminder-caveat">
-                    songdrafts has no server sending these, so it arrives the next time you open
-                    the app after that time, not while it is closed. Install it and it can reach
-                    you on your desktop. Email and phone reminders need a backend and are not
-                    built yet.
+                  {/* One line, and it stays. The alternative is someone
+                      trusting this to arrive on a Sunday and quietly losing
+                      weeks. What was cut is the line about email and phone
+                      reminders needing a backend: that is roadmap, and telling
+                      someone about a feature that does not exist is not their
+                      problem to hold. */}
+                  <p className="settings-note">
+                    Arrives next time you open songdrafts after that time, not while it is closed.
+                    Install it to get these on your desktop.
                   </p>
                 </>
               )}
