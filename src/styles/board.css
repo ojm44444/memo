@@ -10299,3 +10299,86 @@ html.light .song-drawer {
 }
 
 .settings-install-btn:hover { border-color: var(--accent); }
+
+/* ═══ Reminders ════════════════════════════════════════════════════════════ */
+.reminder-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reminder-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.reminder-chip:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+
+.reminder-chip.is-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent)
+  );
+  color: var(--accent);
+}
+
+.reminder-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.reminder-field select {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: var(--bg-3, var(--bg));
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
+/* Showing the actual sentence, because the whole value of this feature is in
+   the wording rather than the schedule. */
+.reminder-preview {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.reminder-preview-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.reminder-caveat {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  opacity: 0.85;
+}

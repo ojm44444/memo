@@ -4,6 +4,17 @@ import { useNavigate } from 'react-router-dom'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { Avatar } from '@/components/ui/Avatar'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
+import {
+  DAY_NAMES,
+  buildReminderMessage,
+  canNotify,
+  getReminderSettings,
+  requestNotifyPermission,
+  setReminderSettings,
+  type ReminderDay,
+  type ReminderFrequency,
+  type ReminderSettings,
+} from '@/lib/reminders'
 import { clearMyAvatar, getMyAvatarUrl, setMyAvatar } from '@/lib/avatar'
 import { MobileImportCard } from '@/components/import/VoiceMemosShareCard'
 import { markExplicitSignOut } from '@/lib/auth/session'
@@ -22,6 +33,22 @@ import { useUiStore } from '@/stores/uiStore'
 export function SettingsPanel() {
   const navigate = useNavigate()
   const { canInstall, isInstalled, install } = usePwaInstall()
+  const [reminder, setReminder] = useState<ReminderSettings | null>(null)
+  const [notifyOk, setNotifyOk] = useState(canNotify())
+  const [preview, setPreview] = useState<string | null>(null)
+  useEffect(() => {
+    void getReminderSettings().then(setReminder)
+    void buildReminderMessage().then((m) => setPreview(m.body))
+  }, [])
+
+  const saveReminder = async (next: ReminderSettings) => {
+    setReminder(next)
+    await setReminderSettings(next)
+    if (next.frequency !== 'off' && !canNotify()) {
+      setNotifyOk(await requestNotifyPermission())
+    }
+  }
+
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   useEffect(() => {
@@ -278,6 +305,101 @@ export function SettingsPanel() {
                 thing in your dock, which for a tool you are meant to reach for
                 mid-idea is most of the product. It belongs somewhere
                 permanent. */}
+            {/* The nudge to go and collect what you have recorded since last
+                time. Never a "you have not written this week": during a dry
+                spell that is worse than silence, and this audience is already
+                told often enough that their problem is discipline. It states
+                the watermark and asks for nothing. */}
+            <section className="settings-section">
+              <h3 className="settings-section-title">Reminders</h3>
+              <p className="settings-install-note">
+                A nudge to bring across whatever you have recorded since last time. It tells you
+                where you got up to, so you know what to scroll past.
+              </p>
+
+              <div className="reminder-row">
+                {(['off', 'weekly', 'fortnightly', 'monthly'] as ReminderFrequency[]).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={`reminder-chip${reminder?.frequency === f ? ' is-on' : ''}`}
+                    aria-pressed={reminder?.frequency === f}
+                    onClick={() => reminder && void saveReminder({ ...reminder, frequency: f })}
+                  >
+                    {f === 'off' ? 'Off' : f[0].toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {reminder && reminder.frequency !== 'off' && (
+                <>
+                  <div className="reminder-row">
+                    <label className="reminder-field">
+                      <span>Day</span>
+                      <select
+                        value={reminder.day}
+                        onChange={(e) =>
+                          void saveReminder({
+                            ...reminder,
+                            day: Number(e.target.value) as ReminderDay,
+                          })
+                        }
+                      >
+                        {DAY_NAMES.map((d, i) => (
+                          <option key={d} value={i}>{d}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="reminder-field">
+                      <span>Time</span>
+                      <select
+                        value={reminder.hour}
+                        onChange={(e) =>
+                          void saveReminder({ ...reminder, hour: Number(e.target.value) })
+                        }
+                      >
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <option key={h} value={h}>
+                            {String(h).padStart(2, '0')}:00
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  {preview && (
+                    <p className="reminder-preview">
+                      <span className="reminder-preview-label">It will say</span>
+                      {preview}
+                    </p>
+                  )}
+
+                  {!notifyOk && (
+                    <p className="settings-install-note">
+                      Your browser has not allowed notifications yet, so this will show inside the
+                      app rather than on your desktop.{' '}
+                      <button
+                        type="button"
+                        className="settings-avatar-clear"
+                        onClick={async () => setNotifyOk(await requestNotifyPermission())}
+                      >
+                        Allow notifications
+                      </button>
+                    </p>
+                  )}
+
+                  {/* Said plainly, because the alternative is someone trusting
+                      it to arrive on a Sunday and quietly losing weeks. */}
+                  <p className="reminder-caveat">
+                    songdrafts has no server sending these, so it arrives the next time you open
+                    the app after that time, not while it is closed. Install it and it can reach
+                    you on your desktop. Email and phone reminders need a backend and are not
+                    built yet.
+                  </p>
+                </>
+              )}
+            </section>
+
             <section className="settings-section">
               <h3 className="settings-section-title">Install</h3>
               {isInstalled ? (

@@ -57,6 +57,18 @@ export async function bootstrapDatabase(): Promise<void> {
     ),
   )
 
+  // The import reminder, if one is owed.
+  //
+  // Fires on boot rather than on a timer, because a web app with no server
+  // cannot wake itself on a Sunday evening. This is a catch-up: you opened the
+  // app, a slot has passed, here is where you got up to. The settings copy
+  // says exactly that rather than implying an alarm clock.
+  void import('@/lib/reminders').then(({ fireReminderIfDue }) =>
+    fireReminderIfDue().catch((err) =>
+      console.error('[songdrafts] reminder check failed:', err),
+    ),
+  )
+
   // Dev-only: seed a demo board when the auth bypass is active (UI testing).
   if (import.meta.env.DEV) {
     const { isDevAuthBypass, isShotMode } = await import('@/lib/auth/devBypass')
