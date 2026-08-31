@@ -31,6 +31,40 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   const [mergeOpen, setMergeOpen] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
+  /**
+   * A callback ref rather than useRef, because the input does not exist when
+   * the request to focus it arrives: the drawer returns null until
+   * useLiveQuery has fetched the song, so an effect keyed on a ref object
+   * finds null in that first commit and never runs again. This way the effect
+   * re-runs the moment the field mounts.
+   */
+  const [titleEl, setTitleEl] = useState<HTMLInputElement | null>(null)
+
+  /**
+   * Opened from the "Name it" button on a card: put the cursor in the title
+   * and select what is there, so typing replaces the filename rather than
+   * appending to it. Someone who came here to rename should not have to click
+   * the field they came for.
+   */
+  const focusTitleNonce = useUiStore((s) => s.drawerFocusTitleNonce)
+  const [pendingTitleFocus, setPendingTitleFocus] = useState(0)
+  useEffect(() => {
+    if (focusTitleNonce) setPendingTitleFocus(focusTitleNonce)
+  }, [focusTitleNonce])
+
+  useEffect(() => {
+    if (!pendingTitleFocus || !titleEl) return
+    // After the drawer's open transition, otherwise the focus scrolls a
+    // half-positioned panel. The flag is cleared inside the timeout, not
+    // beside it: clearing it early re-renders, and the cleanup below would
+    // cancel the very timeout that is meant to do the work.
+    const id = window.setTimeout(() => {
+      titleEl.focus()
+      titleEl.select()
+      setPendingTitleFocus(0)
+    }, 220)
+    return () => window.clearTimeout(id)
+  }, [pendingTitleFocus, titleEl])
   const [playlistOpen, setPlaylistOpen] = useState(false)
   const song = useLiveQuery(
     () => (selectedSongId ? getSong(selectedSongId) : undefined),
@@ -136,6 +170,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
             <h2 className="scp-title-input">{song.title}</h2>
           ) : (
             <input
+              ref={setTitleEl}
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
               onBlur={() => {

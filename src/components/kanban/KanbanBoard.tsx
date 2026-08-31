@@ -34,7 +34,7 @@ import { columnHeaderAccentStyle, projectAccentTextStyle } from '@/lib/projectAc
 import { cn } from '@/lib/cn'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
-import { repeatedStems } from '@/lib/absurdNames'
+import { repeatedStems } from '@/lib/unnamedTitles'
 import { db } from '@/db/database'
 import { KanbanColumn } from './KanbanColumn'
 import { DragOverlayCard } from './DragOverlay'

@@ -55,7 +55,20 @@ export default defineConfig(({ mode }) => ({
       srcDir: 'src/sw',
       filename: 'service-worker.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      /* Versioned filenames, and they must stay versioned.
+         *
+         * An installed PWA keeps the icon it was installed with. The logo
+         * changed and every existing install carried on showing the old black
+         * square with the green circle, because the bytes at
+         * /pwa-192x192.png had changed but the URL had not, and neither the
+         * OS icon cache nor the service worker had any reason to look again.
+         * Bump the suffix whenever the mark changes. */
+      includeAssets: [
+        'favicon.svg',
+        'apple-touch-icon.v2.png',
+        'pwa-192x192.v2.png',
+        'pwa-512x512.v2.png',
+      ],
       manifest: {
         id: '/',
         name: 'songdrafts',
@@ -93,19 +106,19 @@ export default defineConfig(({ mode }) => ({
         },
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: '/pwa-192x192.v2.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/pwa-512x512.v2.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/pwa-512x512.v2.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',

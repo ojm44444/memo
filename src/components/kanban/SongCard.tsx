@@ -5,8 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
-import { absurdNameFor, looksUnnamedInLibrary } from '@/lib/absurdNames'
-import { updateSong } from '@/db/repositories/boardRepo'
+import { looksUnnamedInLibrary } from '@/lib/unnamedTitles'
 import { tagHueStyle } from '@/lib/tagColors'
 import { db } from '@/db/database'
 import { getShareFeedbackCount } from '@/db/repositories/shareFeedbackRepo'
@@ -104,17 +103,17 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   const durationUnknown = hasTake && (primary.durationMs ?? 0) === 0
   const isEmptyRecording = !hasTake
 
-  // An absurd name, offered rather than demanded.
-  //
-  // Three songwriters in the research independently gave each other this
-  // advice: "waltz in D 6/8 no. 6" means nothing to you later, an absurd
-  // two-word name is instantly recognisable. Step 02 of how-it-works asks
-  // people to type a name, which is demanding typing at the exact moment
-  // nobody wants to type. A suggestion you accept with one tap is a different
-  // ask. Only offered on titles that are clearly still filenames.
-  const suggestion = looksUnnamedInLibrary(song.title, unnamedStems)
-    ? absurdNameFor(song.id)
-    : null
+  /**
+   * Flag the ones that are still called what the recorder called them.
+   *
+   * The nudge is the useful half. It used to also INVENT the name, offering
+   * "Call it Tiny Umbrella?" on every untitled card, which read as a joke the
+   * app was making about your work and did not scale: an inbox of 155 memos
+   * became 155 pieces of nonsense shouting for attention. Removed. This opens
+   * the title field with the filename selected, which is the same one tap and
+   * lets you type what the song is actually called.
+   */
+  const needsName = looksUnnamedInLibrary(song.title, unnamedStems)
 
   const handlePlay = (e: { stopPropagation: () => void }) => {
     e.stopPropagation()
@@ -177,18 +176,17 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
         )}
         <div className="song-card-title-group">
           <p className="song-card-title">{song.title}</p>
-          {suggestion && !selectionMode && !readOnly && (
+          {needsName && !selectionMode && !readOnly && (
             <button
               type="button"
               className="song-card-suggest"
-              title={`Name it "${suggestion}"`}
+              title="Give this one a name"
               onClick={(e) => {
                 e.stopPropagation()
-                void updateSong(song.id, { title: suggestion })
-                void import('@/lib/analytics').then((m) => m.recordEvent('song_renamed'))
+                openDrawer(song.id, { focusTitle: true })
               }}
             >
-              Call it {suggestion}?
+              Name it
             </button>
           )}
           {isEmptyRecording ? (

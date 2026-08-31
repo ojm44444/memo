@@ -15,7 +15,16 @@ interface UiState {
   draggingCardId: string | null
   setDraggingCardId: (id: string | null) => void
   selectSong: (id: string | null) => void
-  openDrawer: (songId: string) => void
+  /**
+   * A nonce, bumped when the drawer is opened specifically to rename.
+   * The drawer focuses and selects the title field when it changes.
+   *
+   * A nonce rather than a boolean because someone can hit "Name it" on the
+   * same card twice, and a boolean that is already true fires no effect the
+   * second time.
+   */
+  drawerFocusTitleNonce: number
+  openDrawer: (songId: string, opts?: { focusTitle?: boolean }) => void
   closeDrawer: () => void
   setBoardMode: (mode: BoardMode) => void
   requestOnboardingTour: () => void
@@ -39,12 +48,20 @@ export const useUiStore = create<UiState>((set) => ({
   columnScrollSlug: null,
   columnScrollNonce: 0,
   draggingCardId: null,
+  drawerFocusTitleNonce: 0,
 
   setDraggingCardId: (id) => set({ draggingCardId: id }),
 
   selectSong: (id) => set({ selectedSongId: id }),
 
-  openDrawer: (songId) => set({ selectedSongId: songId, drawerOpen: true }),
+  openDrawer: (songId, opts) =>
+    set((state) => ({
+      selectedSongId: songId,
+      drawerOpen: true,
+      drawerFocusTitleNonce: opts?.focusTitle
+        ? state.drawerFocusTitleNonce + 1
+        : state.drawerFocusTitleNonce,
+    })),
 
   closeDrawer: () => set({ drawerOpen: false }),
 
