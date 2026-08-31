@@ -2,6 +2,7 @@ import { createId } from '@/lib/ids'
 import { supabase } from '@/lib/supabase/client'
 import { db } from '@/db/database'
 import type { AudioBlob } from '@/types/audio-version'
+import { canAutoDownload, recordAutoDownload } from './egressBudget'
 
 /**
  * Pulling cloud audio down onto this device.
@@ -70,6 +71,12 @@ export async function cacheRemoteAudioVersion(versionId: string) {
   const { data, error } = await supabase.storage.from('audio').download(version.storagePath)
   if (error) throw error
 
+  // Count it whether or not the write below succeeds. The bytes have already
+  // crossed the wire and been paid for; counting only successes would let a
+  // loop that fails at the write step, which is exactly the loop that
+  // happened, spend without ever registering.
+  recordAutoDownload(data.size)
+
   const blobId = createId()
   const blob: AudioBlob = {
     id: blobId,
@@ -93,6 +100,15 @@ export async function cachePendingRemoteAudio(options?: {
   /** Settings' "Download cloud audio" ignores the backoff: a person asked. */
   force?: boolean
 }) {
+  /**
+   * The ceiling. Only applies to downloads the app decided to make; a person
+   * pressing the button in Settings passes force and is never stopped.
+   */
+  if (!options?.force && !canAutoDownload()) {
+    const waiting = await countUncachedRemoteAudio()
+    return { attempted: 0, cached: 0, remaining: waiting, deferred: waiting }
+  }
+
   const now = Date.now()
   const versions = await db.audioVersions
     .filter((version) => Boolean(version.storagePath) && !version.localBlobId)

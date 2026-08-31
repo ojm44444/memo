@@ -32,6 +32,7 @@ import {
   countUncachedRemoteAudio,
   resetAudioDownloadBackoff,
 } from '@/sync/audioDownload'
+import { getBudgetState, resetEgressBudget } from '@/sync/egressBudget'
 import { useUiStore } from '@/stores/uiStore'
 
 export function SettingsPanel() {
@@ -68,6 +69,10 @@ export function SettingsPanel() {
   const [cachingAudio, setCachingAudio] = useState(false)
   const [cacheProgress, setCacheProgress] = useState<{ done: number; total: number } | null>(null)
   const uncachedAudio = useLiveQuery(() => countUncachedRemoteAudio(), [open])
+  const [budget, setBudget] = useState(getBudgetState)
+  useEffect(() => {
+    if (open) setBudget(getBudgetState())
+  }, [open])
   const importInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -216,6 +221,17 @@ export function SettingsPanel() {
                 ) : (
                   <p className="settings-section-copy">All synced audio is available offline.</p>
                 )}
+                {budget.tripped && (
+                  /* Never stop quietly. An app that silently declines to fetch
+                     someone's music is indistinguishable from a broken one. */
+                  <p className="settings-note" style={{ marginTop: 0 }}>
+                    Automatic downloading paused for today. songdrafts fetched{' '}
+                    {(budget.bytes / (1024 * 1024 * 1024)).toFixed(1)} GB by itself, which is far
+                    more than it should ever need, so it stopped rather than keep going. Nothing
+                    is lost and nothing is charged to you. Press the button below to download
+                    anyway.
+                  </p>
+                )}
                 {cacheProgress && (
                   <p className="settings-progress-label">
                     Downloading {cacheProgress.done}/{cacheProgress.total}…
@@ -231,6 +247,8 @@ export function SettingsPanel() {
                     // A person pressed the button, so ignore any backoff the
                     // sync loop is observing and try everything again now.
                     resetAudioDownloadBackoff()
+                    resetEgressBudget()
+                    setBudget(getBudgetState())
                     void cachePendingRemoteAudio({
                       force: true,
                       onProgress: (done, total) => setCacheProgress({ done, total }),
