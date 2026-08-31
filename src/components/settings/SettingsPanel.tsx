@@ -27,7 +27,11 @@ import { exportBoardBackup } from '@/lib/export/exportBoardBackup'
 import { importBoardBackup } from '@/lib/export/importBoardBackup'
 import type { ImportBackupResult, ImportProgress } from '@/lib/export/backupTypes'
 import { resetOnboardingTour } from '@/lib/onboarding'
-import { cachePendingRemoteAudio, countUncachedRemoteAudio } from '@/sync/audioDownload'
+import {
+  cachePendingRemoteAudio,
+  countUncachedRemoteAudio,
+  resetAudioDownloadBackoff,
+} from '@/sync/audioDownload'
 import { useUiStore } from '@/stores/uiStore'
 
 export function SettingsPanel() {
@@ -224,7 +228,11 @@ export function SettingsPanel() {
                   onClick={() => {
                     setCachingAudio(true)
                     setCacheProgress({ done: 0, total: uncachedAudio ?? 0 })
+                    // A person pressed the button, so ignore any backoff the
+                    // sync loop is observing and try everything again now.
+                    resetAudioDownloadBackoff()
                     void cachePendingRemoteAudio({
+                      force: true,
                       onProgress: (done, total) => setCacheProgress({ done, total }),
                     })
                       .catch((err) => {

@@ -3,10 +3,64 @@ import { supabase } from '@/lib/supabase/client'
 import { db } from '@/db/database'
 import type { AudioBlob } from '@/types/audio-version'
 
+/**
+ * Pulling cloud audio down onto this device.
+ *
+ * THE EXPENSIVE PART OF THE WHOLE APP. Everything else moves rows; this moves
+ * megabytes, and it is metered. Read the backoff below before changing
+ * anything here.
+ */
+
 export async function countUncachedRemoteAudio() {
   return db.audioVersions
     .filter((version) => Boolean(version.storagePath) && !version.localBlobId)
     .count()
+}
+
+/**
+ * Versions that failed, and when it is worth trying them again.
+ *
+ * THIS IS THE BILL CONTROL, not a nicety.
+ *
+ * The sync loop runs every eight seconds and asked for four uncached files
+ * each time. A file is "uncached" until its blob is written locally, so any
+ * failure AFTER the bytes arrive, and the write is where failures actually
+ * happen: browser storage quota, a private window, a full disk, leaves the
+ * version exactly as it was. The next tick selected the same four files, in
+ * the same order, and downloaded them again. Forever, at four files every
+ * eight seconds, paying full egress on every attempt while making no progress.
+ * That is how a library of a few hundred megabytes turned into gigabytes of
+ * bandwidth without anybody uploading anything.
+ *
+ * Held in memory rather than the database on purpose: a reload is a
+ * legitimate reason to try again, and this must never be the thing that
+ * permanently refuses to fetch someone's music.
+ */
+const failures = new Map<string, { attempts: number; nextAttempt: number }>()
+
+/** 30s, 1m, 2m, 4m, 8m, then hourly. Capped so nothing is abandoned forever. */
+function backoffMs(attempts: number): number {
+  return Math.min(30_000 * 2 ** (attempts - 1), 60 * 60 * 1000)
+}
+
+function shouldSkip(versionId: string, now: number): boolean {
+  const failure = failures.get(versionId)
+  return failure ? now < failure.nextAttempt : false
+}
+
+function noteFailure(versionId: string) {
+  const previous = failures.get(versionId)
+  const attempts = (previous?.attempts ?? 0) + 1
+  failures.set(versionId, { attempts, nextAttempt: Date.now() + backoffMs(attempts) })
+}
+
+function noteSuccess(versionId: string) {
+  failures.delete(versionId)
+}
+
+/** Test seam, and the thing to call after a manual retry from Settings. */
+export function resetAudioDownloadBackoff() {
+  failures.clear()
 }
 
 export async function cacheRemoteAudioVersion(versionId: string) {
@@ -36,22 +90,41 @@ export async function cacheRemoteAudioVersion(versionId: string) {
 export async function cachePendingRemoteAudio(options?: {
   limit?: number
   onProgress?: (done: number, total: number) => void
+  /** Settings' "Download cloud audio" ignores the backoff: a person asked. */
+  force?: boolean
 }) {
+  const now = Date.now()
   const versions = await db.audioVersions
     .filter((version) => Boolean(version.storagePath) && !version.localBlobId)
     .toArray()
 
-  const batch = options?.limit ? versions.slice(0, options.limit) : versions
+  const eligible = options?.force
+    ? versions
+    : versions.filter((version) => !shouldSkip(version.id, now))
+
+  const batch = options?.limit ? eligible.slice(0, options.limit) : eligible
   let cached = 0
 
   for (let index = 0; index < batch.length; index++) {
+    const versionId = batch[index].id
     try {
-      if (await cacheRemoteAudioVersion(batch[index].id)) cached++
+      if (await cacheRemoteAudioVersion(versionId)) {
+        cached++
+        noteSuccess(versionId)
+      }
     } catch {
-      // Skip files that fail to download — user can retry from settings.
+      // Skip files that fail, and stand further back each time. Retryable from
+      // Settings, which clears the backoff.
+      noteFailure(versionId)
     }
     options?.onProgress?.(index + 1, batch.length)
   }
 
-  return { attempted: batch.length, cached, remaining: Math.max(0, versions.length - batch.length) }
+  return {
+    attempted: batch.length,
+    cached,
+    remaining: Math.max(0, versions.length - batch.length),
+    /** Waiting on a backoff rather than genuinely finished. */
+    deferred: versions.length - eligible.length,
+  }
 }
