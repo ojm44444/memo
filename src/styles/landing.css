@@ -43,7 +43,12 @@
   min-height: 100dvh;
 }
 
-.landing nav {
+/* Child combinator on purpose: the footer's legal links are ALSO a <nav>
+   (semantically correct for them), and the descendant selector was pinning
+   that nav fixed to the top of the viewport over the real one - Privacy and
+   Terms floating over the hero on every screen. The top bar is the only nav
+   that is a direct child of .landing. */
+.landing > nav {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
@@ -1417,7 +1422,7 @@ a.nav-cta {
 }
 
 @media (max-width: 768px) {
-  .landing nav {
+  .landing > nav {
     padding: 14px 16px;
     gap: 10px;
   }
@@ -1682,57 +1687,10 @@ a.nav-cta {
 /* ─── Real product shot (brief 04, A01) ───
    Soft shadow and radius say "app". No traffic lights: those belonged to a
    drawing pretending to be a screenshot, and this is a screenshot. */
-.hero-shot {
-  width: 100%;
-  max-width: 700px;
-  border-radius: 12px;
-  overflow: hidden;
-  /* A dark screenshot on a dark ground reads as an empty box without a real
-     edge. Rim light at the top, deep shadow below, so it sits ON the page. */
-  border: 1px solid rgba(238, 245, 242, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(238, 245, 242, 0.1),
-    0 32px 70px rgba(0, 0, 0, 0.55),
-    0 4px 12px rgba(0, 0, 0, 0.4);
-  line-height: 0;
-  /* The crop lands mid-card on the right ("glasgow b...", "half a hoo..."),
-     which reads as a broken layout rather than a board that continues. A
-     short fade at that edge makes the cut deliberate: the board runs off the
-     side, it is not chopped. Masked rather than overlaid so it works on any
-     ground and costs no extra element. */
-  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
-  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
-}
-
-.hero-shot img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
 
 /* The zoom tapers instead of cliff-edging. A flat 175% across the whole
    <=768px band meant 769px showed the board whole and 768px lost 43% of its
    width, and 600-768px has room for far more board than 175% allowed. */
-@media (max-width: 768px) {
-  .hero-shot {
-    max-width: 100%;
-    /* Crop to the left columns so cards stay legible on a phone rather than
-       shrinking the whole board into unreadability. */
-    aspect-ratio: 4 / 3;
-  }
-  .hero-shot img {
-    width: 118%;
-    max-width: none;
-  }
-}
-
-@media (max-width: 600px) {
-  .hero-shot img { width: 140%; }
-}
-
-@media (max-width: 480px) {
-  .hero-shot img { width: 165%; }
-}
 
 /* ─── A05: one container, one spacing scale (multiples of 8) ─── */
 .features,
@@ -1854,15 +1812,13 @@ a.nav-cta {
 /* Nav wordmark: 22px, clear space each side of 2x the dot's width. */
 .logo { font-size: 22px; padding: 0 calc(0.62em * 2 * 0.5); letter-spacing: 0; }
 
-/* ─── A06: exactly three motions ───
-   1. the hero shot breathes  2. sections fade up once  3. the CTA lifts 1px */
+/* ─── A06: the sanctioned motions ───
+   1. the hero mesh drifts  2. the LiveBoard plays and moves a card
+   3. sections fade up once  4. the CTA lifts 1px
+   (.hero-shot and its breathe/playhead animations were removed 31 Aug:
+   the static screenshot was replaced by LiveBoard and the element no
+   longer exists in any component.) */
 
-@keyframes hero-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.006); }
-}
-
-.hero-shot img { animation: hero-breathe 7s ease-in-out infinite; }
 
 @keyframes section-fade-up {
   from { opacity: 0; transform: translateY(12px); }
@@ -1897,7 +1853,6 @@ a.nav-cta {
 
 /* Nothing else moves, and none of it moves for anyone who asked it not to. */
 @media (prefers-reduced-motion: reduce) {
-  .hero-shot img,
   .landing section,
   
   .waitlist-btn:hover, .btn-primary:hover, .nav-cta:hover { transform: none; }
@@ -2049,34 +2004,6 @@ a.nav-cta {
    shot's playing card, reading as playback advancing. Done with a masked
    overlay rather than by animating the screenshot, so the shot stays the real
    product and the motion costs one compositor layer. */
-.hero-shot { position: relative; }
-
-.hero-shot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(157, 219, 173, 0.09) 42%,
-    rgba(157, 219, 173, 0.16) 50%,
-    rgba(157, 219, 173, 0.09) 58%,
-    transparent 100%
-  );
-  background-size: 260% 100%;
-  animation: hero-playhead 9s linear infinite;
-  mix-blend-mode: screen;
-}
-
-@keyframes hero-playhead {
-  from { background-position: 120% 0; }
-  to   { background-position: -160% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-shot::after { animation: none; opacity: 0; }
-}
 
 /* ═══ THE STRUCTURAL PASS ══════════════════════════════════════════════
    Three palette changes read as "the same page" because they were: the
@@ -2138,13 +2065,6 @@ a.nav-cta {
   letter-spacing: 0.02em;
 }
 
-/* The shot: second beat, full width, rising into the page. */
-.hero-shot {
-  max-width: 1180px;
-  margin: 72px auto 0;
-  border-radius: var(--r-md) var(--r-md) 0 0;
-  border-bottom: none;
-}
 
 /* Wash strengthened to hold a poster-scale hero, using the icon's own ends
    (#5ea7b8 teal, #c3e8bd pale green) at real presence. "A bit dark and sad"
@@ -2189,7 +2109,6 @@ a.nav-cta {
   .hero { padding: 96px 16px 0; }
   .hero-h1 { margin-bottom: 20px; }
   .hero-sub { font-size: var(--t-md); margin-bottom: 24px; }
-  .hero-shot { margin-top: 40px; }
   .hero-right { display: block !important; padding: 0 !important; }
 }
 
@@ -2557,6 +2476,7 @@ a.nav-cta {
 
 /* Waveform: the ink is the column's stage colour. */
 .lb-wave {
+  position: relative;
   display: flex;
   align-items: flex-end;
   gap: 1.5px;
@@ -2570,7 +2490,29 @@ a.nav-cta {
   background: color-mix(in srgb, var(--stage) 55%, transparent);
 }
 
-.lb-bar.is-played { background: var(--stage); }
+/* The lit copy of the playing card's bars. Its clip-path sweeping open IS the
+   playhead: one composited animation instead of a React interval repainting
+   every bar 16 times a second. Duration matches the old 60ms x 0.006 step,
+   a full pass in ten seconds. */
+.lb-wave-lit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  clip-path: inset(0 100% 0 0);
+  animation: lb-sweep 10s linear infinite;
+}
+
+.lb-wave-lit .lb-bar {
+  background: var(--accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+@keyframes lb-sweep {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
 
 /* The playing card: the one accent moment, and it breathes. */
 .lb-card.is-playing {
@@ -2597,11 +2539,6 @@ a.nav-cta {
   to   { transform: scaleY(1); }
 }
 
-.lb-wave.is-playing .lb-bar.is-played {
-  background: var(--accent);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
 .lb-tag {
   display: inline-block;
   margin-top: 8px;
@@ -2617,16 +2554,23 @@ a.nav-cta {
 /* The travelling card: the gesture the whole product is about. */
 .lb-card.is-traveller { will-change: transform, opacity; }
 
+/* Order matters: is-landing sets the resting look, is-gone must beat it.
+   These are equal specificity, so the landing slot (which carries BOTH
+   classes while hidden) obeys whichever is declared later. It used to be
+   declared the other way round, so the travelling card was permanently
+   visible in its destination column: "shower bridge??" sat in Ideas AND
+   Half written in every screenshot, reading as a duplicate. */
+.lb-card.is-landing { opacity: 1; transform: none; }
+
 .lb-card.is-gone {
   opacity: 0;
   transform: translateX(26px) scale(0.96);
   pointer-events: none;
 }
 
-.lb-card.is-landing { opacity: 1; transform: none; }
-
 @media (prefers-reduced-motion: reduce) {
   .lb-glow,
+  .lb-wave-lit,
   .lb-wave.is-playing .lb-bar { animation: none; }
   .lb-card { transition: none; }
 }
@@ -2647,7 +2591,7 @@ a.nav-cta {
 
 /* A hairline of the ramp under the nav: the identity, stated on every page
    before you have read a word. */
-.landing nav::after {
+.landing > nav::after {
   content: '';
   position: absolute;
   left: 0; right: 0; bottom: -1px;
@@ -2781,14 +2725,14 @@ a.nav-cta {
 .feature-title { color: var(--text); }
 
 /* ═══ PILL NAV (intellijend) ═══════════════════════════════════════════════ */
-.landing nav {
+.landing > nav {
   padding: 14px 28px;
   background: transparent;
   backdrop-filter: none;
   border-bottom: none;
 }
 
-.landing nav::after { display: none; }
+.landing > nav::after { display: none; }
 
 .nav-links {
   background: color-mix(in srgb, var(--surface) 82%, transparent);
@@ -3444,7 +3388,7 @@ a.nav-cta {
 /* The nav is fixed and transparent, so a light band scrolling under it turned
    the wordmark and "Sign in" invisible. With bands now running down the page
    the nav has to survive both grounds, so it carries its own dark scrim. */
-.landing nav {
+.landing > nav {
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--bg) 88%, transparent) 0%,

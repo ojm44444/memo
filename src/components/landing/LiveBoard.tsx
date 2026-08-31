@@ -100,40 +100,54 @@ const STAGE = [
   'var(--accent)',
 ]
 
-function Waveform({ bars, playing, progress }: { bars: number[]; playing?: boolean; progress?: number }) {
+/**
+ * The playhead used to be React state advanced by a 60ms interval, which
+ * re-rendered every column, card and bar on the page 16 times a second for
+ * as long as the tab lived. Roughly 450 spans reconciled per tick, forever:
+ * that was the landing page's lag, measurable as constant main-thread work
+ * even while reading the FAQ.
+ *
+ * Now the playing card renders its bars twice: the dim base, and a lit copy
+ * on top whose clip-path sweeps open via a CSS animation. Same look, zero
+ * re-renders, and the compositor throttles it offscreen for free. The two
+ * layers share bar geometry and pulse delays, so they stay in register.
+ */
+function Bars({ bars, playing }: { bars: number[]; playing?: boolean }) {
+  return (
+    <>
+      {bars.map((h, i) => (
+        <span
+          key={i}
+          className="lb-bar"
+          style={{
+            height: `${Math.round(h * 100)}%`,
+            animationDelay: playing ? `${(i % 12) * 90}ms` : undefined,
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
+function Waveform({ bars, playing }: { bars: number[]; playing?: boolean }) {
   return (
     <div className={`lb-wave${playing ? ' is-playing' : ''}`}>
-      {bars.map((h, i) => {
-        const played = playing && progress != null && i / bars.length <= progress
-        return (
-          <span
-            key={i}
-            className={`lb-bar${played ? ' is-played' : ''}`}
-            style={{
-              height: `${Math.round(h * 100)}%`,
-              animationDelay: playing ? `${(i % 12) * 90}ms` : undefined,
-            }}
-          />
-        )
-      })}
+      <Bars bars={bars} playing={playing} />
+      {playing && (
+        <div className="lb-wave-lit">
+          <Bars bars={bars} playing />
+        </div>
+      )}
     </div>
   )
 }
 
 export function LiveBoard() {
-  const [progress, setProgress] = useState(0)
   const [moved, setMoved] = useState(false)
   const reduced = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     [],
   )
-
-  // The playhead on the playing card.
-  useEffect(() => {
-    if (reduced) return
-    const id = window.setInterval(() => setProgress((p) => (p >= 1 ? 0 : p + 0.006)), 60)
-    return () => window.clearInterval(id)
-  }, [reduced])
 
   // The gesture the product is about: a card moving right as it gets better.
   useEffect(() => {
@@ -181,7 +195,7 @@ export function LiveBoard() {
                         <span className="lb-title">{card.title}</span>
                         <span className="lb-time">{card.time}</span>
                       </div>
-                      <Waveform bars={card.bars} playing={playing} progress={playing ? progress : undefined} />
+                      <Waveform bars={card.bars} playing={playing} />
                       {card.tag && <span className="lb-tag">{card.tag}</span>}
                     </div>
                   )
