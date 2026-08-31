@@ -26,7 +26,12 @@ const FEATURES = [
     size: 'small',
     icon: '\u2708',
     title: 'Works in a tunnel',
-    desc: 'Your library lives on your phone, not on our servers. A plane, the tube, a field in Wales with one bar. Listen, sort, write. It syncs itself later.',
+    // AUDITED 31 Aug. Was "lives on your phone, NOT ON OUR SERVERS", which is
+    // false for anyone signed in: audioUpload puts every file in the `audio`
+    // bucket, which is how sync between devices works at all. It also
+    // contradicted the FAQ two screens down and the privacy page. The offline
+    // claim is true and strong on its own and does not need the extra bit.
+    desc: 'Your library lives on your device, so the plane, the tube and a field in Wales with one bar are all fine. Listen, sort, write. A copy syncs when you resurface, which is how it reaches your other devices.',
   },
   {
     size: 'small',
@@ -144,11 +149,19 @@ const FAQS = [
   },
   {
     q: 'Does it work on my phone?',
-    a: 'Import via the Files app on iPhone and run songdrafts in your mobile browser. A proper App Store app is being worked on.',
+    // AUDITED 31 Aug. Said "A proper App Store app is being worked on". There
+    // is no iOS project, no Capacitor, no React Native and no Expo anywhere in
+    // the repo. Nothing is being worked on, so that was a promise to customers
+    // about work that does not exist. Removed rather than softened.
+    a: 'Import via the Files app on iPhone and run songdrafts in your mobile browser. You can install it to your home screen and it opens in its own window, offline. There is no App Store app.',
   },
   {
     q: 'Is my music private?',
-    a: 'Your audio sits on your device first and syncs to storage you control. Nobody reads it, nobody trains anything on it, nobody at this end listens to your demos.',
+    // AUDITED 31 Aug. "Storage you control" was doing work it had not earned:
+    // the audio syncs to OUR storage, on Supabase. What is true is that you can
+    // pull it all out and wipe it whenever you like, which is the thing that
+    // actually matters, so the answer now says that instead.
+    a: 'Your audio sits on your device first, and a copy syncs to our storage so it reaches your other devices. Nobody reads it, nobody trains anything on it, nobody at this end listens to your demos. You can export the lot as a zip or delete every trace of it whenever you want.',
   },
   {
     // The "What if songdrafts shuts down?" question was withdrawn by Owen and
@@ -662,10 +675,14 @@ export function LandingPage() {
         <div className="pricing-faq">
           <h3 className="pricing-faq-q">What happens if I stop paying?</h3>
           <p className="pricing-faq-a">
-            songdrafts locks, your music doesn't. Download everything in one zip any
-            time, even after you stop. We keep your cloud audio 60 days in case you come
-            back (30 for unfinished trials), and we email you twice before anything is
-            removed.
+            {/* AUDITED 31 Aug. This promised "we email you twice before anything is
+                removed" and a 60 day window. There is no scheduled job and no email,
+                so both were commitments the system cannot keep, made to people who
+                have paid. Cut back to what is actually true and enforced today: the
+                export works after you stop. The retention promise goes back in the
+                moment the job and the sending domain exist, not before. */}
+            songdrafts locks, your music doesn't. Your library is already on your device,
+            and you can download everything in one zip any time, including after you stop.
           </p>
         </div>
       </section>
