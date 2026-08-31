@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { installAudioUnlock } from '@/lib/audio/globalAudioEl'
+import { redirectAuthCallbackToBoard } from '@/lib/auth/authLanding'
 import '@/styles/globals.css'
 
 installAudioUnlock()
@@ -41,14 +42,22 @@ function render() {
  * Every other route waits for the database to finish opening before the first
  * render, so useLiveQuery never runs against a half-open database.
  */
-const isLandingRoute = window.location.pathname === '/'
+/**
+ * Before anything else: a completed sign-in that landed on `/` belongs on the
+ * board. This has to happen ahead of the render branch below, because the
+ * landing route never loads the Supabase client and so would strand the code
+ * in the URL. See lib/auth/authLanding.ts.
+ */
+if (!redirectAuthCallbackToBoard()) {
+  const isLandingRoute = window.location.pathname === '/'
 
-schedulePwaInit()
+  schedulePwaInit()
 
-if (isLandingRoute) {
-  render()
-} else {
-  void import('@/db/bootstrap')
-    .then(({ bootstrapDatabase }) => bootstrapDatabase())
-    .finally(render)
+  if (isLandingRoute) {
+    render()
+  } else {
+    void import('@/db/bootstrap')
+      .then(({ bootstrapDatabase }) => bootstrapDatabase())
+      .finally(render)
+  }
 }
