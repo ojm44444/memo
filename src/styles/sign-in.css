@@ -180,3 +180,11 @@
 .sign-in-secondary:hover {
   color: var(--text);
 }
+
+.sign-in-back {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.sign-in-back:hover { color: var(--text); }

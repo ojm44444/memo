@@ -5,6 +5,7 @@ import { supabase, supabaseConfigured } from '@/lib/supabase/client'
 import '@/styles/globals.css'
 import '@/styles/sign-in.css'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { signupsAllowed } from '@/lib/signupsOpen'
 
 export function SignInPage() {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export function SignInPage() {
   const [busy, setBusy] = useState(false)
   const [checking, setChecking] = useState(true)
   const [offline, setOffline] = useState(!navigator.onLine)
+  const [allowed] = useState(signupsAllowed)
 
   useEffect(() => {
     const onOffline = () => setOffline(true)
@@ -96,6 +98,32 @@ export function SignInPage() {
       <div className="sign-in-page">
         <div className="sign-in-card">
           <p className="sign-in-muted">Checking session…</p>
+        </div>
+      </div>
+    )
+  }
+
+  /* Closed until billing exists. Gates the FORM, not the session: anyone
+     already signed in carries on untouched, and ?key= lets Owen and invited
+     testers straight through. See lib/signupsOpen.ts. */
+  if (!allowed) {
+    return (
+      <div className="sign-in-page">
+        <div className="sign-in-card">
+          <Link to="/" className="sign-in-logo">
+            <Wordmark />
+          </Link>
+          <h2 className="sign-in-title">Not open yet</h2>
+          <p className="sign-in-sub">
+            songdrafts is still being finished, so new accounts are closed for now. Nothing here
+            is collecting your email either, so there is no list to join and nothing to unsubscribe
+            from later.
+          </p>
+          <p className="sign-in-message">
+            Already have an account? If you have signed in on this device before, open{' '}
+            <Link to="/app">your board</Link> directly.
+          </p>
+          <Link to="/" className="sign-in-back">Back to songdrafts</Link>
         </div>
       </div>
     )
