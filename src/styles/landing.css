@@ -621,8 +621,10 @@ a.nav-cta {
 }
 
 /* FEATURES */
+/* Shrunk per Owen ("too big of a section"): less vertical padding, tighter
+   card padding and a lower row-height floor below. */
 .features {
-  padding: 120px 60px;
+  padding: 88px 60px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -2732,7 +2734,7 @@ a.nav-cta {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-  padding: 26px 24px 28px;
+  padding: 20px 20px 22px;
   background:
     linear-gradient(150deg,
       color-mix(in srgb, var(--card-hue) 26%, transparent) 0%,
@@ -2757,10 +2759,13 @@ a.nav-cta {
   pointer-events: none;
 }
 
+/* Used to ring the card in its stage hue on hover. Owen: "I don't like how
+   you can hover on them and they change colour, because what's the point."
+   Kept the lift, dropped the colour change; the top border already carries
+   the hue at rest, so hovering does not need to say it again. */
 .feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42),
-              0 0 0 1px color-mix(in srgb, var(--card-hue) 50%, transparent);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42);
 }
 
 /* Each card takes its own step of the ramp, so the grid reads as the journey
@@ -3518,8 +3523,8 @@ a.nav-cta {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(150px, auto);
-  gap: 14px;
+  grid-auto-rows: minmax(120px, auto);
+  gap: 12px;
   background: none;
   border: none;
   border-radius: 0;
@@ -3728,19 +3733,23 @@ a.nav-cta {
   .install-platforms strong { min-width: 0; flex-basis: 100%; }
 }
 
-/* ── Footer legal links ── */
+/* ── Footer legal links ──
+   Owen: sit lower / quieter than the wordmark row. More gap above to read as
+   its own line rather than a continuation, smaller and dimmer since it is
+   reference material, not something anyone is meant to notice first. */
 .footer-legal {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 14px;
-  font-size: 0.76rem;
+  margin-top: 28px;
+  font-size: 0.68rem;
   color: var(--muted);
+  opacity: 0.7;
 }
 
 .footer-legal a { color: var(--muted); text-decoration: none; }
-.footer-legal a:hover { color: var(--text); text-decoration: underline; }
+.footer-legal a:hover { color: var(--text); text-decoration: underline; opacity: 1; }
 
 /* ═══ Legal pages ══════════════════════════════════════════════════════════
    Set as a document, not as a landing section: one column, generous measure,
@@ -3967,4 +3976,41 @@ a.nav-cta {
   .faq-heading {
     position: static;
   }
+}
+
+/* ═══ Pricing toggle ════════════════════════════════════════════════════════
+   Replaces a static "$49 a year. Or $9 a month." headline with a real
+   switch. Annual leads with the per-month equivalent rather than asking the
+   reader to divide 49 by 12 themselves. */
+.pricing-toggle-block { margin-bottom: 16px; }
+.pricing-toggle {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(14, 31, 38, 0.12);
+  border: 1px solid rgba(14, 31, 38, 0.18);
+  margin-bottom: 20px;
+}
+.pricing-toggle button {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: rgba(14, 31, 38, 0.65);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.pricing-toggle button.is-active {
+  background: rgb(14, 31, 38);
+  color: var(--stage-done, #c3e8bd);
+}
+.pricing-headline { margin-bottom: 8px !important; }
+.pricing-toggle-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(14, 31, 38, 0.6);
+  margin: 0 0 16px;
 }

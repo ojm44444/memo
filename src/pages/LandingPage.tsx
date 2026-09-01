@@ -5,6 +5,13 @@ import '@/styles/landing.css'
 import { LiveBoard } from '@/components/landing/LiveBoard'
 import { Wordmark } from '@/components/ui/Wordmark'
 
+/* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
+   after a deploy that "looks the same" (a stale service worker, more than
+   once). The debugging value is real; a build hash printed on a marketing
+   page for every visitor is not the way to keep it. Same information, moved
+   to where only someone actually checking would see it. */
+console.log('[songdrafts] build', __BUILD_ID__)
+
 
 const FEATURES = [
   // Sizes drive a bento layout. Six identical boxes give six features equal
@@ -220,6 +227,57 @@ function FaqItem({ q, a }: { q: string; a: string }) {
  * not its timing.
  */
 function useSectionReveal() {}
+
+/**
+ * Monthly / annual switch for the pricing headline.
+ *
+ * $49/year is $4.08/month, and asking someone to do that division in their
+ * head is asking them to undersell the annual plan to themselves. Annual
+ * leads with the number that actually makes the case, "billed annually" as
+ * the smaller clause under it, the same pattern every SaaS pricing page uses
+ * because it is the one that works.
+ */
+function PricingToggle() {
+  const [annual, setAnnual] = useState(true)
+  const perMonth = (49 / 12).toFixed(2).replace(/\.00$/, '').replace(/0$/, '')
+
+  return (
+    <div className="pricing-toggle-block">
+      <div className="pricing-toggle" role="group" aria-label="Billing period">
+        <button
+          type="button"
+          className={annual ? 'is-active' : ''}
+          aria-pressed={annual}
+          onClick={() => setAnnual(true)}
+        >
+          Annual
+        </button>
+        <button
+          type="button"
+          className={!annual ? 'is-active' : ''}
+          aria-pressed={!annual}
+          onClick={() => setAnnual(false)}
+        >
+          Monthly
+        </button>
+      </div>
+      <h2 className="section-h2 pricing-headline">
+        {annual ? (
+          <>
+            ${perMonth} a month, <em>billed annually.</em>
+          </>
+        ) : (
+          <>
+            $9 a month, <em>billed monthly.</em>
+          </>
+        )}
+      </h2>
+      <p className="pricing-toggle-note">
+        {annual ? 'That is $49 a year, all at once.' : 'A year costs less than five months of this.'}
+      </p>
+    </div>
+  )
+}
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -516,13 +574,22 @@ export function LandingPage() {
       <section className="discipline">
         <div className="discipline-inner">
           <div className="section-label">The fair criticism</div>
+          {/* Headline and lead rewritten. "An app will not give you
+              discipline" read as the app lecturing the reader about what it
+              will and won't do for them; "anyone who tells you otherwise is
+              selling something" was a swipe at nobody in particular that
+              added an edge without adding an argument. The turn paragraph
+              below (kept, unedited) already does the real work: naming the
+              specific 2am-in-the-car moment. The headline now states the
+              same concession as a fact about the reader, not an instruction
+              to them, and the lead stops one sentence sooner. */}
           <h2 className="section-h2">
-            An app will not give you discipline.<br />
-            <em>That was never the missing part.</em>
+            You already have the discipline.<br />
+            <em>You just lost the evidence.</em>
           </h2>
           <p className="discipline-lead">
             If you have a thousand unfinished memos, a tidier list will not make you finish
-            them. That is true, and anyone who tells you otherwise is selling something.
+            them. That is true.
           </p>
           <p className="discipline-turn">
             Here is the part that is actually broken. You already were disciplined, on a
@@ -531,25 +598,21 @@ export function LandingPage() {
             finish your song. It makes sure the one you would have finished is still there when
             you are ready.
           </p>
-          {/* Owen's own record, and it belongs HERE rather than in the hero.
-              The hero works because it is peer to peer: "a songwriter with
-              247 voice memos" stands level with the reader. Two million
-              streams in that slot turns him into someone selling down to them,
-              which is precisely what r/Songwriting punishes: the founder who
-              plugged constantly in those threads got downvoted and called out,
-              while the one who led with his own mess got a real user defending
-              him in the same thread.
+          {/* Owen's own record, and it belongs HERE rather than in the hero,
+              for the same reason as before: this argument needs someone who
+              demonstrably finishes to make it, and the hero is peer-to-peer
+              territory, not a credentials slot.
 
-              In THIS section it does work he cannot do anywhere else. The
-              section's whole argument is that discipline was never the missing
-              part, and that argument needs someone who demonstrably finishes
-              to make it. Streams and sold-out rooms prove finishing. Press
-              hits (Earmilk, Wonderland) do not, so they are left out.
-
-              The sentence deliberately ends on the failure, not the record. */}
+              Voice changed from first person to third on Owen's direction:
+              "it should speak like a brand". Not rewritten as "the team
+              behind" though, because there is no team, and inventing one to
+              sound bigger is exactly the kind of claim this whole page exists
+              to NOT make. Third person about one real person is brand voice
+              without being a fabricated one. */}
           <p className="discipline-credential">
-            Two million streams, BBC Introducing, sold out rooms in the UK and Europe.
-            <span> I still lost the good ones in a list of a thousand files.</span>
+            Built by a songwriter with two million streams, BBC Introducing, and sold out
+            rooms across the UK and Europe.
+            <span> Even he lost the good ones in a list of a thousand files.</span>
           </p>
         </div>
       </section>
@@ -630,10 +693,13 @@ export function LandingPage() {
               </div>
             ))}
           </div>
+          {/* Rewritten, plainer. The walk-home/Tuesday/Friday version had a
+              forced, three-beat rhythm that read as written rather than
+              recalled. Same story, told the way the rest of the page talks. */}
           <div className="workflow-quote">
             <p className="workflow-quote-text">
-              Hummed on the walk home. Listened back <em>properly</em> on Tuesday.
-              Producer had it by <em>Friday.</em>
+              Recorded in the car. Found again in <em>November.</em>
+              Sent to the producer the <em>same day.</em>
             </p>
             <p className="workflow-quote-sub">That is the whole product.</p>
           </div>
@@ -662,13 +728,12 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        {/* $49/year, monthly stays $9.
-            Hobbyist songwriters cap around EUR 40/year and an artist-side
-            competitor charges $49. The mix engineer paying $28/month for
-            Samply is not the buyer here. At $9/month alone we were $108/year,
-            above the songwriter band and below the professional one, which is
-            the one price that suits nobody. */}
-        <h2 className="section-h2">$49 a year. <em>Or $9 a month.</em></h2>
+        {/* Toggle, per Owen's ask: was a static "$49 a year. Or $9 a month."
+            headline. Now a real switch, and annual leads with the number
+            that actually sells it, the per-month equivalent, rather than
+            asking the reader to do $49 / 12 in their head. Purely visual
+            pre-launch: nothing here charges anyone, same as before. */}
+        <PricingToggle />
         <p className="section-sub">
           Everything included, one plan: the board, sync across your devices, offline,
           take-stacking, share links with timestamped comments. Cancel in one tap.
@@ -736,12 +801,6 @@ export function LandingPage() {
           <span aria-hidden="true">·</span>
           <Link to="/terms">Terms</Link>
         </nav>
-        {/* Build stamp. Not decoration: "it looks the same" has cost hours,
-            and the cause has been a stale service worker every time. Now the
-            build you are looking at is checkable at a glance. */}
-        <span className="footer-build" title="Build currently served to this device">
-          build {__BUILD_ID__}
-        </span>
       </footer>
     </div>
   )
