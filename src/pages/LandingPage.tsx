@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
@@ -292,9 +292,40 @@ function PricingToggle() {
   )
 }
 
+/**
+ * The hero's background mesh (.hero::before) is a full-viewport layer under
+ * an 80px blur, animating on a 22s loop forever. Nothing stopped it once
+ * the hero scrolled out of view, so the browser kept repainting a large
+ * blurred, animated layer for the entire time the page was open, on top of
+ * whatever else was on screen. Owen: "laggy asf". This is the standing
+ * suspect: a continuous blur+animation is one of the more expensive things
+ * a page can ask a browser to do, and it was running unconditionally.
+ *
+ * Paused via animation-play-state rather than removing the animation or the
+ * element, so the hero looks exactly the same while it's actually visible.
+ */
+function useHeroMeshPause() {
+  useEffect(() => {
+    const hero = document.querySelector('.hero')
+    if (!hero) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) return
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        hero.classList.toggle('hero-mesh-paused', !entry.isIntersecting)
+      },
+      { threshold: 0 },
+    )
+    io.observe(hero)
+    return () => io.disconnect()
+  }, [])
+}
+
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   useSectionReveal()
+  useHeroMeshPause()
 
   return (
     <div className="landing">

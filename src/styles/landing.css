@@ -185,6 +185,11 @@ a.nav-cta {
   animation: hero-mesh 22s ease-in-out infinite alternate;
 }
 
+/* Paused once the hero scrolls out of view. See useHeroMeshPause. */
+.hero.hero-mesh-paused::before {
+  animation-play-state: paused;
+}
+
 .hero-left {
   display: flex;
   flex-direction: column;

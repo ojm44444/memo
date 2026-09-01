@@ -45,17 +45,44 @@ export function initPwa() {
        * calling skipWaiting on install. Mid-session updates still go through
        * the banner. sessionStorage guards against a reload loop.
        */
-      const RELOAD_GUARD = 'sd-sw-autoreload'
-      let alreadyReloaded = false
+      /**
+       * TWO BUGS IN THE PREVIOUS VERSION OF THIS GUARD, both of which pinned
+       * people to a stale build for a whole session.
+       *
+       * 1. The guard was a session-long boolean that was set and never
+       *    cleared. It correctly stopped a reload loop, and then it also
+       *    stopped EVERY subsequent update for the life of the tab. Ten
+       *    deploys in an afternoon meant the first one auto-applied and the
+       *    other nine silently did not. It is now a timestamp, so it blocks
+       *    a second reload within ten seconds (which is all a loop guard
+       *    needs to do) and allows the next genuine update after that.
+       *
+       * 2. `performance.now() < 20_000` meant an update detected more than
+       *    twenty seconds after load never auto-applied. Updates are checked
+       *    at five seconds, on focus, on visibility, on reconnect and every
+       *    fifteen minutes, so in practice almost every update arrived
+       *    outside that window and fell through to the banner. Anyone who
+       *    did not spot the banner stayed on the old build indefinitely.
+       *
+       * The original reason for the freshness check was not to yank the page
+       * out from under someone mid-session. That risk is real on /app, where
+       * there can be unsaved work, and absent on the marketing pages, where
+       * there is nothing to lose. So the condition is now about WHERE you
+       * are, not how long ago you loaded.
+       */
+      const RELOAD_GUARD = 'sd-sw-autoreload-at'
+      let recentlyReloaded = false
       try {
-        alreadyReloaded = sessionStorage.getItem(RELOAD_GUARD) === '1'
+        const at = Number(sessionStorage.getItem(RELOAD_GUARD) ?? 0)
+        recentlyReloaded = Number.isFinite(at) && Date.now() - at < 10_000
       } catch {}
 
-      const isFreshLoad = performance.now() < 20_000
+      const onAppRoute = window.location.pathname.startsWith('/app')
+      const safeToReload = !onAppRoute
 
-      if (isFreshLoad && !alreadyReloaded) {
+      if (safeToReload && !recentlyReloaded) {
         try {
-          sessionStorage.setItem(RELOAD_GUARD, '1')
+          sessionStorage.setItem(RELOAD_GUARD, String(Date.now()))
         } catch {}
         // Deferred: onNeedRefresh can fire before registerSW() has returned,
         // so applyUpdate may not be assigned yet at this point.
