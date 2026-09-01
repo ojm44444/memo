@@ -3915,3 +3915,35 @@ a.nav-cta {
    it. With these three back to dark, the scrim is harmless but unnecessary;
    left in place rather than removed, since the CTA band at the bottom still
    needs it. */
+
+/* ═══ FAQ, two-column ═══════════════════════════════════════════════════════
+   Was a single centred column, max-width 720px, heading stacked directly
+   above the list. Owen asked for some sections to put content on the right
+   rather than everything reading as one left/centred column, and named FAQ
+   as a candidate. The heading now sits alone on the left; the list moves to
+   the right and no longer needs to be reading-column narrow, since it isn't
+   sharing the row with anything above it any more. */
+.faq-section {
+  max-width: 1100px !important;
+}
+.faq-inner {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.faq-heading {
+  position: sticky;
+  top: 100px;
+}
+.faq-inner .faq-list {
+  margin-top: 0;
+}
+@media (max-width: 860px) {
+  .faq-inner {
+    grid-template-columns: 1fr;
+  }
+  .faq-heading {
+    position: static;
+  }
+}

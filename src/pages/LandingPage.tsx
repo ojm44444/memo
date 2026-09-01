@@ -311,10 +311,17 @@ export function LandingPage() {
               memo count, then a plain "local-first" line) and on the second
               look Owen wanted neither: the headline is strong enough on its
               own and doesn't need a line above it doing setup work. */}
+        {/* Owen's own line, offered unprompted. "Ideas/songs" was a solid,
+            researched two-line headline, but this is sharper: one line, his
+            words, and "the void" is exactly the register the rest of the
+            page already uses (the iCloud section calls deletion "no undo and
+            no copy left behind" in the same key). Kept the italic-emphasis
+            pattern the rest of the page's headings use rather than inventing
+            a new one. */}
         <h1 className="hero-h1">
-            Stop losing <em>ideas.</em>
+            Stop losing songs
             <br />
-            Start finishing <em>songs.</em>
+            <em>to the void.</em>
           </h1>
           <p className="hero-sub">
             You've got hundreds of voice memos called "New Recording 612". Somewhere in there
@@ -700,13 +707,21 @@ export function LandingPage() {
             included, not on an exit door. */}
       </section>
 
+      {/* Two-column: the heading sits on its own on the left, the actual
+          list on the right, rather than both stacked full-width under a
+          centred header the way every other text block on the page reads.
+          Owen named this section specifically as one that could move right. */}
       <section className="faq-section" id="faq">
-        <div className="section-label">Questions</div>
-        <h2 className="section-h2">Things people ask</h2>
-        <div className="faq-list">
-          {FAQS.map(({ q, a }) => (
-            <FaqItem key={q} q={q} a={a} />
-          ))}
+        <div className="faq-inner">
+          <div className="faq-heading">
+            <div className="section-label">Questions</div>
+            <h2 className="section-h2">Things people ask</h2>
+          </div>
+          <div className="faq-list">
+            {FAQS.map(({ q, a }) => (
+              <FaqItem key={q} q={q} a={a} />
+            ))}
+          </div>
         </div>
       </section>
 
