@@ -78,6 +78,19 @@ const FEATURES = [
     title: 'Key and tempo, read from the file',
     desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and fills in the card. A raw voice memo has no tags to read, so that one you still type.',
   },
+  {
+    size: 'small',
+    icon: '#',
+    // Was live in the app and in the hero mockup ("riff", "lyrics drafted",
+    // "sent to producer" already sit under cards in LiveBoard) but never
+    // named on the page as its own feature. Confirmed against boardRepo.ts
+    // before writing this: song.tags is free text, BoardFilters filters the
+    // board by activeTag, and it is not a fixed list. Answers a real ask from
+    // the research: pulling up "everything tagged riff" instead of scrolling
+    // a whole column.
+    title: 'Riff, chorus, half-written',
+    desc: 'Tag a take with whatever it actually is. Four defaults to start, add your own, and filter the board down to just the ones that match.',
+  },
 ] as const
 
 /**
