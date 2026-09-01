@@ -4024,3 +4024,65 @@ a.nav-cta {
   color: rgba(14, 31, 38, 0.6);
   margin: 0 0 16px;
 }
+
+/* ═══ CONTRAST BUG FROM THE BAND REVERT ═════════════════════════════════════
+   .install-platforms strong (the iPhone / Android / Windows labels) was
+   hardcoded to rgb(14,31,38) back when the offline section was a light band.
+   The revert to a dark ground missed it, so those labels have been dark ink
+   on a dark background: invisible. Owen: "I can't read the words on the
+   iPhone/Android bit." Exactly right, and mine. */
+.offline-section .install-platforms strong {
+  color: var(--text) !important;
+  opacity: 1 !important;
+}
+.offline-section .install-note-lead,
+.offline-section .install-platforms li {
+  color: var(--text-muted) !important;
+}
+
+/* ═══ ALTERNATE THE SIDES ═══════════════════════════════════════════════════
+   Asked for repeatedly and only ever half-done (FAQ). The complaint is that
+   every section header sits on the left, so the page reads as one long
+   left-hand column. Sections whose body is full-width (a grid, a ramp, a
+   table) can put their HEADER on the right without needing a paired visual
+   invented for them, which was the thing blocking this before.
+
+   Alternating down the page: features left, how-it-works right, merge left,
+   backup right, compare left, trust right, pricing left. Hero, offline,
+   workflow and FAQ already have real two-column layouts and are left alone. */
+.howitworks .section-label,
+.howitworks .section-h2,
+.howitworks .section-sub,
+.trust .trust-inner,
+.backup-section .backup-inner {
+  text-align: right;
+}
+
+.howitworks .section-sub,
+.trust .trust-lead,
+.trust .trust-list {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* The tick list reads wrong flush-right (marker then text, right-aligned,
+   puts the ticks in the middle of the column), so the list itself stays
+   left-aligned inside a right-pushed block. */
+.trust .trust-list li {
+  text-align: left;
+}
+
+@media (max-width: 860px) {
+  .howitworks .section-label,
+  .howitworks .section-h2,
+  .howitworks .section-sub,
+  .trust .trust-inner,
+  .backup-section .backup-inner {
+    text-align: left;
+  }
+  .howitworks .section-sub,
+  .trust .trust-lead,
+  .trust .trust-list {
+    margin-left: 0;
+  }
+}
