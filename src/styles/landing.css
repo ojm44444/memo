@@ -531,8 +531,13 @@ a.nav-cta {
 
 .tag-idea { background: rgba(255,255,255,0.07); color: var(--muted); }
 .tag-riff { background: rgba(255,107,53,0.15); color: var(--accent2); }
-.tag-stack { background: var(--accent-dim); color: var(--accent); }
-.tag-lyric { background: var(--accent-dim); color: var(--accent); }
+/* Used to both be var(--accent), the same bright green as the CTA button one
+   screen up, on two of five tag chips in a decorative mock-up widget. The
+   stage ramp already has five distinct hues doing real work elsewhere on the
+   page; borrowing two of them here means this mock-up stops competing with
+   the one thing that should actually pull the eye. */
+.tag-stack { background: color-mix(in srgb, var(--stage-inbox) 14%, transparent); color: var(--stage-inbox); }
+.tag-lyric { background: color-mix(in srgb, var(--stage-half) 16%, transparent); color: var(--stage-half); }
 .tag-demo { background: rgba(100,180,255,0.12); color: #64b4ff; }
 
 .card-tags-row {
@@ -2077,7 +2082,12 @@ a.nav-cta {
   margin-bottom: 20px;
 }
 
-.section-h2 em { color: var(--accent); font-style: italic; }
+/* Used to be var(--accent) here, on every section heading down the page.
+   The hero earns bright green on its emphasis words because it is the one
+   headline the whole page exists to deliver; repeating that on every h2 below
+   it turned the accent into wallpaper, so nothing including the actual CTA
+   stood out against it. Italic alone still marks the word as emphasis. */
+.section-h2 em { font-style: italic; color: var(--text); }
 
 .section-label { font-size: var(--t-xs); margin-bottom: 20px; }
 .section-sub   { font-size: var(--t-md); }
@@ -2128,7 +2138,8 @@ a.nav-cta {
   letter-spacing: -0.01em;
 }
 
-.workflow-quote-text em { color: var(--accent); font-style: italic; }
+/* Same call as section-h2 above: this is a quoted line, not the hero. */
+.workflow-quote-text em { font-style: italic; color: var(--text); }
 
 .workflow-quote-sub {
   margin-top: 16px;

@@ -300,11 +300,17 @@ export function LandingPage() {
 
       <section className="hero">
         <div className="hero-stage">
-          {/* Eyebrow pill, from Owen's intellijend reference. Says what this is
-            and where it is before the headline has to do any work. */}
+          {/* Eyebrow pill: says what this is before the headline has to do
+              any work. Used to also carry Owen's own memo count for peer
+              credibility, which tested well on Reddit against a founder
+              selling down to the reader, but Owen came back to it cold and it
+              read as try-hard rather than honest. The personal record still
+              belongs on the page: it does real work in the discipline section
+              below, where the argument needs someone who demonstrably
+              finishes. Here it only needs to say what songdrafts is. */}
         <span className="hero-eyebrow">
           <span className="hero-eyebrow-dot" />
-          Local-first. Built by a songwriter with 247 voice memos.
+          Local-first. For the pile of memos you already have.
         </span>
         <h1 className="hero-h1">
             Stop losing <em>ideas.</em>
