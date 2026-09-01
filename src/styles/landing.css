@@ -3120,12 +3120,17 @@ a.nav-cta {
   box-shadow: 0 0 22px color-mix(in srgb, var(--stage-half) 45%, transparent);
 }
 
+/* Was justify-content: space-between, which shoves the wordmark to the far
+   left edge and the tagline to the far right of a 1180px row: neither one
+   is centred, and at any width short of that max the logo sits wherever the
+   left edge happens to be. Owen: "the bottom logo isn't in the middle."
+   Centred as one group instead. */
 .footer-row {
   max-width: 1180px;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 20px;
   flex-wrap: wrap;
 }
