@@ -477,27 +477,41 @@ export function LandingPage() {
         <h2 className="section-h2">Inbox → Ideas → Finished.<br /><em>Or however you'd put it.</em></h2>
         <p className="section-sub">
           Comes with four columns. Rename any of them, add your own, put them in your order.
-          Drag a song right whenever it gets better. The board remembers so you don't have to.
+          Drag a song right whenever it gets better, and tag it with what it is: riff, chorus,
+          half-written, whatever you'd call it. Then filter by tag instead of scrolling.
         </p>
+        {/* Tags shown IN the pipeline, per Owen: "I wanna show that you can
+            tag stuff in the bit where you move it along the pipeline as
+            well." Columns are where a song IS; tags are what it IS. Both
+            live on the same card, so the ramp shows both. Each step carries
+            the tags a song at that stage tends to wear. */}
         <div className="howitworks-ramp">
           {[
-            ['inbox', 'Inbox', 'Everything lands here.'],
-            ['ideas', 'Ideas', 'Worth another listen.'],
-            ['half', 'Half finished', 'It has a shape now.'],
-            ['done', 'Finished', 'Send it to someone.'],
-          ].map(([key, title, sub]) => (
-            <div key={key} className={`ramp-step ramp-step--${key}`}>
+            ['inbox', 'Inbox', 'Everything lands here.', ['idea']],
+            ['ideas', 'Ideas', 'Worth another listen.', ['riff', 'verse']],
+            ['half', 'Half finished', 'It has a shape now.', ['chorus', 'half-written']],
+            ['done', 'Finished', 'Send it to someone.', ['sent to producer']],
+          ].map(([key, title, sub, tags]) => (
+            <div key={key as string} className={`ramp-step ramp-step--${key}`}>
               <span className="ramp-step-bars" aria-hidden>
                 <i /><i /><i /><i />
               </span>
               <span className="ramp-step-title">{title}</span>
               <span className="ramp-step-sub">{sub}</span>
+              <span className="ramp-step-tags" aria-hidden="true">
+                {(tags as string[]).map((t) => (
+                  <span key={t} className="ramp-tag">{t}</span>
+                ))}
+              </span>
             </div>
           ))}
           <div className="ramp-step ramp-step--add" aria-hidden="true">
             <span className="ramp-step-plus">+</span>
             <span className="ramp-step-title">Your own</span>
             <span className="ramp-step-sub">Rename, reorder, add as many as you use.</span>
+            <span className="ramp-step-tags">
+              <span className="ramp-tag ramp-tag--add">+ tag</span>
+            </span>
           </div>
         </div>
       </section>
