@@ -214,6 +214,18 @@ export function LiveBoard() {
               </div>
             </div>
           ))}
+          {/* A sixth, dashed column stub. The five real columns already have
+              their own careful reasoning (Owen's actual counts, the crop that
+              implies "the board continues"), and this doesn't touch any of
+              that. It adds the one thing missing: an explicit cue that a
+              column can be added, not just implied by a crop. Matches the
+              dashed treatment on the how-it-works ramp's fifth step. */}
+          <div className="lb-col lb-col--add" aria-hidden="true">
+            <div className="lb-col-head">
+              <span className="lb-col-name">+ Add</span>
+            </div>
+            <div className="lb-col-rule lb-col-rule--dashed" />
+          </div>
         </div>
       </div>
     </div>

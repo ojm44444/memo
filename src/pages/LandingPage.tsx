@@ -375,13 +375,22 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* How it works — three steps, stage colours */}
+      {/* How it works.
+          Used to hard-code four columns and say "that's the entire system",
+          which undersold what the app actually does (create, rename, delete,
+          reorder columns) and, per RESEARCH-REDDIT.md, handed sceptics an
+          easy objection: "your system is not my system". Nobody in the
+          research organised their pile the same way, so a fixed four-step
+          mockup was never going to look like their board. A fifth, dashed
+          step now sits at the end of the ramp itself, not just in a sentence
+          below it, so the customisable part is something you see rather than
+          something you're told. */}
       <section className="howitworks" id="how">
         <div className="section-label">How it works</div>
-        <h2 className="section-h2">Inbox → Ideas → Finished.</h2>
+        <h2 className="section-h2">Inbox → Ideas → Finished.<br /><em>Or however you'd put it.</em></h2>
         <p className="section-sub">
-          Bring the recordings in. Drag a song one column right whenever it gets better.
-          That's the entire system. The board remembers so you don't have to.
+          Comes with four columns. Rename any of them, add your own, put them in your order.
+          Drag a song right whenever it gets better. The board remembers so you don't have to.
         </p>
         <div className="howitworks-ramp">
           {[
@@ -398,6 +407,11 @@ export function LandingPage() {
               <span className="ramp-step-sub">{sub}</span>
             </div>
           ))}
+          <div className="ramp-step ramp-step--add" aria-hidden="true">
+            <span className="ramp-step-plus">+</span>
+            <span className="ramp-step-title">Your own</span>
+            <span className="ramp-step-sub">Rename, reorder, add as many as you use.</span>
+          </div>
         </div>
       </section>
 

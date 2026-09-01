@@ -1939,10 +1939,29 @@ a.nav-cta {
 /* ── The ramp made visible: four steps, cold to alive ── */
 .howitworks-ramp {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--s-3, 12px);
   margin-top: 40px;
 }
+
+/* The fifth step: dashed, not a stage colour, because it isn't one of the
+   four shipped stages, it's the invitation to add your own. */
+.ramp-step--add {
+  border-style: dashed;
+  border-color: var(--border);
+  background: transparent;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted);
+  align-items: flex-start;
+  justify-content: center;
+}
+.ramp-step-plus {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.ramp-step--add .ramp-step-title { color: var(--text); }
 
 .ramp-step {
   display: flex;
@@ -2282,9 +2301,15 @@ a.nav-cta {
   text-align: center;
 }
 
+/* Used to leave align-items at its default, stretch, which forced the
+   "them" card (one short sentence) to match the height of the "us" card
+   (four), leaving a dead gap at the bottom of the shorter one. Owen flagged
+   it as looking broken rather than intentional. align-items: start lets each
+   card size to its own content instead. */
 .backup-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 20px;
   margin-top: 40px;
   text-align: left;
@@ -2436,6 +2461,18 @@ a.nav-cta {
   font-size: 0.58rem;
   color: var(--stage);
   opacity: 0.75;
+}
+
+.lb-col--add {
+  opacity: 0.6;
+}
+.lb-col--add .lb-col-name {
+  color: var(--text-muted);
+}
+.lb-col-rule--dashed {
+  height: 0;
+  border-top: 2px dashed var(--border);
+  background: none;
 }
 
 /* The ramp, stated once per column. */
@@ -3478,13 +3515,15 @@ a.nav-cta {
 .feature-card.is-wide { grid-column: span 2; }
 .feature-card.is-tall { grid-row: span 2; }
 
-/* The tall card gets room to breathe: it holds the longest copy and it is the
-   feature most people have never seen anywhere else. */
+/* Used to pin the title to the top and the description to the bottom with
+   margin-top: auto, which left a dead gap in the middle of the card since
+   the copy was never long enough to fill a two-row span. Content now flows
+   as a normal stack from the top, so any extra room reads as ordinary
+   bottom padding instead of a hole between the title and the text. */
 .feature-card.is-tall {
   display: flex;
   flex-direction: column;
 }
-.feature-card.is-tall .feature-desc { margin-top: auto; }
 
 .feature-card.is-wide .feature-title { font-size: 1.28rem; }
 .feature-card.is-wide .feature-desc { max-width: 52ch; }
