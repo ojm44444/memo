@@ -129,7 +129,14 @@ const COMPARE_ROWS = [
 
 const STEPS = [
   ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox.'],
-  ['02', 'Give it a name', 'songdrafts suggests one, and it will be something like Unicorn Pants. Keep it or type your own. You will remember Unicorn Pants. You will never remember New Recording 612.'],
+  // Used to claim songdrafts auto-generated a name like "Unicorn Pants" on
+  // every import. That shipped, then got pulled: applying an invented name to
+  // every card in a real library of hundreds read as the app making a joke
+  // about your work rather than helping. The advice underneath is still real
+  // (see RESEARCH-REDDIT.md, two songwriters independently gave each other
+  // this exact tip), so the claim now matches what the app does: it flags an
+  // unnamed one and hands you the field, it does not invent the name for you.
+  ['02', 'Give it a name', "A pile of files called New Recording 612 is the whole problem, so songdrafts flags the ones that still look like filenames. One tap opens the name for editing. Songwriters swap them for something absurd and memorable, on purpose: you will remember Unicorn Pants. You will never remember New Recording 612."],
   ['03', 'Move it when it earns it', 'A song shifts right when it gets better. Nothing expires, nothing nags you, nothing gets archived behind your back.'],
   ['04', 'Send it out', 'One link to whoever needs to hear it. Their notes come back stuck to the second they mean.'],
 ] as const
