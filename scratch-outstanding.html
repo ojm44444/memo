@@ -1,0 +1,350 @@
+<title>songdrafts: what's left</title>
+<style>
+  :root {
+    --bg: #16303b;
+    --bg2: #1d3a46;
+    --surface: #1b3a46;
+    --border: rgba(238,245,242,0.14);
+    --text: #eef5f2;
+    --muted: #a3bab7;
+    --accent: #9ddbad;
+    --stage-inbox: #5ea7b8;
+    --stage-ideas: #65a396;
+    --stage-half: #8ac4a6;
+    --stage-done: #c3e8bd;
+    --font-serif: 'Instrument Serif', Georgia, serif;
+    --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f8f6; --bg2: #e9f1ee; --surface: #ffffff;
+    --border: rgba(14,31,38,0.14); --text: #10262c; --muted: #4c6a66;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f8f6; --bg2: #e9f1ee; --surface: #ffffff;
+      --border: rgba(14,31,38,0.14); --text: #10262c; --muted: #4c6a66;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 28px 120px; }
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--stage-inbox);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  h1 em { color: var(--accent); font-style: italic; }
+  .dek { color: var(--muted); font-size: 1.05rem; max-width: 60ch; margin: 0 0 56px; }
+  h2 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.7rem;
+    margin: 0 0 6px;
+  }
+  .section-note { color: var(--muted); font-size: 0.92rem; max-width: 68ch; margin: 0 0 28px; }
+  section { margin-bottom: 64px; }
+  .todo {
+    display: flex;
+    gap: 16px;
+    padding: 18px 0;
+    border-top: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .todo:last-child { border-bottom: 1px solid var(--border); }
+  .todo-num {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--stage-inbox);
+    flex: 0 0 28px;
+    padding-top: 2px;
+  }
+  .todo-body { flex: 1 1 auto; }
+  .todo-title { font-weight: 600; margin-bottom: 4px; }
+  .todo-why { color: var(--muted); font-size: 0.92rem; }
+  .todo-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+    border: 1px solid currentColor;
+  }
+  .tag-money { color: var(--stage-half); }
+  .tag-decide { color: var(--stage-done); }
+  .tag-legal { color: var(--stage-inbox); }
+  .tag-review { color: var(--accent); }
+
+  .copy-block { border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin-bottom: 14px; background: color-mix(in srgb, var(--surface) 60%, transparent); }
+  .copy-loc { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--stage-half); margin-bottom: 10px; }
+  .copy-headline { font-family: var(--font-serif); font-size: 1.3rem; margin: 0 0 6px; }
+  .copy-body { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .copy-changed { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .copy-changed .copy-loc::after { content: ' · changed today'; color: var(--accent); text-transform: none; letter-spacing: normal; font-style: italic; }
+
+  .faq-mini { border-top: 1px solid var(--border); padding: 12px 0; }
+  .faq-mini:last-child { border-bottom: 1px solid var(--border); }
+  .faq-q { font-weight: 600; margin-bottom: 4px; }
+  .faq-a { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+  .callout {
+    border-left: 3px solid var(--stage-inbox);
+    padding: 14px 18px;
+    background: color-mix(in srgb, var(--stage-inbox) 8%, transparent);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .callout strong { color: var(--text); }
+</style>
+
+<div class="wrap">
+  <div class="kicker">songdrafts &middot; status, 31 August &ndash; 1 September</div>
+  <h1>What's left for <em>you</em>, and everything on the page to read.</h1>
+  <p class="dek">
+    Everything I could fix myself is fixed, tested and pushed. This is the honest remainder:
+    the decisions only you can make, the accounts only you can open, and the exact words
+    currently live on songdrafts.com so you can mark up what's good and what isn't.
+  </p>
+
+  <div class="callout">
+    <strong>One thing to know before anything else:</strong> the browser tooling I was verifying
+    against broke partway through today's session &mdash; it kept reporting a 0px viewport, so
+    screenshots below the fold were unreliable for the last few hours. I checked every change
+    against computed CSS values instead of pixels, which is solid for colours and structure,
+    but it means today's visual changes genuinely need your own eyes before you'd call this final.
+  </div>
+
+  <section>
+    <h2>What's left for you</h2>
+    <p class="section-note">In the order I'd actually do them.</p>
+
+    <div class="todo">
+      <div class="todo-num">01</div>
+      <div class="todo-body">
+        <div class="todo-title">Look at the live site<span class="todo-tag tag-review">review</span></div>
+        <div class="todo-why">Today changed the hero headline, killed three bright colour bands, added a fifth board column and a fifth ramp step, and fixed a few layout gaps. None of it was visually confirmed end to end &mdash; see the note above.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">02</div>
+      <div class="todo-body">
+        <div class="todo-title">Import test on your actual iPhone<span class="todo-tag tag-review">gates everything</span></div>
+        <div class="todo-why">Nobody has run the real import path on a real device with your real voice memos. Everything else assumes this works.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">03</div>
+      <div class="todo-body">
+        <div class="todo-title">Authorise the Supabase connector, or deploy four things by hand<span class="todo-tag tag-legal">blocking</span></div>
+        <div class="todo-why">Migrations 024 (subscriptions) and 025 (email log), plus the delete&#8209;account, stripe&#8209;checkout, stripe&#8209;webhook and send&#8209;lifecycle&#8209;email functions. All written, none live. The delete button in Settings is visible right now and will error until this happens.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">04</div>
+      <div class="todo-body">
+        <div class="todo-title">Stripe account, two prices<span class="todo-tag tag-money">money</span></div>
+        <div class="todo-why">$49/year and $9/month. Send me the price IDs once they exist.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">05</div>
+      <div class="todo-body">
+        <div class="todo-title">Resend account, verify the sending domain<span class="todo-tag tag-money">money</span></div>
+        <div class="todo-why">The five lifecycle emails are written and ready. Nothing sends until this exists.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">06</div>
+      <div class="todo-body">
+        <div class="todo-title">A real support@songdrafts.com mailbox<span class="todo-tag tag-legal">live bug</span></div>
+        <div class="todo-why">The privacy policy and terms both give this address today. It doesn't exist. Anyone emailing it right now bounces.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">07</div>
+      <div class="todo-body">
+        <div class="todo-title">Sole trader vs limited company, and VAT<span class="todo-tag tag-legal">legal</span></div>
+        <div class="todo-why">Needs deciding before real money moves through Stripe.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">08</div>
+      <div class="todo-body">
+        <div class="todo-title">Decide the free tier<span class="todo-tag tag-decide">decide</span></div>
+        <div class="todo-why">Still open. The only version on the table is a hard cap (roughly 10 songs), never a generous one &mdash; a generous free tier is exactly what put you offline for four days this week.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">09</div>
+      <div class="todo-body">
+        <div class="todo-title">Fix the other Supabase project's RLS bug<span class="todo-tag tag-legal">different repo</span></div>
+        <div class="todo-why">hsuwqqjibburviduyfzy (TEZ fan hub / MoonOS) is back online after the quota block, but <code>user_profiles</code> has an infinite-recursion policy error, breaking <code>gigs</code> and <code>fans</code>. Not a songdrafts issue &mdash; raise it in that project's own session.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">10</div>
+      <div class="todo-body">
+        <div class="todo-title">Say whether you want more sections moved off the left<span class="todo-tag tag-decide">decide</span></div>
+        <div class="todo-why">FAQ is now two-column, text left, list right. Features, how&#8209;it&#8209;works, merge, backup and trust are each a single header block with nothing to pair against on the right without new illustration work &mdash; a bigger job than a layout tweak. Say if you want that pass.</div>
+      </div>
+    </div>
+
+    <div class="todo">
+      <div class="todo-num">11</div>
+      <div class="todo-body">
+        <div class="todo-title">Flip two switches when the above is done<span class="todo-tag tag-decide">last step</span></div>
+        <div class="todo-why"><code>SIGNUPS_OPEN</code> and <code>BILLING_LIVE</code>. I'll do this the moment the keys exist &mdash; nothing for you to touch here, just the order things happen in.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every word on the page</h2>
+    <p class="section-note">
+      In page order. Marked pieces changed in the last 24 hours; everything else is unchanged
+      from before. Say what you'd swap.
+    </p>
+
+    <div class="copy-block copy-changed">
+      <div class="copy-loc">Hero &middot; headline</div>
+      <p class="copy-headline">Stop losing songs<br><em>to the void.</em></p>
+      <p class="copy-body">Replaced "Stop losing ideas. Start finishing songs." &mdash; your own line, offered today.</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Hero &middot; sub</div>
+      <p class="copy-body">"You've got hundreds of voice memos called &lsquo;New Recording 612&rsquo;. Somewhere in there is the single. songdrafts is a board for your music. Drag a song right as it gets better, and actually finish it."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Hero &middot; status line</div>
+      <p class="copy-body">"Not open yet." / "Keep recording in Voice Memos. songdrafts is what happens next." / "Runs in the browser on any desktop, and on your phone. Nothing to buy from the App Store."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Features &middot; section</div>
+      <p class="copy-headline">The voice memo chaos, finally organised.</p>
+      <p class="copy-body">"No renaming files. No scrolling past the same few hundred untitled memos looking for the one with the good chorus."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Features &middot; the seven cards</div>
+      <p class="copy-body">
+        <strong>Somewhere to come back to</strong> &mdash; "Inbox → Ideas → Half Finished → Finished Demo → Released, or whatever you call them. Rename the columns, add your own, put them in your order. Drag a song right when it gets better. That's the whole system."<br><br>
+        <strong>Every take on one card</strong> &mdash; "Second voice note for the same idea. A new riff. That bridge you sang in the shower. Drop each one onto the same song and they line up in order, so you can hear it turn into something."<br><br>
+        <strong>Works in a tunnel</strong> &mdash; "Your library lives on your device, so the plane, the tube and a field in Wales with one bar are all fine. Listen, sort, write. A copy syncs when you resurface, which is how it reaches your other devices."<br><br>
+        <strong>Get through forty on a walk</strong> &mdash; "Triage the pile at 2x on the way to work, then drop to 0.75x to catch what you actually mumbled. Speed is the mechanism; getting through them is the point."<br><br>
+        <strong>They never make an account</strong> &mdash; "One link to your producer, your drummer, an A&amp;R. They press play in the browser and leave a comment pinned to 1:43. No sign&#8209;up wall, no app, no &lsquo;can you WeTransfer it again&rsquo;."<br><br>
+        <strong>You already built this in Trello</strong> &mdash; "Cards, columns, an mp3 dragged onto each one. It works, right up until you need to hear it. A board that cannot play audio, stack a take or read a key is a list with attachments."<br><br>
+        <strong>Key and tempo, read from the file</strong> &mdash; "Bounce from your DAW and songdrafts reads the key and BPM off the file and puts them on the card. No typing."
+      </p>
+    </div>
+
+    <div class="copy-block copy-changed">
+      <div class="copy-loc">How it works &middot; section</div>
+      <p class="copy-headline">Inbox → Ideas → Finished. <em>Or however you'd put it.</em></p>
+      <p class="copy-body">"Comes with four columns. Rename any of them, add your own, put them in your order. Drag a song right whenever it gets better. The board remembers so you don't have to." Ramp: Inbox / Ideas / Half finished / Finished / <em>+ Your own</em> (new dashed fifth step).</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Merge band</div>
+      <p class="copy-headline">The verse was already written. <em>You just wrote it in March.</em></p>
+      <p class="copy-body">"The chorus from March fits the verse from last week. Drag one card onto the other and they become one song: takes, tags, comments, all of it. And when you are hunting the one in D at 92bpm, stop scrolling and just ask for it."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Offline section</div>
+      <p class="copy-headline">No signal? <em>No problem.</em></p>
+      <p class="copy-body">"Most of these tools go blank the second you lose signal, which is exactly when you're on a train with nothing else to do. Your library lives on your device. Listen, sort, write notes. It syncs up later without being asked."<br>List: The whole library, no internet / Playback, speed and notes all still work / Syncs itself when you're back online / Close the app mid&#8209;song, lose nothing.<br>Install note: "And it installs. Not a bookmark: its own icon, its own window, opens with no internet at all."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Backup / iCloud section</div>
+      <p class="copy-headline">iCloud is not a backup. <em>It is a mirror.</em></p>
+      <p class="copy-body">"Delete a memo on your phone to free up space and it goes from everywhere at once. That is not a bug, it is what syncing means, and it is how most people find out. There is no undo and no copy left behind."<br><br><strong>A synced folder</strong> &mdash; "One library, reflected on every device. Remove it once and it is removed."<br><strong>songdrafts</strong> &mdash; "Your recordings are stored on your device, not streamed from somewhere else. Deleting here does not delete it everywhere: deleted songs wait 30 days in the trash, and you can put them back. And you can pull the whole library out as a zip whenever you want. That is the difference between a copy and a mirror."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Discipline section</div>
+      <p class="copy-headline">An app will not give you discipline. <em>That was never the missing part.</em></p>
+      <p class="copy-body">"If you have a thousand unfinished memos, a tidier list will not make you finish them. That is true, and anyone who tells you otherwise is selling something." &mdash; "Here is the part that is actually broken. You already were disciplined, on a Tuesday in March, at 2am, in the car. You caught it. Then it went into a pile of a thousand identical files and you have not heard it since. songdrafts will not finish your song. It makes sure the one you would have finished is still there when you are ready."<br><br>Credential line: "Two million streams, BBC Introducing, sold out rooms in the UK and Europe. I still lost the good ones in a list of a thousand files."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Compare table</div>
+      <p class="copy-headline">Voice Memos syncs your recordings. songdrafts syncs your songwriting.</p>
+      <p class="copy-body">Columns: songdrafts, Voice Memos, Apple Notes, Trello, Dubnote, Tape.it. Rows: a board your songs move across / every take stacked on one song / lyrics and the recording together / merge two half&#8209;songs into one / key and tempo filled in from the file / comments pinned to a timestamp / deleting here is not deleting everywhere / works fully offline / records the audio itself (the one row songdrafts loses, on purpose).</p>
+    </div>
+
+    <div class="copy-block copy-changed">
+      <div class="copy-loc">Workflow &middot; step 02</div>
+      <p class="copy-body">"A pile of files called New Recording 612 is the whole problem, so songdrafts flags the ones that still look like filenames. One tap opens the name for editing. Songwriters swap them for something absurd and memorable, on purpose: you will remember Unicorn Pants. You will never remember New Recording 612." (Was: "songdrafts suggests one" &mdash; rewritten after the auto&#8209;name feature was pulled.)</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Workflow &middot; quote</div>
+      <p class="copy-body">"Hummed on the walk home. Listened back properly on Tuesday. Producer had it by Friday." / "That is the whole product."</p>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Trust section</div>
+      <p class="copy-headline">Your music is yours.</p>
+      <p class="copy-body">"Not a promise in the small print. How it is built." List: On your device by default. / Synced encrypted only if you sign in. / Export everything, any time, in one zip. / Delete means delete. / We never touch the audio&hellip; / And nothing you record trains an AI. Not ours, not anyone's.</p>
+    </div>
+
+    <div class="copy-block copy-changed">
+      <div class="copy-loc">Pricing</div>
+      <p class="copy-headline">$49 a year. <em>Or $9 a month.</em></p>
+      <p class="copy-body">"Everything included, one plan: the board, sync across your devices, offline, take&#8209;stacking, share links with timestamped comments. Cancel in one tap." &mdash; "A year costs less than five months of monthly, because most people writing songs are not putting this on a company card. Not open yet, and there is nothing here to pay with. When it opens it will be $49/year or $9/month, first week $1." (The "what if I stop paying" box that used to sit here is gone &mdash; moved, it now only lives in the FAQ below.)</p>
+    </div>
+
+    <div class="copy-block copy-changed">
+      <div class="copy-loc">FAQ &mdash; now two&#8209;column, heading left / list right</div>
+      <div class="faq-mini"><p class="faq-q">Does it work without Wi&#8209;Fi?</p><p class="faq-a">Yes, properly. Not a cut&#8209;down offline mode.</p></div>
+      <div class="faq-mini"><p class="faq-q">What happens to a song I never finish?</p><p class="faq-a">It sits exactly where you left it. Forever, if that's how it goes.</p></div>
+      <div class="faq-mini"><p class="faq-q">Can I share demos with my producer or bandmates?</p><p class="faq-a">Send them a listen link. They never have to make an account.</p></div>
+      <div class="faq-mini"><p class="faq-q">Does it work on my phone?</p><p class="faq-a">Import via the Files app on iPhone, run it in your mobile browser, install it to your home screen. There is no App Store app.</p></div>
+      <div class="faq-mini"><p class="faq-q">Is my music private?</p><p class="faq-a">On your device first, a copy syncs to storage so it reaches your other devices. Nobody reads it, nobody trains anything on it.</p></div>
+      <div class="faq-mini"><p class="faq-q">What if I stop paying?</p><p class="faq-a">songdrafts locks, your music doesn't. Download everything in one zip any time, including after you stop.</p></div>
+    </div>
+
+    <div class="copy-block">
+      <div class="copy-loc">Closing CTA</div>
+      <p class="copy-headline">Your songs deserve <em>a proper home.</em></p>
+      <p class="copy-body">"Open the board. Drag the first memo in. See what you've actually got." / "Not open yet. No list to join, and nothing here is collecting your email."</p>
+    </div>
+  </section>
+</div>

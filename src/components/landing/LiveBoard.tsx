@@ -39,7 +39,10 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     //
     // Showing the mess is the pitch. Left to right is not just fewer cards,
     // it is filenames turning into songs.
-    name: 'Voice memos',
+    // Was "Voice memos", which named the same first column something
+    // different from the "Inbox" the rest of the page uses (features grid,
+    // how-it-works ramp, FAQ). Same stage, one name, everywhere.
+    name: 'Inbox',
     count: 153,
     cards: [
       { id: 'a', title: 'New Recording 24', time: '0:41', bars: seedBars(1) },

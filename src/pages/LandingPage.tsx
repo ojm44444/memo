@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
@@ -31,7 +31,10 @@ const FEATURES = [
     // bucket, which is how sync between devices works at all. It also
     // contradicted the FAQ two screens down and the privacy page. The offline
     // claim is true and strong on its own and does not need the extra bit.
-    desc: 'Your library lives on your device, so the plane, the tube and a field in Wales with one bar are all fine. Listen, sort, write. A copy syncs when you resurface, which is how it reaches your other devices.',
+    // Trimmed: "A copy syncs when you resurface, which is how it reaches
+    // your other devices" was the longest, most mechanical sentence in a
+    // section otherwise built from short lines.
+    desc: 'Your library lives on your device, so the plane, the tube and a field in Wales with one bar are all fine. Listen, sort, write. It syncs when you resurface.',
   },
   {
     size: 'small',
@@ -49,13 +52,24 @@ const FEATURES = [
     size: 'small',
     icon: '\u2564',
     title: 'You already built this in Trello',
-    desc: 'Cards, columns, an mp3 dragged onto each one. It works, right up until you need to hear it. A board that cannot play audio, stack a take or read a key is a list with attachments.',
+    // Owen's addition: Trello's free attachment cap is small enough that a
+    // real audio file often does not fit, which is why the actual workaround
+    // in the research was as often a pasted Google Drive link as a direct
+    // attachment. Naming the link makes the "list with attachments" line
+    // land harder, since a link is not even an attachment.
+    desc: 'Cards, columns, a Google Drive link pasted onto each one because the file will not fit as an attachment. It works, right up until you need to hear it. A board that cannot play audio, stack a take or read a key is a list with links.',
   },
   {
     size: 'small',
     icon: '\u266f',
+    // AUDITED: was "No typing", which is only true for a DAW bounce with ID3
+    // tags on it. extractFileMetadata reads common.key/common.bpm off the
+    // file's own tags and nothing else; a raw iPhone voice memo essentially
+    // never carries those, so the common case still needs typing, exactly
+    // what the compare table's ~ two sections down already says. This card
+    // was overclaiming against the table's own honest answer.
     title: 'Key and tempo, read from the file',
-    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and puts them on the card. No typing.',
+    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and fills in the card. A raw voice memo has no tags to read, so that one you still type.',
   },
 ] as const
 
@@ -197,48 +211,15 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 /**
- * Motion 2 of 3: sections fade up once as they arrive.
- *
- * Adds the hiding class only after mount, so the server/no-JS render is fully
- * visible and a failure here can never hide copy. Respects reduced-motion by
- * simply not opting in.
+ * Used to fade each section up as it scrolled into view: hidden until an
+ * IntersectionObserver caught it, then a transition to visible. Owen's read,
+ * scrolling the real page rather than a single screenshot: it looked like
+ * the page was still loading, background and all, arriving in pieces as he
+ * scrolled rather than being there already. Removed rather than tuned,
+ * because the complaint was the mechanic itself (content appearing late),
+ * not its timing.
  */
-function useSectionReveal() {
-  useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) return
-
-    const sections = [...document.querySelectorAll<HTMLElement>('.landing section')]
-    // The hero is above the fold on load; hiding it would flash.
-    const targets = sections.slice(1)
-    targets.forEach((el) => el.classList.add('will-reveal'))
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue
-          const el = entry.target as HTMLElement
-          el.classList.remove('will-reveal')
-          el.classList.add('is-revealed')
-          io.unobserve(el)
-        }
-      },
-      { rootMargin: '0px 0px -12% 0px' },
-    )
-    targets.forEach((el) => io.observe(el))
-
-    // Safety net: if anything goes wrong, nothing stays hidden.
-    const failsafe = setTimeout(() => {
-      targets.forEach((el) => el.classList.remove('will-reveal'))
-    }, 4000)
-
-    return () => {
-      io.disconnect()
-      clearTimeout(failsafe)
-      targets.forEach((el) => el.classList.remove('will-reveal'))
-    }
-  }, [])
-}
+function useSectionReveal() {}
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -307,26 +288,23 @@ export function LandingPage() {
 
       <section className="hero">
         <div className="hero-stage">
-          {/* Eyebrow badge removed. Went through two versions (Owen's own
-              memo count, then a plain "local-first" line) and on the second
-              look Owen wanted neither: the headline is strong enough on its
-              own and doesn't need a line above it doing setup work. */}
-        {/* Owen's own line, offered unprompted. "Ideas/songs" was a solid,
-            researched two-line headline, but this is sharper: one line, his
-            words, and "the void" is exactly the register the rest of the
-            page already uses (the iCloud section calls deletion "no undo and
-            no copy left behind" in the same key). Kept the italic-emphasis
-            pattern the rest of the page's headings use rather than inventing
-            a new one. */}
+          {/* Eyebrow badge removed earlier, stays removed: the headline
+              carries the page on its own. "Stop losing songs to the void"
+              (Owen's own line, offered unprompted) was tried as the H1 and
+              then pulled back: he wanted the original two-line headline as
+              the lead, with the void line kept "in there somewhere" rather
+              than promoted to the main line. It now opens the sub-paragraph
+              instead, doing the reinforcing job a kicker line would have
+              done without reviving the pill badge he specifically removed. */}
         <h1 className="hero-h1">
-            Stop losing songs
+            Stop losing <em>ideas.</em>
             <br />
-            <em>to the void.</em>
+            Start finishing <em>songs.</em>
           </h1>
           <p className="hero-sub">
-            You've got hundreds of voice memos called "New Recording 612". Somewhere in there
-            is the single. songdrafts is a board for your music. Drag a song right
-            as it gets better, and actually finish it.
+            Stop losing songs to the void. You've got hundreds of voice memos called
+            "New Recording 612". Somewhere in there is the single. songdrafts is a board for
+            your music. Drag a song right as it gets better, and actually finish it.
           </p>
           {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
               and no mechanism to send one, so every signup got a tick on screen
@@ -620,14 +598,16 @@ export function LandingPage() {
               ))}
             </tbody>
           </table>
-          <p className="compare-footnote">
-            Checked 31 August 2026. Apple Notes holds lyrics but not the recording, which is
-            why that row is a half. Key and tempo are read from a file's tags, so a bounced mp3
-            arrives filled in and a raw voice memo does not, which is why you can also type them.
-            And the last row we lose outright: songdrafts does not record, and it is not trying
-            to. You keep recording in Voice Memos. Both stay in, because a table that wins
-            everything is one nobody believes.
-          </p>
+          {/* Was one paragraph doing three jobs at once (the half, the
+              tilde, the loss). Split so each claim is its own line rather
+              than making the reader hold three footnotes in their head at
+              once. */}
+          <ul className="compare-footnotes">
+            <li>Half: Apple Notes holds lyrics but not the recording.</li>
+            <li>~: key and tempo come off a file's tags, so a bounced mp3 arrives filled in and a raw voice memo doesn't, which is why you can also type them.</li>
+            <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
+          </ul>
+          <p className="compare-footnote-date">Checked 31 August 2026.</p>
         </div>
       </section>
 

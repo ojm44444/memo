@@ -1261,12 +1261,25 @@ a.nav-cta {
 
 /* Running prose, so it takes the sans. Mono here was setting a sentence as
    though it were data. */
-.compare-footnote {
+.compare-footnotes {
+  list-style: none;
+  margin: 0;
   padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+.compare-footnotes li {
   font-family: var(--font-sans);
   font-size: 0.68rem;
   color: rgba(255,255,255,0.60);
-  border-top: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.compare-footnotes li:last-child { margin-bottom: 0; }
+.compare-footnote-date {
+  padding: 0 16px 10px;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.4);
   text-align: left;
 }
 
@@ -3841,13 +3854,21 @@ a.nav-cta {
    the base lifts a little off pure --bg, and the glow runs stronger than the
    dim color-mix stops used elsewhere on the page, closer to the hero's own
    near-full-strength mesh. */
+/* First pass at this got the ONE CONTINUOUS GROUND rule wrong: it gave
+   these three a solid colour-mix base, which repainted a flat block over
+   the page's single long gradient and produced exactly the "separate
+   squares" look Owen flagged next. Every other section in that system ends
+   its own gradient in `transparent`, so the continuous `.landing` gradient
+   underneath keeps showing through and only the local glow sits on top.
+   These three now follow the same rule instead of fighting it. Brightness
+   raised again per the repeated note. */
 .offline-section,
 .trust,
 .pricing {
   background:
-    radial-gradient(ellipse 60% 90% at 85% 15%, color-mix(in srgb, var(--stage-done) 40%, transparent) 0%, transparent 64%),
-    radial-gradient(ellipse 65% 85% at 10% 85%, color-mix(in srgb, var(--stage-inbox) 34%, transparent) 0%, transparent 66%),
-    color-mix(in srgb, var(--bg) 92%, var(--stage-half) 8%) !important;
+    radial-gradient(ellipse 65% 95% at 85% 15%, color-mix(in srgb, var(--stage-done) 50%, transparent) 0%, transparent 66%),
+    radial-gradient(ellipse 70% 90% at 10% 85%, color-mix(in srgb, var(--stage-inbox) 44%, transparent) 0%, transparent 68%),
+    transparent !important;
   color: var(--text) !important;
 }
 

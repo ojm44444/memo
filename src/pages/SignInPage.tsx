@@ -119,10 +119,17 @@ export function SignInPage() {
             is collecting your email either, so there is no list to join and nothing to unsubscribe
             from later.
           </p>
-          <p className="sign-in-message">
-            Already have an account? If you have signed in on this device before, open{' '}
-            <Link to="/app">your board</Link> directly.
-          </p>
+          {/* Used to say "already have an account? open your board directly",
+              linking to /app. That link could never work: by the time this
+              screen renders, resolveBoardAuth() has already run in the
+              effect above and found no session, because a real session would
+              have redirected to /app before this paragraph ever painted.
+              Anyone who actually reaches this text has, by construction,
+              nothing that link could open. It was a dead link promising to
+              do the one thing it structurally cannot. Removed rather than
+              fixed forward, since there is nothing true left to say here on
+              this device: a session either exists (and you never see this
+              page) or it does not (and there is no board to open). */}
           <Link to="/" className="sign-in-back">Back to songdrafts</Link>
         </div>
       </div>
