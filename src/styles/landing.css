@@ -30,6 +30,13 @@
   --amber-dim: rgba(157,219,173,0.12);
   --warm-glow: rgba(94,167,184,0.10);
   --card1: #254a57;
+  /* Alias: several sections below were written against --bg-2 (with a
+     hyphen), which was never defined anywhere. Every one of those backgrounds
+     lost its dark base layer and rendered as an unanchored gradient with
+     nothing behind it, which is why they read as an odd bright wash instead
+     of the soft glow the hero has. Aliased here rather than renaming every
+     call site, so the fix cannot regress by someone typing --bg-2 again. */
+  --bg-2: var(--bg2);
 }
 
 .landing {
@@ -3770,3 +3777,102 @@ a.nav-cta {
 }
 
 .legal-foot a { color: var(--muted); }
+
+/* ═══ THE THREE BANDS, UNDONE ═══════════════════════════════════════════════
+   Offline, trust and pricing were flipped to a full-strength light band
+   (linear-gradient teal to mint, dark ink) after Owen asked for "more light
+   weaved into it" and praised the result. Revisited cold, he called the same
+   three sections "out of place" and "not part of it" and asked for the
+   hero's treatment instead: a dark ground with a soft blurred glow, not a
+   hard-edged light panel. Confirmed explicitly before this was written.
+
+   The closing CTA section is a fourth luminous band and is NOT one of these
+   three. It was never mentioned in that conversation and keeps its light
+   treatment untouched.
+
+   Appended at the end of the file rather than edited in place, on purpose.
+   That old band system is a dozen scattered `!important` rules layered over
+   several passes (the --bg-2 typo earlier in this file came from exactly
+   that pattern), and hunting every one down risks missing one and shipping
+   illegible text. One block, guaranteed last in the cascade, is the safer
+   fix: it does not need to find every old rule, only outrank all of them.
+
+   Brightness per Owen's follow-up note ("the light could be lighter, the
+   dark could be less dark, some colours are a bit brighter on the tool"):
+   the base lifts a little off pure --bg, and the glow runs stronger than the
+   dim color-mix stops used elsewhere on the page, closer to the hero's own
+   near-full-strength mesh. */
+.offline-section,
+.trust,
+.pricing {
+  background:
+    radial-gradient(ellipse 60% 90% at 85% 15%, color-mix(in srgb, var(--stage-done) 40%, transparent) 0%, transparent 64%),
+    radial-gradient(ellipse 65% 85% at 10% 85%, color-mix(in srgb, var(--stage-inbox) 34%, transparent) 0%, transparent 66%),
+    color-mix(in srgb, var(--bg) 92%, var(--stage-half) 8%) !important;
+  color: var(--text) !important;
+}
+
+.offline-section .section-label,
+.trust .section-label,
+.pricing .section-label {
+  color: var(--stage-inbox) !important;
+  opacity: 1 !important;
+}
+
+.offline-section .section-h2,
+.trust .section-h2,
+.pricing .section-h2,
+.offline-section h2,
+.trust h2 {
+  color: var(--text) !important;
+}
+
+.offline-section .section-h2 em,
+.trust .section-h2 em,
+.pricing .section-h2 em,
+.offline-section h2 em,
+.trust h2 em {
+  color: var(--accent) !important;
+}
+
+.offline-section p,
+.trust p,
+.pricing p,
+.offline-section li,
+.trust li,
+.offline-section .offline-sub,
+.offline-section .offline-list li,
+.pricing .section-sub,
+.pricing .pricing-not-live {
+  color: var(--text-muted) !important;
+}
+
+.offline-section .offline-list li::before,
+.trust li::marker {
+  color: var(--accent) !important;
+}
+
+/* The signal card and price card were built to invert (dark card, ON a
+   light band). On a dark ground that inversion reads as flat rather than as
+   a pop, so both go back to sitting like every other card on the page. */
+.offline-section .signal-card {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+.offline-section .signal-label { color: var(--text-muted) !important; }
+.offline-section .signal-status,
+.offline-section .signal-bar,
+.offline-section .signal-dot { color: var(--accent) !important; background: var(--accent) !important; }
+
+.pricing .pricing-faq {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+.pricing .pricing-faq-a { color: var(--text-muted) !important; }
+
+/* The nav's dark scrim existed only to survive a light band scrolling under
+   it. With these three back to dark, the scrim is harmless but unnecessary;
+   left in place rather than removed, since the CTA band at the bottom still
+   needs it. */

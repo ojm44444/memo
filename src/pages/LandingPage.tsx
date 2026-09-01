@@ -677,19 +677,13 @@ export function LandingPage() {
           are not putting this on a company card. Not open yet, and there is nothing here to
           pay with. When it opens it will be $49/year or $9/month, first week $1.
         </p>
-        <div className="pricing-faq">
-          <h3 className="pricing-faq-q">What happens if I stop paying?</h3>
-          <p className="pricing-faq-a">
-            {/* AUDITED 31 Aug. This promised "we email you twice before anything is
-                removed" and a 60 day window. There is no scheduled job and no email,
-                so both were commitments the system cannot keep, made to people who
-                have paid. Cut back to what is actually true and enforced today: the
-                export works after you stop. The retention promise goes back in the
-                moment the job and the sending domain exist, not before. */}
-            songdrafts locks, your music doesn't. Your library is already on your device,
-            and you can download everything in one zip any time, including after you stop.
-          </p>
-        </div>
+        {/* Used to carry its own "What happens if I stop paying?" card, right
+            under the price. That question already has an answer in the FAQ
+            section below (same text, kept there), so this was a duplicate,
+            and a worse one: it raised quitting at the exact moment someone is
+            deciding to pay, which is the wrong place to plant that doubt.
+            Owen's call. The pricing section now ends on the price and what is
+            included, not on an exit door. */}
       </section>
 
       <section className="faq-section" id="faq">
