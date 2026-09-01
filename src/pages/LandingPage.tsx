@@ -307,18 +307,10 @@ export function LandingPage() {
 
       <section className="hero">
         <div className="hero-stage">
-          {/* Eyebrow pill: says what this is before the headline has to do
-              any work. Used to also carry Owen's own memo count for peer
-              credibility, which tested well on Reddit against a founder
-              selling down to the reader, but Owen came back to it cold and it
-              read as try-hard rather than honest. The personal record still
-              belongs on the page: it does real work in the discipline section
-              below, where the argument needs someone who demonstrably
-              finishes. Here it only needs to say what songdrafts is. */}
-        <span className="hero-eyebrow">
-          <span className="hero-eyebrow-dot" />
-          Local-first. For the pile of memos you already have.
-        </span>
+          {/* Eyebrow badge removed. Went through two versions (Owen's own
+              memo count, then a plain "local-first" line) and on the second
+              look Owen wanted neither: the headline is strong enough on its
+              own and doesn't need a line above it doing setup work. */}
         <h1 className="hero-h1">
             Stop losing <em>ideas.</em>
             <br />
