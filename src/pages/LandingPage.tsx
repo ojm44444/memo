@@ -507,11 +507,18 @@ export function LandingPage() {
       {/* Merge, promoted out of the grid to a full-width band */}
       <section className="merge-band">
         <div className="merge-band-inner">
+          <div className="section-label">Merge</div>
           <h2 className="section-h2">The verse was already written.<br /><em>You just wrote it in March.</em></h2>
           <p>
-            The chorus from March fits the verse from last week. Drag one card onto the
-            other and they become one song: takes, tags, comments, all of it. And when
-            you are hunting the one in D at 92bpm, stop scrolling and just ask for it.
+            Most songs are not written in one go. They are a chorus from one month and a
+            verse from another that turn out to belong together. In a pile of files those
+            two never meet. On a board they are two cards, side by side.
+          </p>
+          <p>
+            Drag one card onto the other and they become one song: every take, every tag,
+            every comment from both, kept in order. Nothing is lost in the merge. And when
+            you are hunting the one in D at 92bpm to go with it, filter by key and tempo
+            instead of scrolling.
           </p>
         </div>
       </section>
@@ -543,8 +550,10 @@ export function LandingPage() {
                 it was possible at all. */}
             <div className="install-note">
               <p className="install-note-lead">
-                And it installs. Not a bookmark: its own icon, its own window, opens with no
-                internet at all.
+                And it installs. Not a bookmark: its own icon in your dock or on your home
+                screen, its own window, and it opens with no internet at all. Your recordings
+                are already on the device, so there is nothing to download first and nothing
+                to wait for. Open it on a plane and the whole library is there.
               </p>
               <ul className="install-platforms">
                 <li><strong>Windows &amp; Mac</strong> Chrome or Edge, install icon in the address bar</li>
@@ -572,42 +581,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Brief 08's biggest addition. Originally shipped with "a copy, not a
-          mirror" and the 30-day hold CUT, because neither was true: deletes
-          propagated everywhere and no trash existed. Both are true now - the
-          trash (Library) holds deleted songs 30 days with restore, and the
-          boot sweep enforces the window - so the claim is back in. If the
-          trash is ever removed, this copy goes with it. */}
-      <section className="backup-section" id="backup">
-        <div className="backup-inner">
-          <div className="section-label">The thing nobody tells you</div>
-          <h2 className="section-h2">
-            iCloud is not a backup.<br /><em>It is a mirror.</em>
-          </h2>
-          <p className="section-sub">
-            Delete a memo on your phone to free up space and it goes from everywhere at
-            once. That is not a bug, it is what syncing means, and it is how most people
-            find out. There is no undo and no copy left behind.
-          </p>
-          <div className="backup-grid">
-            <div className="backup-col backup-col--them">
-              <div className="backup-col-label">A synced folder</div>
-              <p>One library, reflected on every device. Remove it once and it is removed.</p>
-            </div>
-            <div className="backup-col backup-col--us">
-              <div className="backup-col-label">songdrafts</div>
-              <p>
-                Your recordings are stored on your device, not streamed from somewhere
-                else. Deleting here does not delete it everywhere: deleted songs wait
-                30 days in the trash, and you can put them back. And you can pull the
-                whole library out as a zip whenever you want. That is the difference
-                between a copy and a mirror.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* The iCloud-is-a-mirror section that sat here is gone. Owen: "we don't
+          solve that problem, and it's not a flex, so I don't really get it."
+          Fair. The 30-day trash and the zip export are still true and still
+          on the page, in the trust list and the FAQ, where they read as
+          facts about the product rather than a warning about someone else's. */}
       {/* The discipline objection, met head on.
           Across 12 r/Songwriting threads this is the loudest recurring reply,
           and one high-karma regular posted a version of it in three separate
@@ -718,6 +696,22 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Moved up from the very bottom. Owen: "I really like that bit, and
+          I think that could be further up the page." It now sits straight
+          after the compare table, which is the point where someone has just
+          seen what this does that the alternatives don't. */}
+      <section className="cta-section" id="get-started">
+        <h2>
+          Your songs deserve
+          <br />
+          <em>a proper home.</em>
+        </h2>
+        <p>Open the board. Drag the first memo in. See what you've actually got.</p>
+        <p className="cta-status">
+          Not open yet. No list to join, and nothing here is collecting your email.
+        </p>
+      </section>
+
       <section className="workflow" id="workflow">
         <div className="workflow-inner">
           <div>
@@ -814,17 +808,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="cta-section" id="get-started">
-        <h2>
-          Your songs deserve
-          <br />
-          <em>a proper home.</em>
-        </h2>
-        <p>Open the board. Drag the first memo in. See what you've actually got.</p>
-        <p className="cta-status">
-          Not open yet. No list to join, and nothing here is collecting your email.
-        </p>
-      </section>
 
       <footer>
         {/* The giant faded wordmark is gone (Owen, 30 Aug: "I don't like the

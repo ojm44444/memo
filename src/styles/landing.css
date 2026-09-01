@@ -3894,8 +3894,8 @@ a.nav-cta {
 .trust,
 .pricing {
   background:
-    radial-gradient(ellipse 65% 95% at 85% 15%, color-mix(in srgb, var(--stage-done) 50%, transparent) 0%, transparent 66%),
-    radial-gradient(ellipse 70% 90% at 10% 85%, color-mix(in srgb, var(--stage-inbox) 44%, transparent) 0%, transparent 68%),
+    radial-gradient(ellipse 65% 95% at 85% 15%, color-mix(in srgb, var(--stage-inbox) 34%, transparent) 0%, transparent 66%),
+    radial-gradient(ellipse 70% 90% at 10% 85%, color-mix(in srgb, var(--stage-half) 24%, transparent) 0%, transparent 68%),
     transparent !important;
   color: var(--text) !important;
 }
@@ -4095,3 +4095,37 @@ a.nav-cta {
     margin-left: 0;
   }
 }
+
+
+/* ═══ PRICING: not a rectangle in the middle ════════════════════════════════
+   .pricing had max-width: 1140px with auto margins on the SECTION itself, so
+   its background painted as a box narrower than the page: a rectangle sat
+   in the middle of a full-width ground. Owen: "we still don't really like
+   that it's a square in the middle." The section is full-bleed now and only
+   its contents are constrained. */
+.pricing {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-top: none !important;
+}
+.pricing > * {
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ═══ GREEN, DIALLED DOWN ════════════════════════════════════════════════════
+   The section glows were pushed towards the green end of the ramp when Owen
+   asked for "brighter", which fought his other, louder note that the green
+   is too much. Brighter and greener are not the same request. The glows now
+   lean on the teal end (stage-inbox, stage-half) instead of stage-done, and
+   the hero's own mesh drops its pale-green stop to the same teal. */
+.hero::before {
+  background:
+    radial-gradient(ellipse 55% 50% at 10% 14%, var(--stage-inbox) 0%, transparent 62%),
+    radial-gradient(ellipse 50% 46% at 88% 8%, var(--stage-half) 0%, transparent 62%),
+    radial-gradient(ellipse 58% 52% at 64% 78%, var(--stage-ideas) 0%, transparent 64%),
+    radial-gradient(ellipse 52% 50% at 18% 86%, var(--stage-inbox) 0%, transparent 64%) !important;
+}
+.merge-band .section-label { color: var(--stage-half); }

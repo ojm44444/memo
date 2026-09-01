@@ -46,7 +46,7 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     count: 153,
     cards: [
       { id: 'a', title: 'New Recording 24', time: '0:41', bars: seedBars(1) },
-      { id: 'b', title: 'Northgate Rehearsal Rooms 12', time: '1:07', bars: seedBars(2) },
+      { id: 'b', title: 'Northgate Rehearsal Rooms 12', time: '1:07', tag: 'idea', bars: seedBars(2) },
       { id: 'c', title: 'New Recording 23', time: '0:26', bars: seedBars(9) },
       { id: 'i', title: 'Pinefield Business Park 6', time: '2:38', bars: seedBars(11) },
       { id: 'j', title: 'New Recording 21', time: '0:14', bars: seedBars(12) },
@@ -58,8 +58,8 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     count: 24,
     cards: [
       { id: 'l', title: 'car park chorus', time: '0:41', tag: 'riff', bars: seedBars(14) },
-      { id: 'm', title: 'tuesday rain', time: '1:07', bars: seedBars(15) },
-      { id: 'c2', title: 'shower bridge??', time: '0:26', bars: seedBars(9) },
+      { id: 'm', title: 'tuesday rain', time: '1:07', tag: 'verse', bars: seedBars(15) },
+      { id: 'c2', title: 'shower bridge??', time: '0:26', tag: 'chorus', bars: seedBars(9) },
     ],
   },
   {
@@ -67,7 +67,7 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     count: 9,
     cards: [
       { id: 'd', title: 'the kettle song', time: '2:14', tag: 'lyrics drafted', bars: seedBars(3) },
-      { id: 'e', title: 'M6 at midnight', time: '3:02', bars: seedBars(4) },
+      { id: 'e', title: 'M6 at midnight', time: '3:02', tag: 'half-written', bars: seedBars(4) },
     ],
   },
   {
