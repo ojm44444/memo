@@ -4670,3 +4670,8 @@ section[id] { scroll-margin-top: 88px; }
   .discipline .discipline-turn,
   .discipline .discipline-credential { margin-left: 0; }
 }
+
+/* The container pass set `.pricing > *` to max-width 1140, which is (0,1,1)
+   and outranks `.price-card` at (0,1,0), so the card rendered full width
+   instead of 460. Measured live at 1140px before catching it. */
+.pricing > .price-card { max-width: 460px; }
