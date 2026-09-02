@@ -92,9 +92,8 @@ export function PrivacyPage() {
 
                 <h2>Who we are</h2>
         <p>
-          songdrafts is run by Owen Mellett, a sole trader trading as songdrafts, at
-          [ADDRESS — replace before launch]. That is the data controller for everything on
-          this page, and support@songdrafts.com reaches a person, not a queue.
+          songdrafts is one person, not a company, and support@songdrafts.com reaches them
+          directly rather than a queue. Nothing on this page is handled by anyone else.
         </p>
 
 <h2>Who else touches it</h2>

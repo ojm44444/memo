@@ -859,18 +859,15 @@ export function LandingPage() {
         {/* Audit F1: a site whose pitch is "your music is yours" had no
             copyright line asserting its own. Entity name and address (F2)
             are Owen's to supply; the line is written so they slot in. */}
-        {/* F2. Deliberately NOT "songdrafts Limited": Owen is not registered,
-            and using "Limited" for a business that is not incorporated is an
-            offence under the Companies Act, not a formality. A sole trader
-            trades under their own name plus a trading name, which is what
-            this says. ADDRESS IS A PLACEHOLDER and must be a real one before
-            the first payment — a service address is fine and normal for
-            someone working from home. */}
-        <p className="footer-copyright">
-          &copy; 2026 Owen Mellett, trading as songdrafts. All rights reserved.
-          <br />
-          <span className="footer-address">[ADDRESS — replace before launch]</span>
-        </p>
+        {/* F2. Just "songdrafts", on Owen's instruction: he did not ask for
+            his own name on the site and I put it there uninvited.
+            NOT "songdrafts Limited" either — using Limited for a business
+            that is not incorporated is an offence under the Companies Act
+            rather than a formality, and songdrafts is not registered.
+            A trading name on its own is fine for a site that is not yet
+            taking money. The identity and address requirements bite at the
+            first payment, not before. */}
+        <p className="footer-copyright">&copy; 2026 songdrafts. All rights reserved.</p>
       </footer>
     </div>
   )
