@@ -98,6 +98,21 @@ serve(async (req) => {
      * discounted price if anyone ever fiddles its duration, and a trial is
      * what Stripe's own dunning and reminder emails understand.
      */
+    /**
+     * THE $1 FIRST WEEK, ACTUALLY CHARGED.
+     *
+     * Previously this was trial_period_days alone, which is a FREE week, and
+     * the landing page advertised $1 for a week that nothing here would have
+     * billed. Owner's decision: keep the $1 and fix the code, because a card
+     * that has been charged converts far better than one that has only been
+     * stored, and every word on the site and in the Terms already assumes it.
+     *
+     * add_invoice_items puts a one-off line on the FIRST invoice, which
+     * Stripe issues immediately at checkout, while trial_period_days holds
+     * the subscription price back for seven days. So: $1 now, full price on
+     * day eight, and Stripe's own dunning and reminder emails still
+     * understand the shape because it is a real trial.
+     */
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
@@ -106,6 +121,12 @@ serve(async (req) => {
         trial_period_days: 7,
         metadata: { supabase_user_id: user.id },
       },
+      // One-off $1, billed at checkout. STRIPE_PRICE_FIRST_WEEK is a one-time
+      // price; without it the checkout still works and the week is free, so a
+      // missing env var degrades to the old behaviour rather than failing.
+      ...(Deno.env.get('STRIPE_PRICE_FIRST_WEEK')
+        ? { add_invoice_items: [{ price: Deno.env.get('STRIPE_PRICE_FIRST_WEEK')!, quantity: 1 }] }
+        : {}),
       // Owen's line: "there is nothing here to pay with" must stop being true
       // the moment this ships, so the card IS collected up front. A trial with
       // no card is a different product decision and not this one.

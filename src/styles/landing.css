@@ -4675,3 +4675,117 @@ section[id] { scroll-margin-top: 88px; }
    and outranks `.price-card` at (0,1,0), so the card rendered full width
    instead of 460. Measured live at 1140px before catching it. */
 .pricing > .price-card { max-width: 460px !important; }
+
+/* ═══ LAUNCH SPEC, ROUND 2 ══════════════════════════════════════════════════ */
+
+/* #03 — the nav pill was still see-through and still slicing headings. The
+   earlier attempt set a 0.94 ground but an older rule with a gradient
+   background was winning; this is last and explicit. scroll-padding puts
+   anchor targets below it rather than under it. */
+html { scroll-padding-top: 88px; }
+.landing > nav {
+  background: color-mix(in srgb, var(--bg) 94%, transparent) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* #14 — the support line is a real link with a real hit area. */
+.price-support {
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  padding: 14px 8px;
+  min-height: 44px;
+  margin: 6px 0 0;
+}
+
+/* #10 — two intros were running the full 1140. */
+.howitworks .section-sub,
+.compare .section-sub { max-width: 640px !important; }
+
+/* #13 — feature cards in a row share the tallest height. */
+.features-grid { align-items: stretch !important; }
+.features-grid .feature-card { height: 100%; }
+
+/* #09 — Fair Criticism was right-aligned, so every line started somewhere
+   different, over an empty left half. The heading keeps the alternation
+   Owen asked for; the BODY goes back to left-aligned and sits in a reading
+   column on the right, which is the part that was actually hard to read. */
+@media (min-width: 861px) {
+  .discipline .discipline-inner { text-align: right; }
+  .discipline .discipline-lead,
+  .discipline .discipline-turn,
+  .discipline .discipline-credential {
+    text-align: left;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+/* #11 — the merge visual sat under the text and, at rest, read as a bug.
+   It moves into a right column and starts from a readable state. */
+@media (min-width: 900px) {
+  .merge-band-inner { align-items: start; }
+  .merge-band-inner .section-h2 { margin-bottom: 24px; }
+}
+.md-card--travel { animation-delay: 1.2s; }
+
+/* #16 — footer © line collided with the links. */
+.footer-legal { margin-bottom: 8px; }
+.footer-copyright { margin-top: 8px; }
+
+/* #12 — two-column hero so the take-stack card is in the first frame
+   instead of below the fold. */
+@media (min-width: 1024px) {
+  .hero-stage { display: grid; grid-template-columns: minmax(0, 600px) 380px; gap: 56px; align-items: center; }
+  .hero-stack { padding: 0; }
+  .hero-stack .hs-card { max-width: 360px; }
+}
+
+/* ═══ MOBILE, ROUND 2 ═══════════════════════════════════════════════════════ */
+@media (max-width: 620px) {
+  /* #07 — nothing under 12px. The two product mocks are the things meant to
+     sell the product and they were set at 8.8px. */
+  .hs-title, .lb-title, .od-title, .md-title { font-size: 13px !important; }
+  .hs-tag, .hs-key, .hs-take-label, .hs-take-when,
+  .lb-tag, .lb-time, .lb-col-count, .ramp-tag,
+  .od-nosignal, .od-queued, .md-time, .md-take {
+    font-size: 11px !important;
+    letter-spacing: 0.04em;
+  }
+  .lb-col-name { font-size: 11px !important; font-weight: 500; }
+  .lb-play, .hs-play, .od-play, .md-play { font-size: 16px !important; }
+  .hero-trial-note, .hero-platforms { font-size: 13px !important; }
+
+  /* #06 — three of six competitors were simply off-screen with nothing to
+     say so. Feature column pinned, edge fade, and a hint. */
+  .compare-wrap { position: relative; }
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    position: sticky !important; left: 0; z-index: 3;
+    background: var(--bg) !important;
+  }
+  .compare-table th, .compare-table td { padding: 8px !important; font-size: 13px !important; }
+  .compare-wrap::before {
+    content: 'Swipe to see all six →';
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .compare-wrap::after {
+    content: '';
+    position: absolute; top: 28px; right: 0; bottom: 0; width: 32px;
+    background: linear-gradient(to right, transparent, var(--bg));
+    pointer-events: none; z-index: 4;
+  }
+
+  /* #22 — the hero glow overflowed by 8px. */
+  .hero { overflow: hidden; }
+  .lb-glow { max-width: 100%; left: 0; }
+}

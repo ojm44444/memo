@@ -291,7 +291,9 @@ function PricingToggle() {
           claims a £1 line that was never written. Copy now matches the code
           until Owen decides which he wants; the code is the thing that will
           actually charge people. */}
-      <p className="price-trial">Free for 7 days, then {annual ? '$49 a year' : '$9 a month'}. Cancel any time.</p>
+      <p className="price-trial">
+        First week $1, then {annual ? '$49 a year' : '$9 a month'}. Cancel any time.
+      </p>
 
       <p className="price-headline">
         {annual ? '$49' : '$9'}
@@ -305,9 +307,10 @@ function PricingToggle() {
         Get started
       </Link>
 
-      <p className="price-support">
-        Questions? <a href="mailto:support@songdrafts.com">Email and a person answers.</a>
-      </p>
+      {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
+      <a className="price-support" href="mailto:support@songdrafts.com">
+        Questions? Email us, a person answers.
+      </a>
 
       <ul className="price-includes">
         <li>The board, and every take stacked on one song</li>
@@ -747,7 +750,7 @@ export function LandingPage() {
           Get started
         </Link>
         <p className="cta-status">
-          Free for 7 days. Cancel any time.
+          First week $1. Cancel any time.
         </p>
       </section>
 

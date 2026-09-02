@@ -117,9 +117,7 @@ export function SignInPage() {
           </Link>
           <h2 className="sign-in-title">Not open yet</h2>
           <p className="sign-in-sub">
-            songdrafts is still being finished, so new accounts are closed for now. Nothing here
-            is collecting your email either, so there is no list to join and nothing to unsubscribe
-            from later.
+            songdrafts is still being finished, so new accounts are closed for now.
           </p>
           {/* Used to say "already have an account? open your board directly",
               linking to /app. That link could never work: by the time this
