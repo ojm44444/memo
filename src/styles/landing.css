@@ -4740,10 +4740,39 @@ html { scroll-padding-top: 88px; }
 
 /* #12 — two-column hero so the take-stack card is in the first frame
    instead of below the fold. */
-@media (min-width: 1024px) {
-  .hero-stage { display: grid; grid-template-columns: minmax(0, 600px) 380px; gap: 56px; align-items: center; }
-  .hero-stack { padding: 0; }
+/* #12, corrected. The first attempt made .hero-stage the two-column grid.
+   That element IS the text block — headline, both subhead sentences, the
+   button, the platform lines — so it split the COPY into two columns: the
+   headline squeezed to four lines, the subhead torn in half with one
+   sentence in each column, and the button left floating alone on the right.
+   The card, the entire reason for going two-column, stayed below the fold
+   because it is a SIBLING of .hero-stage, not a child.
+   The grid belongs one level up, on .hero itself: text block left as one
+   unit, card right, board full width underneath.
+   1200px rather than 1024, so the headline never has to fit two lines in a
+   column narrow enough to break it. */
+@media (min-width: 1200px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 600px) 380px;
+    column-gap: 56px;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-stage {
+    grid-column: 1;
+    max-width: 600px !important;
+    margin: 0 !important;
+    text-align: left;
+  }
+  .hero-stack {
+    grid-column: 2;
+    padding: 0;
+    align-self: center;
+  }
   .hero-stack .hs-card { max-width: 360px; }
+  /* The board spans both columns and stays full width beneath. */
+  .hero > .lb { grid-column: 1 / -1; }
 }
 
 /* ═══ MOBILE, ROUND 2 ═══════════════════════════════════════════════════════ */
