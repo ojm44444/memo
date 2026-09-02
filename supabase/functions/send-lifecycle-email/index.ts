@@ -1,6 +1,9 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {
+  audioDeletedEmail,
+  audioExpiring60Email,
+  audioExpiring85Email,
   cancelledEmail,
   paymentFailedEmail,
   stalledImportEmail,
@@ -33,7 +36,15 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
-type Kind = 'welcome' | 'stalled_import' | 'trial_ending' | 'payment_failed' | 'cancelled'
+type Kind =
+  | 'welcome'
+  | 'stalled_import'
+  | 'trial_ending'
+  | 'payment_failed'
+  | 'cancelled'
+  | 'audio_expiring_60'
+  | 'audio_expiring_85'
+  | 'audio_deleted'
 
 serve(async (req) => {
   const resendKey = Deno.env.get('RESEND_API_KEY')
@@ -56,6 +67,12 @@ serve(async (req) => {
   const name = typeof body?.name === 'string' && body.name.trim() ? body.name.trim() : 'there'
   const endsOn = typeof body?.endsOn === 'string' ? body.endsOn : ''
   const userId = typeof body?.userId === 'string' ? body.userId : null
+  /* Which occurrence this message is about. Null for the five original kinds,
+     which are once per address forever. The retention warnings carry the lapse
+     date, because someone can lapse, resubscribe and lapse again, and the
+     second countdown has to be able to warn them too. */
+  const dedupeKey = typeof body?.dedupeKey === 'string' && body.dedupeKey ? body.dedupeKey : null
+  const deleteOn = typeof body?.deleteOn === 'string' ? body.deleteOn : ''
 
   if (!kind || !email) return json({ error: 'kind and email are required' }, 400)
 
@@ -78,6 +95,17 @@ serve(async (req) => {
       if (!endsOn) return json({ error: 'endsOn is required' }, 400)
       template = cancelledEmail(name, endsOn)
       break
+    case 'audio_expiring_60':
+      if (!deleteOn) return json({ error: 'deleteOn is required' }, 400)
+      template = audioExpiring60Email(name, deleteOn)
+      break
+    case 'audio_expiring_85':
+      if (!deleteOn) return json({ error: 'deleteOn is required' }, 400)
+      template = audioExpiring85Email(name, deleteOn)
+      break
+    case 'audio_deleted':
+      template = audioDeletedEmail(name)
+      break
     default:
       return json({ error: 'Unknown kind' }, 400)
   }
@@ -90,7 +118,7 @@ serve(async (req) => {
      recovered by deleting the row, below. */
   const { error: claimError } = await admin
     .from('email_log')
-    .insert({ user_id: userId, email, kind })
+    .insert({ user_id: userId, email, kind, dedupe_key: dedupeKey })
 
   if (claimError) {
     // 23505 is the unique violation: already sent. That is a success.
@@ -116,8 +144,14 @@ serve(async (req) => {
   })
 
   if (!res.ok) {
-    // Release the claim so a retry can actually retry.
-    await admin.from('email_log').delete().eq('email', email).eq('kind', kind)
+    /* Release the claim so a retry can actually retry. Matched on the same
+       three columns the unique index uses, or a failed retention warning would
+       release some other lapse's row and let that one send twice. */
+    let release = admin.from('email_log').delete().eq('email', email).eq('kind', kind)
+    release = dedupeKey === null
+      ? release.is('dedupe_key', null)
+      : release.eq('dedupe_key', dedupeKey)
+    await release
     return json({ error: `Resend refused it: ${await res.text()}` }, 502)
   }
 

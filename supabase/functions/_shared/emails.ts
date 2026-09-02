@@ -156,6 +156,104 @@ ${SIGN_OFF}`,
 }
 
 /**
+ * Day 60 after a subscription lapses. The first of two warnings.
+ *
+ * The tone is deliberately not a win-back. Someone who stopped paying two
+ * months ago has decided; pressing them here would make the warning read as a
+ * pretext for a sales email, and then the day 85 one gets ignored too. The
+ * only job is that nobody is surprised on day 90.
+ *
+ * It leads with the thing that is NOT happening, because the fear the subject
+ * line creates is that the songs are going. They are not. The cloud copy of
+ * the audio is.
+ */
+export function audioExpiring60Email(name: string, deleteOn: string): EmailTemplate {
+  return {
+    subject: `Your songdrafts audio, and what happens on ${deleteOn}`,
+    text: `Hi ${name},
+
+Your subscription ended a couple of months ago, so this is the first of two
+notes about the audio we are still holding for you.
+
+Your songs are not going anywhere. Titles, notes, lyrics, tags and comments
+stay on your board whether you subscribe again or not. What gets removed on
+${deleteOn} is our copy of the audio files, which is the part that costs money
+to store.
+
+If songdrafts is still on a computer you use, the recordings are already
+there. Nothing you do now changes that, and this email does not apply to them.
+
+If it is not, and you want the audio back, there are two ways:
+
+  1. Open Settings and export a backup. That gives you a ZIP with the audio
+     files and a readable list of your songs, and it works whether or not you
+     ever open songdrafts again. It costs nothing.
+
+  2. Subscribe again, and everything carries on as it was.
+
+I would take the backup either way. I will write once more on day 85.
+
+${SIGN_OFF}`,
+  }
+}
+
+/**
+ * Day 85. Five days left, and the last one.
+ *
+ * Shorter on purpose. The reasoning was in the first email; repeating it here
+ * buries the date, and the date is the entire content of this message.
+ */
+export function audioExpiring85Email(name: string, deleteOn: string): EmailTemplate {
+  return {
+    subject: 'Five days left on your songdrafts audio',
+    text: `Hi ${name},
+
+Last note on this. On ${deleteOn} our copy of your audio files is deleted.
+
+Your songs stay: titles, notes, lyrics, tags and comments are all still on the
+board afterwards. It is the recordings themselves that go.
+
+Settings has an export that gives you a ZIP of the audio and a readable list
+of the songs. It takes a minute and it is free. If songdrafts is still on a
+computer you use, you already have the files and this does not affect you.
+
+Subscribing again keeps everything as it is.
+
+${SIGN_OFF}`,
+  }
+}
+
+/**
+ * Day 90, after the fact.
+ *
+ * Sent because a deletion nobody confirms is a deletion nobody trusts. It is
+ * also the one message here that has to be accurate about what is left, since
+ * it is the one that gets checked against the board.
+ */
+export function audioDeletedEmail(name: string): EmailTemplate {
+  return {
+    subject: 'Your songdrafts audio has been removed',
+    text: `Hi ${name},
+
+As the last two emails said, our copy of your audio files has now been
+deleted. That is done and it is not reversible from our side.
+
+Your board is still there. Every song, with its title, notes, lyrics, tags and
+comments, is exactly where you left it. The takes are listed but have no
+audio attached.
+
+If songdrafts is still installed on a computer you used, your recordings are
+on that machine and were never touched by any of this. Opening the app there
+and subscribing again puts them back in the cloud.
+
+If this is a mistake, or the warnings went somewhere you do not read, reply
+and tell me. I cannot undo it, but I would like to know how it happened.
+
+${SIGN_OFF}`,
+  }
+}
+
+/**
  * The plainest HTML that will not look broken in Gmail, Outlook or Mail.
  *
  * A table-based template is the standard answer and it is not needed here:

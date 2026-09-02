@@ -28,9 +28,10 @@ const TARGETS = [
   { src: 'icon.svg', out: 'pwa-192x192.png', w: 192, h: 192 },
   { src: 'icon.svg', out: 'pwa-512x512.png', w: 512, h: 512 },
   { src: 'icon.svg', out: 'apple-touch-icon.png', w: 180, h: 180 },
-  // Link previews (og:image / twitter:image). A square app icon in a
-  // 1200x630 slot is what WhatsApp/iMessage were showing before.
-  { src: 'wordmark-on-block.svg', out: 'og-card.png', w: 1200, h: 630, pad: 0.14 },
+  // og-card.png is NOT built here any more. A wordmark centred on a dark
+  // rectangle is what every link to songdrafts previewed as, which reads as a
+  // parked domain. It is a laid-out page now: scripts/build-og-card.mjs,
+  // `npm run build:og`. Putting it back here would overwrite that silently.
 ]
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))

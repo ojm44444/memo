@@ -1,0 +1,279 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>songdrafts og card</title>
+<!--
+  The 1200x630 link preview, drawn rather than cropped.
+
+  What it replaced: build-icons.mjs rasterised wordmark-on-block.svg into this
+  slot, so every link posted anywhere was a wordmark on a dark rectangle. That
+  reads as a parked domain. A preview card is the only part of the site most
+  people see before deciding whether to click, so it gets the headline, the
+  accent, and a piece of the actual interface.
+
+  Everything here is the real thing rather than an approximation: the hero
+  headline verbatim including which two words are accented, the tokens.css
+  dark ground, and the same self-hosted faces the site loads.
+-->
+<style>
+  @font-face {
+    font-family: 'Instrument Serif';
+    font-style: normal; font-weight: 400;
+    src: url('../../public/fonts/instrument-serif-400.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Instrument Serif';
+    font-style: italic; font-weight: 400;
+    src: url('../../public/fonts/instrument-serif-400-italic.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Bricolage Grotesque';
+    font-style: normal; font-weight: 400;
+    src: url('../../public/fonts/bricolage-grotesque-400.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Bricolage Grotesque';
+    font-style: normal; font-weight: 500;
+    src: url('../../public/fonts/bricolage-grotesque-500.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'DM Mono';
+    font-style: normal; font-weight: 400;
+    src: url('../../public/fonts/dm-mono-400.woff2') format('woff2');
+  }
+
+  :root {
+    --bg: #0d1f27;
+    --surface: #1b3a46;
+    --border: rgba(238, 245, 242, 0.16);
+    --text: #eef5f2;
+    --text-muted: #a3bab7;
+    --accent: #9ddbad;
+    --stage-half: #8ed2b2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The one piece of atmosphere. It sits behind the card so the right third
+     has some depth without a second colour entering the palette. */
+  .card::before, .glow {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(760px 520px at 88% 22%, rgba(157, 219, 173, 0.11), transparent 68%),
+      radial-gradient(560px 460px at 4% 92%, rgba(81, 160, 169, 0.10), transparent 70%);
+  }
+
+  .frame {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    padding: 68px 72px 64px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wordmark { width: 140px; display: block; }
+
+  /* Two thirds text, one third interface, as specced. The gap does the
+     separating, so nothing needs a divider rule. */
+  .body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 56px;
+    margin-top: 4px;
+  }
+
+  .copy { flex: 1 1 auto; min-width: 0; }
+
+  h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 88px;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+  }
+
+  /* Same two words the live hero accents, in the same italic. */
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .sub {
+    margin-top: 26px;
+    font-size: 23px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 26ch;
+  }
+
+  .url {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  /* ── The take stack ─────────────────────────────────────────────────────
+     A song card with three takes on it, which is the one idea the product
+     has that a screenshot of a Kanban board does not convey on its own.
+     Two dimmed cards behind give the stack its depth. */
+  .stack { position: relative; width: 330px; flex: 0 0 330px; }
+
+  /* The two cards behind. They sit BELOW and to the left rather than peeking
+     out of the top right, which read as a rendering fault: a stack you are
+     looking down on has its lower cards further away from you, not above. */
+  .ghost {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .ghost.one { transform: translate(-26px, 26px) scale(0.965); opacity: 0.3; }
+  .ghost.two { transform: translate(-13px, 13px) scale(0.982); opacity: 0.55; }
+
+  .card {
+    position: relative;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 26px 64px rgba(0, 0, 0, 0.38);
+  }
+  .card::before { border-radius: 18px; }
+  .ghost::before { content: none; }
+
+  .card > * { position: relative; }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--stage-half); }
+
+  .card-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 33px;
+    line-height: 1.12;
+    margin-top: 12px;
+  }
+
+  .takes { margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+  .take {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .take:first-child { border-top: 0; padding-top: 0; }
+
+  .label {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    width: 34px;
+    flex: 0 0 34px;
+  }
+
+  .wave { display: flex; align-items: center; gap: 2.5px; height: 28px; flex: 1; }
+  .wave i { width: 3px; border-radius: 2px; background: rgba(238, 245, 242, 0.28); }
+  /* The top take is the current one, so it is the only accented element in
+     the card. One accent, as the identity requires. */
+  .take.current .wave i { background: var(--accent); }
+  .take.current .label { color: var(--accent); }
+
+  .dur {
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    flex: 0 0 auto;
+  }
+
+  .foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+</style>
+
+<div class="frame">
+  <div class="glow"></div>
+
+  <img class="wordmark" src="../../public/brand/wordmark-paper.svg" alt="songdrafts" />
+
+  <div class="body">
+    <div class="copy">
+      <h1>Stop losing <em>ideas.</em><br />Start finishing <em>songs.</em></h1>
+      <p class="sub">A board for your voice memos.</p>
+    </div>
+
+    <div class="stack">
+      <div class="ghost one"></div>
+      <div class="ghost two"></div>
+      <div class="card">
+        <div class="stage"><span class="dot"></span> Half-written</div>
+        <div class="card-title">Kitchen at 2am</div>
+        <div class="takes">
+          <div class="take current">
+            <span class="label">v3</span>
+            <span class="wave" data-seed="3"></span>
+            <span class="dur">2:14</span>
+          </div>
+          <div class="take">
+            <span class="label">v2</span>
+            <span class="wave" data-seed="2"></span>
+            <span class="dur">1:58</span>
+          </div>
+          <div class="take">
+            <span class="label">v1</span>
+            <span class="wave" data-seed="1"></span>
+            <span class="dur">0:47</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="url">songdrafts.com</span>
+  </div>
+</div>
+
+<script>
+  /* Waveforms drawn from a fixed seed rather than Math.random, so re-running
+     the build produces a byte-identical PNG and a rebuild is never a diff. */
+  for (const wave of document.querySelectorAll('.wave')) {
+    let s = Number(wave.dataset.seed) * 7919
+    const bars = 34
+    for (let i = 0; i < bars; i++) {
+      s = (s * 1103515245 + 12345) % 2147483648
+      const r = s / 2147483648
+      // Tapered at both ends, the way a take with a count-in and a fade reads.
+      const taper = Math.sin((Math.PI * (i + 0.5)) / bars) ** 0.6
+      const h = Math.max(3, Math.round((0.22 + r * 0.78) * 28 * taper))
+      const bar = document.createElement('i')
+      bar.style.height = h + 'px'
+      wave.appendChild(bar)
+    }
+  }
+</script>
