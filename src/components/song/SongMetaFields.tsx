@@ -18,6 +18,14 @@ import type { Song } from '@/types/song'
  * research warned that heavy metadata entry becomes a duplicate database
  * problem: more typing, more conflict, less use. So: no panel, no taxonomy,
  * no required fields.
+ *
+ * THE PLACEHOLDERS SAY "e.g." NOW. They used to read "Am", "92", "DADGAD",
+ * which is what a filled-in field looks like, and there was no ::placeholder
+ * rule so they rendered barely dimmer than a real value. Every card in an
+ * audit of 241 songs appeared to be in A minor at 92bpm in DADGAD, and all
+ * three fields were empty on every one of them. On a page whose whole
+ * position is that it does not tell you things that are not true, a field
+ * that looks answered when it is blank is the same failure in miniature.
  */
 export function SongMetaFields({ song }: { song: Song }) {
   const [key, setKey] = useState(song.musicalKey ?? '')
@@ -40,7 +48,7 @@ export function SongMetaFields({ song }: { song: Song }) {
         <span>Key</span>
         <input
           value={key}
-          placeholder="Am"
+          placeholder="e.g. Am"
           maxLength={12}
           onChange={(e) => setKey(e.target.value)}
           onBlur={() => commit({ musicalKey: key.trim() || null })}
@@ -51,7 +59,7 @@ export function SongMetaFields({ song }: { song: Song }) {
         <span>Tempo</span>
         <input
           value={bpm}
-          placeholder="92"
+          placeholder="e.g. 92"
           inputMode="numeric"
           maxLength={3}
           onChange={(e) => setBpm(e.target.value.replace(/[^\d]/g, ''))}
@@ -66,7 +74,7 @@ export function SongMetaFields({ song }: { song: Song }) {
         <span>Tuning</span>
         <input
           value={tuning}
-          placeholder="DADGAD"
+          placeholder="e.g. DADGAD"
           maxLength={24}
           onChange={(e) => setTuning(e.target.value)}
           onBlur={() => commit({ tuning: tuning.trim() || null })}

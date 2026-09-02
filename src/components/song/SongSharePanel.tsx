@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
@@ -48,6 +48,12 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
   const [qrToken, setQrToken] = useState<string | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [qrCopied, setQrCopied] = useState(false)
+  /* The link that was just created, shown rather than only copied. You used
+     to press "Copy link" and get a tick with no way to see what landed on the
+     clipboard, which is a poor thing to paste to a producer on trust. */
+  const [justCreatedUrl, setJustCreatedUrl] = useState<string | null>(null)
+  const [clipboardRefused, setClipboardRefused] = useState(false)
+  const panelRef = useRef<HTMLDivElement | null>(null)
 
   const song = useLiveQuery(() => getSong(songId), [songId])
   const activeProjectId = useLiveQuery(() => getActiveProjectId(), [])
@@ -132,6 +138,46 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
     setQrCopied(false)
   }
 
+  /* The popover closes on Escape and on a click outside it, and it marks
+     itself as a drawer layer so the drawer's own Escape handler stands down
+     while it is open. Escape used to close the whole drawer from underneath
+     an open menu, which loses your place on the card. */
+  /* Closing forgets the last link made, so reopening never shows a stale one.
+     Done here rather than in an effect: it is a consequence of the click, not
+     of rendering. */
+  const closePanel = useCallback(() => {
+    setOpen(false)
+    setJustCreatedUrl(null)
+    setClipboardRefused(false)
+  }, [])
+
+  const togglePanel = () => (open ? closePanel() : setOpen(true))
+
+  useEffect(() => {
+    if (!open) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (qrToken) return // the QR overlay is above this and closes first
+      event.preventDefault()
+      event.stopPropagation()
+      closePanel()
+    }
+
+    const onPointerDown = (event: MouseEvent) => {
+      const node = panelRef.current
+      if (!node || node.contains(event.target as Node)) return
+      closePanel()
+    }
+
+    window.addEventListener('keydown', onKeyDown, true)
+    document.addEventListener('mousedown', onPointerDown, true)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true)
+      document.removeEventListener('mousedown', onPointerDown, true)
+    }
+  }, [open, qrToken, closePanel])
+
   useEffect(() => {
     if (!qrToken) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -185,10 +231,20 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
         versionId: selectedVersion?.id,
         label: shareLabel.trim() || undefined,
       })
-      await navigator.clipboard.writeText(url)
+      /* The link exists from here on. The clipboard write used to sit inside
+         the same try, so a browser refusing clipboard permission reported
+         "Could not create share link" for a link that had in fact been
+         created, and the user made another one. */
+      setJustCreatedUrl(url)
       const token = url.split('/').pop() ?? null
-      if (token) setCopiedToken(token)
-      setTimeout(() => setCopiedToken(null), 2500)
+      try {
+        await navigator.clipboard.writeText(url)
+        setClipboardRefused(false)
+        if (token) setCopiedToken(token)
+        setTimeout(() => setCopiedToken(null), 2500)
+      } catch {
+        setClipboardRefused(true)
+      }
       await loadShareData()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create share link')
@@ -330,16 +386,23 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
   }
 
   return (
-    <div className="song-share">
-      <button type="button" className="song-share-trigger" onClick={() => setOpen((v) => !v)}>
-        Share demo link
+    <div className="song-share" ref={panelRef}>
+      <button
+        type="button"
+        className="song-share-trigger"
+        onClick={togglePanel}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        title="Share a link to this song"
+      >
+        Share
         {(shares.length > 0 || feedback.length > 0) && (
           <span className="song-share-badge">{Math.max(shares.length, feedback.length)}</span>
         )}
       </button>
 
       {open && (
-        <div className="song-share-panel">
+        <div className="song-share-panel" data-drawer-layer="share" role="dialog" aria-label="Share this song">
 
           {/* Primary action — one tap, no friction */}
           <div className="song-share-instant">
@@ -360,6 +423,34 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
               {showOptions ? 'Hide options' : 'Options'}
             </button>
           </div>
+
+          {justCreatedUrl ? (
+            <div className="song-share-created">
+              <input
+                className="song-share-created-url"
+                readOnly
+                value={justCreatedUrl}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label="Share link"
+              />
+              <button
+                type="button"
+                className="song-share-created-copy"
+                onClick={() => void navigator.clipboard.writeText(justCreatedUrl)
+                  .then(() => setClipboardRefused(false))
+                  .catch(() => setClipboardRefused(true))}
+              >
+                Copy
+              </button>
+            </div>
+          ) : null}
+
+          {clipboardRefused && (
+            <p className="song-share-hint">
+              This browser would not let us reach the clipboard. The link above is live, copy
+              it by hand.
+            </p>
+          )}
 
           <p className="song-share-sub">
             Anyone with the link can listen. No account needed.
@@ -796,7 +887,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           </div>
 
           {qrDataUrl && qrToken && (
-            <div className="song-share-qr-overlay" role="dialog" aria-modal="true" aria-label="Share link QR code">
+            <div className="song-share-qr-overlay" data-drawer-layer="qr" role="dialog" aria-modal="true" aria-label="Share link QR code">
               <button
                 type="button"
                 className="song-share-qr-backdrop"

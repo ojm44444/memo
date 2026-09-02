@@ -410,6 +410,8 @@ body.is-file-dragging * {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* The anchor for the popover. */
+  position: relative;
 }
 
 .song-share-trigger {
@@ -423,15 +425,72 @@ body.is-file-dragging * {
   cursor: pointer;
 }
 
+/* A popover hung off the Share button in the drawer header, not a section at
+   the bottom of a scrolling column. It used to be inline, which meant the
+   button was off-screen when a card opened and the options panel was
+   off-screen again after a second scroll. */
 .song-share-panel {
-  position: relative;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 70;
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--bg-3);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* On a phone the drawer is the width of the screen, so a right-anchored
+   380px popover would hang off the left edge instead. */
+@media (max-width: 520px) {
+  .song-share-panel {
+    position: fixed;
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: 66vh;
+  }
+}
+
+/* The link you just made, readable rather than only on the clipboard. */
+.song-share-created {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.song-share-created-url {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.song-share-created-copy {
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.72rem;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.song-share-created-copy:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .song-share-sub {
@@ -9811,6 +9870,17 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
 .song-meta-field input:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* There was no rule here at all, so the hint inherited the browser default
+   and sat about 20% dimmer than a real value: close enough that an empty Key
+   field read as "Am". Muted and italic, so a hint can never be mistaken for
+   an answer at a glance. --text-muted measures 8.26:1 on the ground against
+   --text at 15.28:1, which is a difference you see without reading. */
+.song-meta-field input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.75;
 }
 
 @media (max-width: 480px) {

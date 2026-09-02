@@ -97,7 +97,12 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (document.querySelector('.song-share-qr-overlay')) return
+      /* Anything inside the drawer that opens on top of it marks itself with
+         data-drawer-layer, and closes itself on Escape first. This used to
+         name one specific overlay by class, so every other inner layer, the
+         share popover included, closed the whole drawer from underneath and
+         lost your place on the card. */
+      if (document.querySelector('[data-drawer-layer]')) return
       closeDrawer()
     }
     if (drawerOpen) window.addEventListener('keydown', onKey)
@@ -197,6 +202,12 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
               columnSlug={song.columnSlug}
               readOnly={readOnly}
             />
+            {/* "One link to your producer" is the second thing the landing
+                page sells, and it used to be the eighth item down a scrolling
+                drawer, below the lyrics box, with its own options panel
+                off-screen again underneath that. It is a header action now,
+                opening as a popover anchored to its own button. */}
+            {!readOnly && <SongSharePanel songId={song.id} />}
           </div>
         </div>
 
@@ -262,7 +273,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
                 >
                   + Add to playlist
                 </button>
-                <SongSharePanel songId={song.id} />
               </div>
             </>
           )}
