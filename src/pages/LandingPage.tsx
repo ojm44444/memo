@@ -92,8 +92,11 @@ const FEATURES = [
     // board by activeTag, and it is not a fixed list. Answers a real ask from
     // the research: pulling up "everything tagged riff" instead of scrolling
     // a whole column.
-    title: 'Riff, chorus, half-written',
-    desc: 'Tag a take with whatever it actually is. Four defaults to start, add your own, and filter the board down to just the ones that match.',
+    // "Four defaults to start" was wrong: PRESET_TAGS in tagColors.ts ships
+    // ten, and the old title named half-written, which is a COLUMN and not a
+    // tag. Counted against the code rather than the previous draft.
+    title: 'Riff, chorus, lyrics finished',
+    desc: 'Tag a take with whatever it actually is. Ten to start, add your own, and filter the board down to just the ones that match.',
   },
 ] as const
 

@@ -137,7 +137,7 @@ function MergeCandidateRow({
     >
       <span className="truncate font-medium">{title}</span>
       <span className="shrink-0 font-mono text-[0.58rem] text-muted">
-        {columnSlug} · {versions?.length ?? 0} clip{(versions?.length ?? 0) === 1 ? '' : 's'}
+        {columnSlug} · {versions?.length ?? 0} take{(versions?.length ?? 0) === 1 ? '' : 's'}
       </span>
     </button>
   )

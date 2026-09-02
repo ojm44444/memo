@@ -237,7 +237,7 @@ function BulkMergeModal({ songIds, masterId, busy, onChangeMaster, onConfirm, on
           Merge {songIds.length} {songIds.length === 1 ? 'song' : 'songs'}
         </p>
         <p className="bulk-merge-desc">
-          All audio clips will stack onto the master song. The others are removed.
+          All takes will stack onto the master song. The others are removed.
         </p>
         <label className="bulk-merge-label">
           Master song

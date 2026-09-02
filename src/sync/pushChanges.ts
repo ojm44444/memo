@@ -237,9 +237,34 @@ async function processQueueItem(
   }
 }
 
+/**
+ * First-run only: get this board's projects into the cloud.
+ *
+ * It used to run on EVERY push and upsert every local project, which quietly
+ * defeated the "deliberately NOT enqueued" placeholder in ensureDefaultProject.
+ * Sign in on a new browser, local database empty, a fresh "My Project" is
+ * invented with a new id, and the next push uploaded it. Owen's account
+ * collected eight empty ones that way, one per machine he opened it on, and
+ * the project switcher showed the same name twice with nothing to tell them
+ * apart.
+ *
+ * Now it does nothing once the cloud has any project for this board. That is
+ * safe because it is not the sync path: createProject, renameProject and
+ * deleteProject all go through the outbox, so a real project made offline
+ * still reaches the server. This is only the bootstrap for an account that
+ * has never had one.
+ */
 async function bootstrapProjects(boardId: string) {
   const projects = await db.projects.orderBy('sortOrder').toArray()
   if (!projects.length || !supabase) return
+
+  const { data: existing, error: existingError } = await supabase
+    .from('projects')
+    .select('id')
+    .eq('board_id', boardId)
+    .limit(1)
+  if (existingError) throw existingError
+  if (existing && existing.length > 0) return
 
   await assertNoError(
     await supabase.from('projects').upsert(

@@ -135,7 +135,11 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
           <textarea
             className="song-comments-input"
             rows={2}
-            placeholder={liveStampMs != null && !stampRemoved ? `Note at ${formatMs(liveStampMs)}…` : 'Leave a note…'}
+            placeholder={
+              liveStampMs != null && !stampRemoved
+                ? `Comment at ${formatMs(liveStampMs)}…`
+                : 'Leave a comment…'
+            }
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -153,7 +157,7 @@ export function SongComments({ songId, readOnly = false }: SongCommentsProps) {
             disabled={busy || !draft.trim()}
             onClick={() => void submit()}
           >
-            {busy ? 'Sending…' : 'Add note'}
+            {busy ? 'Sending…' : 'Add comment'}
           </button>
         </div>
       )}

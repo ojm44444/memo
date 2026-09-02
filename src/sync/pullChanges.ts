@@ -1,5 +1,10 @@
 import { dedupeColumnsBySlug } from '@/db/seed'
-import { getActiveProjectId } from '@/db/repositories/projectRepo'
+import {
+  clearPlaceholderProject,
+  getActiveProjectId,
+  getPlaceholderProjectId,
+  setActiveProjectId,
+} from '@/db/repositories/projectRepo'
 import { supabase } from '@/lib/supabase/client'
 import { resolveBoardId } from '@/lib/supabase/boardAccess'
 import { db } from '@/db/database'
@@ -97,30 +102,64 @@ export async function pullChanges(userId: string) {
   const remoteProjectIds = new Set((remoteProjects ?? []).map((p) => p.id))
 
   if (remoteProjects && remoteProjects.length > 0) {
-    // If the server already has projects, remove any locally-created default project
-    // that hasn't been pushed yet (still in outbox). This prevents duplicate "My Project"
-    // entries when opening songdrafts on a new device that already has cloud data.
+    /* The server has projects, so anything this browser invented before it
+       knew that is a stand-in and has to go, or the switcher shows the same
+       name twice.
+       Two sources of stand-ins, and only one of them used to be handled:
+         - a project created here and not yet pushed (an outbox `create`), and
+         - the placeholder ensureDefaultProject makes when the local database
+           is empty, which is DELIBERATELY not enqueued so it cannot race this
+           pull. That second one was invisible to a cleanup that only looked
+           at the outbox, so it survived every pull and then bootstrapProjects
+           uploaded it. Eight empty "My Project" rows came from that. */
+    const candidates = new Set<string>()
+
     const localUnpushed = await db.syncQueue
       .filter((item) => item.entityType === 'project' && item.op === 'create')
       .toArray()
+    for (const entry of localUnpushed) candidates.add(entry.entityId)
 
-    for (const entry of localUnpushed) {
-      if (remoteProjectIds.has(entry.entityId)) continue
-      const local = await db.projects.get(entry.entityId)
+    const placeholderId = await getPlaceholderProjectId()
+    if (placeholderId) candidates.add(placeholderId)
+
+    for (const candidateId of candidates) {
+      if (remoteProjectIds.has(candidateId)) continue
+      const local = await db.projects.get(candidateId)
       if (!local) continue
 
-      // Only reassign songs when the destination is unambiguous (single remote project).
-      // With multiple remote projects we can't safely guess which one to use — silently
-      // moving songs to the wrong project is worse than leaving them as-is.
-      if (remoteProjects.length === 1) {
+      /* Where the songs go. Only ever somewhere we can name with certainty:
+         the single remote project if there is one, otherwise the one remote
+         project that shares this stand-in's name. Silently moving songs into
+         the wrong project is worse than leaving them where they are, and a
+         guess here is how a library gets quietly reshuffled. */
+      const sameName = (remoteProjects ?? []).filter(
+        (p) => p.name.trim().toLowerCase() === local.name.trim().toLowerCase(),
+      )
+      const destination =
+        remoteProjects.length === 1
+          ? remoteProjects[0].id
+          : sameName.length === 1
+            ? sameName[0].id
+            : null
+
+      if (destination) {
         await db.songs
           .filter((s) => s.projectId === local.id && !s.deletedAt)
-          .modify({ projectId: remoteProjects[0].id })
+          .modify({ projectId: destination })
+        if ((await getActiveProjectId()) === local.id) {
+          await setActiveProjectId(destination)
+        }
       }
 
-      await db.syncQueue.delete(entry.id)
-      await db.projects.delete(entry.entityId)
+      for (const entry of localUnpushed) {
+        if (entry.entityId === candidateId) await db.syncQueue.delete(entry.id)
+      }
+      await db.projects.delete(candidateId)
     }
+
+    /* Whether or not a stand-in was found, the server has spoken: this
+       browser is no longer waiting to find out what the account has. */
+    if (placeholderId) await clearPlaceholderProject()
   }
 
   for (const remote of remoteProjects ?? []) {

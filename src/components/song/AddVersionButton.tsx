@@ -47,7 +47,7 @@ export function AddVersionButton({ songId }: AddVersionButtonProps) {
         onClick={() => inputRef.current?.click()}
         className="song-detail-link"
       >
-        {adding ? 'Adding…' : '+ Add clip'}
+        {adding ? 'Adding…' : '+ Add take'}
       </button>
     </>
   )

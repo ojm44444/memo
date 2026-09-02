@@ -368,7 +368,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           {uploadsPending && (
             <div className="song-share-uploading">
               <p className="song-share-hint">
-                Uploading {pendingUploads!.length} clip{pendingUploads!.length === 1 ? '' : 's'} to
+                Uploading {pendingUploads!.length} take{pendingUploads!.length === 1 ? '' : 's'} to
                 cloud…
               </p>
               <button type="button" className="song-share-refresh" onClick={() => void flush()}>

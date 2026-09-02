@@ -26,7 +26,7 @@ export function AddSectionButton() {
   if (!open) {
     return (
       <button type="button" className="board-add-section" onClick={() => setOpen(true)}>
-        + Section
+        + Column
       </button>
     )
   }
@@ -36,7 +36,7 @@ export function AddSectionButton() {
       <input
         type="text"
         className="board-add-section-input"
-        placeholder="Section name"
+        placeholder="Column name"
         value={title}
         autoFocus
         disabled={busy}

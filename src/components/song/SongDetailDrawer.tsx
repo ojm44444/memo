@@ -135,9 +135,9 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
       scheduleFlush()
       if (result.clipsSkipped > 0) {
         alert(
-          `Copied "${result.song.title}" with ${result.clipsCopied} clip${
+          `Copied "${result.song.title}" with ${result.clipsCopied} take${
             result.clipsCopied === 1 ? '' : 's'
-          }. ${result.clipsSkipped} cloud-only clip${
+          }. ${result.clipsSkipped} cloud-only take${
             result.clipsSkipped === 1 ? ' was' : 's were'
           } skipped. Download them first from Settings.`,
         )
@@ -217,7 +217,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
                   className="song-detail-link"
                   onClick={() => setMergeOpen((v) => !v)}
                 >
-                  {mergeOpen ? 'Close merge' : 'Merge memos'}
+                  {mergeOpen ? 'Close merge' : 'Merge with another song'}
                 </button>
               </div>
             </div>

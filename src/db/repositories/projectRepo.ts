@@ -17,6 +17,12 @@ const PROJECT_ACCENTS_KEY = 'projectAccentHues'
 export type SongSortMode = 'board' | 'recent' | 'key' | 'bpm'
 const DEFAULT_NAME = 'My Project'
 
+/* The id of the local-only project ensureDefaultProject invented because this
+   browser had an empty database. It is a stand-in until the first pull says
+   what the account actually has, and pullChanges clears both the project and
+   this key once it knows. */
+export const PLACEHOLDER_PROJECT_KEY = 'placeholderProjectId'
+
 export async function getProjectAccentMap(): Promise<Record<string, number>> {
   const meta = await db.syncMeta.get(PROJECT_ACCENTS_KEY)
   if (!meta?.value) return {}
@@ -329,6 +335,16 @@ export async function ensureDefaultProject(id = createId()) {
   await db.projects.add(project)
   await db.syncMeta.put({ key: ACTIVE_PROJECT_KEY, value: project.id })
 
+  /* Remember that THIS id is a placeholder, so the pull can reconcile it away.
+     Without this the cleanup in pullChanges could not see it: that cleanup
+     keys on unpushed outbox `create` entries, and the whole point of the
+     comment below is that this one is never enqueued. So the placeholder was
+     invisible to the only thing that removes placeholders, and it survived.
+     Then bootstrapProjects uploaded it on the next push, and the account had
+     another empty "My Project" in the cloud. That is the chain that produced
+     eight of them. */
+  await db.syncMeta.put({ key: PLACEHOLDER_PROJECT_KEY, value: project.id })
+
   // Deliberately NOT enqueued for sync.
   //
   // This runs whenever the LOCAL database is empty, which happens on any fresh
@@ -383,6 +399,20 @@ export async function createProject(name: string) {
   await setActiveProjectId(project.id)
   await enqueueSync('create', 'project', project.id, project)
   return project
+}
+
+/**
+ * The local-only project ensureDefaultProject made, if there still is one.
+ *
+ * Returns null once the pull has reconciled it, or if this browser's database
+ * was never empty in the first place.
+ */
+export async function getPlaceholderProjectId(): Promise<string | null> {
+  return (await db.syncMeta.get(PLACEHOLDER_PROJECT_KEY))?.value ?? null
+}
+
+export async function clearPlaceholderProject(): Promise<void> {
+  await db.syncMeta.delete(PLACEHOLDER_PROJECT_KEY)
 }
 
 export async function createProjectWithTemplate(

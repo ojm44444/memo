@@ -318,7 +318,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                             type="button"
                             role="menuitem"
                             className="version-menu-item"
-                            title="Move this clip to its own song card"
+                            title="Move this take to its own song"
                             onClick={() => {
                               setMenuOpenId(null)
                               void unmergeSong(version.id).then(() => scheduleFlush())

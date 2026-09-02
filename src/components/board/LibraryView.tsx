@@ -175,7 +175,7 @@ export function LibraryView({ readOnly = false }: LibraryViewProps) {
       const result = await duplicateProject(projectId)
       if (result.clipsSkipped > 0) {
         alert(
-          `Created "${result.project.name}" with ${result.songsCopied} songs. ${result.clipsSkipped} cloud-only clips were skipped. Download them first from Settings.`,
+          `Created "${result.project.name}" with ${result.songsCopied} songs. ${result.clipsSkipped} cloud-only takes were skipped. Download them first from Settings.`,
         )
       }
       setBoardMode('manage')

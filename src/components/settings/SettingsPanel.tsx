@@ -216,7 +216,7 @@ export function SettingsPanel() {
                 </p>
                 {(uncachedAudio ?? 0) > 0 ? (
                   <p className="settings-section-copy">
-                    {uncachedAudio} clip{(uncachedAudio ?? 0) === 1 ? '' : 's'} waiting to download.
+                    {uncachedAudio} take{(uncachedAudio ?? 0) === 1 ? '' : 's'} waiting to download.
                   </p>
                 ) : (
                   <p className="settings-section-copy">All synced audio is available offline.</p>
@@ -372,7 +372,7 @@ export function SettingsPanel() {
                 <p className="settings-import-result">
                   Restored {importResult.projectName} from{' '}
                   {new Date(importResult.exportedAt).toLocaleDateString()} ·{' '}
-                  {importResult.songsImported} songs · {importResult.audioImported} audio clips
+                  {importResult.songsImported} songs · {importResult.audioImported} takes
                   {importResult.audioSkipped > 0
                     ? ` · ${importResult.audioSkipped} without audio`
                     : ''}
