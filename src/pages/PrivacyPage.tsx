@@ -90,7 +90,14 @@ export function PrivacyPage() {
           one. If they leave a comment, we store the comment and the timestamp it is pinned to.
         </p>
 
-        <h2>Who else touches it</h2>
+                <h2>Who we are</h2>
+        <p>
+          songdrafts is run by Owen Mellett, a sole trader trading as songdrafts, at
+          [ADDRESS — replace before launch]. That is the data controller for everything on
+          this page, and support@songdrafts.com reaches a person, not a queue.
+        </p>
+
+<h2>Who else touches it</h2>
         <p>
           Four companies, all as processors acting on our instructions, none of them permitted to
           use your data for their own purposes:
@@ -102,6 +109,31 @@ export function PrivacyPage() {
           <li><strong>Google</strong>, only if you choose to sign in with Google.</li>
         </ul>
         <p>That is the complete list. There are no advertising, tracking or data-broker services.</p>
+
+        <h2>Where it is, and how long we keep it</h2>
+        <p>
+          {/* REGION: Owen to confirm from Supabase, Project Settings, General.
+              Left unstated rather than guessed, because "your unreleased music
+              is safe" and a wrong country in the same sentence is worse than
+              saying nothing. */}
+          Your audio and your account sit with Supabase. If you need to know the exact
+          region before you upload unreleased work, email support@songdrafts.com and we
+          will tell you rather than make you guess.
+        </p>
+        <p>
+          <strong>How long.</strong> Songs you delete wait 30 days in the trash and are then
+          gone for good. If you close your account, everything goes at once: there is no
+          grace period and no archived copy, which is the whole point of the delete button.
+          The record that you were once a customer, meaning invoices and payment records,
+          is kept for six years because tax law requires it. That record has no audio in it.
+        </p>
+        <p>
+          <strong>Why we are allowed to hold it.</strong> Your account and your music: because
+          we have a contract with you and cannot run the service without them. Payments and
+          the records behind them: because the law requires us to keep them. The eight usage
+          events: because we have a legitimate interest in knowing whether the product works,
+          which is why they carry no titles, no filenames and no text.
+        </p>
 
         <h2>Getting it out, and getting rid of it</h2>
         <p>

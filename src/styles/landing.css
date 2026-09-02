@@ -4377,3 +4377,159 @@ section[id] { scroll-margin-top: 88px; }
    pill; a near-opaque ground solves that everywhere. Blur stays as polish
    where it works. */
 .landing > nav { background: rgba(13, 31, 39, 0.94) !important; }
+
+/* ═══ B7 / B10 / B11 — the three empty halves ═══════════════════════════════
+   All CSS and a handful of divs, no images, no library, per the audit's size
+   constraint. Every animation stops under prefers-reduced-motion at the end
+   of this block. */
+
+/* ── B10: hero stack ──────────────────────────────────────────────────── */
+.hero-stack { display: flex; align-items: center; justify-content: center; padding: 40px; }
+.hs-card {
+  width: 100%; max-width: 330px;
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 16px; padding: 18px;
+  box-shadow: 0 30px 70px rgba(0,0,0,0.45);
+}
+.hs-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hs-play { color: var(--accent); font-size: 0.8rem; }
+.hs-title { font-size: 0.95rem; color: var(--text); }
+.hs-meta { display: flex; gap: 8px; margin-bottom: 14px; }
+.hs-tag, .hs-key {
+  font-family: 'DM Mono', monospace; font-size: 0.62rem; padding: 3px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--stage-half) 16%, transparent); color: var(--stage-half);
+}
+.hs-key { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted); }
+.hs-takes { display: flex; flex-direction: column; gap: 6px; }
+.hs-take {
+  display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1px solid transparent;
+}
+.hs-take.is-live {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.hs-take-label, .hs-take-when {
+  font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted);
+}
+.hs-take.is-live .hs-take-label { color: var(--accent); }
+.hs-take-wave { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+.hs-take-wave i { width: 3px; border-radius: 2px; background: color-mix(in srgb, var(--text) 26%, transparent); }
+.hs-take.is-live .hs-take-wave i { background: var(--accent); }
+
+/* ── B7: merge demo ───────────────────────────────────────────────────── */
+.merge-demo { position: relative; min-height: 260px; display: flex; align-items: center; justify-content: center; }
+.md-card {
+  position: absolute; width: 260px; padding: 14px;
+  border-radius: 14px; background: color-mix(in srgb, var(--bg2) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.md-card--target { left: 50%; transform: translateX(-50%); z-index: 1; }
+.md-card--travel {
+  left: 50%; z-index: 2;
+  animation: md-travel 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.md-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.md-play { color: var(--accent); font-size: 0.72rem; }
+.md-title { font-size: 0.85rem; color: var(--text); flex: 1; }
+.md-time { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-muted); }
+.md-wave { display: flex; align-items: flex-end; gap: 3px; height: 26px; }
+.md-wave i { width: 4px; border-radius: 2px; background: color-mix(in srgb, var(--stage-half) 60%, transparent); }
+.md-takes { display: flex; gap: 6px; margin-top: 10px; }
+.md-take {
+  font-family: 'DM Mono', monospace; font-size: 0.58rem; padding: 3px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted);
+}
+.md-take--new {
+  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
+  animation: md-take-in 6s ease-in-out infinite;
+}
+.md-caption {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--text-muted);
+  animation: md-take-in 6s ease-in-out infinite;
+}
+@keyframes md-travel {
+  0%, 12%   { transform: translate(-50%, -96px) rotate(-3deg); opacity: 1; }
+  46%, 54%  { transform: translate(-50%, 0) rotate(0deg); opacity: 1; }
+  62%, 100% { transform: translate(-50%, 0) rotate(0deg); opacity: 0; }
+}
+@keyframes md-take-in {
+  0%, 55%   { opacity: 0; }
+  66%, 100% { opacity: 1; }
+}
+
+/* ── B11: offline demo ────────────────────────────────────────────────── */
+.offline-demo { display: flex; justify-content: center; }
+.od-phone {
+  width: 250px; padding: 14px;
+  border-radius: 26px; background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  box-shadow: 0 26px 64px rgba(0,0,0,0.5);
+}
+.od-status { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.od-bars { display: flex; align-items: flex-end; gap: 2px; height: 11px; }
+.od-bars i { width: 3px; border-radius: 1px; background: color-mix(in srgb, var(--text) 22%, transparent); }
+.od-bars i:nth-child(1) { height: 30%; } .od-bars i:nth-child(2) { height: 52%; }
+.od-bars i:nth-child(3) { height: 74%; } .od-bars i:nth-child(4) { height: 100%; }
+.od-nosignal { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--text-muted); flex: 1; }
+.od-battery {
+  width: 18px; height: 9px; border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
+}
+.od-card {
+  padding: 12px; border-radius: 12px;
+  background: color-mix(in srgb, var(--bg2) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+}
+.od-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.od-play { color: var(--accent); font-size: 0.66rem; }
+.od-title { font-size: 0.8rem; color: var(--text); }
+.od-wave { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 30px; }
+.od-wave i { width: 4px; border-radius: 2px; background: color-mix(in srgb, var(--text) 22%, transparent); }
+.od-playhead {
+  position: absolute; top: 0; bottom: 0; width: 2px; border-radius: 2px; background: var(--accent);
+  animation: od-sweep 9s linear infinite;
+}
+.od-progress {
+  margin-top: 10px; height: 3px; border-radius: 3px;
+  background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden;
+}
+.od-progress span { display: block; height: 100%; background: var(--accent); animation: od-sweep-w 9s linear infinite; }
+.od-queued {
+  display: flex; align-items: center; gap: 7px; margin-top: 14px;
+  font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--text-muted);
+}
+.od-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--stage-inbox);
+  animation: od-pulse 2.4s ease-in-out infinite;
+}
+@keyframes od-sweep   { from { left: 0; } to { left: 100%; } }
+@keyframes od-sweep-w { from { width: 0; } to { width: 100%; } }
+@keyframes od-pulse   { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .md-card--travel, .md-take--new, .md-caption,
+  .od-playhead, .od-progress span, .od-dot { animation: none !important; }
+  .md-card--travel { transform: translate(-50%, 0); opacity: 0; }
+  .md-take--new, .md-caption { opacity: 1; }
+  .od-progress span { width: 62%; }
+}
+
+/* The merge band becomes two columns now it has something to show. */
+@media (min-width: 900px) {
+  .merge-band-inner { display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: center; }
+  .merge-band-inner .section-label,
+  .merge-band-inner .section-h2,
+  .merge-band-inner p { grid-column: 1; }
+  .merge-demo { grid-column: 2; grid-row: 1 / span 4; }
+}
+@media (max-width: 899px) { .merge-demo { display: none; } }
+.footer-address { color: var(--muted); opacity: 0.8; }
+
+/* The hero is a two-column grid; the stack takes the right cell. */
+@media (max-width: 1000px) { .hero-stack { display: none; } }

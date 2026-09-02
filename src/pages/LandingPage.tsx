@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
 import { LiveBoard } from '@/components/landing/LiveBoard'
+import { MergeDemo } from '@/components/landing/MergeDemo'
+import { OfflineDemo } from '@/components/landing/OfflineDemo'
+import { HeroStack } from '@/components/landing/HeroStack'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -450,6 +453,9 @@ export function LandingPage() {
           </p>
         </div>
 
+        {/* B10: the hero used the left two-thirds and left the right empty. */}
+        <HeroStack />
+
         {/* The real app, full width, the second beat of the page. Re-shot by
             scripts/shoot-hero.mjs on every visual release. */}
         {/* Was a static PNG of the board. A dead screenshot cannot say "this
@@ -556,6 +562,7 @@ export function LandingPage() {
             instead of scrolling.
           </p>
         </div>
+        <MergeDemo />
       </section>
 
       {/* Offline spotlight */}
@@ -599,19 +606,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="offline-visual">
-            <div className="signal-card">
-              <div className="signal-bars">
-                <div className="signal-bar" style={{ height: '30%' }} />
-                <div className="signal-bar" style={{ height: '50%' }} />
-                <div className="signal-bar" style={{ height: '70%' }} />
-                <div className="signal-bar" style={{ height: '100%' }} />
-              </div>
-              <span className="signal-label">No signal</span>
-              <div className="signal-status">
-                <span className="signal-dot" />
-                songdrafts still works
-              </div>
-            </div>
+            <OfflineDemo />
           </div>
         </div>
       </section>
@@ -864,7 +859,18 @@ export function LandingPage() {
         {/* Audit F1: a site whose pitch is "your music is yours" had no
             copyright line asserting its own. Entity name and address (F2)
             are Owen's to supply; the line is written so they slot in. */}
-        <p className="footer-copyright">&copy; 2026 songdrafts. All rights reserved.</p>
+        {/* F2. Deliberately NOT "songdrafts Limited": Owen is not registered,
+            and using "Limited" for a business that is not incorporated is an
+            offence under the Companies Act, not a formality. A sole trader
+            trades under their own name plus a trading name, which is what
+            this says. ADDRESS IS A PLACEHOLDER and must be a real one before
+            the first payment — a service address is fine and normal for
+            someone working from home. */}
+        <p className="footer-copyright">
+          &copy; 2026 Owen Mellett, trading as songdrafts. All rights reserved.
+          <br />
+          <span className="footer-address">[ADDRESS — replace before launch]</span>
+        </p>
       </footer>
     </div>
   )
