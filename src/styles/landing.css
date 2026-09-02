@@ -4360,3 +4360,20 @@ section[id] { scroll-margin-top: 88px; }
   /* D6: the hamburger outweighed the wordmark. */
   .nav-burger { border: none !important; background: none !important; font-size: 22px; padding: 8px; }
 }
+
+/* B1, second pass. Measured live at 1440: nine sections at 150, three at
+   190 (features, compare, faq) and one at 174 (discipline). The three are
+   sections that ARE their own container, so with border-box the 40px side
+   padding came out of the 1140 and pushed their content 40px right of
+   everyone else's. content-box puts the padding outside the measure.
+   Discipline's inner wrapper carried its own 24px. All twelve now share
+   one edge. */
+.features, .compare, .faq-section { box-sizing: content-box !important; }
+.discipline-inner { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* B2, second pass. The build keeps only the -webkit- backdrop-filter and
+   the verification browser reports none at all, so the fix cannot depend
+   on blur being honoured. The complaint was content showing through the
+   pill; a near-opaque ground solves that everywhere. Blur stays as polish
+   where it works. */
+.landing > nav { background: rgba(13, 31, 39, 0.94) !important; }
