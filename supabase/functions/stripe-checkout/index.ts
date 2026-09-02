@@ -82,12 +82,21 @@ serve(async (req) => {
     }
 
     /**
-     * The $1 first week.
+     * A FREE 7 DAY TRIAL, card collected up front.
      *
-     * Implemented as a real 7 day trial with a one-off £1 line, NOT as a
-     * discounted first period. A discount would renew at the discounted price
-     * if anyone ever fiddled the coupon duration, and a trial is also what
-     * Stripe's own dunning and reminder emails understand.
+     * This comment used to describe "the $1 first week ... a real 7 day
+     * trial with a one-off £1 line". There is no £1 line here and there
+     * never was: trial_period_days gives seven free days and then the full
+     * price. The landing page believed the comment and advertised $1 for a
+     * week, which nothing in this file would have charged.
+     *
+     * If the $1 week is what Owen wants, it needs add_invoice_items with a
+     * one-off price alongside the trial. Until then the page says free,
+     * because that is what this code does.
+     *
+     * A trial rather than a coupon either way: a discount renews at the
+     * discounted price if anyone ever fiddles its duration, and a trial is
+     * what Stripe's own dunning and reminder emails understand.
      */
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',

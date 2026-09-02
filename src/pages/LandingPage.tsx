@@ -185,8 +185,14 @@ const FAQS = [
     a: 'Yes, properly. Not a cut-down offline mode. Everything you\'ve imported is already on your device, so the tube and the plane and the studio with the thick walls are all fine. It catches up on sync when you resurface.',
   },
   {
-    q: 'What happens to a song I never finish?',
-    a: 'It sits exactly where you left it. Forever, if that\'s how it goes. Nothing gets archived, deleted or flagged as stale, and nothing sends you a reminder about it.',
+    // Was "What happens to a song I never finish?", which Owen called a
+    // non-question, correctly: nobody asks that, and the answer was
+    // reassurance nobody needed. The real question a sceptic has at this
+    // point is whether an organiser can do anything about finishing at all.
+    // Answering it honestly is stronger than dodging it, and it matches the
+    // discipline section rather than contradicting it.
+    q: 'Will this actually make me finish songs?',
+    a: 'On its own, no, and anything that says otherwise is selling you something. What it does is smaller and more useful: it makes the good idea findable in November instead of buried at memo 800, so the deciding you were going to do is possible at all. The finishing is still yours.',
   },
   {
     q: 'Can I share demos with my producer or bandmates?',
@@ -279,7 +285,13 @@ function PricingToggle() {
         </button>
       </div>
 
-      <p className="price-trial">Start your first week for $1, cancel any time.</p>
+      {/* Said "first week for $1". The checkout function does NOT do that:
+          it creates trial_period_days: 7 with the card collected up front
+          and no one-off line item, which is a free week. Its own comment
+          claims a £1 line that was never written. Copy now matches the code
+          until Owen decides which he wants; the code is the thing that will
+          actually charge people. */}
+      <p className="price-trial">Free for 7 days, then {annual ? '$49 a year' : '$9 a month'}. Cancel any time.</p>
 
       <p className="price-headline">
         {annual ? '$49' : '$9'}
@@ -301,7 +313,7 @@ function PricingToggle() {
         <li>The board, and every take stacked on one song</li>
         <li>Sync across your devices, and the whole library offline</li>
         <li>Share links with timestamped comments, no account for them</li>
-        <li>Export everything as a zip, any time, including after you stop</li>
+        <li>Export the whole library as a zip, on any device that has it, whether or not you are paying</li>
       </ul>
     </div>
   )
@@ -735,7 +747,7 @@ export function LandingPage() {
           Get started
         </Link>
         <p className="cta-status">
-          First week is $1. Cancel any time.
+          Free for 7 days. Cancel any time.
         </p>
       </section>
 
