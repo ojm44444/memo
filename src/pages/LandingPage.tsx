@@ -256,18 +256,18 @@ function useSectionReveal() {}
  */
 function PricingToggle() {
   const [annual, setAnnual] = useState(true)
-  const perMonth = (49 / 12).toFixed(2).replace(/\.00$/, '').replace(/0$/, '')
+  const perMonth = (49 / 12).toFixed(2)
 
   return (
-    <div className="pricing-toggle-block">
-      <div className="pricing-toggle" role="group" aria-label="Billing period">
+    <div className="price-card">
+      <div className="price-toggle" role="group" aria-label="Billing period">
         <button
           type="button"
           className={annual ? 'is-active' : ''}
           aria-pressed={annual}
           onClick={() => setAnnual(true)}
         >
-          Annual
+          Yearly
         </button>
         <button
           type="button"
@@ -278,55 +278,47 @@ function PricingToggle() {
           Monthly
         </button>
       </div>
-      {/* Audit C3/C4: the price was stated three different ways in six
-          lines, and the Monthly view argued the reader out of the thing they
-          had just chosen. Annual now leads with what actually leaves the
-          account and keeps the per-month figure as support; Monthly says
-          something useful about monthly. */}
-      <h2 className="section-h2 pricing-headline">
-        {annual ? (
-          <>
-            $49 a year. <em>Works out at ${perMonth} a month.</em>
-          </>
-        ) : (
-          <>
-            $9 a month. <em>Cancel any time.</em>
-          </>
-        )}
-      </h2>
-      <p className="pricing-toggle-note">
-        {annual
-          ? 'Less than five months of monthly.'
-          : 'Switch to annual whenever you like.'}
+
+      <p className="price-trial">Start your first week for $1, cancel any time.</p>
+
+      <p className="price-headline">
+        {annual ? '$49' : '$9'}
+        <span className="price-period">{annual ? ' billed yearly' : ' billed monthly'}</span>
       </p>
-      <p className="pricing-first-week">First week is $1.</p>
+      <p className="price-secondary">
+        {annual ? `Works out at $${perMonth} a month` : '$108 per year'}
+      </p>
+
+      <Link to="/sign-in" className="price-cta" onMouseEnter={prefetchAppChunks}>
+        Get started
+      </Link>
+
+      <p className="price-support">
+        Questions? <a href="mailto:support@songdrafts.com">Email and a person answers.</a>
+      </p>
+
+      <ul className="price-includes">
+        <li>The board, and every take stacked on one song</li>
+        <li>Sync across your devices, and the whole library offline</li>
+        <li>Share links with timestamped comments, no account for them</li>
+        <li>Export everything as a zip, any time, including after you stop</li>
+      </ul>
     </div>
   )
 }
 
 /**
- * The hero's background mesh (.hero::before) is a full-viewport layer under
- * an 80px blur, animating on a 22s loop forever. Nothing stopped it once
- * the hero scrolled out of view, so the browser kept repainting a large
- * blurred, animated layer for the entire time the page was open, on top of
- * whatever else was on screen. Owen: "laggy asf". This is the standing
- * suspect: a continuous blur+animation is one of the more expensive things
- * a page can ask a browser to do, and it was running unconditionally.
- *
- * Paused via animation-play-state rather than removing the animation or the
- * element, so the hero looks exactly the same while it's actually visible.
+ * The hero's background mesh is a full-viewport layer that animates on a 22s
+ * loop. Nothing stopped it once the hero scrolled away, so the browser kept
+ * repainting it for as long as the page was open. Paused off-screen.
  */
 function useHeroMeshPause() {
   useEffect(() => {
     const hero = document.querySelector('.hero')
     if (!hero) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) return
-
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const io = new IntersectionObserver(
-      ([entry]) => {
-        hero.classList.toggle('hero-mesh-paused', !entry.isIntersecting)
-      },
+      ([entry]) => { hero.classList.toggle('hero-mesh-paused', !entry.isIntersecting) },
       { threshold: 0 },
     )
     io.observe(hero)
@@ -438,7 +430,9 @@ export function LandingPage() {
               quietly pocketing addresses it never writes back to is the exact
               hypocrisy this product positions against. It returns when there is a
               real confirmation email and a promise we keep. */}
-          <p className="hero-status">Not open yet.</p>
+          <Link to="/sign-in" className="hero-cta" onMouseEnter={prefetchAppChunks}>
+            Get started
+          </Link>
           <p className="hero-trial-note">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
@@ -662,9 +656,9 @@ export function LandingPage() {
               to NOT make. Third person about one real person is brand voice
               without being a fabricated one. */}
           <p className="discipline-credential">
-            Built by a songwriter with two million streams, BBC Introducing, and sold out
+            Built by the team behind two million streams, BBC Introducing, and sold out
             rooms across the UK and Europe.
-            <span> Even he lost the good ones in a list of a thousand files.</span>
+            <span> We still lost the good ones in a list of a thousand files.</span>
           </p>
         </div>
       </section>
@@ -737,8 +731,11 @@ export function LandingPage() {
           <em>a proper home.</em>
         </h2>
         <p>Open the board. Drag the first memo in. See what you've actually got.</p>
+        <Link to="/sign-in" className="cta-button" onMouseEnter={prefetchAppChunks}>
+          Get started
+        </Link>
         <p className="cta-status">
-          Not open yet. No list to join, and nothing here is collecting your email.
+          First week is $1. Cancel any time.
         </p>
       </section>
 
@@ -801,12 +798,8 @@ export function LandingPage() {
             that actually sells it, the per-month equivalent, rather than
             asking the reader to do $49 / 12 in their head. Purely visual
             pre-launch: nothing here charges anyone, same as before. */}
+        <h2 className="section-h2">One plan. Everything in it.</h2>
         <PricingToggle />
-        <p className="section-sub">
-          Everything included, one plan: the board, sync across your devices, offline,
-          take-stacking, share links with timestamped comments. Cancel in one tap.
-        </p>
-        <p className="pricing-not-live">Not open yet. Nothing here to pay with until it is.</p>
         {/* Used to carry its own "What happens if I stop paying?" card, right
             under the price. That question already has an answer in the FAQ
             section below (same text, kept there), so this was a duplicate,

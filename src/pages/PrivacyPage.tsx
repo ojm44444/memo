@@ -92,8 +92,8 @@ export function PrivacyPage() {
 
                 <h2>Who we are</h2>
         <p>
-          songdrafts is one person, not a company, and support@songdrafts.com reaches them
-          directly rather than a queue. Nothing on this page is handled by anyone else.
+          songdrafts is the data controller for everything described on this page, and
+          support@songdrafts.com reaches us directly rather than a ticket queue.
         </p>
 
 <h2>Who else touches it</h2>

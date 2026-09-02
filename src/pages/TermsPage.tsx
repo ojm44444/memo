@@ -67,7 +67,7 @@ export function TermsPage() {
         <h2>What we are responsible for</h2>
         <p>
           Running the service with reasonable care, keeping your audio private, and telling you
-          honestly when something breaks. songdrafts is made by one person. It is not a bank and
+          honestly when something breaks. songdrafts is a small operation. It is not a bank and
           it does not come with a guarantee of uptime.
         </p>
         <p>
