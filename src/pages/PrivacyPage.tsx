@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link } from 'react-router-dom'
 import { Wordmark } from '@/components/ui/Wordmark'
 
@@ -24,6 +25,7 @@ import { Wordmark } from '@/components/ui/Wordmark'
  * the people who built it. Owen should have it reviewed before taking money.
  */
 export function PrivacyPage() {
+  usePageTitle('Privacy · songdrafts', 'What songdrafts stores, where, who touches it, and how to get it out or delete it. Written from what the code does.')
   return (
     <div className="legal">
       <header className="legal-head">

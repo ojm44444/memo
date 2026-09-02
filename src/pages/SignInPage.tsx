@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { resolveBoardAuth } from '@/lib/auth/session'
@@ -8,6 +9,7 @@ import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
 
 export function SignInPage() {
+  usePageTitle('Sign in · songdrafts', 'Sign in to your songdrafts board.')
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')

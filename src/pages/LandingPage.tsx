@@ -4,6 +4,7 @@ import { prefetchAppChunks } from '@/lib/prefetchRoutes'
 import '@/styles/landing.css'
 import { LiveBoard } from '@/components/landing/LiveBoard'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -274,20 +275,28 @@ function PricingToggle() {
           Monthly
         </button>
       </div>
+      {/* Audit C3/C4: the price was stated three different ways in six
+          lines, and the Monthly view argued the reader out of the thing they
+          had just chosen. Annual now leads with what actually leaves the
+          account and keeps the per-month figure as support; Monthly says
+          something useful about monthly. */}
       <h2 className="section-h2 pricing-headline">
         {annual ? (
           <>
-            ${perMonth} a month, <em>billed annually.</em>
+            $49 a year. <em>Works out at ${perMonth} a month.</em>
           </>
         ) : (
           <>
-            $9 a month, <em>billed monthly.</em>
+            $9 a month. <em>Cancel any time.</em>
           </>
         )}
       </h2>
       <p className="pricing-toggle-note">
-        {annual ? 'That is $49 a year, all at once.' : 'A year costs less than five months of this.'}
+        {annual
+          ? 'Less than five months of monthly.'
+          : 'Switch to annual whenever you like.'}
       </p>
+      <p className="pricing-first-week">First week is $1.</p>
     </div>
   )
 }
@@ -324,6 +333,10 @@ function useHeroMeshPause() {
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
+  usePageTitle(
+    'songdrafts · Finish more songs',
+    'A board for your voice memos. Stack takes, drag songs right as they get better, send a demo link. Works offline. Nobody trains on your music.',
+  )
   useSectionReveal()
   useHeroMeshPause()
 
@@ -403,10 +416,18 @@ export function LandingPage() {
             <br />
             Start finishing <em>songs.</em>
           </h1>
+          {/* C1 in the audit: "Stop losing songs to the void" directly under
+              a headline that starts "Stop losing" was the same idea twice in
+              two lines. Split so the problem lands before the product does.
+              The void line moves to the closing CTA, where it sets up
+              "a proper home". */}
           <p className="hero-sub">
-            Stop losing songs to the void. You've got hundreds of voice memos called
-            "New Recording 612". Somewhere in there is the single. songdrafts is a board for
-            your music. Drag a song right as it gets better, and actually finish it.
+            You've got hundreds of voice memos called "New Recording 612". Somewhere in
+            there is the single.
+          </p>
+          <p className="hero-sub hero-sub--second">
+            songdrafts is a board for your music. Drag a song right as it gets better, and
+            actually finish it.
           </p>
           {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
               and no mechanism to send one, so every signup got a tick on screen
@@ -455,7 +476,7 @@ export function LandingPage() {
           {FEATURES.map(({ icon, title, desc, size }) => (
             <div key={title} className={`feature-card is-${size}`}>
               <div className="feature-icon">{icon}</div>
-              <div className="feature-title">{title}</div>
+              <h3 className="feature-title">{title}</h3>
               <p className="feature-desc">{desc}</p>
             </div>
           ))}
@@ -702,8 +723,7 @@ export function LandingPage() {
               than making the reader hold three footnotes in their head at
               once. */}
           <ul className="compare-footnotes">
-            <li>Half: Apple Notes holds lyrics but not the recording.</li>
-            <li>~: key and tempo come off a file's tags, so a bounced mp3 arrives filled in and a raw voice memo doesn't, which is why you can also type them.</li>
+            <li>~ means partly. Apple Notes holds lyrics but not the recording. Key and tempo come off a file's tags, so a bounced mp3 arrives filled in and a raw voice memo doesn't, which is why you can also type them.</li>
             <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
           </ul>
           <p className="compare-footnote-date">Checked 31 August 2026.</p>
@@ -715,6 +735,7 @@ export function LandingPage() {
           after the compare table, which is the point where someone has just
           seen what this does that the alternatives don't. */}
       <section className="cta-section" id="get-started">
+        <p className="cta-kicker">Stop losing songs to the void.</p>
         <h2>
           Your songs deserve
           <br />
@@ -739,7 +760,7 @@ export function LandingPage() {
               <div key={num} className="step">
                 <span className="step-num">{num}</span>
                 <div>
-                  <h4>{title}</h4>
+                  <h3>{title}</h3>
                   <p>{desc}</p>
                 </div>
               </div>
@@ -750,7 +771,7 @@ export function LandingPage() {
               recalled. Same story, told the way the rest of the page talks. */}
           <div className="workflow-quote">
             <p className="workflow-quote-text">
-              Recorded in the car. Found again in <em>November.</em>
+              Recorded in the car. Found again in <em>November.</em>{' '}
               Sent to the producer the <em>same day.</em>
             </p>
             <p className="workflow-quote-sub">That is the whole product.</p>
@@ -790,11 +811,7 @@ export function LandingPage() {
           Everything included, one plan: the board, sync across your devices, offline,
           take-stacking, share links with timestamped comments. Cancel in one tap.
         </p>
-        <p className="pricing-not-live">
-          A year costs less than five months of monthly, because most people writing songs
-          are not putting this on a company card. Not open yet, and there is nothing here to
-          pay with. When it opens it will be $49/year or $9/month, first week $1.
-        </p>
+        <p className="pricing-not-live">Not open yet. Nothing here to pay with until it is.</p>
         {/* Used to carry its own "What happens if I stop paying?" card, right
             under the price. That question already has an answer in the FAQ
             section below (same text, kept there), so this was a duplicate,
@@ -841,7 +858,13 @@ export function LandingPage() {
           <Link to="/privacy">Privacy</Link>
           <span aria-hidden="true">·</span>
           <Link to="/terms">Terms</Link>
+          <span aria-hidden="true">·</span>
+          <a href="mailto:support@songdrafts.com">support@songdrafts.com</a>
         </nav>
+        {/* Audit F1: a site whose pitch is "your music is yours" had no
+            copyright line asserting its own. Entity name and address (F2)
+            are Owen's to supply; the line is written so they slot in. */}
+        <p className="footer-copyright">&copy; 2026 songdrafts. All rights reserved.</p>
       </footer>
     </div>
   )

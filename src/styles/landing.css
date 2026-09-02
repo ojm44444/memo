@@ -4180,3 +4180,180 @@ a.nav-cta {
   .feature-card .feature-title { font-size: 1.05rem; margin-bottom: 4px; }
   .feature-card.is-wide .feature-title { font-size: 1.05rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRE-LAUNCH AUDIT, 2 Sept. Section by section. Appended last so it wins
+   against the layered history above without needing to find every old rule.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* B1 ── One container. Twelve sections had nine different left edges; the
+   audit measured them. Full-bleed backgrounds stay full width; everything
+   inside them now shares one edge. */
+.landing > section,
+.landing > footer {
+  padding-left: clamp(20px, 5vw, 40px) !important;
+  padding-right: clamp(20px, 5vw, 40px) !important;
+}
+.features,
+.howitworks > *,
+.merge-band-inner,
+.offline-inner,
+.discipline-inner,
+.compare > *,
+.cta-section > *,
+.workflow-inner,
+.trust-inner,
+.pricing > *,
+.faq-section,
+.faq-inner,
+.hero-stage {
+  max-width: 1140px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.features, .faq-section { padding-left: 0 !important; padding-right: 0 !important; }
+.hero-left { padding-left: 0; padding-right: 0; }
+
+/* B4 ── One measure for running copy. 1140px of body text is 150+
+   characters a line. */
+.section-sub,
+.hero-sub,
+.merge-band-inner p,
+.offline-sub,
+.discipline-lead,
+.discipline-turn,
+.trust-lead,
+.trust-list,
+.pricing .section-sub,
+.cta-section p,
+.faq-a,
+.compare-footnotes li {
+  max-width: 62ch;
+}
+
+/* B2 ── The nav pill was translucent with nothing behind it, so headings
+   scrolled through the gaps between items and looked like a rendering
+   fault. ONE backdrop-filter, on a small fixed element, is fine; the
+   eighteen that were removed were on full-width sections. Anchors land
+   clear of it. */
+.landing > nav {
+  background: rgba(13, 31, 39, 0.82) !important;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+section[id] { scroll-margin-top: 88px; }
+
+/* B5 ── The bento grid stretched cards over dead space and ended on an empty
+   cell. Eight cards, 4 × 2 at desktop, 2 × 4 at tablet, no spans, cards
+   size to their own content. */
+@media (min-width: 621px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-auto-rows: auto !important;
+    align-items: start;
+  }
+  .feature-card.is-wide, .feature-card.is-tall { grid-column: auto !important; grid-row: auto !important; }
+  .feature-card.is-wide .feature-title { font-size: 1.15rem !important; }
+}
+@media (min-width: 1100px) {
+  .features-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* B6 ── The board demo wrapped, dropping RELEASED under INBOX and leaving
+   its right third empty. Five columns, one row, horizontal scroll if the
+   viewport is narrow — the way the real product behaves. */
+.lb-cols {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(200px, 1fr) !important;
+  grid-template-columns: none !important;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+.lb-col { display: block !important; }
+.hero { overflow-x: clip; }            /* D5: the glow sat at x = -8px */
+.lb-glow { max-width: 100%; left: 0; }
+
+/* C2 ── The founder line was the smallest text on the page. Body size now;
+   name and photo are Owen's to supply. */
+.discipline-credential {
+  font-size: 1rem !important;
+  font-family: inherit !important;
+  color: var(--text) !important;
+  opacity: 1 !important;
+  max-width: 62ch;
+}
+.discipline-credential span { color: var(--text-muted); display: block; margin-top: 4px; }
+
+/* New elements from the copy pass */
+.hero-sub--second { margin-top: -6px; }
+.cta-kicker {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(14, 31, 38, 0.72);
+  margin: 0 0 14px;
+}
+.pricing-first-week {
+  font-size: 1.05rem;
+  color: var(--text);
+  margin: 0 0 18px;
+}
+.footer-copyright {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--muted);
+  opacity: 0.7;
+  margin: 14px 0 0;
+}
+.footer-legal a { padding: 10px 4px; display: inline-block; } /* D4: 44px tap targets */
+
+/* ═══ D ── MOBILE ═══════════════════════════════════════════════════════════ */
+@media (max-width: 620px) {
+  /* D1: type floors. 12px minimum for anything, 16px for controls. */
+  .nav-cta, .nav-signin, .pricing-toggle button, .waitlist-btn { font-size: 16px !important; min-height: 44px; }
+  .lb-title { font-size: 15px !important; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.3; }
+  .lb-col-name, .lb-col-count, .lb-time { font-size: 12px !important; }
+  .lb-tag, .ramp-tag { font-size: 11px !important; }
+  .lb-play { font-size: 14px !important; }
+
+  /* D2: one full-width column with four cards beats two columns of ellipses. */
+  .lb-cols { grid-auto-columns: 100% !important; overflow-x: hidden; }
+  .lb-col:nth-child(n + 2) { display: none !important; }
+  .lb-cards { max-height: none; }
+
+  /* D3: the comparison table. Feature column frozen, right edge fades,
+     and a hint that there is more. */
+  .compare-wrap { position: relative; }
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    position: sticky; left: 0; z-index: 2;
+    background: var(--bg);
+  }
+  .compare-wrap::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 48px;
+    background: linear-gradient(to right, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .compare-wrap::before {
+    content: 'Swipe to compare →';
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  /* D4: tap targets */
+  .pricing-toggle button { padding: 10px 20px; }
+  .footer-legal a { padding: 14px 8px; }
+
+  /* D6: the hamburger outweighed the wordmark. */
+  .nav-burger { border: none !important; background: none !important; font-size: 22px; padding: 8px; }
+}

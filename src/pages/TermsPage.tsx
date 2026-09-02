@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link } from 'react-router-dom'
 import { Wordmark } from '@/components/ui/Wordmark'
 
@@ -23,6 +24,7 @@ import { Wordmark } from '@/components/ui/Wordmark'
  * NOT LEGAL ADVICE. Have this reviewed before taking money.
  */
 export function TermsPage() {
+  usePageTitle('Terms · songdrafts', 'The terms for using songdrafts: what you get, what it costs, how to stop, and what happens to your music.')
   return (
     <div className="legal">
       <header className="legal-head">
@@ -85,7 +87,29 @@ export function TermsPage() {
           you come back.
         </p>
 
-        <h2>Ending it</h2>
+                <h3>Changing your mind in the first 14 days</h3>
+        <p>
+          If you are a consumer in the UK or EU you have a legal right to cancel within 14 days
+          of paying and get your money back. To use it, email support@songdrafts.com within
+          those 14 days and say so. That is the whole process.
+        </p>
+        <p>
+          One thing to be clear about, because the law is: syncing and sharing start the
+          moment you pay, and by paying you are asking us to start straight away rather than
+          wait two weeks. If you cancel inside the 14 days after using it, we refund what you
+          paid less a fair share for the days you had it. With the first week at $1 that share
+          is small, and we would rather refund the lot than argue over pennies.
+        </p>
+
+        <h2>How old you need to be</h2>
+        <p>
+          You need to be 16 or over to open an account and pay for songdrafts. Under 16, a
+          parent or guardian has to do it on your behalf. That is not us being cautious about
+          your music, it is about payments and personal data, which are theirs to agree to
+          until you are old enough to.
+        </p>
+
+<h2>Ending it</h2>
         <p>
           You can delete your account at any time from Settings. It removes everything from our
           servers and cannot be undone.

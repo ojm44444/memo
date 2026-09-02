@@ -75,6 +75,7 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     count: 7,
     cards: [
       { id: 'f', title: 'verse for June', time: '4:18', tag: 'sent to producer', bars: seedBars(5) },
+      { id: 'f2', title: 'harbour lights', time: '3:44', tag: 'mixed', bars: seedBars(16) },
     ],
   },
   {
@@ -89,6 +90,7 @@ const COLUMNS: { name: string; cards: Card[]; count: number }[] = [
     count: 2,
     cards: [
       { id: 'g', title: 'glasgow bridge', time: '3:37', tag: 'released', bars: seedBars(6) },
+      { id: 'g2', title: 'paper moon', time: '3:12', tag: 'released', bars: seedBars(17) },
     ],
   },
 ]
