@@ -4754,14 +4754,14 @@ html { scroll-padding-top: 88px; }
 @media (min-width: 1200px) {
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 600px) 380px;
+    grid-template-columns: minmax(0, 620px) 360px;
     column-gap: 56px;
     align-items: center;
     justify-content: center;
   }
   .hero-stage {
     grid-column: 1;
-    max-width: 600px !important;
+    max-width: 620px !important;
     margin: 0 !important;
     text-align: left;
   }
@@ -4773,6 +4773,15 @@ html { scroll-padding-top: 88px; }
   .hero-stack .hs-card { max-width: 360px; }
   /* The board spans both columns and stays full width beneath. */
   .hero > .lb { grid-column: 1 / -1; }
+
+  /* The headline is clamp(52px, 8.5vw, 118px) full-width, which is right
+     when it owns the viewport and wrong in a 620px column: at 1440 it
+     rendered 118px and each of the two lines wrapped again, giving four.
+     Sized to the column instead, so the explicit <br/> is the only break. */
+  .hero-h1 {
+    font-size: clamp(44px, 4vw, 58px) !important;
+    max-width: none !important;
+  }
 }
 
 /* ═══ MOBILE, ROUND 2 ═══════════════════════════════════════════════════════ */
