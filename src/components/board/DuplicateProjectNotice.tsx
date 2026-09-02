@@ -16,10 +16,38 @@ import {
  * decision about someone's songs and belongs to them, not to a tidy-up button,
  * so in that case this explains the situation and stops.
  */
+/**
+ * "Not now" used to be component state, so it lasted until the component
+ * unmounted, which is the next time you switch Songwriting to Listen and
+ * back. A dismissal that returns within one click is worse than no dismissal:
+ * it reads as the app ignoring you. Keyed by name rather than by a single
+ * flag so dismissing one duplicate pair does not hide a different one.
+ */
+const DISMISSED_KEY = 'dupe-project-dismissed'
+
+function readDismissed(): string[] {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY)
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
+  } catch {
+    return []
+  }
+}
+
 export function DuplicateProjectNotice() {
   const groups = useLiveQuery(() => getDuplicateNameGroups(), [])
   const [busy, setBusy] = useState<string | null>(null)
-  const [dismissed, setDismissed] = useState<string[]>([])
+  const [dismissed, setDismissed] = useState<string[]>(readDismissed)
+
+  const persistDismissed = (next: string[]) => {
+    setDismissed(next)
+    try {
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify(next))
+    } catch {
+      /* private mode: the dismissal is still good for this session */
+    }
+  }
 
   const visible = (groups ?? []).filter((g) => !dismissed.includes(g.name))
   if (visible.length === 0) return null
@@ -69,7 +97,7 @@ export function DuplicateProjectNotice() {
               <button
                 type="button"
                 className="dupe-project-dismiss"
-                onClick={() => setDismissed((d) => [...d, group.name])}
+                onClick={() => persistDismissed([...dismissed, group.name])}
               >
                 Not now
               </button>

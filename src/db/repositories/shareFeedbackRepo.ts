@@ -1,5 +1,5 @@
 import { db } from '@/db/database'
-import { listSongShareFeedback } from './shareRepo'
+import { countShareFeedbackBySong } from './shareRepo'
 
 const CACHE_KEY = 'shareFeedbackCache'
 const SEEN_KEY = 'shareFeedbackSeen'
@@ -48,18 +48,17 @@ export async function refreshShareFeedbackCache(songIds: string[]) {
     return
   }
 
-  const cache: FeedbackCache = {}
-
-  await Promise.all(
-    songIds.map(async (songId) => {
-      try {
-        const feedback = await listSongShareFeedback(songId)
-        if (feedback.length > 0) cache[songId] = feedback.length
-      } catch {
-        // ignore per-song errors while offline
-      }
-    }),
-  )
+  /* One batched read for the whole board. This used to be a per-song fan-out
+     with its own try/catch swallowing each failure; the batch keeps the same
+     offline behaviour by failing as a unit and leaving the previous cache
+     alone, which is better than half a cache written from whichever requests
+     happened to land before the network went. */
+  let cache: FeedbackCache
+  try {
+    cache = await countShareFeedbackBySong(songIds)
+  } catch {
+    return
+  }
 
   if (Object.keys(cache).length === 0) {
     await db.syncMeta.delete(CACHE_KEY)

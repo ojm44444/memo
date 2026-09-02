@@ -342,6 +342,8 @@ body.is-file-dragging * {
   flex: 1;
   min-height: 0;
   height: 100%;
+  /* The player bar overlays this rather than sitting in the flex column. */
+  position: relative;
 }
 
 .board-frame {
@@ -1699,6 +1701,15 @@ body.is-file-dragging * {
   padding-bottom: 4px;
 }
 
+/* The three scrollers under the overlaid player bar. Only while it is on
+   screen: the bar is rendered conditionally, so with nothing playing there is
+   nothing to clear and no dead space at the bottom of a column. */
+.board-page:has(.player-bar) .board-column-scroll,
+.board-page:has(.player-bar) .listen-view,
+.board-page:has(.player-bar) .library-view {
+  padding-bottom: var(--player-bar-inset);
+}
+
 .column-show-more {
   width: 100%;
   padding: 8px;
@@ -1792,6 +1803,17 @@ body.is-file-dragging * {
   padding: 12px 12px 10px;
   cursor: default;
   transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+  /* A drag on the handle that does not clear the sensor's 8px threshold, so a
+     quick flick or a trackpad nudge, used to select the titles and durations
+     across three columns and move nothing. Nothing on a board card is text
+     anyone wants to select; the drawer is where you read and copy. */
+  user-select: none;
+  -webkit-user-select: none;
+  /* touch-action stays `auto` DELIBERATELY. The touch sensor triggers on a
+     500ms long press, so the card has to keep passing ordinary finger drags
+     through to the column scroller. Setting `none` here to "make dragging
+     work" would make the columns unscrollable on a phone. The drag handle,
+     which is the only element carrying the listeners, has `none` below. */
   touch-action: auto;
   will-change: transform;
   display: flex;
@@ -1805,6 +1827,15 @@ html.light .song-card {
 
 .song-card:active {
   cursor: default;
+}
+
+/* Safari inherits user-select into form controls where Chrome does not, and a
+   title you cannot select is a title you cannot fix. */
+.song-card input,
+.song-card textarea,
+.song-card [contenteditable='true'] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .song-card-drag-handle {
@@ -2179,8 +2210,28 @@ html.light .song-card:hover {
   color: var(--audio-mint);
 }
 
+/* How much room the bar takes over the bottom of the board. Measured, not
+   guessed: 82px at the default size on a desktop window. */
+:root {
+  --player-bar-inset: 92px;
+}
+
 .player-bar {
-  flex-shrink: 0;
+  /* Overlay, not another row in the flex column.
+     It used to be the last child of .board-page, so starting playback took 82
+     vertical pixels away from every column at once and reflowed the whole
+     board under the cursor. On a 790px window that was the difference between
+     a usable board and a letterbox. The bar is already translucent with a
+     blur behind it, so it was drawn to sit over content; it just was not
+     positioned to.
+     The columns keep their full height and the scrollers below get a bottom
+     inset instead, so the last card still clears the bar and nothing jumps
+     when a song starts. */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
   border-top: 1px solid var(--border);
   background: rgba(12, 12, 14, 0.92);
   backdrop-filter: blur(24px) saturate(1.6);
@@ -5374,6 +5425,26 @@ html.light .version-menu-item--danger {
   align-items: baseline;
   gap: 10px;
   margin-bottom: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Collapsed, the strip is its own header line and nothing else. */
+.recent-songs.is-collapsed {
+  padding-bottom: 6px;
+}
+.recent-songs.is-collapsed .recent-songs-header {
+  margin-bottom: 0;
+}
+
+.recent-songs-toggle {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.75rem;
 }
 
 .recent-songs-title {

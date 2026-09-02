@@ -107,6 +107,66 @@ export async function listSongShareFeedback(songId: string) {
   return (comments ?? []) as SongShareFeedbackComment[]
 }
 
+/**
+ * Feedback counts for a whole board, in a bounded number of requests.
+ *
+ * This replaced a fan-out. refreshShareFeedbackCache used to call
+ * listSongShareFeedback once per song, and each of those made its own
+ * song_shares round trip plus a share_listen_comments one. On a 241 song
+ * board that was 192 GETs to song_shares in about three seconds, and it was
+ * not once per load: useShareFeedbackRefresh re-runs on every sync settle, so
+ * the same storm repeated every time the outbox drained. Fine on a desk in
+ * London, not fine on a phone on 4G, and metered egress either way.
+ *
+ * Two queries per chunk of 100 ids, which is the same limit pullChanges
+ * settled on: past roughly 200 ids the PostgREST `in.()` filter pushes the GET
+ * URL over the length limit and the request fails silently.
+ *
+ * Songs with no feedback are absent from the result rather than present with
+ * a zero, because the caller stores it as a sparse cache.
+ */
+export async function countShareFeedbackBySong(
+  songIds: string[],
+): Promise<Record<string, number>> {
+  if (!supabase || !songIds.length) return {}
+
+  const chunkSize = 100
+  const shareToSong = new Map<string, string>()
+
+  for (let i = 0; i < songIds.length; i += chunkSize) {
+    const { data, error } = await supabase
+      .from('song_shares')
+      .select('id, song_id')
+      .in('song_id', songIds.slice(i, i + chunkSize))
+      .is('revoked_at', null)
+
+    if (error) throw error
+    for (const row of (data ?? []) as { id: string; song_id: string }[]) {
+      shareToSong.set(row.id, row.song_id)
+    }
+  }
+
+  if (shareToSong.size === 0) return {}
+
+  const counts: Record<string, number> = {}
+  const shareIds = [...shareToSong.keys()]
+
+  for (let i = 0; i < shareIds.length; i += chunkSize) {
+    const { data, error } = await supabase
+      .from('share_listen_comments')
+      .select('share_id')
+      .in('share_id', shareIds.slice(i, i + chunkSize))
+
+    if (error) throw error
+    for (const row of (data ?? []) as { share_id: string }[]) {
+      const songId = shareToSong.get(row.share_id)
+      if (songId) counts[songId] = (counts[songId] ?? 0) + 1
+    }
+  }
+
+  return counts
+}
+
 export async function recordShareListen(token: string) {
   if (!supabase) return
   const { error } = await supabase.rpc('record_share_listen', { p_token: token })

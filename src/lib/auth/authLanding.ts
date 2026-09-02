@@ -55,3 +55,41 @@ export function redirectAuthCallbackToBoard(): boolean {
   window.location.replace(`/app${window.location.search}${window.location.hash}`)
   return true
 }
+
+/**
+ * Take the finished sign-in out of the address bar.
+ *
+ * After a successful exchange the URL still reads
+ * `/app?code=c7350887-9f66-...`. The code is single use, so this is not a
+ * security hole, but it ends up in bookmarks, in screenshots, and in the
+ * "here is my board" link people paste at each other, and a reload re-runs the
+ * exchange path for a code that is already spent.
+ *
+ * replaceState rather than a navigation: it leaves the router alone and does
+ * not add a history entry, so back still goes where the user expects.
+ *
+ * Only the auth keys are stripped. Anything else on the query belongs to the
+ * app (`?demo=1`, `?shot=1` and the invite flow all use it) and must survive.
+ */
+export function clearAuthCallbackFromUrl(): void {
+  if (typeof window === 'undefined' || !window.history?.replaceState) return
+
+  const url = new URL(window.location.href)
+  let changed = false
+
+  for (const key of AUTH_PARAMS) {
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key)
+      changed = true
+    }
+  }
+
+  const hash = url.hash.startsWith('#') ? url.hash.slice(1) : url.hash
+  if (hash && new URLSearchParams(hash).has('access_token')) {
+    url.hash = ''
+    changed = true
+  }
+
+  if (!changed) return
+  window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+}

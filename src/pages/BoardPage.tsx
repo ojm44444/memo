@@ -23,6 +23,8 @@ import { LibraryView } from '@/components/board/LibraryView'
 import { ListenView } from '@/components/board/ListenView'
 import { useBoardRole } from '@/hooks/useBoardRole'
 import { useShareFeedbackRefresh } from '@/hooks/useShareFeedbackRefresh'
+import { useAppDocumentTitle } from '@/hooks/useAppDocumentTitle'
+import { clearAuthCallbackFromUrl } from '@/lib/auth/authLanding'
 import { useBoardKeyboardShortcuts } from '@/hooks/useBoardKeyboardShortcuts'
 import { getDefaultPlaybackRate, getLoopMode } from '@/lib/preferences'
 import { useShareImport } from '@/hooks/useShareImport'
@@ -134,8 +136,12 @@ function AuthenticatedBoard() {
 
   useShareFeedbackRefresh(boardRole === 'owner')
   useBoardKeyboardShortcuts()
+  useAppDocumentTitle()
 
   useEffect(() => {
+    // AuthGate has already confirmed a session, so the code in the URL has
+    // been exchanged and is spent. Take it out of the address bar.
+    clearAuthCallbackFromUrl()
     void ensureSeeded()
     initSyncEngine()
     void registerBackgroundSync()

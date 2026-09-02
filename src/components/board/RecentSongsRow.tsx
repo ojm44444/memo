@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { ColumnSlug } from '@/types/column'
 import { db } from '@/db/database'
@@ -11,7 +11,30 @@ interface RecentSongsRowProps {
   scope?: 'board' | 'library'
 }
 
+/**
+ * Collapsed by default, and it remembers.
+ *
+ * On a 790px window the board was getting 451px of it: titlebar, this strip,
+ * the activity feed, a banner and the player bar all sit above or below the
+ * columns, and this one was 72px that could never be put away. A Kanban
+ * product whose Kanban is the smallest thing on screen has its priorities
+ * backwards. The header line stays visible so it is still discoverable, which
+ * is the difference between collapsing something and hiding it.
+ *
+ * Same key shape and the same default as BoardActivityFeed, so the two strips
+ * behave identically rather than each having its own rule.
+ */
+const COLLAPSED_KEY = 'recent-collapsed'
+
 export function RecentSongsRow({ scope = 'board' }: RecentSongsRowProps) {
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem(COLLAPSED_KEY) !== 'false' } catch { return true }
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(COLLAPSED_KEY, String(collapsed)) } catch { /* ignore */ }
+  }, [collapsed])
+
   const songs = useLiveQuery(
     () => (scope === 'library' ? getRecentSongsAcrossLibrary(6) : getRecentSongs(6)),
     [scope],
@@ -22,23 +45,34 @@ export function RecentSongsRow({ scope = 'board' }: RecentSongsRowProps) {
   if (!songs?.length) return null
 
   return (
-    <section className="recent-songs" aria-label="Recently updated songs">
-      <div className="recent-songs-header">
+    <section
+      className={collapsed ? 'recent-songs is-collapsed' : 'recent-songs'}
+      aria-label="Recently updated songs"
+    >
+      <button
+        type="button"
+        className="recent-songs-header"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-expanded={!collapsed}
+      >
         <h3 className="recent-songs-title">Recent</h3>
         <span className="recent-songs-hint">
           {scope === 'library' ? 'Last edited across your library' : 'Last edited on this board'}
         </span>
-      </div>
-      <div className="recent-songs-track">
-        {songs.map((song) => (
-          <RecentSongChip
-            key={song.id}
-            song={song}
-            isActive={currentSongId === song.id && isPlaying}
-            onOpen={() => openDrawer(song.id)}
-          />
-        ))}
-      </div>
+        <span className="recent-songs-toggle" aria-hidden="true">{collapsed ? '▸' : '▾'}</span>
+      </button>
+      {!collapsed && (
+        <div className="recent-songs-track">
+          {songs.map((song) => (
+            <RecentSongChip
+              key={song.id}
+              song={song}
+              isActive={currentSongId === song.id && isPlaying}
+              onOpen={() => openDrawer(song.id)}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

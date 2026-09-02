@@ -18,6 +18,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
  *     comments stay, so signing back in shows the work with the takes empty
  *     rather than an empty board, and a local copy is never touched.
  *
+ *     THE DELETION IS GATED ON BOTH WARNINGS HAVING ACTUALLY SENT. The first
+ *     build of this did not do that, and it was wrong in a way that only
+ *     shows up on the worst day: the warnings go through Resend, Resend is
+ *     not configured yet, and a send failure was recorded as an error while
+ *     the deletion carried on regardless. Someone would have lost their audio
+ *     with no warning at all because our mail was down. The gate reads
+ *     email_log, which send-lifecycle-email writes only on a send Resend
+ *     accepted (it releases the claim when Resend refuses), so an unsent
+ *     warning cannot look like a sent one. Unwarned accounts get warned and
+ *     wait; the deletion happens on a later run, once the record exists.
+ *
  * WHY THIS IS NOT A pg_cron JOB DOING SQL. Deleting a row out of
  * storage.objects does not delete the file behind it, it orphans it. We would
  * carry on paying for bytes we had told someone were gone, which is both a
@@ -81,12 +92,12 @@ serve(async (req) => {
   const report = {
     dryRun,
     trash: { songs: 0, objects: 0, objectErrors: [] as string[] },
-    lapsed: { warned60: 0, warned85: 0, purged: 0, takesCleared: 0 },
+    lapsed: { warned60: 0, warned85: 0, purged: 0, takesCleared: 0, deferred: 0 },
     errors: [] as string[],
   }
 
-  const sendEmail = async (payload: Record<string, unknown>) => {
-    if (dryRun) return
+  const sendEmail = async (payload: Record<string, unknown>): Promise<boolean> => {
+    if (dryRun) return false
     const res = await fetch(`${url}/functions/v1/send-lifecycle-email`, {
       method: 'POST',
       headers: {
@@ -96,7 +107,11 @@ serve(async (req) => {
       },
       body: JSON.stringify(payload),
     })
-    if (!res.ok) report.errors.push(`email ${payload.kind}: ${await res.text()}`)
+    if (!res.ok) {
+      report.errors.push(`email ${payload.kind}: ${await res.text()}`)
+      return false
+    }
+    return true
   }
 
   // ── 1. Trash past 30 days ────────────────────────────────────────────────
@@ -138,7 +153,27 @@ serve(async (req) => {
     const { data: lapsed, error } = await admin.rpc('retention_lapsed_accounts')
     if (error) throw error
 
-    for (const row of (lapsed ?? []) as LapsedRow[]) {
+    const rows = (lapsed ?? []) as LapsedRow[]
+
+    /* What has actually been sent, read once. A row exists here only because
+       Resend accepted the message, so this is a record of delivery attempts
+       that succeeded, not of intentions. */
+    const sent = new Set<string>()
+    if (rows.length) {
+      const { data: log, error: logError } = await admin
+        .from('email_log')
+        .select('email, kind, dedupe_key')
+        .in('kind', ['audio_expiring_60', 'audio_expiring_85'])
+        .in('email', rows.map((r) => r.email))
+      if (logError) throw logError
+      for (const r of (log ?? []) as { email: string; kind: string; dedupe_key: string | null }[]) {
+        sent.add(`${r.email.toLowerCase()}|${r.kind}|${r.dedupe_key ?? ''}`)
+      }
+    }
+    const wasSent = (email: string, kind: string, key: string) =>
+      sent.has(`${email.toLowerCase()}|${kind}|${key}`)
+
+    for (const row of rows) {
       const deleteDate = new Date(row.lapsed_on)
       deleteDate.setDate(deleteDate.getDate() + LAPSE_DELETE_DAYS)
       const deleteOn = longDate(deleteDate)
@@ -153,18 +188,51 @@ serve(async (req) => {
       }
 
       if (row.days_lapsed >= LAPSE_DELETE_DAYS) {
-        if (!dryRun) {
-          if (row.storage_paths.length) {
-            for (let i = 0; i < row.storage_paths.length; i += 200) {
-              const { error: rmError } = await admin.storage
-                .from(BUCKET)
-                .remove(row.storage_paths.slice(i, i + 200))
-              if (rmError) {
-                report.errors.push(`lapsed storage ${row.user_id}: ${rmError.message}`)
-                continue
-              }
+        /* Both warnings, or nothing happens today. */
+        const warned =
+          wasSent(row.email, 'audio_expiring_60', row.lapsed_on) &&
+          wasSent(row.email, 'audio_expiring_85', row.lapsed_on)
+
+        if (!warned) {
+          report.lapsed.deferred++
+          report.errors.push(
+            `lapsed ${row.user_id}: past day ${LAPSE_DELETE_DAYS} but not warned twice, deletion deferred`,
+          )
+          /* Send what is missing so the countdown can actually complete.
+             Day 85 first: the date in the day 60 copy has already passed. */
+          if (!wasSent(row.email, 'audio_expiring_85', row.lapsed_on)) {
+            if (await sendEmail({ ...common, kind: 'audio_expiring_85', deleteOn })) {
+              report.lapsed.warned85++
             }
           }
+          if (!wasSent(row.email, 'audio_expiring_60', row.lapsed_on)) {
+            if (await sendEmail({ ...common, kind: 'audio_expiring_60', deleteOn })) {
+              report.lapsed.warned60++
+            }
+          }
+          continue
+        }
+
+        if (!dryRun) {
+          /* Every chunk has to go before the rows are cleared. The first
+             version of this `continue`d the CHUNK loop on a failure and then
+             cleared storage_path anyway, which is precisely the orphaned-file
+             bug this function exists to avoid: the object stays in the bucket,
+             billed forever, with nothing left pointing at it. Skip the whole
+             user instead and let the next run retry. */
+          let removalFailed = false
+          for (let i = 0; i < row.storage_paths.length; i += 200) {
+            const { error: rmError } = await admin.storage
+              .from(BUCKET)
+              .remove(row.storage_paths.slice(i, i + 200))
+            if (rmError) {
+              report.errors.push(`lapsed storage ${row.user_id}: ${rmError.message}`)
+              removalFailed = true
+              break
+            }
+          }
+          if (removalFailed) continue
+
           const { data: cleared, error: clearError } = await admin.rpc(
             'retention_clear_cloud_audio',
             { p_user_id: row.user_id },
@@ -185,11 +253,13 @@ serve(async (req) => {
          warning about a date that has nearly passed. The log makes both safe
          to attempt. */
       if (row.days_lapsed >= WARN_LAST_DAYS) {
-        await sendEmail({ ...common, kind: 'audio_expiring_85', deleteOn })
-        report.lapsed.warned85++
+        if (await sendEmail({ ...common, kind: 'audio_expiring_85', deleteOn })) {
+          report.lapsed.warned85++
+        }
       } else if (row.days_lapsed >= WARN_FIRST_DAYS) {
-        await sendEmail({ ...common, kind: 'audio_expiring_60', deleteOn })
-        report.lapsed.warned60++
+        if (await sendEmail({ ...common, kind: 'audio_expiring_60', deleteOn })) {
+          report.lapsed.warned60++
+        }
       }
     }
   } catch (err) {
