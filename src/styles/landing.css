@@ -4368,7 +4368,7 @@ section[id] { scroll-margin-top: 88px; }
    everyone else's. content-box puts the padding outside the measure.
    Discipline's inner wrapper carried its own 24px. All twelve now share
    one edge. */
-.features, .compare, .faq-section { box-sizing: content-box !important; }
+.features, .compare, .faq-section, .howitworks { box-sizing: content-box !important; }
 .discipline-inner { padding-left: 0 !important; padding-right: 0 !important; }
 
 /* B2, second pass. The build keeps only the -webkit- backdrop-filter and
