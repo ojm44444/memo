@@ -4238,8 +4238,11 @@ a.nav-cta {
    clear of it. */
 .landing > nav {
   background: rgba(13, 31, 39, 0.82) !important;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  /* Single function on purpose: the minifier collapsed
+     "blur(14px) saturate(140%)" to "blur(14px)saturate(140%)", which Chrome
+     does not parse, and the computed value came back "none". */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 section[id] { scroll-margin-top: 88px; }
