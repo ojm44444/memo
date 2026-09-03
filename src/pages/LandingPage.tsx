@@ -169,7 +169,12 @@ const COMPARE_ROWS = [
 ] as const
 
 const STEPS = [
-  ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox.'],
+  // Effort is the half of the decision this page never addressed. A reader
+  // with four hundred memos does the arithmetic and prices the first session
+  // in weekends, and nothing here told them they do not have to do that. They
+  // do not: nothing forces a bulk import, and the twenty an author can still
+  // recall unprompted are, by definition, the ones worth opening first.
+  ['01', 'Get the audio in', 'Drag it off your desktop, or pull it from the Files app on your phone. It lands in the Inbox. You do not need all four hundred on day one. Start with the twenty you can still remember, which are the ones worth finishing anyway.'],
   // Used to claim songdrafts auto-generated a name like "Unicorn Pants" on
   // every import. That shipped, then got pulled: applying an invented name to
   // every card in a real library of hundreds read as the app making a joke
@@ -651,9 +656,19 @@ export function LandingPage() {
             You already have the discipline.<br />
             <em>You just lost the evidence.</em>
           </h2>
+          {/* The re-entry line. Across the r/Songwriting corpus the sharpest
+              thing anyone said was that having the idea, recording it, and
+              then failing to get back into it "feels very different from
+              writer's block". Nobody in this category names that gap, and it
+              is precisely what a board, stacked takes and stage columns are
+              for. Naming it here, in the section that already concedes the
+              fair criticism, is the concede-then-reframe the section is
+              built on. */}
           <p className="discipline-lead">
             If you have a thousand unfinished memos, a tidier list will not make you finish
-            them. That is true.
+            them. That is true. But what stops you is rarely a blank page. You had the idea,
+            you recorded it, and three months later you could not get back into it. That is a
+            re-entry problem, not writer's block.
           </p>
           <p className="discipline-turn">
             Here is the part that is actually broken. You already were disciplined, on a
@@ -668,15 +683,20 @@ export function LandingPage() {
               territory, not a credentials slot.
 
               Voice changed from first person to third on Owen's direction:
-              "it should speak like a brand". Not rewritten as "the team
-              behind" though, because there is no team, and inventing one to
-              sound bigger is exactly the kind of claim this whole page exists
-              to NOT make. Third person about one real person is brand voice
-              without being a fabricated one. */}
+              "it should speak like a brand". Third person about one real
+              person is brand voice without being a fabricated one.
+
+              REVERTED 3 Sep. This had drifted to "the team behind two million
+              streams ... We still lost", with no note saying why. There is no
+              team. Inventing one to sound bigger is the exact class of claim
+              this page exists to not make, it breaks the brand's standing
+              never-fake rule, and it weakens the line rather than
+              strengthening it: one person who demonstrably finishes songs is
+              a better witness for this argument than an anonymous "we". */}
           <p className="discipline-credential">
-            Built by the team behind two million streams, BBC Introducing, and sold out
+            Built by a songwriter with two million streams, BBC Introducing, and sold out
             rooms across the UK and Europe.
-            <span> We still lost the good ones in a list of a thousand files.</span>
+            <span> He still lost the good ones in a list of a thousand files.</span>
           </p>
         </div>
       </section>
@@ -794,17 +814,27 @@ export function LandingPage() {
       <section className="trust">
         <div className="trust-inner">
           <h2 className="section-h2">Your music is yours.</h2>
-          <p className="trust-lead">Not a promise in the small print. How it is built.</p>
+          <p className="trust-lead">
+            Not a promise in the small print. How it is built. If any of this ever changes you
+            will hear it loudly, and before it happens.
+          </p>
+          {/* REORDERED 3 Sep. The two claims that actually separate this from
+              everything else in the category were sitting at positions five
+              and six, read last or not at all. The research is explicit about
+              why they matter: a competitor self-promoted into a thread about
+              lost recordings and was downvoted and interrogated on exactly
+              these two points, "why do you need to collect data from users"
+              and "why did you integrate an AI". They lead now. */}
           <ul className="trust-list">
-            <li>On your device by default.</li>
-            <li>Synced encrypted only if you sign in.</li>
-            <li>Export everything, any time, in one zip.</li>
-            <li>Delete means delete.</li>
+            <li>Nothing you record trains an AI. Not ours, not anyone's.</li>
             {/* Verified before writing: importAudioFiles stores the File object
                 itself (audioRepo, `blob: file`). Nothing re-encodes, so this is
                 a fact rather than a marketing line. */}
             <li>We never touch the audio. The file you import is the file we store, the file we play back, and the file that comes out in the zip.</li>
-            <li>And nothing you record trains an AI. Not ours, not anyone's.</li>
+            <li>On your device by default.</li>
+            <li>Synced encrypted only if you sign in.</li>
+            <li>Export everything, any time, in one zip.</li>
+            <li>Delete means delete.</li>
           </ul>
         </div>
       </section>
