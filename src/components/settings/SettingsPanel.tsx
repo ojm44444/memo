@@ -272,6 +272,27 @@ export function SettingsPanel() {
               <p className="settings-section-copy">
                 Download a ZIP of your projects, songs, notes, and local audio files.
               </p>
+
+              {/* The word doing the work up there is "local", and it is far too
+                  easy to miss when you are taking a backup precisely because
+                  you are about to let something delete things. exportBoardBackup
+                  skips any take whose audio is not on THIS device: the song and
+                  its notes are in the manifest, the file is not in the zip. So
+                  say the number out loud, next to the button, and offer the
+                  one action that fixes it. */}
+              {(uncachedAudio ?? 0) > 0 && (
+                <p className="settings-backup-warning">
+                  <strong>
+                    {uncachedAudio} take{(uncachedAudio ?? 0) === 1 ? '' : 's'} would be missing
+                    from this backup.
+                  </strong>{' '}
+                  {(uncachedAudio ?? 0) === 1 ? 'It lives' : 'They live'} in the cloud and not on
+                  this device, so the zip will name the song{(uncachedAudio ?? 0) === 1 ? '' : 's'}{' '}
+                  without the audio. Use “Download all audio” above first if this backup is meant
+                  to be your undo.
+                </p>
+              )}
+
               <button
                 type="button"
                 className="settings-export"

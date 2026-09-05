@@ -9877,6 +9877,19 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
    field read as "Am". Muted and italic, so a hint can never be mistaken for
    an answer at a glance. --text-muted measures 8.26:1 on the ground against
    --text at 15.28:1, which is a difference you see without reading. */
+/* The one warning in Settings that has to be read, because it is read at the
+   moment someone is about to trust a backup. */
+.settings-backup-warning {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .song-meta-field input::placeholder {
   color: var(--text-muted);
   font-style: italic;
