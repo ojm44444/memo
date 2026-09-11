@@ -48,7 +48,14 @@ type Kind =
 
 serve(async (req) => {
   const resendKey = Deno.env.get('RESEND_API_KEY')
-  const from = Deno.env.get('EMAIL_FROM') ?? 'songdrafts <owen@songdrafts.com>'
+  /* Not a person's name. The default used to be owen@songdrafts.com, which
+     put the founder's name on every email a customer received, against
+     Owen's standing rule that the product never presents as one person.
+     Replies go to support@, which has to exist as a real mailbox before
+     Resend is switched on (it is on the launch list), or "reply and tell us"
+     in every template is a promise that bounces. */
+  const from = Deno.env.get('EMAIL_FROM') ?? 'songdrafts <hello@songdrafts.com>'
+  const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'support@songdrafts.com'
   const secret = Deno.env.get('LIFECYCLE_EMAIL_SECRET')
   const url = Deno.env.get('SUPABASE_URL')
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -73,6 +80,10 @@ serve(async (req) => {
      second countdown has to be able to warn them too. */
   const dedupeKey = typeof body?.dedupeKey === 'string' && body.dedupeKey ? body.dedupeKey : null
   const deleteOn = typeof body?.deleteOn === 'string' ? body.deleteOn : ''
+  /* The trial reminder has to state what will be charged. Both come from the
+     Stripe subscription in the webhook, never from a default here. */
+  const amount = typeof body?.amount === 'string' ? body.amount : ''
+  const interval = body?.interval === 'month' ? 'month' : body?.interval === 'year' ? 'year' : null
 
   if (!kind || !email) return json({ error: 'kind and email are required' }, 400)
 
@@ -85,8 +96,10 @@ serve(async (req) => {
       template = stalledImportEmail(name)
       break
     case 'trial_ending':
-      if (!endsOn) return json({ error: 'endsOn is required' }, 400)
-      template = trialEndingEmail(name, endsOn)
+      if (!endsOn || !amount || !interval) {
+        return json({ error: 'endsOn, amount and interval are required' }, 400)
+      }
+      template = trialEndingEmail(name, endsOn, amount, interval)
       break
     case 'payment_failed':
       template = paymentFailedEmail(name)
@@ -136,6 +149,7 @@ serve(async (req) => {
     },
     body: JSON.stringify({
       from,
+      reply_to: replyTo,
       to: [email],
       subject: template.subject,
       text: template.text,

@@ -32,6 +32,13 @@ const TARGETS = [
   // rectangle is what every link to songdrafts previewed as, which reads as a
   // parked domain. It is a laid-out page now: scripts/build-og-card.mjs,
   // `npm run build:og`. Putting it back here would overwrite that silently.
+
+  // The wordmark for system emails (sign-in link and the rest). Email clients,
+  // Gmail above all, do not render SVG, so the brand needs a PNG, and it is
+  // drawn on a SOLID ground matching the email card (#0d1f27) rather than
+  // transparent: some mail apps' dark modes recolour transparent areas and
+  // would put light type on a light patch. 2x, shown at 236x50 in the email.
+  { src: 'wordmark-paper.svg', out: 'brand/email-wordmark.png', w: 472, h: 100, pad: 0.02, bg: '#0d1f27' },
 ]
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -94,13 +101,15 @@ try {
   const send = rpc(await connect())
   await send('Page.enable')
 
-  for (const { src, out, w, h, pad = 0 } of TARGETS) {
+  for (const { src, out, w, h, pad = 0, bg = '#16303b' } of TARGETS) {
     const svg = readFileSync(resolve(root, 'public/brand', src), 'utf8')
-    // Non-square targets sit centred on the slate ground with padding; square
-    // icons fill the frame (their own shape defines the edges).
+    // Non-square targets sit centred on a solid ground with padding, and the
+    // SVG is told to fill what is left (without a size it would default to
+    // 300x150); square icons fill the frame (their own shape defines the edges).
     const inner = `display:flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;` +
-      (pad ? `background:#16303b;padding:${Math.round(w * pad)}px;box-sizing:border-box;` : '')
-    const html = `<html><body style="margin:0;background:transparent">
+      (pad ? `background:${bg};padding:${Math.round(w * pad)}px;box-sizing:border-box;` : '')
+    const fit = pad ? '<style>svg{width:100%;height:100%}</style>' : ''
+    const html = `<html><body style="margin:0;background:transparent">${fit}
       <div style="${inner}">${svg.replace(/^(<svg[^>]*?)\s+width="[\d.]+"\s+height="[\d.]+"/, '$1')}</div>
     </body></html>`
 

@@ -27,3 +27,15 @@ file_size_limit = "50MiB"
 enabled = true
 site_url = "http://localhost:5173"
 additional_redirect_urls = ["http://localhost:5173/app"]
+
+# Branded sign-in emails. LOCAL ONLY: this file does not configure production.
+# For the live project, paste the same files into the Supabase dashboard under
+# Authentication > Email Templates, with these subjects. The templates carry
+# the same instructions in a comment at the top.
+[auth.email.template.magic_link]
+subject = "Your songdrafts sign-in link"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.email.template.confirmation]
+subject = "Open your new songdrafts board"
+content_path = "./supabase/templates/confirm-signup.html"

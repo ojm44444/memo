@@ -85,8 +85,113 @@ serve(async (req) => {
     )
   }
 
+  /**
+   * The reminder before the $1 week turns into the paid plan.
+   *
+   * Nothing sent this before. Checkout creates a subscription with a 7 day
+   * trial, so the full charge happens automatically, and a customer would have
+   * gone from $1 to $49 with no warning. Stripe fires trial_will_end three
+   * days ahead; this turns it into the trial_ending email.
+   *
+   * The amount comes from Stripe's preview of the invoice that will actually
+   * be raised, not from the price: with Adaptive Pricing the customer may be
+   * charged in their own currency, and tax or a discount changes the number.
+   * The email promises "we charge X", so X has to be the real figure.
+   *
+   * A failed send does NOT fail the webhook. Stripe disables an endpoint that
+   * keeps erroring, and this endpoint is also what keeps subscriptions in
+   * sync, so losing it would lock paying people out. The failure is logged.
+   */
+  const sendTrialReminder = async (sub: Stripe.Subscription) => {
+    const secret = Deno.env.get('LIFECYCLE_EMAIL_SECRET')
+    if (!secret || !sub.trial_end) return
+
+    const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+    let userId = sub.metadata?.supabase_user_id ?? null
+    if (!userId) {
+      const { data } = await admin
+        .from('subscriptions')
+        .select('user_id')
+        .eq('stripe_customer_id', customerId)
+        .maybeSingle()
+      userId = data?.user_id ?? null
+    }
+    if (!userId) return
+
+    const { data: userData } = await admin.auth.admin.getUserById(userId)
+    const email = userData?.user?.email
+    if (!email) return
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('display_name')
+      .eq('id', userId)
+      .maybeSingle()
+    const rawName = profile?.display_name ?? ''
+    // display_name falls back to the email address; greeting someone by their
+    // email is worse than "there".
+    const name = rawName && !rawName.includes('@') ? rawName : 'there'
+
+    const item = sub.items.data[0]
+    const interval = item?.price?.recurring?.interval === 'month' ? 'month' : 'year'
+
+    let amountMinor: number | null = null
+    let currency = (sub.currency ?? item?.price?.currency ?? 'usd').toUpperCase()
+    try {
+      const upcoming = await stripe.invoices.retrieveUpcoming({ subscription: sub.id })
+      amountMinor = upcoming.amount_due
+      currency = upcoming.currency.toUpperCase()
+    } catch {
+      amountMinor = item?.price?.unit_amount ?? null
+    }
+    if (amountMinor == null) return
+
+    const major = amountMinor / 100
+    const amount = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: Number.isInteger(major) ? 0 : 2,
+    }).format(major)
+    const endsOn = new Date(sub.trial_end * 1000).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    const res = await fetch(`${url}/functions/v1/send-lifecycle-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-lifecycle-secret': secret,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        kind: 'trial_ending',
+        email,
+        name,
+        userId,
+        endsOn,
+        amount,
+        interval,
+        // One reminder per subscription, so a later second trial still warns.
+        dedupeKey: sub.id,
+      }),
+    })
+    if (!res.ok) console.error(`trial reminder for ${sub.id} not sent: ${await res.text()}`)
+  }
+
   try {
     switch (event.type) {
+      case 'customer.subscription.trial_will_end': {
+        const sub = event.data.object as Stripe.Subscription
+        await applySubscription(sub)
+        try {
+          await sendTrialReminder(sub)
+        } catch (err) {
+          console.error(`trial reminder for ${sub.id} failed: ${err instanceof Error ? err.message : err}`)
+        }
+        break
+      }
+
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.subscription) {

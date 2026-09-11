@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>songdrafts</title>
+</head>
+<!--
+  songdrafts system email: sign-in link for an existing account.
+  Paste into Supabase: Authentication > Email Templates > Magic Link.
+  Subject: Your songdrafts sign-in link
+
+  Built for the inbox, not the browser: tables and inline styles because
+  Outlook ignores most CSS, bgcolor attributes as well as styles because some
+  dark modes strip one or the other, no web fonts (Georgia stands in for
+  Instrument Serif), and the wordmark is a PNG on a solid ground because Gmail
+  does not render SVG and some mail apps recolour transparent areas.
+  Colours are the app's own tokens: --bg #0d1f27, --text #eef5f2,
+  --text-muted #a3bab7, --accent #9ddbad, --accent-on #0e1f26.
+-->
+<body style="margin:0;padding:0;background:#0d1f27;" bgcolor="#0d1f27">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0d1f27;">Tap the button to open your board. It works once, on the device you asked from.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0d1f27" style="background:#0d1f27;">
+  <tr>
+    <td align="center" style="padding:40px 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+        <tr>
+          <td style="padding:0 0 32px;">
+            <img src="https://www.songdrafts.com/brand/email-wordmark.png" width="236" height="50" alt="songdrafts" style="display:block;border:0;width:236px;height:50px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:32px;line-height:1.2;color:#eef5f2;padding:0 0 14px;">
+            Open your board
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#eef5f2;padding:0 0 28px;">
+            Tap the button to sign in to songdrafts.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 28px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td bgcolor="#9ddbad" style="background:#9ddbad;border-radius:10px;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#0e1f26;text-decoration:none;border-radius:10px;">Open my board</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#a3bab7;padding:0 0 20px;">
+            Open it on the same device and in the same browser you asked from. It will not sign you in anywhere else, and it works once.
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#a3bab7;padding:0 0 28px;word-break:break-all;">
+            Button not working? Paste this into that same browser:<br>
+            <a href="{{ .ConfirmationURL }}" style="color:#9ddbad;">{{ .ConfirmationURL }}</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #24424e;padding:20px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#a3bab7;">
+            Did not ask for this? Ignore it and nothing happens. Nobody can get in without the link in this email.<br><br>
+            songdrafts &middot; <a href="https://www.songdrafts.com" style="color:#a3bab7;">songdrafts.com</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

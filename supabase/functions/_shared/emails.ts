@@ -24,7 +24,54 @@ export interface EmailTemplate {
   text: string
 }
 
-const SIGN_OFF = 'Owen'
+/*
+ * Signed by the team, in the first person plural.
+ *
+ * These used to be signed "Owen" and written as "I", which tells a customer
+ * the business is one person. Owen has ruled twice that the site must not say
+ * that ("built by the team" is deliberate), and an email that arrives in
+ * someone's inbox says it more loudly than any page could.
+ */
+const SIGN_OFF = 'The songdrafts team'
+
+/*
+ * CHECKED AGAINST THE CODE, 11 Sept 2026. Each of these was a sentence in an
+ * earlier draft that would have gone out false the moment Resend was wired:
+ *
+ *  - "On an iPhone, share the memos to songdrafts." There is no share_target
+ *    in the PWA manifest, so songdrafts never appears in the share sheet.
+ *  - "Open the Voice Memos app, select everything, and drag it onto the
+ *    Inbox column." A drag straight out of Voice Memos arrives with no files,
+ *    and extract-audio-files classifies it as 'voice-memos-app' and REJECTS
+ *    it. The first instruction to a new customer was the one thing the app
+ *    refuses. The routes below are the ones HelpButton documents.
+ *  - "The link-your-folder card" needs showDirectoryPicker (Chrome and Edge
+ *    only) and memos synced to the Mac, so it is offered with both conditions.
+ *  - "If songdrafts is still on a computer you use, the recordings are
+ *    already there." A device only holds audio imported on it or downloaded
+ *    to it; a take recorded on a phone lives only in the cloud. Telling
+ *    someone their audio is safe days before deleting the only copy is the
+ *    worst sentence this file could contain.
+ *  - "Export a backup, a ZIP with your audio files." exportBoardBackup only
+ *    includes audio held on that device, so every backup instruction now says
+ *    to press Download all audio first. That works after a lapse too: storage
+ *    policy audio_storage_select_own has no subscription check.
+ *  - "Subscribing again puts them back in the cloud." Audio uploads only when
+ *    a take is first imported; nothing re-uploads a local recording whose
+ *    cloud copy was removed. Cut.
+ *  - "Your trial ends. After that it is $49 for the year. Nothing happens
+ *    without that." Checkout creates a subscription with a 7 day trial, so the
+ *    charge happens automatically unless they cancel. The email now says the
+ *    amount, the date, and that it is automatic.
+ *  - "Nothing expires" in the welcome. Cloud audio is deleted 90 days after a
+ *    lapse. Cut.
+ */
+
+/** The backup, as an instruction that actually produces a complete one. */
+const BACKUP_STEPS = `Open songdrafts, go to Settings, and press Download all audio first,
+so every recording is on that device. Then press Export backup. You get a
+ZIP with the audio files and a readable list of your songs, and it stays
+useful whether or not you ever open songdrafts again.`
 
 /**
  * Day 0. Sent once, when the account is created.
@@ -41,16 +88,21 @@ export function welcomeEmail(name: string): EmailTemplate {
 
 Thanks for signing up to songdrafts.
 
-The whole thing only works once your recordings are in it, so start there. On
-a Mac, open the Voice Memos app, select everything, and drag it onto the
-Inbox column. On an iPhone, share the memos to songdrafts. It reads the file
-names and dates, and nothing gets re-encoded or converted on the way in.
+It only starts to work once your recordings are in it, so start there.
+
+On an iPhone: in Voice Memos, select your recordings and Save to Files. Then
+tap + Import audio in songdrafts and pick them all in one go from Files.
+
+On a Mac: if your memos sync to the Mac through iCloud, the card at the top of
+your Inbox links the Voice Memos folder once, and everything on that Mac comes
+in, plus every new memo after. That needs Chrome or Edge. Otherwise, drag the
+audio files from Finder onto the board and they land in Inbox.
 
 Then move one song to the right when it gets better. That is the entire idea.
-Nothing expires, nothing nags you, and there is no streak to keep.
+Nothing nags you, and there is no streak to keep.
 
-If the import does not work on your setup, reply to this and tell me what
-happened. It is the part I most want to hear about.
+If the import does not work on your setup, reply and tell us what happened. It
+is the part we most want to hear about.
 
 ${SIGN_OFF}`,
   }
@@ -73,37 +125,47 @@ than that you changed your mind.
 
 The two that catch people out:
 
-If your memos are on your phone and not your computer, they have to come
-across first. On iPhone, open Voice Memos, select them, tap share, and pick
-songdrafts.
+If your memos are on your phone, they have to come across first. In Voice
+Memos, select them and Save to Files, then tap + Import audio in songdrafts
+and pick them from Files.
 
-If you are on a Mac and dragged a folder that did nothing, the memos are
-probably still inside iCloud rather than downloaded onto the machine. Opening
-each one once pulls it down.
+If you are on a Mac and linked the Voice Memos folder but nothing arrived, the
+memos are probably still in iCloud rather than downloaded onto the machine.
+Opening each one once in Voice Memos pulls it down.
 
-If it was neither of those, reply and tell me what you saw. I would rather fix
-it than have you quietly give up on it.
+If it was neither of those, reply and tell us what you saw. We would rather
+fix it than have you quietly give up on it.
 
 ${SIGN_OFF}`,
   }
 }
 
 /**
- * Trial, day 5 of 7.
+ * Three days before the $1 week turns into the paid plan.
  *
- * Says the number, the date and the cancel path in the first three lines.
- * Anything vaguer is the email people screenshot next to the word "sneaky".
+ * Says the amount, the date, that it is automatic, and the cancel path, in
+ * the first four lines. Anything vaguer is the email people screenshot next to
+ * the word "sneaky", and UK consumer rules expect exactly this reminder.
+ *
+ * `amount` is what Stripe will charge ("$49"), `interval` the billing period,
+ * both read off the subscription by the webhook, never assumed.
  */
-export function trialEndingEmail(name: string, endsOn: string): EmailTemplate {
+export function trialEndingEmail(
+  name: string,
+  endsOn: string,
+  amount: string,
+  interval: 'year' | 'month',
+): EmailTemplate {
   return {
-    subject: 'Your songdrafts trial ends ' + endsOn,
+    subject: `Your songdrafts plan starts on ${endsOn}`,
     text: `Hi ${name},
 
-Your trial ends on ${endsOn}. After that it is $49 for the year, or $9 a
-month if you would rather go month to month. Nothing happens without that.
+Your $1 week ends on ${endsOn}. On that day your plan starts automatically
+and we charge ${amount}, then ${amount} every ${interval} after that until you
+cancel.
 
-If it is not for you, cancel in Settings, under Plan. It takes one click and
-you will not hear from me about it again.
+If that is not what you want, cancel before then in Settings, under Plan, and
+nothing more is charged.
 
 If you do stay: your songs are on your device either way. What you are paying
 for is that they sync between your machines and are backed up somewhere that
@@ -143,13 +205,12 @@ export function cancelledEmail(name: string, endsOn: string): EmailTemplate {
 That is cancelled. You keep everything until ${endsOn}, and nothing renews
 after that.
 
-Before then, go to Settings and export a backup. It is a ZIP with your audio
-files and a readable list of your songs, so it stays useful whether or not you
-ever open songdrafts again. I would rather you had your work than had an
-account.
+Before then, take a backup. ${BACKUP_STEPS}
 
-If something specific pushed you out, I would genuinely like to know. One line
-is plenty.
+We would rather you had your work than had an account.
+
+If something specific pushed you out, we would genuinely like to know. One
+line is plenty.
 
 ${SIGN_OFF}`,
   }
@@ -180,18 +241,18 @@ stay on your board whether you subscribe again or not. What gets removed on
 ${deleteOn} is our copy of the audio files, which is the part that costs money
 to store.
 
-If songdrafts is still on a computer you use, the recordings are already
-there. Nothing you do now changes that, and this email does not apply to them.
+Recordings you imported on a device, or downloaded to it, are on that device
+and are not affected. Anything that only ever lived in our cloud, like a take
+recorded on your phone and opened on your laptop, is what goes.
 
-If it is not, and you want the audio back, there are two ways:
+To keep all of it, there are two ways:
 
-  1. Open Settings and export a backup. That gives you a ZIP with the audio
-     files and a readable list of your songs, and it works whether or not you
-     ever open songdrafts again. It costs nothing.
+  1. Take a backup. ${BACKUP_STEPS.replace(/\n/g, '\n     ')}
+     It costs nothing.
 
   2. Subscribe again, and everything carries on as it was.
 
-I would take the backup either way. I will write once more on day 85.
+We would take the backup either way. We will write once more on day 85.
 
 ${SIGN_OFF}`,
   }
@@ -211,11 +272,11 @@ export function audioExpiring85Email(name: string, deleteOn: string): EmailTempl
 Last note on this. On ${deleteOn} our copy of your audio files is deleted.
 
 Your songs stay: titles, notes, lyrics, tags and comments are all still on the
-board afterwards. It is the recordings themselves that go.
+board afterwards. It is the recordings themselves that go, unless they are
+already on one of your devices.
 
-Settings has an export that gives you a ZIP of the audio and a readable list
-of the songs. It takes a minute and it is free. If songdrafts is still on a
-computer you use, you already have the files and this does not affect you.
+To keep every recording: ${BACKUP_STEPS} It takes a few minutes and it is
+free.
 
 Subscribing again keeps everything as it is.
 
@@ -239,15 +300,14 @@ As the last two emails said, our copy of your audio files has now been
 deleted. That is done and it is not reversible from our side.
 
 Your board is still there. Every song, with its title, notes, lyrics, tags and
-comments, is exactly where you left it. The takes are listed but have no
-audio attached.
+comments, is exactly where you left it. Takes whose audio only lived in our
+cloud are listed with no audio attached.
 
-If songdrafts is still installed on a computer you used, your recordings are
-on that machine and were never touched by any of this. Opening the app there
-and subscribing again puts them back in the cloud.
+Any recording that was on one of your devices, because you imported it there
+or downloaded it, is still on that device and was never touched by this.
 
 If this is a mistake, or the warnings went somewhere you do not read, reply
-and tell me. I cannot undo it, but I would like to know how it happened.
+and tell us. We cannot undo it, but we would like to know how it happened.
 
 ${SIGN_OFF}`,
   }
@@ -271,7 +331,7 @@ export function toHtml(text: string): string {
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#1c2320;max-width:34em">
 ${paragraphs}
 <p style="margin:28px 0 0;font-size:12px;color:#6b7671">
-songdrafts. Reply to this and it reaches a person.
+songdrafts. Reply to this and the team reads it.
 </p>
 </div>`
 }
