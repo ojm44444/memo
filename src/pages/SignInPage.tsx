@@ -7,6 +7,10 @@ import '@/styles/globals.css'
 import '@/styles/sign-in.css'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
+import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
+
+/** Our own pause between resends, so a double tap cannot send two links. */
+const RESEND_COOLDOWN_S = 30
 
 export function SignInPage() {
   usePageTitle('Sign in · songdrafts', 'Sign in to your songdrafts board.')
@@ -17,6 +21,16 @@ export function SignInPage() {
   const [checking, setChecking] = useState(true)
   const [offline, setOffline] = useState(!navigator.onLine)
   const [allowed] = useState(signupsAllowed)
+  /* The address a link was actually sent to. While this is set the page shows
+     "Check your email" instead of the form. See signInWithEmail for why. */
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [resendIn, setResendIn] = useState(0)
+
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const t = window.setTimeout(() => setResendIn((n) => n - 1), 1000)
+    return () => window.clearTimeout(t)
+  }, [resendIn])
 
   useEffect(() => {
     const onOffline = () => setOffline(true)
@@ -84,15 +98,30 @@ export function SignInPage() {
     }
   }
 
+  /* The link always sent. On 8 Sept Supabase's auth log shows Owen's request
+     at 21:34:25 and the email going out at 21:34:27, and it arrived. He still
+     reported "send magic link doesn't work", and signed in with Google twenty
+     seconds later, because of what this page did next: the button said
+     "Sending…" for two seconds, went back to "Send magic link" with the form
+     unchanged, and the only sign of success was one small line under the
+     Google button at the bottom of the card. It read as nothing happening.
+     A sent link now replaces the form with a screen that says what to do. */
   const signInWithEmail = async () => {
-    if (!email.trim()) return
+    const address = email.trim()
+    if (!address) return
     setBusy(true)
+    setMessage('')
     const { error } = await client.auth.signInWithOtp({
-      email: email.trim(),
+      email: address,
       options: { emailRedirectTo: redirectTo },
     })
-    setMessage(error ? error.message : 'Check your email for the magic link.')
     setBusy(false)
+    if (error) {
+      setMessage(friendlyAuthError(error, { googleAvailable: true }))
+      return
+    }
+    setSentTo(address)
+    setResendIn(RESEND_COOLDOWN_S)
   }
 
   if (checking) {
@@ -136,16 +165,72 @@ export function SignInPage() {
     )
   }
 
+  if (sentTo) {
+    return (
+      <div className="sign-in-page">
+        <div className="sign-in-card" role="status" aria-live="polite">
+          <Link to="/" className="sign-in-logo">
+            <Wordmark />
+          </Link>
+          <h2 className="sign-in-title">Check your email</h2>
+          <p className="sign-in-sub">
+            We sent a sign-in link to <strong className="sign-in-sent-to">{sentTo}</strong>.
+          </p>
+
+          {/* PKCE: the link is bound to the browser that asked for it (the
+              code verifier lives here), so opening it in a phone's mail app
+              signs nobody in. Said up front, because the failure otherwise
+              looks like a broken link. */}
+          <ul className="sign-in-steps">
+            <li>Open it on this device, in this browser. It won&apos;t sign you in anywhere else.</li>
+            <li>It works once.</li>
+            <li>
+              Nothing there after a minute? Check spam. For now it comes from{' '}
+              <strong>Supabase Auth</strong>, the service that runs sign-in.
+            </li>
+          </ul>
+
+          <button
+            type="button"
+            className="sign-in-google"
+            disabled={busy || resendIn > 0}
+            onClick={() => void signInWithEmail()}
+          >
+            {busy ? 'Sending…' : resendIn > 0 ? `Send it again in ${resendIn}s` : 'Send it again'}
+          </button>
+
+          {message && <p className="sign-in-message">{message}</p>}
+
+          <button
+            type="button"
+            className="sign-in-secondary sign-in-link-button"
+            onClick={() => {
+              setSentTo(null)
+              setMessage('')
+            }}
+          >
+            ← Use a different email
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="sign-in-page">
       <div className="sign-in-card">
         <Link to="/" className="sign-in-logo">
           <Wordmark />
         </Link>
-        <h2 className="sign-in-title">Sign in to your board</h2>
+        {/* Every "Get started" on the landing page lands here, so the first
+            person to read this heading is usually someone with no board yet.
+            "Sign in to your board" told them to sign in to something that did
+            not exist. It is the same step either way: signInWithOtp creates
+            the account the first time. So the page says that. */}
+        <h2 className="sign-in-title">Open your board</h2>
         <p className="sign-in-sub">
-          Sign in once. After that, songdrafts works offline on planes and trains. Changes save on this
-          device and upload automatically when you&apos;re back online.
+          New here or coming back, it&apos;s the same step: we email you a link and you&apos;re in.
+          No password to remember.
         </p>
 
         {offline && (
@@ -178,8 +263,13 @@ export function SignInPage() {
           disabled={busy || offline}
           onClick={() => void signInWithEmail()}
         >
-          {busy ? 'Sending…' : 'Send magic link'}
+          {busy ? 'Sending…' : 'Email me a sign-in link'}
         </button>
+
+        {/* Right under the button that caused it. It used to sit at the very
+            bottom of the card, below Google, which is how a successful send
+            read as nothing happening on 8 Sept. */}
+        {message && <p className="sign-in-message">{message}</p>}
 
         <div className="sign-in-divider">
           <span>or</span>
@@ -194,7 +284,9 @@ export function SignInPage() {
           Continue with Google
         </button>
 
-        {message && <p className="sign-in-message">{message}</p>}
+        {/* The one promise worth repeating at the moment someone hands over
+            an email address. Quoted from the landing page, not paraphrased. */}
+        <p className="sign-in-trust">And nothing you record trains an AI. Not ours, not anyone&apos;s.</p>
 
         <Link to="/" className="sign-in-secondary">
           ← Back to home

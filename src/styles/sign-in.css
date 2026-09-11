@@ -188,3 +188,33 @@
   color: var(--text-muted);
 }
 .sign-in-back:hover { color: var(--text); }
+
+/* The "Check your email" screen. */
+.sign-in-sent-to {
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-all;
+}
+.sign-in-steps {
+  margin: 4px 0 18px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: left;
+}
+.sign-in-link-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+.sign-in-trust {
+  margin: 18px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}

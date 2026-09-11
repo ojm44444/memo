@@ -3544,6 +3544,29 @@ html.light .song-card-tag-overflow {
   cursor: pointer;
 }
 
+/* The second way in from an invite. Quieter than the email button: same
+   size, outline only, so the page still has one primary action. */
+.invite-secondary {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.invite-or {
+  margin: 10px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .invite-message {
   margin-top: 12px;
   font-size: 0.85rem;
