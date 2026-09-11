@@ -280,19 +280,22 @@ export async function setSongSortMode(mode: SongSortMode) {
 }
 
 export async function getLibraryTotals() {
+  /* Songs read first, before any await, for the same reason as
+     getSongsInColumnScope in boardRepo: this runs inside useLiveQuery, and a
+     songs read issued after `await getProjects()` can go unrecorded, so the
+     Library header kept counting songs that had been deleted or merged away.
+     It also used to scan the whole songs table once per project; one read,
+     grouped here, does the same job. */
+  const allSongs = db.songs.filter((song) => !song.deletedAt).toArray()
   const projects = await getProjects()
-  let songCount = 0
-  let favouriteCount = 0
+  const projectIds = new Set(projects.map((p) => p.id))
+  const inProjects = (await allSongs).filter((song) => song.projectId && projectIds.has(song.projectId))
 
-  for (const project of projects) {
-    const songs = await db.songs
-      .filter((song) => !song.deletedAt && song.projectId === project.id)
-      .toArray()
-    songCount += songs.length
-    favouriteCount += songs.filter((song) => song.isFavourite).length
+  return {
+    projectCount: projects.length,
+    songCount: inProjects.length,
+    favouriteCount: inProjects.filter((song) => song.isFavourite).length,
   }
-
-  return { projectCount: projects.length, songCount, favouriteCount }
 }
 
 export async function hasActiveBoardFilters() {

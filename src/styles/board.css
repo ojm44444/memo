@@ -2209,9 +2209,13 @@ html.light .song-card:hover {
   align-self: flex-start;
 }
 
+/* The middle of the card, not all of it. It used to be `inset: 0`, the whole
+   card, so any drop near a song merged into it. Armed only after a pause
+   (see KanbanBoard), and even then the top and bottom edges stay reorder
+   targets, so letting go just above or below a card still places it there. */
 .song-card-merge-zone {
   position: absolute;
-  inset: 0;
+  inset: 22% 6%;
   border-radius: inherit;
   border: 2px dashed transparent;
   display: flex;
@@ -9877,6 +9881,50 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
    field read as "Am". Muted and italic, so a hint can never be mistaken for
    an answer at a glance. --text-muted measures 8.26:1 on the ground against
    --text at 15.28:1, which is a difference you see without reading. */
+/* The undo that every merge now comes with. Sits bottom-centre, above the
+   player bar, where the eye already is after a drop. */
+.merge-undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--player-bar-inset) + 16px);
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 10px 12px 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  color: var(--text);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.36);
+  font-size: 0.82rem;
+}
+.merge-undo-toast-message {
+  margin: 0;
+  line-height: 1.4;
+}
+.merge-undo-toast-undo {
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.merge-undo-toast-dismiss {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
 /* The one warning in Settings that has to be read, because it is read at the
    moment someone is about to trust a backup. */
 .settings-backup-warning {

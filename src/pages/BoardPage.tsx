@@ -40,6 +40,7 @@ import type { DropRejectReason } from '@/lib/extract-audio-files'
 import { OnboardingTour } from '@/components/board/OnboardingTour'
 import { ImportErrorToast } from '@/components/import/ImportErrorToast'
 import { HelpButton } from '@/components/board/HelpButton'
+import { MergeUndoToast } from '@/components/board/MergeUndoToast'
 import { recordSessionOncePerDay } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
@@ -204,6 +205,7 @@ function AuthenticatedBoard() {
         </div>
         <SongDetailDrawer readOnly={readOnly} />
         <OnboardingTour readOnly={readOnly} />
+        <MergeUndoToast />
       </AppShell>
       <ImportErrorToast
         message={shareImportMessage}

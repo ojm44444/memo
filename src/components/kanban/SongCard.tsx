@@ -40,10 +40,20 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   const isSelected = useUiStore((state) => state.selectedSongIds.includes(song.id))
   const toggleSongSelected = useUiStore((state) => state.toggleSongSelected)
 
-  const isMergeTarget = !readOnly && !isTouchOnlyDevice && draggingCardId !== null && draggingCardId !== song.id
+  /* The merge zone exists only once this card has been held over for a
+     moment (armedMergeId, set by KanbanBoard after a pause). Before that it is
+     not a droppable at all, so an ordinary drag passing over the card sees
+     the card itself and reorders around it, the way a drag should. */
+  const armedMergeId = useUiStore((state) => state.armedMergeId)
+  const isMergeTarget =
+    !readOnly &&
+    !isTouchOnlyDevice &&
+    draggingCardId !== null &&
+    draggingCardId !== song.id &&
+    armedMergeId === song.id
   const { setNodeRef: setMergeNodeRef, isOver: isMergeOver } = useDroppable({
     id: `merge:${song.id}`,
-    data: { type: 'song-merge', targetSongId: song.id },
+    data: { type: 'song-merge', targetSongId: song.id, columnSlug },
     disabled: !isMergeTarget,
   })
 
@@ -242,7 +252,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
           className={cn('song-card-merge-zone', isMergeOver && 'is-over')}
           aria-hidden="true"
         >
-          <span className="song-card-merge-zone-label">⊕ merge here</span>
+          <span className="song-card-merge-zone-label">⊕ Release to merge</span>
         </div>
       )}
     </div>

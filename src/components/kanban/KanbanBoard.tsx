@@ -151,36 +151,73 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
   }, [isPlaying, playingColumnIndex, activeColumnIndex, scrollToColumn])
 
   const handleDragStart = (event: DragStartEvent) => {
+    clearMergeDwell()
     if (readOnly || selectionMode) return
     const song = event.active.data.current?.song as Song | undefined
     setActiveSong(song ?? null)
     if (song) setDraggingCardId(song.id)
   }
 
-  // Live preview: update optimisticMove as the card crosses into a new column
+  /* Merge arms on a pause, never on contact.
+     The merge target used to cover the whole of every card and arm the moment
+     the pointer touched it, so dropping a song anywhere near another song
+     merged the two: takes moved, the source deleted, no confirmation. On
+     8 Sept that is how "All of my life I have been waiting" ended up stacked
+     under "Sad piano riff". Now a card has to be held over another card for
+     MERGE_DWELL_MS before "Release to merge" appears, and only then does a
+     release merge. A normal drag passes over cards without stopping, so it
+     can no longer merge by accident, and a merge that does happen gets an
+     undo. */
+  const MERGE_DWELL_MS = 700
+  const mergeTimerRef = useRef<number | null>(null)
+  const mergeCandidateRef = useRef<string | null>(null)
+
+  const clearMergeDwell = useCallback(() => {
+    if (mergeTimerRef.current != null) window.clearTimeout(mergeTimerRef.current)
+    mergeTimerRef.current = null
+    mergeCandidateRef.current = null
+    useUiStore.getState().setArmedMergeId(null)
+  }, [])
+
+  useEffect(() => clearMergeDwell, [clearMergeDwell])
+
+  /* No live move preview here any more, and that is what fixes the crash.
+     This handler used to MOVE the real card into the column under the pointer
+     while the drag was still going. Remounted there, the card reported that
+     it was already in the target column, so the next event decided there was
+     nothing to move and moved it back; back home it reported the old column
+     again, and the event moved it forward. That flip ran without end until
+     React stopped it with error #185 and took the whole board down. The
+     DragOverlay already follows the pointer and the column under it lights
+     up, so the preview bought nothing. The card moves once, on drop. */
   const handleDragOver = useCallback((event: DragOverEvent) => {
     if (readOnly || selectionMode) return
-    const song = event.active.data.current?.song as Song | undefined
-    if (!song) return
+    const activeId = String(event.active.id)
     const overData = event.over?.data.current
-    if (!overData) return
-    const targetColumn =
-      overData.type === 'column' ? (overData.columnSlug as ColumnSlug)
-      : overData.type === 'song' ? (overData.columnSlug as ColumnSlug)
+
+    const hoveredSongId =
+      overData?.type === 'song' ? String(event.over!.id)
+      : overData?.type === 'song-merge' ? String(overData.targetSongId)
       : null
-    if (!targetColumn || targetColumn === song.columnSlug) {
-      setOptimisticMove(null)
-      return
-    }
-    setOptimisticMove((prev) =>
-      prev?.songId === song.id && prev.toColumn === targetColumn
-        ? prev
-        : { songId: song.id, song, toColumn: targetColumn },
-    )
-  }, [readOnly, selectionMode])
+
+    // Still over the same card (or onto its armed merge zone): keep the dwell.
+    if (hoveredSongId && hoveredSongId === mergeCandidateRef.current) return
+
+    clearMergeDwell()
+    if (!hoveredSongId || hoveredSongId === activeId) return
+
+    mergeCandidateRef.current = hoveredSongId
+    mergeTimerRef.current = window.setTimeout(() => {
+      if (mergeCandidateRef.current === hoveredSongId) {
+        useUiStore.getState().setArmedMergeId(hoveredSongId)
+      }
+    }, MERGE_DWELL_MS)
+  }, [readOnly, selectionMode, clearMergeDwell])
 
   const handleDragEnd = (event: DragEndEvent) => {
     const song = activeSong
+    const armedMergeId = useUiStore.getState().armedMergeId
+    clearMergeDwell()
     setActiveSong(null)
     setDraggingCardId(null)
     setOptimisticMove(null)
@@ -192,12 +229,31 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
     const songId = String(active.id)
     const overData = over.data.current
 
-    if (overData?.type === 'song-merge') {
+    /* Only a merge zone that had been armed by a pause counts. If the drop
+       lands on a merge zone some other way, treat it as an ordinary drop on
+       that card rather than a merge. */
+    if (overData?.type === 'song-merge' && armedMergeId === overData.targetSongId) {
       const targetSongId = overData.targetSongId as string
       if (targetSongId !== songId) {
-        void mergeSongsInto(targetSongId, [songId])
-        scheduleFlush()
+        void mergeSongsInto(targetSongId, [songId]).then((record) => {
+          if (record) useUiStore.getState().showMergeUndo(record)
+          scheduleFlush()
+        })
       }
+      return
+    }
+
+    if (overData?.type === 'song-merge') {
+      const targetSongId = String(overData.targetSongId)
+      const targetColumn = overData.columnSlug as ColumnSlug | undefined
+      if (!targetColumn) return
+      if (song.columnSlug !== targetColumn) {
+        setOptimisticMove({ songId, song, toColumn: targetColumn })
+        void moveSong(songId, targetColumn, 999, targetSongId).then(() => setOptimisticMove(null))
+      } else {
+        void reorderSongInColumn(songId, targetColumn, 999, targetSongId)
+      }
+      scheduleFlush()
     } else if (overData?.type === 'column') {
       const targetColumn = overData.columnSlug as ColumnSlug
       if (song.columnSlug !== targetColumn) {
@@ -227,6 +283,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => {
+        clearMergeDwell()
+        setActiveSong(null)
+        setDraggingCardId(null)
+        setOptimisticMove(null)
+      }}
     >
       {columns && columns.length > 0 && (
         <div className="board-column-tabs" role="tablist" aria-label="Board sections">

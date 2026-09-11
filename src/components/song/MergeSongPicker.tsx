@@ -1,3 +1,4 @@
+import { useUiStore } from '@/stores/uiStore'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getAllSongs, mergeSongsInto, getColumns } from '@/db/repositories/boardRepo'
 import { getAudioVersions } from '@/db/repositories/audioRepo'
@@ -41,7 +42,8 @@ export function MergeSongPicker({ targetSongId, onClose }: MergeSongPickerProps)
     if (selected.size === 0) return
     setMerging(true)
     try {
-      await mergeSongsInto(targetSongId, [...selected])
+      const record = await mergeSongsInto(targetSongId, [...selected])
+      if (record) useUiStore.getState().showMergeUndo(record)
       scheduleFlush()
       onClose()
     } finally {

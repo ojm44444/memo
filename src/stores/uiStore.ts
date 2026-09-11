@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { ColumnSlug } from '@/types/column'
+import type { MergeUndoRecord } from '@/db/repositories/boardRepo'
 
 export type BoardMode = 'manage' | 'listen' | 'library'
 
@@ -14,6 +15,17 @@ interface UiState {
   columnScrollNonce: number
   draggingCardId: string | null
   setDraggingCardId: (id: string | null) => void
+  /**
+   * The card a drag has been held over long enough to merge into, or null.
+   * Merging used to arm on contact, over the whole card, so dropping a song
+   * into a column that had songs in it merged it into whichever card was
+   * under the pointer. Now it arms only after a deliberate pause.
+   */
+  armedMergeId: string | null
+  setArmedMergeId: (id: string | null) => void
+  /** The last merge, while its undo is still on offer. */
+  mergeUndo: MergeUndoRecord | null
+  showMergeUndo: (record: MergeUndoRecord | null) => void
   selectSong: (id: string | null) => void
   /**
    * A nonce, bumped when the drawer is opened specifically to rename.
@@ -48,9 +60,13 @@ export const useUiStore = create<UiState>((set) => ({
   columnScrollSlug: null,
   columnScrollNonce: 0,
   draggingCardId: null,
+  armedMergeId: null,
+  mergeUndo: null,
   drawerFocusTitleNonce: 0,
 
   setDraggingCardId: (id) => set({ draggingCardId: id }),
+  setArmedMergeId: (id) => set({ armedMergeId: id }),
+  showMergeUndo: (record) => set({ mergeUndo: record }),
 
   selectSong: (id) => set({ selectedSongId: id }),
 

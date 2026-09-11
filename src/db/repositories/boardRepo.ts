@@ -109,12 +109,30 @@ function sortSongsSync(songs: Song[], columnSlug: ColumnSlug | undefined, sortMo
 }
 
 async function getSongsInColumnScope(columnSlug: ColumnSlug, projectId?: string | null) {
+  /* The songs read is issued FIRST, before any await, and that order is the
+     fix for a bug that made the board lie.
+
+     This used to await the active project and only then read the songs. The
+     project lookup is several async calls deep, and somewhere in that chain
+     Dexie loses the context it uses to record which rows a live query reads.
+     So the songs read went unrecorded, and the column's useLiveQuery was
+     never told about changes to its own songs: delete one, merge one away,
+     and its card stayed on the board. After a merge it stayed reading "No
+     take on this one yet", because the per-card takes query, which reads
+     directly, did update. That is exactly what Owen saw on 8 Sept and read
+     as a recording destroyed. The take was fine; the card was a ghost.
+
+     Measured in the running app with liveQuery probes against one delete:
+     the same where/filter/sort issued at the start of the querier re-fired
+     every time; issued after the project await it never did. It is timing
+     dependent, which is why the board sometimes updated and sometimes did
+     not, and why nobody pinned it down earlier. Reading first does not
+     depend on that timing at all. */
+  const inColumn = db.songs.where('columnSlug').equals(columnSlug).sortBy('sortOrder')
   const scopeProjectId = projectId ?? (await getActiveProjectScope())
-  return db.songs
-    .where('columnSlug')
-    .equals(columnSlug)
-    .filter((s) => !s.deletedAt && (s.projectId === scopeProjectId || s.projectId == null))
-    .sortBy('sortOrder')
+  return (await inColumn).filter(
+    (s) => !s.deletedAt && (s.projectId === scopeProjectId || s.projectId == null),
+  )
 }
 
 async function getSongsInColumnScopeForDisplay(columnSlug: ColumnSlug, projectId?: string | null) {
@@ -565,12 +583,44 @@ export async function bulkDeleteSongs(songIds: string[]) {
   }
 }
 
-export async function mergeSongsInto(targetSongId: string, sourceSongIds: string[]) {
+/**
+ * Everything a merge moved, so it can be put back exactly.
+ *
+ * Merge was the one destructive action on the board with no way back. It
+ * moves every take off the source song and soft-deletes the source, and on
+ * 8 Sept an ordinary drag set it off by accident: "All of my life I have been
+ * waiting" folded silently into "Sad piano riff", its card came back reading
+ * "No take on this one yet", and to the person looking at it the recording
+ * was gone. It was not, but nothing on screen could say so or undo it.
+ */
+export interface MergeUndoRecord {
+  targetSongId: string
+  targetTitle: string
+  targetNotesBefore: string
+  sources: Array<{
+    sourceId: string
+    sourceTitle: string
+    versions: Array<{ id: string; sortOrder: number }>
+    linkIds: string[]
+  }>
+}
+
+export async function mergeSongsInto(
+  targetSongId: string,
+  sourceSongIds: string[],
+): Promise<MergeUndoRecord | null> {
   const target = await db.songs.get(targetSongId)
-  if (!target || target.deletedAt) return
+  if (!target || target.deletedAt) return null
 
   const uniqueSources = sourceSongIds.filter((id) => id !== targetSongId)
-  if (uniqueSources.length === 0) return
+  if (uniqueSources.length === 0) return null
+
+  const record: MergeUndoRecord = {
+    targetSongId,
+    targetTitle: target.title,
+    targetNotesBefore: target.notes,
+    sources: [],
+  }
 
   let notes = target.notes
   let versionOffset = await db.audioVersions.where('songId').equals(targetSongId).count()
@@ -580,6 +630,14 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
     if (!source || source.deletedAt) continue
 
     const versions = await db.audioVersions.where('songId').equals(sourceId).sortBy('sortOrder')
+    const links = await db.songLinks.where('songId').equals(sourceId).toArray()
+    record.sources.push({
+      sourceId,
+      sourceTitle: source.title,
+      versions: versions.map((v) => ({ id: v.id, sortOrder: v.sortOrder })),
+      linkIds: links.map((l) => l.id),
+    })
+
     for (const version of versions) {
       const newSortOrder = versionOffset++
       await db.audioVersions.update(version.id, {
@@ -594,7 +652,6 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
       })
     }
 
-    const links = await db.songLinks.where('songId').equals(sourceId).toArray()
     for (const link of links) {
       await db.songLinks.update(link.id, { songId: targetSongId })
     }
@@ -615,6 +672,43 @@ export async function mergeSongsInto(targetSongId: string, sourceSongIds: string
     await enqueueSync('update', 'song', targetSongId, {
       updatedAt: new Date().toISOString(),
     })
+  }
+
+  return record.sources.length ? record : null
+}
+
+/**
+ * Put a merge back the way it was: each source song restored from the trash,
+ * its own takes moved back onto it in their original order, its links back,
+ * and the target's notes as they were before the merge appended to them.
+ * Every step goes through the outbox, so the undo reaches the cloud and every
+ * other device the same way the merge did.
+ */
+export async function undoMerge(record: MergeUndoRecord): Promise<void> {
+  const { restoreSong } = await import('./trashRepo')
+
+  for (const source of record.sources) {
+    await restoreSong(source.sourceId)
+
+    for (const v of source.versions) {
+      const current = await db.audioVersions.get(v.id)
+      if (!current) continue
+      await db.audioVersions.update(v.id, { songId: source.sourceId, sortOrder: v.sortOrder })
+      await enqueueSync('update', 'audio_version', v.id, {
+        songId: source.sourceId,
+        sortOrder: v.sortOrder,
+        label: current.label,
+      })
+    }
+
+    for (const linkId of source.linkIds) {
+      await db.songLinks.update(linkId, { songId: source.sourceId })
+    }
+  }
+
+  const target = await db.songs.get(record.targetSongId)
+  if (target && target.notes !== record.targetNotesBefore) {
+    await updateSong(record.targetSongId, { notes: record.targetNotesBefore })
   }
 }
 

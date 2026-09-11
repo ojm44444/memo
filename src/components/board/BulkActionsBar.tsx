@@ -98,7 +98,8 @@ export function BulkActionsBar() {
     if (sources.length === 0) return
     setBusy(true)
     try {
-      await mergeSongsInto(masterId, sources)
+      const record = await mergeSongsInto(masterId, sources)
+      if (record) useUiStore.getState().showMergeUndo(record)
       scheduleFlush()
       clearSelection()
       setShowMergePicker(false)
