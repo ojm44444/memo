@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import { PLAYBACK_RATES, type PlaybackRate } from '@/lib/constants'
+import './SpeedControl.css'
 
 interface SpeedControlProps {
   value: PlaybackRate

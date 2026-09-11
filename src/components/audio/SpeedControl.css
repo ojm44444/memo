@@ -1,0 +1,52 @@
+/*
+ * SpeedControl styles, owned by the component rather than by a page.
+ *
+ * These rules used to live in board.css, which only BoardPage imports. The
+ * share page renders the same component and imports only share.css, so a
+ * producer opening a link cold got none of this: the waveform bars had no
+ * row layout, stacked on top of each other, and the waveform ran down the
+ * page with the playhead travelling downwards. The speed buttons had no
+ * spacing either, and read as `0.75×1×1.5×2×`. Anyone who had opened
+ * the board first already had board.css in the document, which is why it
+ * looked fine to everyone testing it from inside the app.
+ *
+ * Moved, not copied, in their original order. Board-specific overrides
+ * (.player-bar-wave-col, .scp-audio-item) are more specific and stay in
+ * board.css.
+ */
+
+.speed-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.speed-presets {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.speed-preset-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.speed-preset-btn:hover {
+  color: var(--text);
+}
+
+.speed-preset-btn.is-active {
+  background: var(--audio-mint);
+  color: var(--accent-on);
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { decodeWaveformPeaks } from '@/lib/audio/decodeWaveformPeaks'
+import './InteractiveWaveform.css'
 
 export interface WaveformMarker {
   id: string

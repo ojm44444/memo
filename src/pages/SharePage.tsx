@@ -17,6 +17,7 @@ import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 const AUTHOR_KEY = 'memo-share-author'
 
@@ -34,6 +35,11 @@ export function SharePage() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [versionLabel, setVersionLabel] = useState('')
+  /* The tab said "songdrafts · Finish more songs" on every shared link, so a
+     producer with three of them open had three identical tabs, and history
+     could not tell one song from another. Per-song titles already landed on
+     the app; this is the one page a stranger sees, so it matters more here. */
+  usePageTitle(title ? `${title} · songdrafts` : 'songdrafts')
   const [columnSlug, setColumnSlug] = useState<string | null>(null)
   const [durationMs, setDurationMs] = useState(0)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
@@ -232,7 +238,15 @@ export function SharePage() {
         {!loading && !needsPassword && !error && audioUrl && (
           <div className="share-player-card" style={{ ['--stage-ink' as string]: stageColorVar(columnSlug) }}>
             <h1 className="share-title">{title}</h1>
-            <p className="share-version">{versionLabel}</p>
+            {/* The take's label usually IS the song title, because a take is
+                named after the file it came from, so this printed the name
+                twice: "not stick season" in large type, then "NOT STICK
+                SEASON" under it. Only show it when it says something new,
+                like "Mix 3" or "Full band, 12 June". */}
+            {versionLabel &&
+              versionLabel.trim().toLowerCase() !== title.trim().toLowerCase() && (
+                <p className="share-version">{versionLabel}</p>
+              )}
 
             <audio
               ref={audioRef}

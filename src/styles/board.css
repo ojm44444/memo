@@ -2488,77 +2488,14 @@ html.light .player-bar {
   padding: 8px 0;
 }
 
-.interactive-waveform {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  width: 100%;
-  cursor: pointer;
-  touch-action: none;
-  border-radius: 6px;
-  padding: 4px 0;
-}
 
-.interactive-waveform-region {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  border-left: 1.5px solid rgba(239, 68, 68, 0.6);
-  border-right: 1.5px solid rgba(239, 68, 68, 0.6);
-  z-index: 1;
-}
 
-.interactive-waveform-marker {
-  position: absolute;
-  top: 2px;
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
-  border: none;
-  border-radius: 50%;
-  background: var(--audio-mint);
-  box-shadow: 0 0 0 2px var(--bg-3);
-  cursor: pointer;
-  z-index: 2;
-  padding: 0;
-}
 
-.interactive-waveform.is-active .interactive-waveform-bar.is-played {
-  background: var(--audio-mint);
-}
 
-.interactive-waveform-bar {
-  flex: 1;
-  min-width: 1px;
-  max-width: 3px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.18);
-  align-self: center;
-  transition: background 0.1s ease;
-}
 
-.interactive-waveform-bar.is-played {
-  background: rgba(255, 255, 255, 0.42);
-}
 
-html.light .interactive-waveform-bar {
-  background: rgba(28, 42, 40, 0.38);
-}
 
-html.light .interactive-waveform-bar.is-played {
-  background: rgba(28, 42, 40, 0.66);
-}
 
-.interactive-waveform-skeleton {
-  width: 100%;
-  height: 100%;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--bg-3), var(--bg-2), var(--bg-3));
-  background-size: 200% 100%;
-  animation: waveform-shimmer 1.2s ease infinite;
-}
 
 @keyframes waveform-shimmer {
   0% { background-position: 100% 0; }
@@ -3799,41 +3736,10 @@ html.light .song-card-tag-overflow {
   color: var(--text-muted);
 }
 
-.speed-control {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 
-.speed-presets {
-  display: flex;
-  gap: 2px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px;
-}
 
-.speed-preset-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
 
-.speed-preset-btn:hover {
-  color: var(--text);
-}
 
-.speed-preset-btn.is-active {
-  background: var(--audio-mint);
-  color: var(--accent-on);
-}
 
 .speed-slider-wrap {
   display: flex;
@@ -10041,46 +9947,9 @@ html.light .board-column .wf-bar.is-active.is-played { background: var(--accent)
   gap: 10px;
 }
 
-/* ═══ Markers and pinned notes ═════════════════════════════════════════════
-   A marker used to be an 8px mint dot with the tooltip "Jump to marker",
-   floating above the waveform with nothing tying it to the audio. It now
-   drops a hairline down through the wave, the way a cue does in an editor, so
-   the eye reads it as a position in the song rather than a bead on a string. */
-/* Contains the marker hairline. */
-.interactive-waveform { overflow: hidden; }
 
-.interactive-waveform-marker {
-  width: 9px;
-  height: 9px;
-  margin-left: -4.5px;
-  background: linear-gradient(160deg, var(--accent), var(--audio-mint));
-  box-shadow: 0 0 0 2px var(--bg-3), 0 0 10px -1px var(--accent-glow, rgba(157, 219, 173, 0.5));
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
 
-.interactive-waveform-marker::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  width: 1px;
-  /* Clipped by .interactive-waveform's overflow. 999px here bled the line
-     down through the whole drawer and drew a rule across the comments. */
-  height: 100px;
-  margin-left: -0.5px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 55%, transparent),
-    transparent 70%
-  );
-  pointer-events: none;
-}
 
-.interactive-waveform-marker:hover,
-.interactive-waveform-marker:focus-visible {
-  transform: scale(1.35);
-  box-shadow: 0 0 0 2px var(--bg-3), 0 0 16px 0 var(--accent-glow, rgba(157, 219, 173, 0.65));
-}
 
 /* The time chip on a note you are about to leave. It is not a toggle any
    more, it is a fact with an × on it: the time is already attached. */
@@ -10476,13 +10345,7 @@ html.light .wf-bar.is-played {
   background: color-mix(in srgb, var(--stage-ink, var(--accent)) 78%, transparent);
 }
 
-html.light .interactive-waveform-bar {
-  background: color-mix(in srgb, var(--accent) 38%, transparent);
-}
 
-html.light .interactive-waveform-bar.is-played {
-  background: color-mix(in srgb, var(--accent) 72%, transparent);
-}
 
 /* The mix row is a card on the ground: in light it needs a real edge, since
    two near-white surfaces cannot separate on shadow alone. */
