@@ -73,9 +73,17 @@ export function InviteBandmateButton() {
       const id = (await db.syncMeta.get('boardId'))?.value
       if (!id) throw new Error('Sync your board first (sign in + go online once)')
       const link = await createBoardInvite(id, role, email || undefined)
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2500)
+      /* The invite exists from here on. The clipboard write used to share
+         the try with it, so a browser refusing clipboard access reported an
+         error for an invite that had been created, returned nothing, and the
+         email path never ran. Same bug, and same fix, as SongSharePanel. */
+      try {
+        await navigator.clipboard.writeText(link)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2500)
+      } catch {
+        /* not fatal: the link is in the list below and the email still goes */
+      }
       await refreshPanel(id)
       return link
     } catch (err) {
@@ -104,7 +112,7 @@ export function InviteBandmateButton() {
     setEmailSent(false)
 
     try {
-      await sendBoardInviteEmail({ to: trimmed, link, boardName })
+      await sendBoardInviteEmail(link)
       setEmailSent(true)
       setError(null)
       setTimeout(() => setEmailSent(false), 4000)

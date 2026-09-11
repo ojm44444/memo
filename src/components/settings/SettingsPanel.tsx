@@ -35,6 +35,9 @@ import {
 import { getBudgetState, resetEgressBudget } from '@/sync/egressBudget'
 import { useUiStore } from '@/stores/uiStore'
 
+/** A message the delete-account function wrote itself, shown as-is. */
+class DeleteAccountError extends Error {}
+
 export function SettingsPanel() {
   const navigate = useNavigate()
   const { canInstall, isInstalled, install } = usePwaInstall()
@@ -114,7 +117,27 @@ export function SettingsPanel() {
       const { error } = await supabase.functions.invoke('delete-account', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (error) throw error
+      if (error) {
+        /* supabase-js reports EVERY non-2xx reply as the same generic
+           "Edge Function returned a non-2xx status code", and the catch below
+           reads that as "not deployed, nothing was removed". But the function
+           now says exactly what happened, including partial outcomes like
+           "74 of 120 audio files were removed", and replacing that with a
+           reassurance that nothing was removed could be false. So read the
+           function's own message first and only fall back when there is none,
+           which is the genuinely-not-deployed case. */
+        let serverMessage: string | null = null
+        const ctx = (error as { context?: unknown }).context
+        if (ctx instanceof Response) {
+          try {
+            const body = (await ctx.clone().json()) as { error?: unknown }
+            if (typeof body?.error === 'string') serverMessage = body.error
+          } catch {
+            /* not JSON: fall through to the generic handling */
+          }
+        }
+        throw serverMessage ? new DeleteAccountError(serverMessage) : error
+      }
 
       usePlayerStore.getState().stop()
       markExplicitSignOut()
@@ -127,6 +150,10 @@ export function SettingsPanel() {
          Raw transport errors on the button marked "Delete everything" read as
          "it might have half worked", so say the true and reassuring thing:
          nothing was removed. */
+      if (err instanceof DeleteAccountError) {
+        setDeleteError(err.message)
+        return
+      }
       const raw = err instanceof Error ? err.message : ''
       const notDeployed =
         /not found|404|failed to send|failed to fetch|non-2xx/i.test(raw)

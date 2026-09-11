@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
 
 /**
  * Delete an account, for real.
@@ -64,44 +65,107 @@ serve(async (req) => {
       })
     }
 
+    const fail = (status: number, error: string) =>
+      new Response(JSON.stringify({ error }), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+
     /**
-     * Storage first, deliberately.
+     * 1. Stop the billing, before anything is deleted.
      *
-     * If the auth user goes first and the storage sweep then fails, the audio
-     * is orphaned with no owner left to trace it back to. Doing it in this
-     * order means a failure leaves the account intact and retryable, which is
-     * the recoverable direction.
+     * Deleting the account while a subscription runs would leave someone
+     * charged every year for an account that no longer exists, with no way to
+     * sign in and cancel it. So a live subscription is cancelled immediately,
+     * and if Stripe refuses, nothing else happens: the account stays, and the
+     * person is told to try again rather than being deleted and still billed.
+     * Skipped cleanly while Stripe is not configured.
+     */
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    const { data: sub } = await admin
+      .from('subscriptions')
+      .select('stripe_subscription_id, status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const billable = ['trialing', 'active', 'past_due', 'unpaid', 'incomplete', 'paused']
+    if (sub?.stripe_subscription_id && billable.includes(sub.status ?? '')) {
+      if (!stripeKey) {
+        return fail(503, 'Your subscription could not be cancelled right now, so nothing was deleted. Try again shortly.')
+      }
+      try {
+        const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+        await stripe.subscriptions.cancel(sub.stripe_subscription_id)
+      } catch {
+        return fail(502, 'Your subscription could not be cancelled, so nothing was deleted. Try again, or contact support@songdrafts.com.')
+      }
+    }
+
+    /**
+     * 2. Storage, before the user.
+     *
+     * If the auth user went first and the storage sweep then failed, the audio
+     * would be orphaned with no owner left to trace it back to. In this order
+     * a failure leaves the account intact and retryable.
      *
      * Paths are `${userId}/${boardId}/${songId}/${versionId}.${ext}`, so
      * everything for one person sits under a single prefix.
+     *
+     * Two things the first version got wrong, both of which ended with the
+     * account deleted and audio left behind, billed and unreachable:
+     *   - a failed list() was treated as an empty folder, so an error listing
+     *     the prefix deleted the account and skipped every file;
+     *   - list() returns at most `limit` entries, and it was never paged, so
+     *     a board with more than 1,000 songs lost the rest.
+     * Listing now throws on error and pages until a short page comes back.
      */
-    const removed: string[] = []
-    const walk = async (prefix: string) => {
-      const { data, error } = await admin.storage.from('audio').list(prefix, { limit: 1000 })
-      if (error || !data) return
-      for (const entry of data) {
-        const path = prefix ? `${prefix}/${entry.name}` : entry.name
-        // A folder has no id in the storage listing; a file does.
-        if (entry.id) removed.push(path)
-        else await walk(path)
-      }
-    }
-    await walk(user.id)
-
-    if (removed.length) {
-      // Storage remove has a per-call ceiling, so this goes in batches.
-      for (let i = 0; i < removed.length; i += 100) {
-        const { error } = await admin.storage.from('audio').remove(removed.slice(i, i + 100))
-        if (error) {
-          return new Response(
-            JSON.stringify({ error: 'Could not remove your audio. Nothing was deleted.' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-          )
+    const PAGE = 1000
+    const found: string[] = []
+    const walk = async (prefix: string): Promise<void> => {
+      for (let offset = 0; ; offset += PAGE) {
+        const { data, error } = await admin.storage
+          .from('audio')
+          .list(prefix, { limit: PAGE, offset })
+        if (error) throw new Error(`list ${prefix}: ${error.message}`)
+        for (const entry of data ?? []) {
+          const path = prefix ? `${prefix}/${entry.name}` : entry.name
+          // A folder has no id in the storage listing; a file does.
+          if (entry.id) found.push(path)
+          else await walk(path)
         }
+        if (!data || data.length < PAGE) return
       }
     }
+    try {
+      await walk(user.id)
+    } catch {
+      return fail(500, 'Could not read your audio to remove it, so nothing was deleted. Try again.')
+    }
 
-    // Now the user, which cascades every table.
+    let removedCount = 0
+    for (let i = 0; i < found.length; i += 100) {
+      const { error } = await admin.storage.from('audio').remove(found.slice(i, i + 100))
+      if (error) {
+        /* Say what is true. The first version said "Nothing was deleted"
+           here even when earlier batches had already gone. */
+        return fail(
+          500,
+          removedCount === 0
+            ? 'Could not remove your audio, so nothing was deleted. Try again.'
+            : `${removedCount} of ${found.length} audio files were removed, but not all of them, so your account was not deleted. Try again to finish.`,
+        )
+      }
+      removedCount += Math.min(100, found.length - i)
+    }
+
+    /**
+     * 3. The email log. It is the one table set to SET NULL rather than
+     * cascade, so without this the person's email address would outlive the
+     * account that was deleted, against "delete means delete".
+     */
+    await admin.from('email_log').delete().eq('user_id', user.id)
+    if (user.email) await admin.from('email_log').delete().eq('email', user.email)
+
+    // 4. The user. Every other table cascades from auth.users (checked on production).
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
     if (deleteError) {
       return new Response(
@@ -110,7 +174,7 @@ serve(async (req) => {
       )
     }
 
-    return new Response(JSON.stringify({ ok: true, filesRemoved: removed.length }), {
+    return new Response(JSON.stringify({ ok: true, filesRemoved: removedCount }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {

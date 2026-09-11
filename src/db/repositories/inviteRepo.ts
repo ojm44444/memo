@@ -122,16 +122,22 @@ export async function acceptBoardInvite(token: string) {
   return boardId as string
 }
 
-export async function sendBoardInviteEmail(options: {
-  to: string
-  link: string
-  boardName: string
-  inviterName?: string
-}) {
+/**
+ * Ask the server to email an invite that already exists.
+ *
+ * Only the token goes up. The function looks the invite up, checks it was
+ * made by the caller, and reads the recipient, board name and sender from the
+ * database; it no longer accepts any of them from the browser, because that
+ * made it an open relay (see send-invite-email).
+ */
+export async function sendBoardInviteEmail(link: string) {
   if (!supabase) throw new Error('Supabase not configured')
 
+  const token = link.split('/invite/')[1]?.split(/[?#]/)[0]
+  if (!token) throw new Error('Not an invite link')
+
   const { data, error } = await supabase.functions.invoke('send-invite-email', {
-    body: options,
+    body: { token },
   })
 
   if (error) throw error
@@ -142,8 +148,11 @@ export async function sendBoardInviteEmail(options: {
 
 export function buildInviteMailto(link: string, boardName: string, inviteeEmail?: string) {
   const subject = encodeURIComponent(`Join ${boardName} on songdrafts`)
+  /* This is the draft that opens in the inviter's own mail app when the
+     server cannot send, so it is written as them. It said "memo", the old
+     name, and had em dashes. */
   const body = encodeURIComponent(
-    `Hey — I'm sharing our songwriting board on memo.\n\nOpen this link and sign in to join:\n${link}\n\n— sent from memo`,
+    `I'm sharing our songwriting board on songdrafts.\n\nOpen this link and sign in to join:\n${link}`,
   )
   const to = inviteeEmail ? encodeURIComponent(inviteeEmail) : ''
   return `mailto:${to}?subject=${subject}&body=${body}`
