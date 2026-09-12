@@ -686,7 +686,7 @@ export function LandingPage() {
               "it should speak like a brand". Third person about one real
               person is brand voice without being a fabricated one.
 
-              REVERTED 3 Sep. This had drifted to "the team behind two million
+              REVERTED 12 Sep. This had drifted to "the team behind two million
               streams ... We still lost", with no note saying why. There is no
               team. Inventing one to sound bigger is the exact class of claim
               this page exists to not make, it breaks the brand's standing
@@ -818,7 +818,7 @@ export function LandingPage() {
             Not a promise in the small print. How it is built. If any of this ever changes you
             will hear it loudly, and before it happens.
           </p>
-          {/* REORDERED 3 Sep. The two claims that actually separate this from
+          {/* REORDERED 12 Sep. The two claims that actually separate this from
               everything else in the category were sitting at positions five
               and six, read last or not at all. The research is explicit about
               why they matter: a competitor self-promoted into a thread about
