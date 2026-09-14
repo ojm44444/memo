@@ -3,6 +3,7 @@ import { importAudioFiles } from '@/db/repositories/audioRepo'
 import { flush } from '@/sync/syncEngine'
 import { extractAudioFiles } from '@/lib/extract-audio-files'
 import { trackFirstImport, recordEvent } from '@/lib/analytics'
+import { trackPixelCustomEvent } from '@/lib/metaPixel'
 import { requestStoragePersistence } from '@/lib/storagePersistence'
 import type { ColumnSlug } from '@/types/column'
 
@@ -28,9 +29,13 @@ export function useAudioImport(defaultColumn: ColumnSlug = 'inbox') {
 
       inFlightRef.current = true
       setImporting(true)
+      // The import is the step most likely to lose someone (the iPhone route
+      // is several taps), so it is measured on its own. A count, nothing else.
+      trackPixelCustomEvent('ImportStarted', { num_items: audioFiles.length })
       try {
         const result = await importAudioFiles(audioFiles, columnSlug)
         if (result.versions.length > 0) {
+          trackPixelCustomEvent('ImportCompleted', { num_items: result.versions.length })
           // Activation moment, fired once per device.
           trackFirstImport(result.versions.length)
           void recordEvent('import_completed', result.versions.length)

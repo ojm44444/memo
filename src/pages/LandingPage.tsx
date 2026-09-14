@@ -8,6 +8,7 @@ import { OfflineDemo } from '@/components/landing/OfflineDemo'
 import { HeroStack } from '@/components/landing/HeroStack'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { CookieSettingsLink } from '@/components/layout/AdConsent'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -866,6 +867,8 @@ export function LandingPage() {
           <Link to="/terms">Terms</Link>
           <span aria-hidden="true">·</span>
           <a href="mailto:support@songdrafts.com">support@songdrafts.com</a>
+          <span aria-hidden="true">·</span>
+          <CookieSettingsLink />
         </nav>
         {/* Audit F1: a site whose pitch is "your music is yours" had no
             copyright line asserting its own. Entity name and address (F2)

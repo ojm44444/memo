@@ -41,16 +41,13 @@
     <meta name="twitter:description" content="A board for your voice memos. Stack takes, drag songs right as they get better, send a demo link. Works offline. Nobody trains on your music." />
     <meta name="twitter:image" content="https://www.songdrafts.com/og-card.png" />
 
-    <!-- Meta Pixel -->
-    <script>
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-      document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '2289145585190818');
-      fbq('track', 'PageView');
-    </script>
+    <!-- No Meta pixel here, on purpose. One was added on 22 June 2026, loaded
+         unconditionally on every route with no consent, and because this file
+         is served for every URL it ran on /share/<token> and /invite/<token>
+         too, sending the secret token in the page address to Meta. The pixel
+         now lives in src/lib/metaPixel.ts: it loads only after "Allow", never
+         on share, invite or playlist links, and never sends in-app page views.
+         Do not put a pixel snippet back in this file. -->
     <!-- The two faces that paint the hero. Self-hosted, so nothing
          third-party blocks first paint. -->
     <link rel="canonical" href="https://www.songdrafts.com/" />
@@ -58,9 +55,6 @@
     <link rel="preload" href="/fonts/bricolage-grotesque-400.woff2" as="font" type="font/woff2" crossorigin />
   </head>
   <body>
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=2289145585190818&ev=PageView&noscript=1"
-    /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

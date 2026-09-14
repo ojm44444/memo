@@ -1,6 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link } from 'react-router-dom'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { CookieSettingsLink } from '@/components/layout/AdConsent'
 
 /**
  * Terms of service.
@@ -145,6 +146,7 @@ export function TermsPage() {
       <footer className="legal-foot">
         <Link to="/">Back to songdrafts</Link>
         <Link to="/privacy">Privacy</Link>
+        <CookieSettingsLink />
       </footer>
     </div>
   )

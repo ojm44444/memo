@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { trackPixelEvent } from '@/lib/metaPixel'
 
 /**
  * Billing, from the app's side.
@@ -110,6 +111,7 @@ async function billingUrl(body: Record<string, unknown>): Promise<string> {
 
 /** Send them to Stripe to subscribe. The price is chosen server side. */
 export async function startCheckout(interval: 'month' | 'year'): Promise<void> {
+  trackPixelEvent('InitiateCheckout', { content_name: interval === 'month' ? 'monthly' : 'annual' })
   window.location.href = await billingUrl({ mode: 'checkout', interval })
 }
 

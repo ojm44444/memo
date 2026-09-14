@@ -24,6 +24,7 @@ import { ListenView } from '@/components/board/ListenView'
 import { useBoardRole } from '@/hooks/useBoardRole'
 import { useShareFeedbackRefresh } from '@/hooks/useShareFeedbackRefresh'
 import { useAppDocumentTitle } from '@/hooks/useAppDocumentTitle'
+import { usePixelConversions } from '@/hooks/usePixelConversions'
 import { clearAuthCallbackFromUrl } from '@/lib/auth/authLanding'
 import { useBoardKeyboardShortcuts } from '@/hooks/useBoardKeyboardShortcuts'
 import { getDefaultPlaybackRate, getLoopMode } from '@/lib/preferences'
@@ -138,6 +139,7 @@ function AuthenticatedBoard() {
   useShareFeedbackRefresh(boardRole === 'owner')
   useBoardKeyboardShortcuts()
   useAppDocumentTitle()
+  usePixelConversions()
 
   useEffect(() => {
     // AuthGate has already confirmed a session, so the code in the URL has

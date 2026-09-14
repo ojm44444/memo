@@ -1,6 +1,7 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link } from 'react-router-dom'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { CookieSettingsLink } from '@/components/layout/AdConsent'
 
 /**
  * The privacy policy.
@@ -30,7 +31,7 @@ export function PrivacyPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 31 August 2026</p>
+        <p className="legal-updated">Last updated 14 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -103,11 +104,39 @@ export function PrivacyPage() {
         </p>
         <ul>
           <li><strong>Supabase</strong> for the database, file storage and sign-in.</li>
-          <li><strong>Vercel</strong> for hosting the site and the app.</li>
+          <li>
+            <strong>Vercel</strong> for hosting the site and the app, and for counting visits and a
+            few product events (such as a first import) without cookies and without identifying you.
+          </li>
           <li><strong>Resend</strong> for sending email, such as invites and share notifications.</li>
           <li><strong>Google</strong>, only if you choose to sign in with Google.</li>
         </ul>
-        <p>That is the complete list. There are no advertising, tracking or data-broker services.</p>
+        <p>
+          That is the complete list of companies that handle your account and your music. There are
+          no data brokers.
+        </p>
+
+        {/* Added 14 Sept 2026 with the Meta pixel. Meta is NOT one of the
+            processors above: it uses what the pixel sends for its own
+            advertising too, so it is described separately and plainly rather
+            than slipped into a list headed "acting on our instructions". */}
+        <h2>Ads, and only if you say yes</h2>
+        <p>
+          We advertise songdrafts on Instagram and Facebook, and we use Meta&apos;s pixel to see which
+          ads lead to someone signing up. It only runs if you press Allow on the question at the
+          bottom of the screen. If you say no, nothing from Meta loads at all.
+        </p>
+        <p>If you allow it, Meta receives:</p>
+        <ul>
+          <li>that you visited our public pages (the home page, sign in, this page, the terms);</li>
+          <li>that you created an account, imported recordings (as a count only), started a checkout, or subscribed.</li>
+        </ul>
+        <p>
+          It never receives your music, song names, lyrics, notes, anything inside your board, or
+          anything from a share or invite link. Meta uses this under its own privacy policy as well as
+          ours, which is why it is here rather than in the list above. You can change your mind at any
+          time with Cookie settings at the bottom of this page.
+        </p>
 
         <h2>Where it is, and how long we keep it</h2>
         <p>
@@ -161,8 +190,13 @@ export function PrivacyPage() {
         <h2>Cookies</h2>
         <p>
           We use one thing that behaves like a cookie: the sign-in token that keeps you logged in.
-          There are no analytics cookies, no advertising cookies and no third-party trackers,
-          which is why this site has never shown you a consent banner.
+          That one is needed for the site to work, so it does not ask.
+        </p>
+        <p>
+          The only other one is Meta&apos;s, and only if you press Allow: it sets a cookie called _fbp
+          so it can tell whether someone who saw an ad later signed up. That is why you are asked the
+          first time you visit. There are no other analytics or advertising cookies. Cookie settings,
+          at the bottom of this page, asks you again and removes Meta&apos;s cookie if you say no.
         </p>
 
         <h2>Changes</h2>
@@ -179,6 +213,7 @@ export function PrivacyPage() {
       <footer className="legal-foot">
         <Link to="/">Back to songdrafts</Link>
         <Link to="/terms">Terms</Link>
+        <CookieSettingsLink />
       </footer>
     </div>
   )

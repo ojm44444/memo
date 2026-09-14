@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { PwaInstallBanner } from '@/components/layout/PwaInstallBanner'
 import { PwaUpdateBanner } from '@/components/layout/PwaUpdateBanner'
 import { LandingPage } from '@/pages/LandingPage'
+import { AdConsentBanner, PixelPageViews } from '@/components/layout/AdConsent'
 
 /**
  * Only the landing page is eager. Everything else is a separate chunk so a
@@ -70,6 +71,8 @@ export default function App() {
         </Routes>
       </Suspense>
       <Analytics />
+      <AdConsentBanner />
+      <PixelPageViews />
     </BrowserRouter>
   )
 }
