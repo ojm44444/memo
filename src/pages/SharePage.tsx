@@ -162,20 +162,16 @@ export function SharePage() {
       setPinMs(null)
       await loadShare(savedPasswordRef.current)
 
-      // Fire-and-forget email notification to the song owner
+      /* Tell the owner. Only the token goes up: the function reads the comment
+         that was just saved from the database, so nothing typed here can be
+         turned into email content. It used to send the whole comment, with a
+         random id, and the function emailed whatever it was given. Failure
+         is not the listener's problem, so it is not shown to them. */
       void fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-share-feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          record: {
-            id: crypto.randomUUID(),
-            share_token: token,
-            author_name: author,
-            body: draftBody,
-            timestamp_ms: atMs,
-          },
-        }),
-      }).catch(() => {/* non-critical — don't surface email errors to listener */})
+        body: JSON.stringify({ token }),
+      }).catch(() => {})
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not post feedback')
     } finally {
