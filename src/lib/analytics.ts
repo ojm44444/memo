@@ -46,6 +46,8 @@ type EventName =
   | 'share_created'
   | 'song_merged'
   | 'take_added'
+  | 'upload_backfill'
+  | 'upload_blocked'
 
 /**
  * The signed-in id, remembered for this page load.

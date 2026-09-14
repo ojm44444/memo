@@ -72,6 +72,16 @@ export function SettingsPanel() {
   const [cachingAudio, setCachingAudio] = useState(false)
   const [cacheProgress, setCacheProgress] = useState<{ done: number; total: number } | null>(null)
   const uncachedAudio = useLiveQuery(() => countUncachedRemoteAudio(), [open])
+  /* Takes the cloud has refused for good. These used to be retried five times
+     and dropped with nobody told; now they are recorded, and said here. */
+  const notBackedUp = useLiveQuery(async () => {
+    const { db } = await import('@/db/database')
+    const blocked = await db.audioVersions.filter((v) => !!v.uploadBlockedReason).toArray()
+    return {
+      total: blocked.length,
+      tooLarge: blocked.filter((v) => v.uploadBlockedReason === 'too_large').length,
+    }
+  }, [open])
   const [budget, setBudget] = useState(getBudgetState)
   useEffect(() => {
     if (open) setBudget(getBudgetState())
@@ -247,6 +257,18 @@ export function SettingsPanel() {
                   </p>
                 ) : (
                   <p className="settings-section-copy">All synced audio is available offline.</p>
+                )}
+                {(notBackedUp?.total ?? 0) > 0 && (
+                  <p className="settings-backup-warning">
+                    <strong>
+                      {notBackedUp!.total} take{notBackedUp!.total === 1 ? ' is' : 's are'} not backed
+                      up to the cloud.
+                    </strong>{' '}
+                    {notBackedUp!.tooLarge === notBackedUp!.total
+                      ? `${notBackedUp!.total === 1 ? 'It is' : 'They are'} over the 200 MB limit.`
+                      : 'The cloud could not store them, usually because a file is over 200 MB.'}{' '}
+                    They play on this device only, so keep this device, or export a backup.
+                  </p>
                 )}
                 {budget.tripped && (
                   /* Never stop quietly. An app that silently declines to fetch

@@ -6,6 +6,9 @@ import type { Database } from '@/lib/supabase/database.types'
 import { db } from '@/db/database'
 import { uploadAudioVersion, ensureBoardForUser } from './audioUpload'
 import type { SyncQueueItem } from '@/types/sync'
+import { UploadBlockedError } from '@/lib/cloudAudio'
+import { recordEvent } from '@/lib/analytics'
+import { requeueStrandedUploadsOnce } from './uploadBackfill'
 
 type SongUpdate = Database['public']['Tables']['songs']['Update']
 
@@ -281,7 +284,7 @@ async function bootstrapProjects(boardId: string) {
 }
 
 export async function pushChanges(userId: string): Promise<PushResult> {
-  const queue = await getSyncQueue()
+  let queue = await getSyncQueue()
 
   if (!supabase) {
     return {
@@ -339,6 +342,15 @@ export async function pushChanges(userId: string): Promise<PushResult> {
   let failed = 0
   let lastFailure: string | null = null
 
+  /* Recover takes that never reached the cloud (see uploadBackfill.ts). Here
+     rather than earlier because only the owner may upload, and this runs after
+     flush() has already pulled, so a take uploaded from another device has
+     its storagePath and is left alone. */
+  if (canWrite) {
+    const recovered = await requeueStrandedUploadsOnce()
+    if (recovered?.queued) queue = await getSyncQueue()
+  }
+
   const metadataItems = queue.filter((item) => item.entityType !== 'audio_version')
   const audioItems = queue.filter((item) => item.entityType === 'audio_version')
 
@@ -366,6 +378,16 @@ export async function pushChanges(userId: string): Promise<PushResult> {
       failed++
       const msg = errorMessage(err)
       lastFailure = msg
+      if (err instanceof UploadBlockedError) {
+        /* A file the cloud will never take. Recorded on the take and taken
+           out of the queue at once, rather than retried five times and then
+           silently dropped, which is how takes used to end up on one device
+           with nobody told. Settings lists them. */
+        await db.audioVersions.update(item.entityId, { uploadBlockedReason: err.reason })
+        await removeSyncItem(item.id)
+        void recordEvent('upload_blocked', 1, err.reason)
+        continue
+      }
       await markSyncFailed(item.id, msg)
     }
   }

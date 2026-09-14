@@ -24,6 +24,12 @@ export interface AudioVersion {
   kind?: 'take' | 'mix' | 'master'
   /** Playback start offset in ms — skips the silence/intro on play. */
   trimStartMs?: number
+  /**
+   * Set when the cloud will never accept this take (too large, or a format the
+   * bucket refuses), so the upload is not retried and the take is listed in
+   * Settings as not backed up. Local only; the take still plays here.
+   */
+  uploadBlockedReason?: 'too_large' | 'unsupported_type' | null
   /** Playback end offset in ms — stops playback early when set. */
   trimEndMs?: number
 }

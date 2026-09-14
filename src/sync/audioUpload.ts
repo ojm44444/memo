@@ -3,18 +3,14 @@ import { errorMessage } from '@/lib/errorMessage'
 import { INBOX_SLUG } from '@/types/column'
 import { supabase } from '@/lib/supabase/client'
 import { db } from '@/db/database'
+import {
+  CLOUD_MAX_BYTES,
+  UploadBlockedError,
+  canonicalAudioMime,
+  classifyStorageRefusal,
+  extensionForMime,
+} from '@/lib/cloudAudio'
 
-function normalizeAudioMime(mime: string, fileName: string) {
-  if (mime && mime !== 'application/octet-stream') return mime
-  const ext = fileName.split('.').pop()?.toLowerCase()
-  if (ext === 'm4a' || ext === 'mp4' || ext === 'm4v') return 'audio/mp4'
-  if (ext === 'wav') return 'audio/wav'
-  if (ext === 'mp3') return 'audio/mpeg'
-  if (ext === 'aac') return 'audio/aac'
-  if (ext === 'caf') return 'audio/x-caf'
-  if (ext === 'aiff' || ext === 'aif') return 'audio/aiff'
-  return 'audio/mp4'
-}
 
 export async function uploadAudioVersion(
   versionId: string,
@@ -35,9 +31,22 @@ export async function uploadAudioVersion(
   const blobRecord = await getAudioBlob(payload.localBlobId)
   if (!blobRecord) throw new Error('Audio file missing on this device — try importing again')
 
-  const ext = payload.fileName.split('.').pop() ?? 'm4a'
+  const contentType = canonicalAudioMime(payload.mimeType, payload.fileName)
+  // A real extension from the filename, or one derived from the type: the
+  // duplicate path names files "<label>.audio", which is not an extension.
+  const fromName = payload.fileName.includes('.') ? payload.fileName.split('.').pop()!.toLowerCase() : ''
+  const ext = /^[a-z0-9]{2,5}$/.test(fromName) && fromName !== 'audio' ? fromName : extensionForMime(contentType)
   const storagePath = `${userId}/${boardId}/${payload.songId}/${versionId}.${ext}`
-  const contentType = normalizeAudioMime(payload.mimeType, payload.fileName)
+
+  // Refused before sending: retrying a file the bucket will never take only
+  // burns five attempts and then drops the job, which is how takes used to
+  // end up on one device forever without anyone being told.
+  if (blobRecord.blob.size > CLOUD_MAX_BYTES) {
+    throw new UploadBlockedError(
+      'too_large',
+      `This take is ${Math.round(blobRecord.blob.size / 1048576)} MB, over the cloud's ${Math.round(CLOUD_MAX_BYTES / 1048576)} MB limit, so it stays on this device.`,
+    )
+  }
 
   const { error: uploadError } = await supabase.storage
     .from('audio')
@@ -51,7 +60,14 @@ export async function uploadAudioVersion(
     // this surfaces as an RLS violation. Translate it into something true and
     // actionable instead of leaking "new row violates row-level security".
     const msg = String(uploadError.message ?? '')
-    if (/row-level security|violates|42501/i.test(msg)) {
+    const blocked = classifyStorageRefusal(msg)
+    if (blocked) throw new UploadBlockedError(blocked, msg)
+    /* Only a row-level security refusal means the quota. This used to match
+       any 42501 as well, but 42501 is also "permission denied", which is what
+       every upload failed with from 26 Aug (see migration 029): the app would
+       have told people their storage was full when it was not. A server fault
+       is passed through as itself. */
+    if (/row-level security/i.test(msg) && !/permission denied/i.test(msg)) {
       throw new Error(
         'Cloud storage is full, so this take stayed on your device. ' +
           'Your music is safe and still plays here. Free up space by removing ' +

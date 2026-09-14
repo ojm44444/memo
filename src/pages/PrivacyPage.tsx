@@ -104,10 +104,12 @@ export function PrivacyPage() {
         </p>
         <ul>
           <li><strong>Supabase</strong> for the database, file storage and sign-in.</li>
-          <li>
-            <strong>Vercel</strong> for hosting the site and the app, and for counting visits and a
-            few product events (such as a first import) without cookies and without identifying you.
-          </li>
+          {/* Hosting only. The app includes Vercel's cookieless analytics
+              component, but Web Analytics is not enabled on the project:
+              checked 14 Sept, /_vercel/insights/view returns 404 and the API
+              reports no Web Analytics, so nothing is counted. If it is ever
+              switched on, say so here in the same sentence. */}
+          <li><strong>Vercel</strong> for hosting the site and the app.</li>
           <li><strong>Resend</strong> for sending email, such as invites and share notifications.</li>
           <li><strong>Google</strong>, only if you choose to sign in with Google.</li>
         </ul>
