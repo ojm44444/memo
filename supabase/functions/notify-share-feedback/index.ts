@@ -60,11 +60,15 @@ serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const from = Deno.env.get('EMAIL_FROM') ?? 'songdrafts <hello@songdrafts.com>'
     const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://www.songdrafts.com').replace(/\/$/, '')
-    if (!resendKey || !url || !serviceKey) return json({ error: 'Email is not configured' }, 503)
 
+    /* Input first, configuration second. The forged-comment shape the old page
+       sent ({ record: {...} }) is rejected here whether or not email is set up,
+       which also means the rejection can be tested before RESEND_API_KEY is. */
     const body = (await req.json().catch(() => null)) as { token?: unknown } | null
     const token = typeof body?.token === 'string' ? body.token.trim() : ''
     if (!token) return json({ error: 'Missing share' }, 400)
+
+    if (!resendKey || !url || !serviceKey) return json({ error: 'Email is not configured' }, 503)
 
     const admin = createClient(url, serviceKey)
 
