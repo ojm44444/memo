@@ -27,7 +27,12 @@ import { SongSharePanel } from './SongSharePanel'
 import { AddToPlaylistModal } from './AddToPlaylistModal'
 
 export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
-  const { selectedSongId, drawerOpen, closeDrawer } = useUiStore()
+  /* Selectors, not the whole store: without them the drawer re-rendered on
+     every UI change, including the drag state that updates while a card is
+     being dragged. */
+  const selectedSongId = useUiStore((state) => state.selectedSongId)
+  const drawerOpen = useUiStore((state) => state.drawerOpen)
+  const closeDrawer = useUiStore((state) => state.closeDrawer)
   const [mergeOpen, setMergeOpen] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
   const [titleDraft, setTitleDraft] = useState('')
@@ -109,8 +114,12 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [drawerOpen, closeDrawer])
 
-  const { currentSongId, isPlaying, buffering, setPlaying, playbackRate, setPlaybackRate, progress } = usePlayerStore()
-  const isThisSongPlaying = currentSongId === (song?.id ?? '')
+  /* Only "is this song the one loaded", as a boolean. The drawer used to take
+     the whole player store, progress included, so the entire open drawer
+     (lyrics, comments, tags, every take's waveform) re-rendered on every
+     playback tick. That was the "playback in the drawer is laggy" report.
+     The ticking parts now live in DrawerMiniPlayer, which is small. */
+  const isThisSongPlaying = usePlayerStore((state) => state.currentSongId === (song?.id ?? ''))
   const currentVersion = useLiveQuery(async () => {
     if (!isThisSongPlaying || !song) return undefined
     const versions = await db.audioVersions.where('songId').equals(song.id).sortBy('sortOrder')
@@ -299,23 +308,43 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
         )}
 
         {isThisSongPlaying && (
-          <div className="drawer-mini-player">
-            <button
-              type="button"
-              className={`drawer-mini-play${buffering ? ' player-bar-buffering' : ''}`}
-              onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
-              aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
-            >
-              {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
-            </button>
-            <div className="drawer-mini-info">
-              <span className="drawer-mini-label">{currentVersion?.label ?? song.title}</span>
-              <span className="drawer-mini-time">{formatDuration((progress ?? 0) * (currentVersion?.durationMs ?? 0))}</span>
-            </div>
-            <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="drawer-mini-speed" />
-          </div>
+          <DrawerMiniPlayer
+            label={currentVersion?.label ?? song.title}
+            durationMs={currentVersion?.durationMs ?? 0}
+          />
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * The drawer's mini player: the only part of the drawer that has to change on
+ * every playback tick, so it is the only part that subscribes to progress.
+ */
+function DrawerMiniPlayer({ label, durationMs }: { label: string; durationMs: number }) {
+  const isPlaying = usePlayerStore((state) => state.isPlaying)
+  const buffering = usePlayerStore((state) => state.buffering)
+  const progress = usePlayerStore((state) => state.progress)
+  const setPlaying = usePlayerStore((state) => state.setPlaying)
+  const playbackRate = usePlayerStore((state) => state.playbackRate)
+  const setPlaybackRate = usePlayerStore((state) => state.setPlaybackRate)
+
+  return (
+    <div className="drawer-mini-player">
+      <button
+        type="button"
+        className={`drawer-mini-play${buffering ? ' player-bar-buffering' : ''}`}
+        onClick={() => { if (!buffering) setPlaying(!isPlaying) }}
+        aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
+      >
+        {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
+      </button>
+      <div className="drawer-mini-info">
+        <span className="drawer-mini-label">{label}</span>
+        <span className="drawer-mini-time">{formatDuration((progress ?? 0) * durationMs)}</span>
+      </div>
+      <SpeedControl value={playbackRate} onChange={setPlaybackRate} className="drawer-mini-speed" />
     </div>
   )
 }

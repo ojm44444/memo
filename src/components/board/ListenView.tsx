@@ -503,7 +503,11 @@ function ListenRow({
     },
     [songId],
   )
-  const { progress } = usePlayerStore()
+  /* Progress only for the row that is playing. `usePlayerStore()` with no
+     selector re-rendered every row in Listen on every playback tick, the same
+     lag fixed on the board's cards; a row that is not active now sees a
+     constant 0 and does not re-render. */
+  const progress = usePlayerStore((state) => (isActive ? state.progress : 0))
 
   return (
     <li className={cn('listen-view-row', isActive && 'is-active')}>

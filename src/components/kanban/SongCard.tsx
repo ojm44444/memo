@@ -36,7 +36,6 @@ const isTouchOnlyDevice =
 
 export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = false, unnamedStems }: SongCardProps) {
   const selectionMode = useUiStore((state) => state.selectionMode)
-  const draggingCardId = useUiStore((state) => state.draggingCardId)
   const isSelected = useUiStore((state) => state.selectedSongIds.includes(song.id))
   const toggleSongSelected = useUiStore((state) => state.toggleSongSelected)
 
@@ -44,13 +43,20 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
      moment (armedMergeId, set by KanbanBoard after a pause). Before that it is
      not a droppable at all, so an ordinary drag passing over the card sees
      the card itself and reorders around it, the way a drag should. */
-  const armedMergeId = useUiStore((state) => state.armedMergeId)
-  const isMergeTarget =
-    !readOnly &&
-    !isTouchOnlyDevice &&
-    draggingCardId !== null &&
-    draggingCardId !== song.id &&
-    armedMergeId === song.id
+  /* A boolean selector, so a card re-renders only when ITS answer changes.
+     Subscribing to draggingCardId itself re-rendered every card on any change
+     to the drag state: 0.3ms per change now. NOTE, measured 14 Sept: this did
+     NOT fix the ~220ms stall when a drag starts on a ~230-song board. That
+     stall is dnd-kit re-rendering every useSortable card as the drag begins,
+     and it is still there. */
+  const isMergeTarget = useUiStore(
+    (state) =>
+      !readOnly &&
+      !isTouchOnlyDevice &&
+      state.draggingCardId !== null &&
+      state.draggingCardId !== song.id &&
+      state.armedMergeId === song.id,
+  )
   const { setNodeRef: setMergeNodeRef, isOver: isMergeOver } = useDroppable({
     id: `merge:${song.id}`,
     data: { type: 'song-merge', targetSongId: song.id, columnSlug },
@@ -69,9 +75,18 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   )
   const primary = versions?.[0]
 
-  const { currentSongId, progress, isPlaying } = usePlayerStore()
-  const { openDrawer } = useUiStore()
-  const isActive = currentSongId === song.id && isPlaying
+  /* Narrow subscriptions. These were `usePlayerStore()` and `useUiStore()`
+     with no selector, which subscribes a card to the WHOLE store: every card
+     on the board re-rendered on every playback progress tick, several times a
+     second, and on every unrelated UI change. Measured with 104 cards on
+     screen: 55ms per progress tick (worst 196ms), 58ms per unrelated change.
+     That is the "playback is laggy" report. Now a card that is not playing
+     sees a constant 0 and false, and does not re-render at all. */
+  const isActive = usePlayerStore((state) => state.currentSongId === song.id && state.isPlaying)
+  const progress = usePlayerStore((state) =>
+    state.currentSongId === song.id && state.isPlaying ? state.progress : 0,
+  )
+  const openDrawer = useUiStore((state) => state.openDrawer)
 
   const style = {
     transform: CSS.Transform.toString(transform),
