@@ -82,11 +82,8 @@ export function TermsPage() {
           songdrafts is $79 a year or $12 a month, charged when you subscribe. There is no free
           trial. Prices are also on the <Link to="/#pricing">pricing section</Link>.
         </p>
-        <p>
-          <strong>Founding price.</strong> The first 100 yearly plans are $49 a year, for as long
-          as that subscription stays active. If it ends, for any reason, rejoining is at the
-          current price.
-        </p>
+        {/* The founding price paragraph lived here while the $49 offer was on
+            (15 Sept, a few hours). Bring it back only with FOUNDING_OFFER. */}
         <p>
           Plans renew automatically until you cancel. You can cancel at any time in Settings, and
           you keep your plan until the end of the period you paid for.

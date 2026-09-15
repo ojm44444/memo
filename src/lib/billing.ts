@@ -46,6 +46,15 @@ export const PRICES = {
 
 export const FOUNDING_CAP = 100
 
+/**
+ * The $49 founding offer. OFF, settled 15 Sept after a Hormozi pass:
+ * discounting an unproven product teaches people to wait and lowers what it
+ * is worth. Everything behind it (the 100-place cap in 035, the Stripe price,
+ * the checkout path) stays built, so turning it on is this flag plus
+ * FOUNDING_OFFER=on on the checkout function.
+ */
+export const FOUNDING_OFFER = false
+
 /** Said wherever the founding price is offered, before anyone pays. */
 export const FOUNDING_TERMS =
   '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price.'
@@ -166,6 +175,7 @@ export class BillingError extends Error {
 const BILLING_MESSAGES: Record<string, string> = {
   already_subscribed: 'You already have a plan. Manage it from Settings.',
   founding_full: 'The 100 founding places have all gone. Nothing was charged.',
+  founding_off: 'The founding price is not available. Nothing was charged.',
   founding_not_eligible:
     'Founding places are for a first subscription only, so it is $79 a year now. Nothing was charged.',
 }

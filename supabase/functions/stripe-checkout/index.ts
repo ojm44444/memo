@@ -1,21 +1,26 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
+import Stripe from 'https://esm.sh/stripe@18.5.0?target=deno'
 
 /**
  * Billing actions for a signed-in person: start a checkout, open the portal,
  * take the refund, or read back what a finished checkout charged.
  *
- * PRICES (decided 14-15 Sept 2026, replacing $49/$9 with a $1 first week):
- *   founding  $49 a year, the first 100 annual subscribers, for as long as
- *             the subscription stays active. Cancel and you rejoin at $79.
- *   year      $79 a year
- *   month     $12 a month
- * No trial and no $1 week: the card is charged the full price at checkout.
+ * PRICES (15 Sept 2026): $79 a year, $12 a month. No trial, no $1 week: the
+ * full price is charged at checkout. Looked up by Stripe lookup key, never
+ * taken from the request, so a price change is a repoint in Stripe rather
+ * than a redeploy, and a client cannot name a cheaper price.
  *
- * The price is chosen HERE from env vars, never from the request. A client
- * that can name a price id can name a cheaper one. The founding price is only
- * ever used after the database has handed this person one of the 100 places.
+ * The $49 founding price (songdrafts_founding_49) exists in Stripe and in
+ * this code but is OFF: settled after a Hormozi pass on 15 Sept, discounting
+ * an unproven product teaches people to wait. It only turns on with the env
+ * var FOUNDING_OFFER=on, and even then only through the 100-place cap in 035.
+ *
+ * MANAGED PAYMENTS. Owen chose Stripe as merchant of record so Stripe carries
+ * the global VAT/sales tax. That only applies to a Checkout Session created
+ * with managed_payments.enabled on API 2025-03-31.basil or later, which is why
+ * this is on stripe-node 18 (basil). The product needs an eligible tax code.
+ * STRIPE_MANAGED_PAYMENTS=off disables it, for a sandbox without it.
  *
  * REFUNDS: annual, in full, within 30 days of the first payment; monthly, the
  * first month in full, within 14 days. One button in Settings, no questions.
@@ -47,6 +52,18 @@ const REFUND_DAYS = { year: 30, month: 14 } as const
 
 const clip = (value: string | null | undefined, max = 480) => (value ?? '').slice(0, max)
 
+/** Stripe lookup keys, so the dashboard decides the amount. */
+const LOOKUP_KEYS: Record<Plan, string> = {
+  founding: 'songdrafts_founding_49',
+  year: 'songdrafts_annual_79',
+  month: 'songdrafts_monthly_12',
+}
+
+async function priceFor(stripe: Stripe, plan: Plan): Promise<string | null> {
+  const found = await stripe.prices.list({ lookup_keys: [LOOKUP_KEYS[plan]], active: true, limit: 1 })
+  return found.data[0]?.id ?? null
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -55,13 +72,10 @@ serve(async (req) => {
     const url = Deno.env.get('SUPABASE_URL')
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://www.songdrafts.com').replace(/\/$/, '')
-    const prices: Record<Plan, string | undefined> = {
-      founding: Deno.env.get('STRIPE_PRICE_FOUNDING_YEAR'),
-      year: Deno.env.get('STRIPE_PRICE_YEAR'),
-      month: Deno.env.get('STRIPE_PRICE_MONTH'),
-    }
+    const foundingOn = Deno.env.get('FOUNDING_OFFER') === 'on'
+    const managedPayments = Deno.env.get('STRIPE_MANAGED_PAYMENTS') !== 'off'
 
-    if (!stripeKey || !url || !serviceKey || !prices.founding || !prices.year || !prices.month) {
+    if (!stripeKey || !url || !serviceKey) {
       return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
     }
 
@@ -73,7 +87,7 @@ serve(async (req) => {
     const user = userData?.user
     if (!user?.email) return json({ error: 'Sign in required' }, 401)
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' })
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
     const mode = ['portal', 'refund', 'receipt'].includes(String(body.mode)) ? String(body.mode) : 'checkout'
 
@@ -149,8 +163,11 @@ serve(async (req) => {
         return json({ error: `The ${REFUND_DAYS[interval]} day refund window has closed. Cancel in Manage billing to stop renewal.` }, 409)
       }
 
-      const paymentIntent =
-        typeof first.payment_intent === 'string' ? first.payment_intent : first.payment_intent?.id
+      // Basil: an invoice no longer points at its payment. The Invoice
+      // Payments list does.
+      const payments = await stripe.invoicePayments.list({ invoice: first.id!, limit: 5 })
+      const pi = payments.data.find((p: Stripe.InvoicePayment) => p.payment?.type === 'payment_intent')?.payment?.payment_intent
+      const paymentIntent = typeof pi === 'string' ? pi : pi?.id
       if (!paymentIntent) return json({ error: 'Could not find that payment. Email support@songdrafts.com.' }, 500)
 
       // Refund first: if the cancel then fails, they have their money and
@@ -186,6 +203,10 @@ serve(async (req) => {
     if (isLive) return json({ error: 'already_subscribed' }, 409)
 
     const plan: Plan = body.plan === 'founding' || body.plan === 'month' ? body.plan : 'year'
+    if (plan === 'founding' && !foundingOn) return json({ error: 'founding_off' }, 409)
+
+    const priceId = await priceFor(stripe, plan)
+    if (!priceId) return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
 
     let foundingPlaceId: string | null = null
     if (plan === 'founding') {
@@ -230,7 +251,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: prices[plan]!, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: { metadata },
       metadata,
       client_reference_id: user.id,
@@ -241,7 +262,8 @@ serve(async (req) => {
       },
       success_url: `${siteUrl}/app?checkout=done&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/app?checkout=cancelled`,
-    })
+      ...(managedPayments ? { managed_payments: { enabled: true } } : {}),
+    } as Stripe.Checkout.SessionCreateParams)
 
     if (foundingPlaceId) {
       const { data: held } = await admin

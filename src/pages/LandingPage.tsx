@@ -9,7 +9,7 @@ import { HeroStack } from '@/components/landing/HeroStack'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { CookieSettingsLink } from '@/components/layout/AdConsent'
-import { FOUNDING_CAP, FOUNDING_TERMS, PRICES, getFoundingPlacesLeft } from '@/lib/billing'
+import { FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS, PRICES, getFoundingPlacesLeft } from '@/lib/billing'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -268,10 +268,9 @@ function useSectionReveal() {}
  * The price card: yearly or monthly, with the founding offer leading the
  * yearly side while any of the 100 places are left.
  *
- * Prices decided 14-15 Sept 2026: $79 a year, $12 a month, and $49 a year for
- * the first 100 yearly plans, kept while the subscription stays active. The
- * condition is said here, at the point of sale, not only in the terms. No $1
- * week and no trial any more.
+ * Prices decided 15 Sept 2026: $79 a year, $12 a month. No $1 week and no
+ * trial. The $49 founding offer is built but off (FOUNDING_OFFER in billing).
+ * If it is ever on, its condition is said here, at the point of sale.
  *
  * The count of places is read from the database, the same number the checkout
  * enforces. If it cannot be read the page still offers the price, without a
@@ -282,6 +281,7 @@ function PricingToggle() {
   const [placesLeft, setPlacesLeft] = useState<number | null>(null)
 
   useEffect(() => {
+    if (!FOUNDING_OFFER) return
     let live = true
     void getFoundingPlacesLeft().then((left) => {
       if (live) setPlacesLeft(left)
@@ -291,7 +291,7 @@ function PricingToggle() {
     }
   }, [])
 
-  const founding = annual && placesLeft !== 0
+  const founding = FOUNDING_OFFER && annual && placesLeft !== 0
   const price = !annual ? PRICES.month.amount : founding ? PRICES.founding.amount : PRICES.year.amount
 
   return (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   BILLING_LIVE,
   FOUNDING_CAP,
+  FOUNDING_OFFER,
   FOUNDING_TERMS,
   NO_SUBSCRIPTION,
   PRICES,
@@ -46,7 +47,11 @@ export function PlanSection() {
   useEffect(() => {
     if (!BILLING_LIVE) return
     let live = true
-    void Promise.all([getSubscription(), getFoundingPlacesLeft(), isFoundingEligible()]).then(
+    void Promise.all([
+      getSubscription(),
+      FOUNDING_OFFER ? getFoundingPlacesLeft() : Promise.resolve(0),
+      FOUNDING_OFFER ? isFoundingEligible() : Promise.resolve(false),
+    ]).then(
       ([nextSub, left, canFound]) => {
         if (!live) return
         setSub(nextSub)
@@ -64,7 +69,9 @@ export function PlanSection() {
       <section className="settings-section">
         <h3 className="settings-section-title">Plan</h3>
         <p className="settings-section-copy">
-          {`Billing is not on yet, so nothing is charging you. When it is: $${PRICES.year.amount} a year or $${PRICES.month.amount} a month, and the first ${FOUNDING_CAP} yearly plans are $${PRICES.founding.amount}.`}
+          {`Billing is not on yet, so nothing is charging you. When it is: $${PRICES.year.amount} a year or $${PRICES.month.amount} a month.`}
+          {FOUNDING_OFFER &&
+            ` The first ${FOUNDING_CAP} yearly plans are $${PRICES.founding.amount}.`}
         </p>
       </section>
     )
@@ -73,7 +80,7 @@ export function PlanSection() {
   const current = sub ?? NO_SUBSCRIPTION
   const active = hasAccess(current)
   const refund = refundWindow(current)
-  const showFounding = !active && eligible && (placesLeft ?? 0) > 0
+  const showFounding = FOUNDING_OFFER && !active && eligible && (placesLeft ?? 0) > 0
 
   const run = async (fn: () => Promise<void>) => {
     setError(null)

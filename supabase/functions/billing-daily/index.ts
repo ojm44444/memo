@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
+import Stripe from 'https://esm.sh/stripe@18.5.0?target=deno'
 import { capiContextFromMetadata, sendCapiEvent } from '../_shared/metaCapi.ts'
 
 /**
@@ -36,7 +36,7 @@ serve(async (req) => {
 
   const dry = new URL(req.url).searchParams.get('dry') === '1'
   const admin = createClient(url, serviceKey)
-  const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+  const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' })
 
   const cutoff = new Date(Date.now() - 30 * 86_400_000).toISOString()
   const { data: due, error } = await admin

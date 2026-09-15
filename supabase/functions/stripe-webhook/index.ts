@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
+import Stripe from 'https://esm.sh/stripe@18.5.0?target=deno'
 import { capiContextFromMetadata, sendCapiEvent } from '../_shared/metaCapi.ts'
 
 /**
@@ -22,6 +22,17 @@ import { capiContextFromMetadata, sendCapiEvent } from '../_shared/metaCapi.ts'
  *
  * GONE (15 Sept): the $1 first week and the 7 day trial, and with them the
  * trial_will_end reminder. Checkout now charges the full price up front.
+ *
+ * API VERSION: basil (2025-08-27.basil), because Managed Payments needs it.
+ * The endpoint in the Stripe dashboard MUST be created on the same version,
+ * or events arrive in the old shape. Basil moved three things this reads:
+ * the billing period is on the subscription item, an invoice's subscription
+ * is under parent.subscription_details, and payments are linked to invoices
+ * through Invoice Payments rather than invoice.payment_intent / charge.invoice.
+ *
+ * A REFUND ENDS THE PLAN. Refunding in the Stripe dashboard does not cancel
+ * the subscription on its own, so a refunded customer would keep their plan.
+ * A full refund of a subscription payment cancels it here.
  */
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*' }
@@ -34,13 +45,12 @@ serve(async (req) => {
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
   const url = Deno.env.get('SUPABASE_URL')
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  const foundingPrice = Deno.env.get('STRIPE_PRICE_FOUNDING_YEAR')
 
   if (!stripeKey || !webhookSecret || !url || !serviceKey) {
     return new Response('Not configured', { status: 503 })
   }
 
-  const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+  const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' })
   const signature = req.headers.get('stripe-signature')
   if (!signature) return new Response('Missing signature', { status: 400 })
 
@@ -73,7 +83,7 @@ serve(async (req) => {
   const planOf = (sub: Stripe.Subscription): 'founding_year' | 'year' | 'month' | null => {
     const price = sub.items.data[0]?.price
     if (!price) return null
-    if (foundingPrice && price.id === foundingPrice) return 'founding_year'
+    if (price.lookup_key === 'songdrafts_founding_49') return 'founding_year'
     if (price.recurring?.interval === 'month') return 'month'
     if (price.recurring?.interval === 'year') return 'year'
     return null
@@ -86,27 +96,29 @@ serve(async (req) => {
 
     // Only one live subscription per person. Two open checkout pages could
     // both be paid; the second one is cancelled and refunded here rather than
-    // quietly billing someone twice.
-    if (LIVE_STATUSES.includes(sub.status)) {
-      const { data: existing } = await admin
-        .from('subscriptions')
-        .select('stripe_subscription_id, status, current_period_end')
-        .eq('user_id', userId)
-        .maybeSingle()
-      const otherLive =
-        existing?.stripe_subscription_id &&
-        existing.stripe_subscription_id !== sub.id &&
-        LIVE_STATUSES.includes(existing.status) &&
-        (!existing.current_period_end || new Date(existing.current_period_end).getTime() > Date.now())
-      if (otherLive) {
-        await refundAndCancelDuplicate(sub)
-        return
-      }
+    // quietly billing someone twice. And while another subscription is the
+    // live one, events about a different one never overwrite the row: the
+    // duplicate's own "deleted" event would otherwise mark a paying customer
+    // as cancelled.
+    const { data: existing } = await admin
+      .from('subscriptions')
+      .select('stripe_subscription_id, status, current_period_end')
+      .eq('user_id', userId)
+      .maybeSingle()
+    const otherLive =
+      !!existing?.stripe_subscription_id &&
+      existing.stripe_subscription_id !== sub.id &&
+      LIVE_STATUSES.includes(existing.status) &&
+      (!existing.current_period_end || new Date(existing.current_period_end).getTime() > Date.now())
+    if (otherLive) {
+      if (LIVE_STATUSES.includes(sub.status)) await refundAndCancelDuplicate(sub)
+      return
     }
 
     const item = sub.items.data[0]
     const interval = item?.price?.recurring?.interval
-    const periodEnd = (sub as unknown as { current_period_end?: number }).current_period_end
+    // Basil: the period lives on the item, not the subscription.
+    const periodEnd = item?.current_period_end
 
     await admin.from('subscriptions').upsert(
       {
@@ -143,10 +155,22 @@ serve(async (req) => {
     }
   }
 
+  /** The PaymentIntent that paid an invoice (basil: via Invoice Payments). */
+  const paymentIntentOf = async (invoiceId: string): Promise<string | null> => {
+    const payments = await stripe.invoicePayments.list({ invoice: invoiceId, limit: 5 })
+    const pi = payments.data.find((p: Stripe.InvoicePayment) => p.payment?.type === 'payment_intent')?.payment?.payment_intent
+    return (typeof pi === 'string' ? pi : pi?.id) ?? null
+  }
+
+  /** The subscription an invoice belongs to (basil: under parent). */
+  const subscriptionOfInvoice = (invoice: Stripe.Invoice): string | null => {
+    const s = invoice.parent?.subscription_details?.subscription
+    return (typeof s === 'string' ? s : s?.id) ?? null
+  }
+
   const refundAndCancelDuplicate = async (sub: Stripe.Subscription) => {
     const paid = await stripe.invoices.list({ subscription: sub.id, status: 'paid', limit: 1 })
-    const pi = paid.data[0]?.payment_intent
-    const paymentIntent = typeof pi === 'string' ? pi : pi?.id
+    const paymentIntent = paid.data[0]?.id ? await paymentIntentOf(paid.data[0].id) : null
     if (paymentIntent) {
       await stripe.refunds.create(
         { payment_intent: paymentIntent, metadata: { reason: 'duplicate_subscription' } },
@@ -244,14 +268,10 @@ serve(async (req) => {
       case 'invoice.payment_succeeded': {
         // Re-read rather than infer: an invoice says what happened to a
         // payment, not what the subscription's status now is.
-        const invoice = event.data.object as unknown as {
-          subscription?: string | null
-          billing_reason?: string
-          status_transitions?: { paid_at?: number | null }
-          id: string
-        }
-        if (!invoice.subscription) break
-        const sub = await stripe.subscriptions.retrieve(invoice.subscription)
+        const invoice = event.data.object as Stripe.Invoice
+        const invoiceSub = subscriptionOfInvoice(invoice)
+        if (!invoiceSub) break
+        const sub = await stripe.subscriptions.retrieve(invoiceSub)
         await applySubscription(sub)
 
         if (event.type !== 'invoice.payment_succeeded') break
@@ -294,20 +314,34 @@ serve(async (req) => {
       }
 
       case 'charge.refunded': {
-        // A refund issued outside the app (the Stripe dashboard) is still a
-        // refund. The place is released when the subscription ends.
+        // A refund made anywhere (the Settings button, or the Stripe
+        // dashboard) ends the plan. A dashboard refund alone would leave the
+        // subscription running, and a refunded customer keeping their plan.
         const charge = event.data.object as Stripe.Charge
-        if (!charge.refunded) break
-        const invoiceId = typeof charge.invoice === 'string' ? charge.invoice : charge.invoice?.id
+        if (!charge.refunded) break // partial refund: leave the plan alone
+        const pi = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id
+        if (!pi) break
+        const links = await stripe.invoicePayments.list({
+          payment: { type: 'payment_intent', payment_intent: pi },
+          limit: 1,
+        })
+        const inv = links.data[0]?.invoice
+        const invoiceId = typeof inv === 'string' ? inv : inv?.id
         if (!invoiceId) break
-        const invoice = await stripe.invoices.retrieve(invoiceId)
-        const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
+        const subId = subscriptionOfInvoice(await stripe.invoices.retrieve(invoiceId))
         if (!subId) break
+
         await admin
           .from('subscriptions')
           .update({ refunded_at: now() })
           .eq('stripe_subscription_id', subId)
           .is('refunded_at', null)
+
+        const sub = await stripe.subscriptions.retrieve(subId)
+        if (sub.status !== 'canceled') {
+          // subscription.deleted follows, which releases any founding place.
+          await stripe.subscriptions.cancel(subId, { prorate: false, invoice_now: false })
+        }
         break
       }
 
