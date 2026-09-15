@@ -1,3 +1,4 @@
+import Dexie from 'dexie'
 import { createId } from '@/lib/ids'
 import type { Project } from '@/types/project'
 import { db } from '../database'
@@ -135,9 +136,9 @@ async function resolveActiveProjectId() {
   const first = await db.projects.orderBy('sortOrder').first()
   if (first) return first.id
 
-  const id = createId()
-  await ensureDefaultProject(id)
-  return id
+  // The project that exists afterwards, which is not always the one asked
+  // for: another caller may have made it first.
+  return (await ensureDefaultProject()).id
 }
 
 export async function getActiveProjectId() {
@@ -325,10 +326,36 @@ export async function setFavouritesOnlyFilter(enabled: boolean) {
   }
 }
 
-export async function ensureDefaultProject(id = createId()) {
-  const count = await db.projects.count()
-  if (count > 0) return (await db.projects.orderBy('sortOrder').first())!
+/* One creation at a time. About ten live queries resolve the active project
+   (the board, the filters, the switcher, the share panel...), so the moment
+   the projects table is empty they ALL arrive here together, and each one
+   counted zero and added its own. Found restoring a backup in a real browser
+   on 15 Sept: one restore left fifteen projects called "My Project". The same
+   thing happens on any fresh browser, which is another road to the duplicate
+   projects Owen kept deleting. Callers in this tab share one promise; the
+   transaction makes the count-then-add atomic across tabs too. */
+let creatingDefault: Promise<Project> | null = null
 
+export function ensureDefaultProject(id = createId()): Promise<Project> {
+  creatingDefault ??= createDefaultProject(id).finally(() => {
+    creatingDefault = null
+  })
+  return creatingDefault
+}
+
+async function createDefaultProject(id: string): Promise<Project> {
+  // Outside whatever live query called us: a write inside a querier's zone is
+  // not allowed to open its own read-write transaction.
+  return Dexie.ignoreTransaction(() =>
+    db.transaction('rw', db.projects, db.syncMeta, async () => {
+      const existing = await db.projects.orderBy('sortOrder').first()
+      if (existing) return existing
+      return addDefaultProject(id)
+    }),
+  )
+}
+
+async function addDefaultProject(id: string): Promise<Project> {
   const project: Project = {
     id,
     name: DEFAULT_NAME,

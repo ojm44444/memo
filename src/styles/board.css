@@ -10829,3 +10829,26 @@ html.light .song-drawer {
 
 /* Deletion is last in the panel, and looks it. */
 .settings-section-danger .settings-section-title { color: var(--text-muted); }
+
+/* Sign out, with "Sign out everywhere" beside it as the quieter action. */
+.settings-panel .settings-sign-out-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-panel .settings-sign-out:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* An inline confirmation: what the action will do, then the buttons. Used by
+   sign out everywhere and revoke all links. */
+.settings-panel .settings-everywhere {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+}

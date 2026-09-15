@@ -25,6 +25,8 @@ export async function createSongShare(
     password?: string
     versionId?: string
     label?: string
+    /** Days until the link stops working. 0 means never. Default 90. */
+    expiresInDays?: ShareLifetimeDays
   } = {},
 ) {
   if (!supabase) throw new Error('Cloud sync is not configured')
@@ -35,10 +37,50 @@ export async function createSongShare(
     p_password: options.password?.trim() || null,
     p_version_id: options.versionId ?? null,
     p_label: options.label?.trim() || null,
+    p_expires_in_days: options.expiresInDays ?? DEFAULT_SHARE_LIFETIME,
   })
 
   if (error) throw error
   return `${window.location.origin}/share/${data as string}`
+}
+
+/** The lifetimes offered when making a link. 0 is "never expires". */
+export const SHARE_LIFETIMES = [
+  { days: 1, label: '1 day' },
+  { days: 7, label: '7 days' },
+  { days: 30, label: '30 days' },
+  { days: 90, label: '90 days' },
+  { days: 0, label: 'Never' },
+] as const
+
+export type ShareLifetimeDays = (typeof SHARE_LIFETIMES)[number]['days']
+
+export const DEFAULT_SHARE_LIFETIME: ShareLifetimeDays = 90
+
+export interface ShareLinkSummary {
+  song_links: number
+  playlist_links: number
+  invites: number
+}
+
+/** Live links on the boards you own: not revoked, not expired. */
+export async function getShareLinkSummary(): Promise<ShareLinkSummary | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase.rpc('share_link_summary')
+  if (error) throw error
+  return data as unknown as ShareLinkSummary
+}
+
+/**
+ * Every song link, playlist link and unused bandmate invite on the boards you
+ * own, revoked in one statement. Expired song links are revoked too, so
+ * "Renew" cannot bring one back afterwards.
+ */
+export async function revokeAllShareLinks(): Promise<ShareLinkSummary> {
+  if (!supabase) throw new Error('Cloud sync is not configured')
+  const { data, error } = await supabase.rpc('revoke_all_share_links')
+  if (error) throw error
+  return data as unknown as ShareLinkSummary
 }
 
 export interface SongShareRow {
@@ -92,10 +134,18 @@ export interface SongShareFeedbackComment {
 export async function listSongShareFeedback(songId: string) {
   if (!supabase) return []
 
-  const shares = await listSongShares(songId)
-  if (!shares.length) return []
+  /* Every link the song has ever had, revoked or expired included. Feedback
+     belongs to the song, not to the link it arrived through: this used to
+     read only live links, so revoking one (or "Revoke all" in Settings) made
+     every comment left on it vanish from the card. */
+  const { data: shareRows, error: sharesError } = await supabase
+    .from('song_shares')
+    .select('id')
+    .eq('song_id', songId)
+  if (sharesError) throw sharesError
+  if (!shareRows?.length) return []
 
-  const shareIds = shares.map((share) => share.id)
+  const shareIds = (shareRows as { id: string }[]).map((share) => share.id)
   const { data: comments, error: commentsError } = await supabase
     .from('share_listen_comments')
     .select('id, share_id, timestamp_ms, body, author_name, created_at')
@@ -138,7 +188,7 @@ export async function countShareFeedbackBySong(
       .from('song_shares')
       .select('id, song_id')
       .in('song_id', songIds.slice(i, i + chunkSize))
-      .is('revoked_at', null)
+      // Revoked links included: their comments still belong to the song.
 
     if (error) throw error
     for (const row of (data ?? []) as { id: string; song_id: string }[]) {

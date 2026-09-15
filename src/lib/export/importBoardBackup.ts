@@ -39,7 +39,14 @@ async function findAudioFileInZip(zip: JSZip, versionId: string, audioFile?: str
   return zip.file(matches[0]!)
 }
 
-async function wipeBoardForRestore() {
+/**
+ * Clear the device and put the backup's projects and columns back, in ONE
+ * transaction. They used to be written after the wipe had committed, and in
+ * that gap every live query on screen saw a board with no project and made
+ * one: a real restore in Chrome left fifteen "My Project"s. Done atomically,
+ * nothing ever sees the board empty.
+ */
+async function wipeBoardForRestore(manifest: BackupManifest) {
   const deviceId = (await db.syncMeta.get('deviceId'))?.value
 
   await db.transaction(
@@ -74,6 +81,9 @@ async function wipeBoardForRestore() {
 
       if (deviceId) await db.syncMeta.put({ key: 'deviceId', value: deviceId })
       await db.syncMeta.put({ key: 'lastPulledAt', value: new Date(0).toISOString() })
+
+      await db.columns.bulkPut(manifest.columns)
+      await db.projects.bulkPut(manifest.projects)
     },
   )
 }
@@ -103,17 +113,22 @@ async function importAudioVersion(
     localBlobId = blobId
   }
 
+  /* Everything the take had, not a hand-picked list. This used to name nine
+     fields and drop the rest, so a restore quietly lost every take's tags, its
+     trim points and whether it was a take, a mix or a master. Found by the
+     round trip test, which is why that test compares whole records. */
+  const kept: Partial<BackupManifest['versions'][number]> = { ...version }
+  delete kept.audioFile
   const restored: AudioVersion = {
+    ...(kept as AudioVersion),
     id: versionId,
     songId,
-    label: version.label,
-    durationMs: version.durationMs,
-    mimeType: version.mimeType,
-    sortOrder: version.sortOrder,
     localBlobId,
     storagePath: remapIds ? null : version.storagePath,
     recordedAt: version.recordedAt ?? null,
-    createdAt: version.createdAt,
+    // The cloud's rules may have changed since (032 widened them), so a take
+    // it once refused gets another try from the restored device.
+    uploadBlockedReason: null,
     syncedAt: null,
   }
 
@@ -189,17 +204,13 @@ async function restoreReplace(
     message: 'Restoring projects and songs…',
   })
 
-  await wipeBoardForRestore()
+  await wipeBoardForRestore(manifest)
 
-  if (manifest.columns.length > 0) {
-    for (const column of manifest.columns) {
-      await db.columns.put(column)
-      await enqueueSync('create', 'column', column.id, column)
-    }
+  for (const column of manifest.columns) {
+    await enqueueSync('create', 'column', column.id, column)
   }
 
   for (const project of manifest.projects) {
-    await db.projects.put(project)
     await enqueueSync('create', 'project', project.id, project)
   }
 

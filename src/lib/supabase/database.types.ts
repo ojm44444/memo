@@ -270,6 +270,8 @@ export interface Database {
           created_by: string
           role: string
           invitee_email: string | null
+          accepted_at: string | null
+          accepted_by: string | null
           expires_at: string | null
           revoked_at: string | null
           created_at: string
@@ -281,6 +283,8 @@ export interface Database {
           created_by: string
           role?: string
           invitee_email?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
           expires_at?: string | null
           revoked_at?: string | null
           created_at?: string
@@ -292,6 +296,8 @@ export interface Database {
           created_by?: string
           role?: string
           invitee_email?: string | null
+          accepted_at?: string | null
+          accepted_by?: string | null
           expires_at?: string | null
           revoked_at?: string | null
           created_at?: string
@@ -435,8 +441,22 @@ export interface Database {
           p_password?: string | null
           p_version_id?: string | null
           p_label?: string | null
+          /** 0 means no expiry. Omitted means 90 days. */
+          p_expires_in_days?: number
         }
         Returns: string
+      }
+      share_link_summary: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+      revoke_all_share_links: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+      revoke_playlist_share: {
+        Args: { p_token: string }
+        Returns: undefined
       }
       update_song_share_label: {
         Args: { p_token: string; p_label: string }

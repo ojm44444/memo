@@ -11,6 +11,9 @@ import {
   revokeSongShare,
   updateSongShareLabel,
   shareUrlFromToken,
+  DEFAULT_SHARE_LIFETIME,
+  SHARE_LIFETIMES,
+  type ShareLifetimeDays,
   type SongShareFeedbackComment,
   type SongShareRow,
 } from '@/db/repositories/shareRepo'
@@ -34,6 +37,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
   const [password, setPassword] = useState('')
   const [shareLabel, setShareLabel] = useState('')
   const [allowDownload, setAllowDownload] = useState(false)
+  const [expiresInDays, setExpiresInDays] = useState<ShareLifetimeDays>(DEFAULT_SHARE_LIFETIME)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
@@ -230,6 +234,7 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
         password: password.trim() || undefined,
         versionId: selectedVersion?.id,
         label: shareLabel.trim() || undefined,
+        expiresInDays,
       })
       /* The link exists from here on. The clipboard write used to sit inside
          the same try, so a browser refusing clipboard permission reported
@@ -453,7 +458,10 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           )}
 
           <p className="song-share-sub">
-            Anyone with the link can listen. No account needed.
+            Anyone with the link can listen. No account needed.{' '}
+            {expiresInDays === 0
+              ? 'It works until you revoke it.'
+              : `It stops working after ${SHARE_LIFETIMES.find((l) => l.days === expiresInDays)?.label}, or sooner if you revoke it.`}
           </p>
 
           {uploadsPending && (
@@ -511,6 +519,21 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+              </label>
+
+              <label className="song-share-field">
+                <span>Expires</span>
+                <select
+                  className="song-share-input"
+                  value={expiresInDays}
+                  onChange={(e) => setExpiresInDays(Number(e.target.value) as ShareLifetimeDays)}
+                >
+                  {SHARE_LIFETIMES.map((lifetime) => (
+                    <option key={lifetime.days} value={lifetime.days}>
+                      {lifetime.days === 0 ? 'Never' : `After ${lifetime.label}`}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="song-share-check">

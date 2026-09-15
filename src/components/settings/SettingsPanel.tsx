@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { AccountSection } from '@/components/settings/AccountSection'
 import { PlanSection } from '@/components/settings/PlanSection'
+import { ShareLinksSection } from '@/components/settings/ShareLinksSection'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
 import {
   DAY_NAMES,
@@ -99,7 +100,26 @@ export function SettingsPanel() {
     usePlayerStore.getState().stop()
     markExplicitSignOut()
     await clearLocalUserBoard()
-    await supabase.auth.signOut()
+    /* local, not the library default: supabase-js signs out EVERY device
+       unless told otherwise, so this button used to sign you out on your
+       phone as well. Doing that on purpose is signOutEverywhere below. */
+    await supabase.auth.signOut({ scope: 'local' })
+    navigate('/sign-in', { replace: true })
+  }
+
+  /**
+   * Same as signing out here, with every other session revoked as well.
+   * The global call goes FIRST and must succeed: if it fails we have not
+   * signed anyone out anywhere, so this device keeps its board and says so,
+   * rather than wiping it and implying the rest worked.
+   */
+  const signOutEverywhere = async () => {
+    if (!supabase) return
+    const { error } = await supabase.auth.signOut({ scope: 'global' })
+    if (error) throw new Error('Could not reach the server, so nothing was signed out. Try again when you are online.')
+    usePlayerStore.getState().stop()
+    markExplicitSignOut()
+    await clearLocalUserBoard()
     navigate('/sign-in', { replace: true })
   }
 
@@ -212,8 +232,13 @@ export function SettingsPanel() {
 
             {supabaseConfigured && email && (
               <>
-                <AccountSection email={email} onSignOut={() => void signOut()} />
+                <AccountSection
+                  email={email}
+                  onSignOut={() => void signOut()}
+                  onSignOutEverywhere={signOutEverywhere}
+                />
                 <PlanSection />
+                <ShareLinksSection />
               </>
             )}
 

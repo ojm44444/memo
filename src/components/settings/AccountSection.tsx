@@ -20,10 +20,12 @@ import { supabase } from '@/lib/supabase/client'
 export function AccountSection({
   email,
   onSignOut,
+  onSignOutEverywhere,
   children,
 }: {
   email: string
   onSignOut: () => void
+  onSignOutEverywhere: () => Promise<void>
   /** The danger zone, passed in so deletion stays owned by the panel. */
   children?: React.ReactNode
 }) {
@@ -36,6 +38,9 @@ export function AccountSection({
   const [nameError, setNameError] = useState<string | null>(null)
   const [savingName, setSavingName] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [everywhereOpen, setEverywhereOpen] = useState(false)
+  const [everywhereBusy, setEverywhereBusy] = useState(false)
+  const [everywhereError, setEverywhereError] = useState<string | null>(null)
 
   useEffect(() => {
     void getMyAvatarUrl().then(setAvatarUrl)
@@ -167,9 +172,73 @@ export function AccountSection({
         songdrafts has no password. You sign in with a link sent to this address, or with
         Google. To use a different address, sign out and sign in with that one.
       </p>
-      <button type="button" className="settings-sign-out" onClick={onSignOut}>
-        Sign out
-      </button>
+      <div className="settings-sign-out-row">
+        <button type="button" className="settings-sign-out" onClick={onSignOut}>
+          Sign out
+        </button>
+        {!everywhereOpen && (
+          <button
+            type="button"
+            className="settings-avatar-clear"
+            onClick={() => setEverywhereOpen(true)}
+          >
+            Sign out everywhere
+          </button>
+        )}
+      </div>
+
+      {/* For a lost phone or a shared computer. Supabase revokes every
+          refresh token for the account; the access token another device
+          already holds lives out its hour (measured on production: sessions
+          refresh every 59 minutes), then that device cannot reach the cloud.
+
+          What it does NOT do is wipe the songs already saved in that other
+          browser. That is deliberate and it is said here rather than hidden:
+          the app keeps a device's board when a sign-in is refused, because a
+          refusal can also be a captive portal or a rate limit, and wiping on
+          those destroyed unsynced takes before. See resolveBoardAuth. */}
+      {everywhereOpen && (
+        <div className="settings-everywhere">
+          <p className="settings-field-note" style={{ marginTop: 0 }}>
+            Signs this account out on every phone and computer, this one included. Other
+            devices lose access to your songs in the cloud within the hour. Anything already
+            saved in a browser on one of them stays in that browser until someone signs out
+            there.
+          </p>
+          <div className="reminder-row" style={{ marginBottom: 0 }}>
+            <button
+              type="button"
+              className="settings-sign-out"
+              disabled={everywhereBusy}
+              onClick={async () => {
+                setEverywhereBusy(true)
+                setEverywhereError(null)
+                try {
+                  await onSignOutEverywhere()
+                } catch (err) {
+                  setEverywhereError(
+                    err instanceof Error ? err.message : 'Could not sign out everywhere',
+                  )
+                  setEverywhereBusy(false)
+                }
+              }}
+            >
+              {everywhereBusy ? 'Signing out…' : 'Sign out on every device'}
+            </button>
+            <button
+              type="button"
+              className="settings-avatar-clear"
+              onClick={() => {
+                setEverywhereOpen(false)
+                setEverywhereError(null)
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+          {everywhereError && <p className="settings-avatar-error">{everywhereError}</p>}
+        </div>
+      )}
 
       {children}
     </section>

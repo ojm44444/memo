@@ -30,7 +30,10 @@ export function SyncAuthButton() {
     usePlayerStore.getState().stop()
     markExplicitSignOut()
     await clearLocalUserBoard()
-    await client.auth.signOut()
+    /* local, not the library default. supabase-js signs out EVERY device
+       unless told otherwise, so signing out on a studio computer used to
+       sign you out on your phone too. "Sign out everywhere" is in Settings. */
+    await client.auth.signOut({ scope: 'local' })
     navigate('/sign-in', { replace: true })
   }
 

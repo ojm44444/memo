@@ -74,10 +74,11 @@ serve(async (req) => {
 
     const { data: share } = await admin
       .from('song_shares')
-      .select('id, song_id, board_id, token, revoked_at')
+      .select('id, song_id, board_id, token, revoked_at, expires_at')
       .eq('token', token)
       .maybeSingle()
-    if (!share || share.revoked_at) return json({ skipped: 'no live share' })
+    const expired = !!share?.expires_at && new Date(share.expires_at).getTime() <= Date.now()
+    if (!share || share.revoked_at || expired) return json({ skipped: 'no live share' })
 
     const since = new Date(Date.now() - FRESH_MINUTES * 60_000).toISOString()
     const { data: comment } = await admin

@@ -69,6 +69,8 @@ export async function listBoardInvites(boardId: string) {
     .select('id, token, role, invitee_email, created_at, expires_at')
     .eq('board_id', boardId)
     .is('revoked_at', null)
+    // An invite is used up by the first person to accept it (034).
+    .is('accepted_at', null)
     .order('created_at', { ascending: false })
 
   if (error) throw error
