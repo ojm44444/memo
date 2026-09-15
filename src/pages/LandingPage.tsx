@@ -827,10 +827,16 @@ export function LandingPage() {
           <h2 className="section-h2">Your music is yours.</h2>
           <p className="trust-lead">Not a promise in the small print. How it is built.</p>
           <ul className="trust-list">
+            {/* 15 Sept, the consultant's rule: no security adjectives, only
+                things a reader could check. "Synced encrypted" came out (an
+                adjective), and so did "Delete means delete": the daily job
+                that removes a trashed song's files from storage is not
+                switched on yet (028), so it is not true for songs today.
+                Both can come back once they are. The zip and the revoke
+                controls were each verified on 15 Sept. */}
             <li>On your device by default.</li>
-            <li>Synced encrypted only if you sign in.</li>
             <li>Export everything, any time, in one zip.</li>
-            <li>Delete means delete.</li>
+            <li>Share links you can revoke, one at a time or all at once.</li>
             {/* Verified before writing: importAudioFiles stores the File object
                 itself (audioRepo, `blob: file`). Nothing re-encodes, so this is
                 a fact rather than a marketing line. */}

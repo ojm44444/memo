@@ -179,8 +179,10 @@ export function PrivacyPage() {
           will tell you rather than make you guess.
         </p>
         <p>
-          <strong>How long.</strong> Songs you delete wait 30 days in the trash and are then
-          gone for good. If you close your account, everything goes at once: there is no
+          <strong>How long.</strong> Songs you delete wait 30 days in the trash, where you can
+          restore them, and then leave your board. The daily clean-up that then removes their
+          files from our storage is not switched on yet, so until it is, those files stay in
+          storage, private to your account. If you close your account, everything goes at once: there is no
           grace period and no archived copy, which is the whole point of the delete button.
           The record that you were once a customer, meaning invoices and payment records,
           is kept for six years because tax law requires it. That record has no audio in it.
@@ -200,7 +202,7 @@ export function PrivacyPage() {
         </p>
         <p>
           <strong>Deleting a song.</strong> Deleted songs sit in Library for 30 days and can be
-          restored, then they go for good.
+          restored, then they leave your board. See How long, above, for their files.
         </p>
         <p>
           <strong>Deleting your account.</strong> Settings, Account, Delete my account. This
