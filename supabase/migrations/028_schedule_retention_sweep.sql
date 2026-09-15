@@ -43,3 +43,28 @@ select cron.schedule(
   );
   $job$
 );
+
+-- Added 15 Sept: the billing job (annual "Retained" reporting at day 30), on
+-- the same secret, an hour after the sweep. It does nothing until Stripe and
+-- META_CAPI_TOKEN are set, and answers 503 rather than erroring before then.
+select cron.unschedule('billing-daily')
+where exists (select 1 from cron.job where jobname = 'billing-daily');
+
+select cron.schedule(
+  'billing-daily',
+  '20 4 * * *',
+  $job$
+  select net.http_post(
+    url := 'https://ejwmspvewnkdcwtbofnc.supabase.co/functions/v1/billing-daily',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-lifecycle-secret', (
+        select decrypted_secret from vault.decrypted_secrets
+        where name = 'lifecycle_email_secret'
+      )
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 60000
+  );
+  $job$
+);

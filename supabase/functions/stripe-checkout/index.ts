@@ -3,16 +3,23 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
 
 /**
- * Start a checkout, or open the billing portal.
+ * Billing actions for a signed-in person: start a checkout, open the portal,
+ * take the refund, or read back what a finished checkout charged.
  *
- * The price is chosen HERE, from an env var, never from the request body. If
- * the client could name a price id it could name a cheaper one, and "pass the
- * plan from the front end" is the most common way a Stripe integration ends up
- * selling a year for a penny.
+ * PRICES (decided 14-15 Sept 2026, replacing $49/$9 with a $1 first week):
+ *   founding  $49 a year, the first 100 annual subscribers, for as long as
+ *             the subscription stays active. Cancel and you rejoin at $79.
+ *   year      $79 a year
+ *   month     $12 a month
+ * No trial and no $1 week: the card is charged the full price at checkout.
  *
- * One Stripe customer per user, remembered on the subscriptions row. Without
- * that, a person who checks out twice becomes two customers and the portal
- * shows them half their history.
+ * The price is chosen HERE from env vars, never from the request. A client
+ * that can name a price id can name a cheaper one. The founding price is only
+ * ever used after the database has handed this person one of the 100 places.
+ *
+ * REFUNDS: annual, in full, within 30 days of the first payment; monthly, the
+ * first month in full, within 14 days. One button in Settings, no questions.
+ * The subscription is cancelled at the same moment, so nothing renews.
  */
 
 const corsHeaders = {
@@ -26,6 +33,20 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
 
+type Plan = 'founding' | 'year' | 'month'
+
+const LIVE_STATUSES = ['trialing', 'active', 'past_due']
+
+/** Said on the Stripe page itself, above the pay button. */
+const FOUNDING_TERMS =
+  '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price. Full refund within 30 days.'
+const YEAR_TERMS = 'Full refund within 30 days. Cancel any time in Settings.'
+const MONTH_TERMS = 'Full refund of your first month within 14 days. Cancel any time in Settings.'
+
+const REFUND_DAYS = { year: 30, month: 14 } as const
+
+const clip = (value: string | null | undefined, max = 480) => (value ?? '').slice(0, max)
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -33,12 +54,15 @@ serve(async (req) => {
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
     const url = Deno.env.get('SUPABASE_URL')
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const siteUrl = Deno.env.get('SITE_URL') ?? 'https://www.songdrafts.com'
-    const priceYear = Deno.env.get('STRIPE_PRICE_YEAR')
-    const priceMonth = Deno.env.get('STRIPE_PRICE_MONTH')
+    const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://www.songdrafts.com').replace(/\/$/, '')
+    const prices: Record<Plan, string | undefined> = {
+      founding: Deno.env.get('STRIPE_PRICE_FOUNDING_YEAR'),
+      year: Deno.env.get('STRIPE_PRICE_YEAR'),
+      month: Deno.env.get('STRIPE_PRICE_MONTH'),
+    }
 
-    if (!stripeKey || !url || !serviceKey || !priceYear || !priceMonth) {
-      return json({ error: 'Billing is not configured' }, 503)
+    if (!stripeKey || !url || !serviceKey || !prices.founding || !prices.year || !prices.month) {
+      return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
     }
 
     const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
@@ -50,23 +74,46 @@ serve(async (req) => {
     if (!user?.email) return json({ error: 'Sign in required' }, 401)
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
-    const body = await req.json().catch(() => ({}))
-    const mode = body?.mode === 'portal' ? 'portal' : 'checkout'
-    const interval = body?.interval === 'month' ? 'month' : 'year'
+    const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
+    const mode = ['portal', 'refund', 'receipt'].includes(String(body.mode)) ? String(body.mode) : 'checkout'
 
-    // Reuse the customer if we have one, so history stays in one place.
-    const { data: existing } = await admin
+    const { data: row } = await admin
       .from('subscriptions')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, stripe_subscription_id, status, current_period_end, plan, first_paid_at, refunded_at')
       .eq('user_id', user.id)
       .maybeSingle()
 
-    let customerId = existing?.stripe_customer_id ?? null
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
+    const isLive =
+      !!row &&
+      LIVE_STATUSES.includes(row.status) &&
+      (!row.current_period_end || new Date(row.current_period_end).getTime() > Date.now())
+
+    // ── What did that checkout charge? For the browser's Purchase event. ──
+    if (mode === 'receipt') {
+      const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
+      if (!sessionId.startsWith('cs_')) return json({ error: 'Missing session' }, 400)
+      const session = await stripe.checkout.sessions.retrieve(sessionId)
+      if (session.client_reference_id !== user.id) return json({ error: 'Not your checkout' }, 403)
+      if (session.payment_status !== 'paid') return json({ paid: false })
+      return json({
+        paid: true,
+        eventId: session.id,
+        value: (session.amount_total ?? 0) / 100,
+        currency: (session.currency ?? 'usd').toUpperCase(),
+        plan: session.metadata?.plan ?? null,
       })
+    }
+
+    // ── One Stripe customer per person ──────────────────────────────────
+    // The idempotency key makes two checkouts started at once share one
+    // customer instead of racing to create two (Stripe keeps keys 24 hours;
+    // after that the stored id below is what prevents a second).
+    let customerId = row?.stripe_customer_id ?? null
+    if (!customerId) {
+      const customer = await stripe.customers.create(
+        { email: user.email, metadata: { supabase_user_id: user.id } },
+        { idempotencyKey: `customer-${user.id}` },
+      )
       customerId = customer.id
       await admin
         .from('subscriptions')
@@ -81,62 +128,145 @@ serve(async (req) => {
       return json({ url: portal.url })
     }
 
-    /**
-     * A FREE 7 DAY TRIAL, card collected up front.
-     *
-     * This comment used to describe "the $1 first week ... a real 7 day
-     * trial with a one-off £1 line". There is no £1 line here and there
-     * never was: trial_period_days gives seven free days and then the full
-     * price. The landing page believed the comment and advertised $1 for a
-     * week, which nothing in this file would have charged.
-     *
-     * If the $1 week is what Owen wants, it needs add_invoice_items with a
-     * one-off price alongside the trial. Until then the page says free,
-     * because that is what this code does.
-     *
-     * A trial rather than a coupon either way: a discount renews at the
-     * discounted price if anyone ever fiddles its duration, and a trial is
-     * what Stripe's own dunning and reminder emails understand.
-     */
-    /**
-     * THE $1 FIRST WEEK, ACTUALLY CHARGED.
-     *
-     * Previously this was trial_period_days alone, which is a FREE week, and
-     * the landing page advertised $1 for a week that nothing here would have
-     * billed. Owner's decision: keep the $1 and fix the code, because a card
-     * that has been charged converts far better than one that has only been
-     * stored, and every word on the site and in the Terms already assumes it.
-     *
-     * add_invoice_items puts a one-off line on the FIRST invoice, which
-     * Stripe issues immediately at checkout, while trial_period_days holds
-     * the subscription price back for seven days. So: $1 now, full price on
-     * day eight, and Stripe's own dunning and reminder emails still
-     * understand the shape because it is a real trial.
-     */
+    // ── The refund button ───────────────────────────────────────────────
+    if (mode === 'refund') {
+      if (!row?.stripe_subscription_id) return json({ error: 'There is no payment to refund.' }, 409)
+      if (row.refunded_at) return json({ error: 'This subscription has already been refunded.' }, 409)
+
+      const sub = await stripe.subscriptions.retrieve(row.stripe_subscription_id)
+      const interval = sub.items.data[0]?.price?.recurring?.interval === 'month' ? 'month' : 'year'
+      const paid = await stripe.invoices.list({ subscription: sub.id, status: 'paid', limit: 3 })
+      const first = paid.data[paid.data.length - 1]
+
+      if (!first) return json({ error: 'There is no payment to refund.' }, 409)
+      if (paid.data.length > 1) {
+        return json({ error: 'Refunds cover the first payment only. Cancel in Manage billing to stop the next one.' }, 409)
+      }
+
+      const paidAt = (first.status_transitions?.paid_at ?? first.created) * 1000
+      const days = (Date.now() - paidAt) / 86_400_000
+      if (days > REFUND_DAYS[interval]) {
+        return json({ error: `The ${REFUND_DAYS[interval]} day refund window has closed. Cancel in Manage billing to stop renewal.` }, 409)
+      }
+
+      const paymentIntent =
+        typeof first.payment_intent === 'string' ? first.payment_intent : first.payment_intent?.id
+      if (!paymentIntent) return json({ error: 'Could not find that payment. Email support@songdrafts.com.' }, 500)
+
+      // Refund first: if the cancel then fails, they have their money and
+      // can cancel from the portal. The other way round could cancel them
+      // and leave the refund unissued.
+      const refund = await stripe.refunds.create(
+        { payment_intent: paymentIntent, metadata: { supabase_user_id: user.id, reason: 'refund_button' } },
+        { idempotencyKey: `refund-${first.id}` },
+      )
+      await stripe.subscriptions.cancel(sub.id, { prorate: false, invoice_now: false })
+
+      const now = new Date().toISOString()
+      await admin
+        .from('subscriptions')
+        .update({ refunded_at: now, status: 'canceled', cancel_at_period_end: false, updated_at: now })
+        .eq('user_id', user.id)
+      await admin
+        .from('founding_places')
+        .update({ status: 'released', released_at: now, release_reason: 'refunded' })
+        .eq('stripe_subscription_id', sub.id)
+        .neq('status', 'released')
+
+      return json({
+        refunded: true,
+        amount: refund.amount / 100,
+        currency: refund.currency.toUpperCase(),
+      })
+    }
+
+    // ── Checkout ────────────────────────────────────────────────────────
+    // Never a second subscription on top of a live one. That used to be
+    // possible by pressing the button twice, and each one would have billed.
+    if (isLive) return json({ error: 'already_subscribed' }, 409)
+
+    const plan: Plan = body.plan === 'founding' || body.plan === 'month' ? body.plan : 'year'
+
+    let foundingPlaceId: string | null = null
+    if (plan === 'founding') {
+      const { data: placeId, error: claimError } = await admin.rpc('claim_founding_place', {
+        p_user_id: user.id,
+        p_hold_minutes: 40,
+      })
+      if (claimError) {
+        if (claimError.message.includes('founding_not_eligible')) {
+          return json({ error: 'founding_not_eligible' }, 409)
+        }
+        throw claimError
+      }
+      if (!placeId) return json({ error: 'founding_full' }, 409)
+      foundingPlaceId = placeId as string
+    }
+
+    /* Consent as it stands at the moment of paying, so the webhook can send
+       the server copy of the Purchase only for someone who allowed it. The
+       browser ids let Meta match the two copies of the same event. */
+    const adConsent = body.adConsent === true
+    const forwarded = req.headers.get('x-forwarded-for') ?? ''
+    const metadata: Record<string, string> = {
+      supabase_user_id: user.id,
+      plan,
+      ...(foundingPlaceId ? { founding_place_id: foundingPlaceId } : {}),
+      ad_consent: adConsent ? '1' : '0',
+      ...(adConsent
+        ? {
+            fbp: clip(typeof body.fbp === 'string' ? body.fbp : ''),
+            fbc: clip(typeof body.fbc === 'string' ? body.fbc : ''),
+            client_ip: clip(forwarded.split(',')[0]?.trim()),
+            client_ua: clip(req.headers.get('user-agent')),
+          }
+        : {}),
+    }
+
+    // Stripe's shortest session. The founding hold outlives it by ten
+    // minutes, so a place is never released under someone still paying.
+    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: interval === 'month' ? priceMonth : priceYear, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: { supabase_user_id: user.id },
-      },
-      // One-off $1, billed at checkout. STRIPE_PRICE_FIRST_WEEK is a one-time
-      // price; without it the checkout still works and the week is free, so a
-      // missing env var degrades to the old behaviour rather than failing.
-      ...(Deno.env.get('STRIPE_PRICE_FIRST_WEEK')
-        ? { add_invoice_items: [{ price: Deno.env.get('STRIPE_PRICE_FIRST_WEEK')!, quantity: 1 }] }
-        : {}),
-      // Owen's line: "there is nothing here to pay with" must stop being true
-      // the moment this ships, so the card IS collected up front. A trial with
-      // no card is a different product decision and not this one.
-      payment_method_collection: 'always',
-      allow_promotion_codes: true,
-      success_url: `${siteUrl}/app?checkout=done`,
-      cancel_url: `${siteUrl}/app?checkout=cancelled`,
+      line_items: [{ price: prices[plan]!, quantity: 1 }],
+      subscription_data: { metadata },
+      metadata,
       client_reference_id: user.id,
-      metadata: { supabase_user_id: user.id },
+      allow_promotion_codes: false,
+      expires_at: expiresAt,
+      custom_text: {
+        submit: { message: plan === 'founding' ? FOUNDING_TERMS : plan === 'year' ? YEAR_TERMS : MONTH_TERMS },
+      },
+      success_url: `${siteUrl}/app?checkout=done&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/app?checkout=cancelled`,
     })
+
+    if (foundingPlaceId) {
+      const { data: held } = await admin
+        .from('founding_places')
+        .select('stripe_checkout_session_id')
+        .eq('id', foundingPlaceId)
+        .maybeSingle()
+
+      await admin
+        .from('founding_places')
+        .update({
+          stripe_checkout_session_id: session.id,
+          held_until: new Date((expiresAt + 10 * 60) * 1000).toISOString(),
+        })
+        .eq('id', foundingPlaceId)
+
+      // Pressing the button again keeps the same place. Close the checkout it
+      // was held for, so two open pages cannot both be paid. Done after the
+      // place points at the new session, so that page's "expired" webhook
+      // cannot release the place this one is using.
+      const previous = held?.stripe_checkout_session_id
+      if (previous && previous !== session.id) {
+        await stripe.checkout.sessions.expire(previous).catch(() => undefined)
+      }
+    }
 
     return json({ url: session.url })
   } catch (err) {

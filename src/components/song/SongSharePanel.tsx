@@ -458,10 +458,10 @@ export function SongSharePanel({ songId }: SongSharePanelProps) {
           )}
 
           <p className="song-share-sub">
-            Anyone with the link can listen. No account needed.{' '}
+            Anyone with the link can listen.{' '}
             {expiresInDays === 0
-              ? 'It works until you revoke it.'
-              : `It stops working after ${SHARE_LIFETIMES.find((l) => l.days === expiresInDays)?.label}, or sooner if you revoke it.`}
+              ? 'Works until you revoke it.'
+              : `Stops after ${SHARE_LIFETIMES.find((l) => l.days === expiresInDays)?.label}.`}
           </p>
 
           {uploadsPending && (

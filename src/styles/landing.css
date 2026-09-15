@@ -4827,3 +4827,11 @@ html { scroll-padding-top: 88px; }
   .hero { overflow: hidden; }
   .lb-glow { max-width: 100%; left: 0; }
 }
+
+/* The founding card's refund line, under the button. */
+.price-refund {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 10px 0 0;
+}

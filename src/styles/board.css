@@ -10852,3 +10852,13 @@ html.light .song-drawer {
   border-radius: 10px;
   background: color-mix(in srgb, var(--text) 3%, transparent);
 }
+
+/* The founding offer sits above the ordinary prices, with its condition
+   right under the button. */
+.settings-panel .settings-founding {
+  margin-bottom: 12px;
+}
+
+.settings-panel .settings-founding .settings-field-note {
+  margin-top: 8px;
+}

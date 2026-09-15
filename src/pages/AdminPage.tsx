@@ -114,10 +114,11 @@ export function AdminPage() {
   }
 
   const accounts = summary.accounts ?? 0
-  /* Two plans now: $9/month or $49/year. With no customers there is no plan
-     mix to go on, so this reports the FLOOR, which assumes everyone took the
-     annual plan at $49/12 = $4.08 a month. Reporting the $9 figure would
-     overstate revenue on a page that exists to tell the truth about it. */
+  /* Plans since 15 Sept: $12/month, $79/year, and $49/year for the first 100
+     yearly (founding). With no customers there is no plan mix to go on, so
+     this reports the FLOOR, which assumes everyone took the founding price at
+     $49/12 = $4.08 a month. Anything higher would overstate revenue on a page
+     that exists to tell the truth about it. */
   const MONTHLY_FLOOR = 49 / 12
   const monthlyFloor = accounts * MONTHLY_FLOOR
   const costCovered = monthlyFloor >= 25

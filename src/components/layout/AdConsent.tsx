@@ -1,35 +1,63 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  getAdConsent,
-  initPixelFromStoredConsent,
+  dismissConsentQuestion,
+  getConsentRegion,
+  globalPrivacyControl,
+  initPixelFromConsent,
+  isAskingAgain,
   isPixelBlockedHere,
   onAdConsentChange,
   resetAdConsent,
   setAdConsent,
+  shouldAskForConsent,
   trackPageView,
-  type AdConsent,
 } from '@/lib/metaPixel'
 import '@/styles/ad-consent.css'
 
+/** Re-render whenever consent or the region changes. */
+function useConsentState() {
+  const [, setTick] = useState(0)
+  useEffect(() => onAdConsentChange(() => setTick((n) => n + 1)), [])
+}
+
 /**
- * Asks once, before anything from Meta loads.
+ * The ads question.
  *
- * "No thanks" is exactly as easy as "Allow": same size, same weight, one tap.
- * The ICO's guidance is that a refusal buried behind a settings screen is not
- * a real choice. It never appears on share, invite or playlist links, where
- * the pixel is not allowed to run at all.
+ * UK, EU and anywhere the country is unknown: asked before anything from Meta
+ * loads. US: not asked up front (opt-out), but "Your privacy choices" opens
+ * this same question at any time. "No thanks" is exactly as easy as "Allow":
+ * same size, one tap. Never on share, invite or playlist links.
  */
 export function AdConsentBanner() {
   const location = useLocation()
-  const [consent, setConsent] = useState<AdConsent | null>(() => getAdConsent())
+  useConsentState()
 
   useEffect(() => {
-    initPixelFromStoredConsent()
-    return onAdConsentChange(setConsent)
+    void initPixelFromConsent()
   }, [])
 
-  if (consent !== null || isPixelBlockedHere(location.pathname)) return null
+  if (isPixelBlockedHere(location.pathname)) return null
+
+  // Global Privacy Control is already a no. Say so if they asked.
+  if (globalPrivacyControl()) {
+    if (!isAskingAgain()) return null
+    return (
+      <div className="ad-consent" role="dialog" aria-live="polite" aria-label="Ad measurement">
+        <p className="ad-consent-text">
+          Your browser sends Global Privacy Control, so nothing is shared with Meta.{' '}
+          <Link to="/privacy">Details</Link>
+        </p>
+        <div className="ad-consent-actions">
+          <button type="button" className="ad-consent-button" onClick={dismissConsentQuestion}>
+            OK
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!shouldAskForConsent()) return null
 
   return (
     <div className="ad-consent" role="dialog" aria-live="polite" aria-label="Ad measurement">
@@ -59,11 +87,15 @@ export function PixelPageViews() {
   return null
 }
 
-/** Lets someone change their mind, which the law requires to be as easy. */
+/**
+ * Change your mind, as easily as the first time. Named for what US law calls
+ * it where the US rules apply, "Cookie settings" everywhere else.
+ */
 export function CookieSettingsLink({ className }: { className?: string }) {
+  useConsentState()
   return (
     <button type="button" className={className ?? 'cookie-settings-link'} onClick={resetAdConsent}>
-      Cookie settings
+      {getConsentRegion() === 'optout' ? 'Your privacy choices' : 'Cookie settings'}
     </button>
   )
 }

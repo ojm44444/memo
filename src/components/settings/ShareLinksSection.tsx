@@ -70,7 +70,7 @@ export function ShareLinksSection() {
       setResult(
         count === 0
           ? 'Nothing was open.'
-          : `Revoked ${describe(done)}. Anyone holding one of them can no longer open it.`,
+          : `Revoked ${describe(done)}.`,
       )
       setConfirming(false)
       await load()
@@ -90,8 +90,8 @@ export function ShareLinksSection() {
           : summary === null
             ? 'Checking…'
             : total === 0
-              ? 'No links are open. Nobody can reach your songs without signing in.'
-              : `Open right now: ${describe(summary)}. Anyone holding one can use it until it expires or you revoke it.`}
+              ? 'No links open.'
+              : `Open now: ${describe(summary)}. Anyone with one can listen until it expires or you revoke it.`}
       </p>
 
       {result && <p className="settings-import-result">{result}</p>}
@@ -105,9 +105,8 @@ export function ShareLinksSection() {
       {confirming && summary && (
         <div className="settings-everywhere">
           <p className="settings-field-note" style={{ marginTop: 0 }}>
-            This stops every link at once: {describe(summary)}. Expired song links are revoked
-            too, so they cannot be renewed. Comments left on them stay on your songs. You can
-            make new links afterwards.
+            Stops every link now: {describe(summary)}. Comments stay. You can make new links
+            after.
           </p>
           <div className="reminder-row" style={{ marginBottom: 0 }}>
             <button

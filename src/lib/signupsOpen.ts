@@ -24,8 +24,8 @@
 /** Owner's decision, 2 Sept: open now. Every "Get started" button was
     landing on a wall that said we were closed AND that we would not take an
     email either, which is a broken promise on the primary action for 100%
-    of interested visitors. Accounts open now; the $1 week starts charging
-    when the Stripe keys land. */
+    of interested visitors. Accounts open now; charging starts when
+    BILLING_LIVE is flipped, after the Stripe keys land. */
 export const SIGNUPS_OPEN = true
 
 /** Anyone with this on the URL gets in regardless. Change it when it leaks. */

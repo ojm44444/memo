@@ -25,16 +25,34 @@
  *     stops that, so Meta receives exactly the events listed here and nothing
  *     it decided to collect on its own.
  *
+ *  5. WHO IS ASKED FIRST DEPENDS ON WHERE THEY ARE (consent option B, 15
+ *     Sept). UK, EU and everywhere else: nothing loads until Allow. The US
+ *     works on opting out: the pixel runs unless the visitor opts out through
+ *     "Your privacy choices" or their browser sends Global Privacy Control.
+ *     If the country cannot be read, the visitor is asked, never assumed to
+ *     be in the US. GPC is a no everywhere, whatever else was chosen.
+ *
  * What is sent: PageView on the public pages, CompleteRegistration,
- * ImportStarted, ImportCompleted, InitiateCheckout, Subscribe. Never a song
+ * ImportStarted, ImportCompleted, InitiateCheckout, Purchase. Never a song
  * title, a file name, lyrics, an email address, or anything from a board.
  */
 
 export const META_PIXEL_ID = '1609391504053938'
 
 const CONSENT_KEY = 'songdrafts:ad-consent'
+const REGION_KEY = 'songdrafts:consent-region'
 
 export type AdConsent = 'granted' | 'denied'
+
+/**
+ * 'optout': the US, where the pixel may run until someone opts out.
+ * 'ask': everywhere else, and anywhere the country is unknown.
+ */
+export type ConsentRegion = 'optout' | 'ask'
+
+let region: ConsentRegion | null = null
+/** Set by "Your privacy choices" / "Cookie settings": show the question now. */
+let askingAgain = false
 
 /** Routes the pixel must never run on, whatever the visitor chose. */
 const NEVER_ON = [/^\/share\//, /^\/invite\//, /^\/playlist\//, /^\/admin(\/|$)/]
@@ -83,6 +101,80 @@ function notify(consent: AdConsent | null) {
   for (const listener of listeners) listener(consent)
 }
 
+export function getConsentRegion(): ConsentRegion | null {
+  return region
+}
+
+/**
+ * Where the visitor is, as far as consent goes. Read once per tab from the
+ * site's own edge endpoint (/api/geo). Anything but a clear "US" is 'ask',
+ * including a timeout, an error, or no answer: the banner is the safe side.
+ */
+export async function resolveConsentRegion(): Promise<ConsentRegion> {
+  if (region) return region
+  try {
+    const cached = sessionStorage.getItem(REGION_KEY)
+    if (cached === 'optout' || cached === 'ask') {
+      region = cached
+      return region
+    }
+  } catch {
+    /* storage blocked: ask the endpoint */
+  }
+
+  let next: ConsentRegion
+  try {
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => controller.abort(), 2000)
+    const res = await fetch('/api/geo', { cache: 'no-store', signal: controller.signal })
+    window.clearTimeout(timer)
+    const body = res.ok ? ((await res.json()) as { country?: string | null }) : null
+    next = body?.country === 'US' ? 'optout' : 'ask'
+  } catch {
+    next = 'ask'
+  }
+
+  region = next
+  try {
+    sessionStorage.setItem(REGION_KEY, next)
+  } catch {
+    /* fine: asked again next tab */
+  }
+  return region
+}
+
+/**
+ * The consent that actually applies right now. GPC says no, always. Then an
+ * explicit choice on this device. Then the region's default: yes in the US
+ * (opt-out), not yet anywhere else (null means ask).
+ */
+export function effectiveAdConsent(): AdConsent | null {
+  if (globalPrivacyControl()) return 'denied'
+  const stored = getAdConsent()
+  if (stored) return stored
+  if (region === 'optout') return 'granted'
+  return null
+}
+
+/** Did someone just open "Cookie settings" / "Your privacy choices"? */
+export function isAskingAgain(): boolean {
+  return askingAgain
+}
+
+/** Close the question without changing anything (the GPC notice). */
+export function dismissConsentQuestion() {
+  askingAgain = false
+  notify(effectiveAdConsent())
+}
+
+/** Should the question be on screen? */
+export function shouldAskForConsent(): boolean {
+  if (globalPrivacyControl()) return false
+  if (askingAgain) return true
+  if (region === null) return false // not known yet: wait rather than flash
+  return effectiveAdConsent() === null
+}
+
 /** The standard Meta loader, run only after consent. */
 function loadPixel() {
   if (typeof window === 'undefined' || window.fbq) return
@@ -129,6 +221,7 @@ function clearMetaCookies() {
 }
 
 export function setAdConsent(consent: AdConsent) {
+  askingAgain = false
   try {
     localStorage.setItem(CONSENT_KEY, consent)
   } catch {
@@ -145,24 +238,31 @@ export function setAdConsent(consent: AdConsent) {
   notify(consent)
 }
 
-/** "Cookie settings": forget the choice so the banner asks again. */
+/**
+ * "Cookie settings" / "Your privacy choices": put the question back on
+ * screen. The current choice stays in force until they answer, so opening
+ * it and walking away changes nothing.
+ */
 export function resetAdConsent() {
-  try {
-    localStorage.removeItem(CONSENT_KEY)
-  } catch {
-    /* nothing stored */
-  }
-  window.fbq?.('consent', 'revoke')
-  notify(null)
+  askingAgain = true
+  notify(effectiveAdConsent())
 }
 
-/** Load on start-up only for someone who already said yes on this device. */
-export function initPixelFromStoredConsent() {
-  if (getAdConsent() === 'granted') loadPixel()
+/**
+ * On start-up: work out the region, then load only if consent applies (an
+ * earlier yes on this device, or a US visitor who has not opted out).
+ */
+export async function initPixelFromConsent() {
+  await resolveConsentRegion()
+  if (effectiveAdConsent() === 'granted') {
+    loadPixel()
+    trackPageView(window.location.pathname)
+  }
+  notify(effectiveAdConsent())
 }
 
 function canSend(): boolean {
-  return getAdConsent() === 'granted' && !isPixelBlockedHere() && typeof window.fbq === 'function'
+  return effectiveAdConsent() === 'granted' && !isPixelBlockedHere() && typeof window.fbq === 'function'
 }
 
 export function trackPageView(pathname: string) {
@@ -171,7 +271,7 @@ export function trackPageView(pathname: string) {
   window.fbq!('track', 'PageView')
 }
 
-type StandardEvent = 'CompleteRegistration' | 'InitiateCheckout' | 'Subscribe'
+type StandardEvent = 'CompleteRegistration' | 'InitiateCheckout' | 'Purchase'
 type CustomEvent = 'ImportStarted' | 'ImportCompleted'
 
 /**
@@ -190,4 +290,33 @@ export function trackPixelEvent(
 export function trackPixelCustomEvent(name: CustomEvent, params?: Record<string, string | number>) {
   if (!canSend()) return
   window.fbq!('trackCustom', name, params ?? {})
+}
+
+function readCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+/**
+ * What checkout needs to know about ads measurement for this purchase: did
+ * this person allow it, and the browser ids that let Meta match the server's
+ * copy of the Purchase to the pixel's. Nothing but a no for anyone who has
+ * not said yes, or whose browser sends Global Privacy Control.
+ */
+export function adConsentForCheckout(): { adConsent: boolean; fbp?: string; fbc?: string } {
+  if (effectiveAdConsent() !== 'granted') return { adConsent: false }
+  return {
+    adConsent: true,
+    fbp: readCookie('_fbp') ?? undefined,
+    fbc: readCookie('_fbc') ?? undefined,
+  }
+}
+
+/** Global Privacy Control: the browser saying "do not sell or share". */
+export function globalPrivacyControl(): boolean {
+  try {
+    return (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true
+  } catch {
+    return false
+  }
 }

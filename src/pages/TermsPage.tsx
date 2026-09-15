@@ -30,7 +30,7 @@ export function TermsPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 31 August 2026</p>
+        <p className="legal-updated">Last updated 15 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -79,28 +79,36 @@ export function TermsPage() {
 
         <h2>Paying, and stopping</h2>
         <p>
-          Prices and plans are on the <Link to="/#pricing">pricing section</Link>. Subscriptions
-          renew until you cancel, and you can cancel at any time from your account.
+          songdrafts is $79 a year or $12 a month, charged when you subscribe. There is no free
+          trial. Prices are also on the <Link to="/#pricing">pricing section</Link>.
         </p>
         <p>
-          <strong>Cancelling never takes your music away from you.</strong> Your audio is on your
-          device, the export keeps working after you cancel, and syncing and sharing stop until
-          you come back.
+          <strong>Founding price.</strong> The first 100 yearly plans are $49 a year, for as long
+          as that subscription stays active. If it ends, for any reason, rejoining is at the
+          current price.
+        </p>
+        <p>
+          Plans renew automatically until you cancel. You can cancel at any time in Settings, and
+          you keep your plan until the end of the period you paid for.
+        </p>
+        <p>
+          <strong>Cancelling never takes the songs on your devices.</strong> The export keeps
+          working after you cancel. Syncing and sharing stop. Copies in our cloud are kept for 90
+          days after a plan ends, and we email you twice before they are removed.
         </p>
 
-                <h3>Changing your mind in the first 14 days</h3>
+        <h3>Refunds</h3>
         <p>
-          If you are a consumer in the UK or EU you have a legal right to cancel within 14 days
-          of paying and get your money back. To use it, email support@songdrafts.com within
-          those 14 days and say so. That is the whole process.
+          Yearly plans: a full refund if you ask within 30 days of your first payment. Monthly
+          plans: a full refund of your first month if you ask within 14 days. Use the refund
+          button in Settings, or email support@songdrafts.com. No reason needed. Your plan ends
+          when the refund is made.
         </p>
         <p>
-          One thing to be clear about, because the law is: syncing and sharing start the
-          moment you pay, and by paying you are asking us to start straight away rather than
-          wait two weeks. If you cancel inside the 14 days after using it, we refund what you
-          paid less a fair share for the days you had it. With the first week at $1 that share
-          is small, and we would rather refund the lot than argue over pennies.
+          If you are a consumer in the UK or EU you also have a legal right to cancel within 14
+          days of paying. The refunds above cover that in full.
         </p>
+        <p>Renewal payments are not refunded. To stop a renewal, cancel before the renewal date.</p>
 
         <h2>How old you need to be</h2>
         <p>

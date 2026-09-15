@@ -1,51 +1,70 @@
 import { useEffect, useState } from 'react'
 import {
   BILLING_LIVE,
+  FOUNDING_CAP,
+  FOUNDING_TERMS,
   NO_SUBSCRIPTION,
+  PRICES,
+  REFUND_DAYS,
   describeSubscription,
+  getFoundingPlacesLeft,
   getSubscription,
   hasAccess,
+  isFoundingEligible,
   openBillingPortal,
+  refundWindow,
+  requestRefund,
   startCheckout,
+  type PlanChoice,
   type Subscription,
 } from '@/lib/billing'
 
+const longDate = (date: Date) =>
+  date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+
 /**
- * Your plan.
+ * Plan and billing.
  *
- * Nothing in the app told anyone what they were paying, when it renewed, or
- * how to stop paying. A subscription with no visible cancel path is the single
- * fastest way to earn a chargeback and a review that says the word "trap", so
- * the portal link is present the moment a subscription exists, not hidden
- * behind a support email.
+ * What you pay, when it renews, how to stop, and the refund, all in one
+ * place. A subscription with no visible way out is the fastest way to a
+ * chargeback, so Manage billing is here the moment a plan exists, and the
+ * refund is a button rather than an email to write.
  *
- * Everything about money is stated plainly here even when it is bad news:
- * a failed payment says the board still works, because it does, and a
- * cancelled plan says the date it actually ends rather than implying it has
- * already gone.
+ * The founding price is offered only while places are left and only to
+ * someone who has never had one, and its condition is said next to the
+ * button, before anyone reaches Stripe (and again on the Stripe page).
  */
 export function PlanSection() {
   const [sub, setSub] = useState<Subscription | null>(null)
+  const [placesLeft, setPlacesLeft] = useState<number | null>(null)
+  const [eligible, setEligible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [refundOpen, setRefundOpen] = useState(false)
+  const [refunded, setRefunded] = useState<string | null>(null)
 
   useEffect(() => {
-    void getSubscription().then(setSub)
+    if (!BILLING_LIVE) return
+    let live = true
+    void Promise.all([getSubscription(), getFoundingPlacesLeft(), isFoundingEligible()]).then(
+      ([nextSub, left, canFound]) => {
+        if (!live) return
+        setSub(nextSub)
+        setPlacesLeft(left)
+        setEligible(canFound)
+      },
+    )
+    return () => {
+      live = false
+    }
   }, [])
 
-  /**
-   * Before the Stripe keys exist, a Subscribe button is a button that throws.
-   * Say so instead. This is also what an early tester should read: they are
-   * not on a trial that is about to end, they are simply not being charged.
-   */
   if (!BILLING_LIVE) {
     return (
       <section className="settings-section">
         <h3 className="settings-section-title">Plan</h3>
         <p className="settings-section-copy">
-          Billing is not switched on yet, so nothing is charging you and there is no card on
-          this account. When it is, songdrafts is $49 a year, or $9 a month, and you will be
-          asked before anything is taken.
+          {`Billing is not on yet, so nothing is charging you. When it is: $${PRICES.year.amount} a year or $${PRICES.month.amount} a month, and the first ${FOUNDING_CAP} yearly plans are $${PRICES.founding.amount}.`}
         </p>
       </section>
     )
@@ -53,6 +72,8 @@ export function PlanSection() {
 
   const current = sub ?? NO_SUBSCRIPTION
   const active = hasAccess(current)
+  const refund = refundWindow(current)
+  const showFounding = !active && eligible && (placesLeft ?? 0) > 0
 
   const run = async (fn: () => Promise<void>) => {
     setError(null)
@@ -60,14 +81,25 @@ export function PlanSection() {
     try {
       await fn()
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Could not reach billing. Nothing was charged. Try again in a moment.',
-      )
+      setError(err instanceof Error ? err.message : 'Could not reach billing. Nothing was charged.')
       setBusy(false)
     }
   }
+
+  const checkout = (plan: PlanChoice) => run(() => startCheckout(plan))
+
+  const takeRefund = () =>
+    run(async () => {
+      const result = await requestRefund()
+      const amount = new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: result.currency,
+      }).format(result.amount)
+      setRefunded(`Refunded ${amount}. Your plan has ended. Banks take 5 to 10 days to show it.`)
+      setRefundOpen(false)
+      setSub(await getSubscription())
+      setBusy(false)
+    })
 
   return (
     <section className="settings-section">
@@ -75,58 +107,113 @@ export function PlanSection() {
 
       {sub === null ? (
         <p className="settings-section-copy">Checking…</p>
-      ) : (
+      ) : active ? (
         <>
-          <p className="settings-plan-status" data-state={active ? 'on' : 'off'}>
+          <p className="settings-plan-status" data-state="on">
             {describeSubscription(current)}
           </p>
-
-          {active ? (
-            <>
-              <p className="settings-field-note">
-                Change your card, switch between monthly and yearly, download receipts, or
-                cancel. Cancelling keeps your board until the date above.
-              </p>
+          <p className="settings-field-note">
+            Change card, see receipts, or cancel. Cancelling keeps your plan until the date above.
+            {current.plan === 'founding_year' ? ' Cancel and it is $79 a year if you come back.' : ''}
+          </p>
+          <div className="reminder-row">
+            <button
+              type="button"
+              className="settings-export"
+              disabled={busy}
+              onClick={() => void run(openBillingPortal)}
+            >
+              {busy && !refundOpen ? 'Opening…' : 'Manage billing'}
+            </button>
+            {refund.open && !refundOpen && (
               <button
                 type="button"
-                className="settings-export"
-                disabled={busy}
-                onClick={() => void run(openBillingPortal)}
+                className="settings-avatar-clear"
+                onClick={() => setRefundOpen(true)}
               >
-                {busy ? 'Opening…' : 'Manage billing'}
+                Get a refund
               </button>
-            </>
-          ) : (
-            <>
-              <p className="settings-field-note">
-                Your songs stay on this device either way. A plan is what syncs them between
-                devices and keeps them backed up.
+            )}
+          </div>
+
+          {refund.open && refundOpen && refund.until && (
+            <div className="settings-everywhere">
+              <p className="settings-field-note" style={{ marginTop: 0 }}>
+                Full refund, and your plan ends now. Songs on this device stay. Open until{' '}
+                {longDate(refund.until)}.
               </p>
-              <div className="reminder-row">
+              <div className="reminder-row" style={{ marginBottom: 0 }}>
                 <button
                   type="button"
-                  className="settings-install-btn"
+                  className="settings-delete-confirm"
                   disabled={busy}
-                  onClick={() => void run(() => startCheckout('year'))}
+                  onClick={() => void takeRefund()}
                 >
-                  $49 a year
+                  {busy ? 'Refunding…' : 'Refund and end plan'}
                 </button>
                 <button
                   type="button"
-                  className="settings-export"
-                  disabled={busy}
-                  onClick={() => void run(() => startCheckout('month'))}
+                  className="settings-avatar-clear"
+                  onClick={() => setRefundOpen(false)}
                 >
-                  $9 a month
+                  Cancel
                 </button>
               </div>
-              <p className="settings-field-note">First week is $1. Cancel any time.</p>
-            </>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {refunded && <p className="settings-import-result">{refunded}</p>}
+          {!refunded && current.refundedAt && (
+            <p className="settings-field-note">Refunded. No plan right now.</p>
+          )}
+          <p className="settings-field-note">
+            Your songs stay on this device either way. A plan syncs them and backs them up.
+          </p>
+
+          {showFounding && (
+            <div className="settings-founding">
+              <button
+                type="button"
+                className="settings-install-btn"
+                disabled={busy}
+                onClick={() => void checkout('founding')}
+              >
+                ${PRICES.founding.amount} a year, founding
+              </button>
+              <p className="settings-field-note">
+                {FOUNDING_TERMS} {placesLeft} of {FOUNDING_CAP} left.
+              </p>
+            </div>
           )}
 
-          {error && <p className="settings-avatar-error">{error}</p>}
+          <div className="reminder-row">
+            <button
+              type="button"
+              className={showFounding ? 'settings-export' : 'settings-install-btn'}
+              disabled={busy}
+              onClick={() => void checkout('year')}
+            >
+              ${PRICES.year.amount} a year
+            </button>
+            <button
+              type="button"
+              className="settings-export"
+              disabled={busy}
+              onClick={() => void checkout('month')}
+            >
+              ${PRICES.month.amount} a month
+            </button>
+          </div>
+          <p className="settings-field-note">
+            Full refund within {REFUND_DAYS.year} days on yearly, {REFUND_DAYS.month} days on your
+            first month. Cancel any time.
+          </p>
         </>
       )}
+
+      {error && <p className="settings-avatar-error">{error}</p>}
     </section>
   )
 }

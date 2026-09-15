@@ -8,7 +8,6 @@ import {
   paymentFailedEmail,
   stalledImportEmail,
   toHtml,
-  trialEndingEmail,
   welcomeEmail,
   type EmailTemplate,
 } from '../_shared/emails.ts'
@@ -39,7 +38,6 @@ const json = (body: unknown, status = 200) =>
 type Kind =
   | 'welcome'
   | 'stalled_import'
-  | 'trial_ending'
   | 'payment_failed'
   | 'cancelled'
   | 'audio_expiring_60'
@@ -80,10 +78,6 @@ serve(async (req) => {
      second countdown has to be able to warn them too. */
   const dedupeKey = typeof body?.dedupeKey === 'string' && body.dedupeKey ? body.dedupeKey : null
   const deleteOn = typeof body?.deleteOn === 'string' ? body.deleteOn : ''
-  /* The trial reminder has to state what will be charged. Both come from the
-     Stripe subscription in the webhook, never from a default here. */
-  const amount = typeof body?.amount === 'string' ? body.amount : ''
-  const interval = body?.interval === 'month' ? 'month' : body?.interval === 'year' ? 'year' : null
 
   if (!kind || !email) return json({ error: 'kind and email are required' }, 400)
 
@@ -94,12 +88,6 @@ serve(async (req) => {
       break
     case 'stalled_import':
       template = stalledImportEmail(name)
-      break
-    case 'trial_ending':
-      if (!endsOn || !amount || !interval) {
-        return json({ error: 'endsOn, amount and interval are required' }, 400)
-      }
-      template = trialEndingEmail(name, endsOn, amount, interval)
       break
     case 'payment_failed':
       template = paymentFailedEmail(name)

@@ -200,10 +200,8 @@ export function AccountSection({
       {everywhereOpen && (
         <div className="settings-everywhere">
           <p className="settings-field-note" style={{ marginTop: 0 }}>
-            Signs this account out on every phone and computer, this one included. Other
-            devices lose access to your songs in the cloud within the hour. Anything already
-            saved in a browser on one of them stays in that browser until someone signs out
-            there.
+            Signs you out on every device, this one too. Other devices lose cloud access
+            within the hour. Songs already saved in another browser stay there.
           </p>
           <div className="reminder-row" style={{ marginBottom: 0 }}>
             <button

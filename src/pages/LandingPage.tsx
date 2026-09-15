@@ -9,6 +9,7 @@ import { HeroStack } from '@/components/landing/HeroStack'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { CookieSettingsLink } from '@/components/layout/AdConsent'
+import { FOUNDING_CAP, FOUNDING_TERMS, PRICES, getFoundingPlacesLeft } from '@/lib/billing'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -225,8 +226,16 @@ const FAQS = [
     // evidence behind it was one comment in 25 threads. The reassurance itself
     // is worth keeping, so it folds into this answer as a clause: same fact,
     // no question inviting the reader to imagine the product dying.
+    // Rewritten 15 Sept. Said cancelling "doesn't take anything away", but
+    // cloud copies are removed 90 days after a plan ends (retention-sweep),
+    // and a take recorded on a phone may have no other copy. That removal is
+    // gated on the two warning emails actually having been sent.
     q: 'What if I stop paying?',
-    a: 'Your audio is on your device, so cancelling doesn\'t take anything away from you. Sync and sharing go quiet until you come back. The zip export works whatever happens, so the library is never trapped anywhere.',
+    a: 'Sync and sharing stop. Songs on your devices stay, and the zip export always works. Copies in our cloud are kept for 90 days, and we email you twice before they go.',
+  },
+  {
+    q: 'Can I get my money back?',
+    a: 'Yes. Yearly plans: a full refund within 30 days, from a button in Settings. Monthly: your first month, within 14 days. No questions.',
   },
 ] as const
 
@@ -256,17 +265,34 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 function useSectionReveal() {}
 
 /**
- * Monthly / annual switch for the pricing headline.
+ * The price card: yearly or monthly, with the founding offer leading the
+ * yearly side while any of the 100 places are left.
  *
- * $49/year is $4.08/month, and asking someone to do that division in their
- * head is asking them to undersell the annual plan to themselves. Annual
- * leads with the number that actually makes the case, "billed annually" as
- * the smaller clause under it, the same pattern every SaaS pricing page uses
- * because it is the one that works.
+ * Prices decided 14-15 Sept 2026: $79 a year, $12 a month, and $49 a year for
+ * the first 100 yearly plans, kept while the subscription stays active. The
+ * condition is said here, at the point of sale, not only in the terms. No $1
+ * week and no trial any more.
+ *
+ * The count of places is read from the database, the same number the checkout
+ * enforces. If it cannot be read the page still offers the price, without a
+ * number, rather than inventing one.
  */
 function PricingToggle() {
   const [annual, setAnnual] = useState(true)
-  const perMonth = (49 / 12).toFixed(2)
+  const [placesLeft, setPlacesLeft] = useState<number | null>(null)
+
+  useEffect(() => {
+    let live = true
+    void getFoundingPlacesLeft().then((left) => {
+      if (live) setPlacesLeft(left)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+
+  const founding = annual && placesLeft !== 0
+  const price = !annual ? PRICES.month.amount : founding ? PRICES.founding.amount : PRICES.year.amount
 
   return (
     <div className="price-card">
@@ -289,27 +315,31 @@ function PricingToggle() {
         </button>
       </div>
 
-      {/* Said "first week for $1". The checkout function does NOT do that:
-          it creates trial_period_days: 7 with the card collected up front
-          and no one-off line item, which is a free week. Its own comment
-          claims a £1 line that was never written. Copy now matches the code
-          until Owen decides which he wants; the code is the thing that will
-          actually charge people. */}
       <p className="price-trial">
-        First week $1, then {annual ? '$49 a year' : '$9 a month'}. Cancel any time.
+        {founding
+          ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
+          : annual
+            ? 'Full refund within 30 days.'
+            : 'Full refund of your first month within 14 days.'}
       </p>
 
       <p className="price-headline">
-        {annual ? '$49' : '$9'}
-        <span className="price-period">{annual ? ' billed yearly' : ' billed monthly'}</span>
+        ${price}
+        <span className="price-period">{annual ? ' a year' : ' a month'}</span>
       </p>
       <p className="price-secondary">
-        {annual ? `Works out at $${perMonth} a month` : '$108 per year'}
+        {founding
+          ? `${FOUNDING_TERMS} After the first ${FOUNDING_CAP}, $${PRICES.year.amount} a year.`
+          : annual
+            ? `Works out at $${(PRICES.year.amount / 12).toFixed(2)} a month`
+            : `Or $${PRICES.year.amount} a year`}
       </p>
 
       <Link to="/sign-in" className="price-cta" onMouseEnter={prefetchAppChunks}>
         Get started
       </Link>
+
+      {founding && <p className="price-refund">Full refund within 30 days.</p>}
 
       {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
       <a className="price-support" href="mailto:support@songdrafts.com">
@@ -754,7 +784,7 @@ export function LandingPage() {
           Get started
         </Link>
         <p className="cta-status">
-          First week $1. Cancel any time.
+          Full refund within 30 days on yearly plans.
         </p>
       </section>
 
@@ -812,11 +842,8 @@ export function LandingPage() {
 
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
-        {/* Toggle, per Owen's ask: was a static "$49 a year. Or $9 a month."
-            headline. Now a real switch, and annual leads with the number
-            that actually sells it, the per-month equivalent, rather than
-            asking the reader to do $49 / 12 in their head. Purely visual
-            pre-launch: nothing here charges anyone, same as before. */}
+        {/* Yearly or monthly. Nothing here charges anyone: checkout lives
+            in the app, and billing is off until BILLING_LIVE. */}
         <h2 className="section-h2">One plan. Everything in it.</h2>
         <PricingToggle />
         {/* Used to carry its own "What happens if I stop paying?" card, right

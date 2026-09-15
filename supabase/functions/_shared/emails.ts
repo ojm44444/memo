@@ -59,10 +59,9 @@ const SIGN_OFF = 'The songdrafts team'
  *  - "Subscribing again puts them back in the cloud." Audio uploads only when
  *    a take is first imported; nothing re-uploads a local recording whose
  *    cloud copy was removed. Cut.
- *  - "Your trial ends. After that it is $49 for the year. Nothing happens
- *    without that." Checkout creates a subscription with a 7 day trial, so the
- *    charge happens automatically unless they cancel. The email now says the
- *    amount, the date, and that it is automatic.
+ *  - The trial-ending reminder is gone with the trial itself (15 Sept):
+ *    checkout now charges the full price up front, so there is no free or $1
+ *    period to warn about.
  *  - "Nothing expires" in the welcome. Cloud audio is deleted 90 days after a
  *    lapse. Cut.
  */
@@ -135,41 +134,6 @@ Opening each one once in Voice Memos pulls it down.
 
 If it was neither of those, reply and tell us what you saw. We would rather
 fix it than have you quietly give up on it.
-
-${SIGN_OFF}`,
-  }
-}
-
-/**
- * Three days before the $1 week turns into the paid plan.
- *
- * Says the amount, the date, that it is automatic, and the cancel path, in
- * the first four lines. Anything vaguer is the email people screenshot next to
- * the word "sneaky", and UK consumer rules expect exactly this reminder.
- *
- * `amount` is what Stripe will charge ("$49"), `interval` the billing period,
- * both read off the subscription by the webhook, never assumed.
- */
-export function trialEndingEmail(
-  name: string,
-  endsOn: string,
-  amount: string,
-  interval: 'year' | 'month',
-): EmailTemplate {
-  return {
-    subject: `Your songdrafts plan starts on ${endsOn}`,
-    text: `Hi ${name},
-
-Your $1 week ends on ${endsOn}. On that day your plan starts automatically
-and we charge ${amount}, then ${amount} every ${interval} after that until you
-cancel.
-
-If that is not what you want, cancel before then in Settings, under Plan, and
-nothing more is charged.
-
-If you do stay: your songs are on your device either way. What you are paying
-for is that they sync between your machines and are backed up somewhere that
-is not a phone you might drop.
 
 ${SIGN_OFF}`,
   }

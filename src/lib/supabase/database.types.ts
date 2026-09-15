@@ -446,6 +446,14 @@ export interface Database {
         }
         Returns: string
       }
+      founding_places_left: {
+        Args: Record<string, never>
+        Returns: number
+      }
+      my_founding_eligible: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
       share_link_summary: {
         Args: Record<string, never>
         Returns: Json

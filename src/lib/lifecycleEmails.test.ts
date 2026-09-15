@@ -12,7 +12,6 @@ import * as emails from '../../supabase/functions/_shared/emails'
 const all = [
   emails.welcomeEmail('Sam'),
   emails.stalledImportEmail('Sam'),
-  emails.trialEndingEmail('Sam', '14 October 2026', '$49', 'year'),
   emails.paymentFailedEmail('Sam'),
   emails.cancelledEmail('Sam', '14 October 2026'),
   emails.audioExpiring60Email('Sam', '14 October 2026'),
@@ -55,12 +54,4 @@ describe('lifecycle emails', () => {
     }
   })
 
-  it('state the trial charge: amount, date, and that it is automatic', () => {
-    const t = emails.trialEndingEmail('Sam', '14 October 2026', '£41', 'month')
-    expect(t.text).toContain('£41')
-    expect(t.text).toContain('14 October 2026')
-    expect(t.text).toMatch(/automatically/)
-    expect(t.text).toMatch(/every month/)
-    expect(t.text).not.toMatch(/Nothing happens without/)
-  })
 })

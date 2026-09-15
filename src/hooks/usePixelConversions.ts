@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { trackPixelEvent } from '@/lib/metaPixel'
+import { getCheckoutReceipt } from '@/lib/billing'
 
 const REGISTERED_KEY = 'songdrafts:pixel-registration-sent'
 
@@ -14,10 +15,11 @@ const NEW_ACCOUNT_WINDOW_MS = 15 * 60_000
  * board, judged by the account's own created_at, so an existing user signing
  * in on a new device is not counted as a sign-up. Once per device.
  *
- * Subscribe: when Stripe sends someone back with ?checkout=done. The Stripe
- * session id, when present, is the event id, so the server-side Conversions
- * API can report the same purchase later without Meta counting it twice. The
- * query is then removed, so a refresh cannot report a second purchase.
+ * Purchase: when Stripe sends someone back with ?checkout=done. The event id
+ * is the Stripe session id, the same one the webhook sends from the server,
+ * so Meta counts the purchase once. Value and currency are read back from
+ * Stripe rather than assumed, because Adaptive Pricing can charge in another
+ * currency. The query is removed first, so a refresh cannot report twice.
  *
  * Neither sends anything but the event: no email, no name, no board content.
  */
@@ -39,11 +41,28 @@ export function usePixelConversions() {
 
     const url = new URL(window.location.href)
     if (url.searchParams.get('checkout') === 'done') {
-      const sessionId = url.searchParams.get('session_id') ?? undefined
-      trackPixelEvent('Subscribe', {}, sessionId)
+      const sessionId = url.searchParams.get('session_id')
       url.searchParams.delete('checkout')
       url.searchParams.delete('session_id')
       window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+      if (sessionId) {
+        void getCheckoutReceipt(sessionId)
+          .then((receipt) => {
+            if (cancelled || !receipt.paid || !receipt.eventId) return
+            trackPixelEvent(
+              'Purchase',
+              {
+                value: receipt.value ?? 0,
+                currency: receipt.currency ?? 'USD',
+                content_name: receipt.plan ?? 'year',
+              },
+              receipt.eventId,
+            )
+          })
+          .catch(() => {
+            /* the server copy from the webhook still counts it */
+          })
+      }
     }
 
     return () => {

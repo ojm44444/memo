@@ -31,7 +31,7 @@ export function PrivacyPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 14 September 2026</p>
+        <p className="legal-updated">Last updated 15 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -122,22 +122,50 @@ export function PrivacyPage() {
             processors above: it uses what the pixel sends for its own
             advertising too, so it is described separately and plainly rather
             than slipped into a list headed "acting on our instructions". */}
-        <h2>Ads, and only if you say yes</h2>
+        <h2>Ads, and your choice about them</h2>
         <p>
           We advertise songdrafts on Instagram and Facebook, and we use Meta&apos;s pixel to see which
-          ads lead to someone signing up. It only runs if you press Allow on the question at the
-          bottom of the screen. If you say no, nothing from Meta loads at all.
+          ads lead to someone signing up.
         </p>
-        <p>If you allow it, Meta receives:</p>
+        <ul>
+          <li>
+            <strong>In the UK, the EU and most places:</strong> it only runs if you press Allow. If
+            you say no, nothing from Meta loads at all.
+          </li>
+          <li>
+            <strong>In the US:</strong> it runs unless you opt out, with Your privacy choices at the
+            bottom of the page.
+          </li>
+          <li>
+            <strong>Everywhere:</strong> if your browser sends Global Privacy Control, we treat it
+            as a no.
+          </li>
+        </ul>
+        <p>
+          To know which applies, the site reads the country from your IP address when the page
+          loads. We do not keep it. If it cannot tell, you are asked.
+        </p>
+        <p>If it runs, Meta receives:</p>
         <ul>
           <li>that you visited our public pages (the home page, sign in, this page, the terms);</li>
-          <li>that you created an account, imported recordings (as a count only), started a checkout, or subscribed.</li>
+          <li>
+            that you created an account, imported recordings (as a count only), started a
+            checkout, or paid, with the amount and currency.
+          </li>
         </ul>
+        <p>
+          When you pay, and only if it runs for you, our server also sends Meta that purchase: the
+          amount, the currency, a scrambled (hashed) copy of your email address and account id, and
+          the browser details the pixel would send. It is the same purchase, sent twice so ad
+          blockers do not lose it, and Meta counts it once. For the same people we also tell Meta,
+          for reporting only, if you are still subscribed 30 days after paying for a year, or after
+          your second monthly payment.
+        </p>
         <p>
           It never receives your music, song names, lyrics, notes, anything inside your board, or
           anything from a share or invite link. Meta uses this under its own privacy policy as well as
           ours, which is why it is here rather than in the list above. You can change your mind at any
-          time with Cookie settings at the bottom of this page.
+          time with the link at the bottom of this page.
         </p>
 
         <h2>Where it is, and how long we keep it</h2>
@@ -195,10 +223,10 @@ export function PrivacyPage() {
           That one is needed for the site to work, so it does not ask.
         </p>
         <p>
-          The only other one is Meta&apos;s, and only if you press Allow: it sets a cookie called _fbp
-          so it can tell whether someone who saw an ad later signed up. That is why you are asked the
-          first time you visit. There are no other analytics or advertising cookies. Cookie settings,
-          at the bottom of this page, asks you again and removes Meta&apos;s cookie if you say no.
+          The only other one is Meta&apos;s, when the pixel runs (see above): it sets a cookie called
+          _fbp so it can tell whether someone who saw an ad later signed up. There are no other
+          analytics or advertising cookies. The link at the bottom of this page (Cookie settings, or
+          Your privacy choices in the US) asks you again and removes Meta&apos;s cookie if you say no.
         </p>
 
         <h2>Changes</h2>

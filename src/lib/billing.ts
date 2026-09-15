@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { trackPixelEvent } from '@/lib/metaPixel'
+import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
 
 /**
  * Billing, from the app's side.
@@ -34,18 +34,46 @@ export type SubscriptionStatus =
   | 'unpaid'
   | 'paused'
 
+/**
+ * The prices, decided 14-15 Sept 2026. The server picks the Stripe price;
+ * these are only what the page says, and must match it.
+ */
+export const PRICES = {
+  founding: { amount: 49, interval: 'year' as const },
+  year: { amount: 79, interval: 'year' as const },
+  month: { amount: 12, interval: 'month' as const },
+}
+
+export const FOUNDING_CAP = 100
+
+/** Said wherever the founding price is offered, before anyone pays. */
+export const FOUNDING_TERMS =
+  '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price.'
+
+/** Days after the first payment in which the Settings refund button works. */
+export const REFUND_DAYS = { year: 30, month: 14 } as const
+
+export type PlanChoice = 'founding' | 'year' | 'month'
+export type Plan = 'founding_year' | 'year' | 'month'
+
 export interface Subscription {
   status: SubscriptionStatus
+  plan: Plan | null
   planInterval: 'month' | 'year' | null
   currentPeriodEnd: string | null
   cancelAtPeriodEnd: boolean
+  firstPaidAt: string | null
+  refundedAt: string | null
 }
 
 export const NO_SUBSCRIPTION: Subscription = {
   status: 'none',
+  plan: null,
   planInterval: null,
   currentPeriodEnd: null,
   cancelAtPeriodEnd: false,
+  firstPaidAt: null,
+  refundedAt: null,
 }
 
 /**
@@ -73,27 +101,76 @@ export async function getSubscription(): Promise<Subscription> {
   if (!supabase) return NO_SUBSCRIPTION
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('status, plan_interval, current_period_end, cancel_at_period_end')
+    .select('status, plan, plan_interval, current_period_end, cancel_at_period_end, first_paid_at, refunded_at')
     .maybeSingle()
 
   if (error || !data) return NO_SUBSCRIPTION
 
   const row = data as {
     status: SubscriptionStatus
+    plan: Plan | null
     plan_interval: 'month' | 'year' | null
     current_period_end: string | null
     cancel_at_period_end: boolean
+    first_paid_at: string | null
+    refunded_at: string | null
   }
 
   return {
     status: row.status,
+    plan: row.plan,
     planInterval: row.plan_interval,
     currentPeriodEnd: row.current_period_end,
     cancelAtPeriodEnd: row.cancel_at_period_end,
+    firstPaidAt: row.first_paid_at,
+    refundedAt: row.refunded_at,
   }
 }
 
-async function billingUrl(body: Record<string, unknown>): Promise<string> {
+/**
+ * Is the refund button live, and until when? The server checks again and has
+ * the final say; this only decides whether to show the button.
+ */
+export function refundWindow(sub: Subscription): { open: boolean; until: Date | null } {
+  if (!hasAccess(sub) || sub.refundedAt || !sub.firstPaidAt) return { open: false, until: null }
+  const days = sub.planInterval === 'month' ? REFUND_DAYS.month : REFUND_DAYS.year
+  const until = new Date(new Date(sub.firstPaidAt).getTime() + days * 86_400_000)
+  return { open: until.getTime() > Date.now(), until }
+}
+
+/** How many of the 100 founding places are left. Null if it cannot be read. */
+export async function getFoundingPlacesLeft(): Promise<number | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase.rpc('founding_places_left')
+  if (error || typeof data !== 'number') return null
+  return data
+}
+
+/** Can the signed-in person still take a founding place? */
+export async function isFoundingEligible(): Promise<boolean> {
+  if (!supabase) return false
+  const { data, error } = await supabase.rpc('my_founding_eligible')
+  return !error && data === true
+}
+
+/** A reply from the billing function the app knows how to say plainly. */
+export class BillingError extends Error {
+  readonly code: string | null
+
+  constructor(message: string, code: string | null) {
+    super(message)
+    this.code = code
+  }
+}
+
+const BILLING_MESSAGES: Record<string, string> = {
+  already_subscribed: 'You already have a plan. Manage it from Settings.',
+  founding_full: 'The 100 founding places have all gone. Nothing was charged.',
+  founding_not_eligible:
+    'Founding places are for a first subscription only, so it is $79 a year now. Nothing was charged.',
+}
+
+async function callBilling<T>(body: Record<string, unknown>): Promise<T> {
   if (!supabase) throw new Error('Sign in required')
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
@@ -103,21 +180,52 @@ async function billingUrl(body: Record<string, unknown>): Promise<string> {
     body,
     headers: { Authorization: `Bearer ${token}` },
   })
-  if (error) throw error
-  const url = (result as { url?: string })?.url
-  if (!url) throw new Error('Could not start checkout.')
-  return url
+  if (error) {
+    /* supabase-js reports every non-2xx as one generic message. The function
+       says what actually happened, so read that first. */
+    const ctx = (error as { context?: unknown }).context
+    if (ctx instanceof Response) {
+      const payload = (await ctx.clone().json().catch(() => null)) as { error?: string } | null
+      const code = payload?.error ?? null
+      if (code) throw new BillingError(BILLING_MESSAGES[code] ?? code, code)
+    }
+    throw new BillingError('Could not reach billing. Nothing was charged. Try again in a moment.', null)
+  }
+  return result as T
+}
+
+async function billingUrl(body: Record<string, unknown>): Promise<string> {
+  const result = await callBilling<{ url?: string }>(body)
+  if (!result?.url) throw new Error('Could not start checkout.')
+  return result.url
 }
 
 /** Send them to Stripe to subscribe. The price is chosen server side. */
-export async function startCheckout(interval: 'month' | 'year'): Promise<void> {
-  trackPixelEvent('InitiateCheckout', { content_name: interval === 'month' ? 'monthly' : 'annual' })
-  window.location.href = await billingUrl({ mode: 'checkout', interval })
+export async function startCheckout(plan: PlanChoice): Promise<void> {
+  const consent = adConsentForCheckout()
+  trackPixelEvent('InitiateCheckout', {
+    content_name: plan,
+    value: PRICES[plan].amount,
+    currency: 'USD',
+  })
+  window.location.href = await billingUrl({ mode: 'checkout', plan, ...consent })
 }
 
-/** Send them to Stripe to change or cancel. */
+/** Send them to Stripe to change their card, see receipts or cancel. */
 export async function openBillingPortal(): Promise<void> {
   window.location.href = await billingUrl({ mode: 'portal' })
+}
+
+/** The Settings refund button. Refunds the first payment and ends the plan. */
+export async function requestRefund(): Promise<{ amount: number; currency: string }> {
+  return callBilling<{ amount: number; currency: string }>({ mode: 'refund' })
+}
+
+/** What a finished checkout charged, for the browser's copy of the Purchase. */
+export async function getCheckoutReceipt(
+  sessionId: string,
+): Promise<{ paid: boolean; eventId?: string; value?: number; currency?: string; plan?: string }> {
+  return callBilling({ mode: 'receipt', sessionId })
 }
 
 /** Plain English for the settings panel. Never a raw Stripe status. */
@@ -132,10 +240,16 @@ export function describeSubscription(sub: Subscription): string {
 
   switch (sub.status) {
     case 'trialing':
-      return until ? `Trial, ends ${until}` : 'Trial'
-    case 'active':
-      if (sub.cancelAtPeriodEnd) return until ? `Cancels on ${until}` : 'Cancels at the end of the period'
-      return until ? `${sub.planInterval === 'month' ? 'Monthly' : 'Yearly'}, renews ${until}` : 'Active'
+    case 'active': {
+      const name =
+        sub.plan === 'founding_year'
+          ? 'Founding, $49 a year'
+          : sub.planInterval === 'month'
+            ? '$12 a month'
+            : '$79 a year'
+      if (sub.cancelAtPeriodEnd) return until ? `${name}. Ends ${until}` : `${name}. Ends soon`
+      return until ? `${name}. Renews ${until}` : name
+    }
     case 'past_due':
       return 'Payment failed. Your board still works while Stripe retries.'
     case 'unpaid':
