@@ -177,8 +177,15 @@ function AuthenticatedBoard() {
                   <BoardModeToggle />
                   <BoardSearch />
                   <BoardSwitcher />
-                  <ProjectSwitcher readOnly={readOnly} />
-                  <BoardFilters readOnly={readOnly} />
+                  {/* Songwriting projects group the board. Listen has its own
+                      Projects page, so two different "Project" pickers never
+                      share the screen. */}
+                  {boardMode !== 'listen' && (
+                    <>
+                      <ProjectSwitcher readOnly={readOnly} />
+                      <BoardFilters readOnly={readOnly} />
+                    </>
+                  )}
                   {boardMode === 'manage' && !readOnly && (
                     <>
                       <BoardSelectToggle />

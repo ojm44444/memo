@@ -351,6 +351,8 @@ export async function updateSong(
       // Key and BPM come off a DAW bounce; a raw voice memo carries neither,
       // and tuning can never be read from a file. All three are editable here.
       | 'tuning'
+      | 'listenProjectId'
+      | 'listenPosition'
     >
   >,
 ) {

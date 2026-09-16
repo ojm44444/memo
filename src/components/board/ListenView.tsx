@@ -18,7 +18,7 @@ import { getPlaylists, getPlaylistSongs, removeSongFromPlaylist } from '@/db/rep
 import { listenViewAccentStyle } from '@/lib/projectAccent'
 import { FavouriteButton } from '@/components/song/FavouriteButton'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
-import { MixesRoom } from './MixesRoom'
+import { ListenProjects } from './ListenProjects'
 import { formatDuration } from '@/lib/audio-utils'
 import { buildFavouritesPlaylist } from '@/lib/audio/buildFavouritesPlaylist'
 import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
@@ -45,10 +45,10 @@ type ListenScope = 'project' | 'library'
  * the Mixes tab arms its top by default. The star is a song-level thing set on
  * the Songwriting board, so the tab is named for what it actually lists.
  */
-type ListenTab = 'mixes' | 'favourites' | 'playlists'
+type ListenTab = 'projects' | 'favourites' | 'playlists'
 
 export function ListenView() {
-  const [tab, setTab] = useState<ListenTab>('mixes')
+  const [tab, setTab] = useState<ListenTab>('projects')
   const [scope, setScope] = useState<ListenScope>('project')
   const [shuffle, setShuffle] = useState(false)
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
@@ -120,16 +120,16 @@ const favouriteTotal = useLiveQuery(async () => {
     <div className="listen-view">
       {/* The player bar already shows what is playing; a second banner on top
           of the Mixes room only pushed the list down. */}
-      {tab !== 'mixes' && <NowPlayingBanner />}
+      {tab !== 'projects' && <NowPlayingBanner />}
 
       {/* Tab bar */}
       <div className="listen-tab-bar">
         <button
           type="button"
-          className={cn('listen-tab-btn', tab === 'mixes' && 'listen-tab-btn--active')}
-          onClick={() => setTab('mixes')}
+          className={cn('listen-tab-btn', tab === 'projects' && 'listen-tab-btn--active')}
+          onClick={() => setTab('projects')}
         >
-          Mixes
+          Projects
         </button>
         <button
           type="button"
@@ -150,8 +150,8 @@ const favouriteTotal = useLiveQuery(async () => {
         )}
       </div>
 
-      {tab === 'mixes' ? (
-        <MixesRoom />
+      {tab === 'projects' ? (
+        <ListenProjects />
       ) : tab === 'playlists' ? (
         activePlaylistId ? (
           <ListenPlaylistDetail

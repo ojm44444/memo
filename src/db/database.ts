@@ -3,6 +3,7 @@ import type { AudioBlob, AudioVersion } from '@/types/audio-version'
 import type { Column } from '@/types/column'
 import type { FolderWatch, ImportedSource } from '@/types/folder-watch'
 import type { Project } from '@/types/project'
+import type { ListenProject } from '@/types/listen-project'
 import type { SongComment } from '@/types/song-comment'
 import type { Song, SongLink } from '@/types/song'
 import type { AudioMarker } from '@/types/audio-marker'
@@ -42,6 +43,7 @@ export class MemoDatabase extends Dexie {
   songLinks!: EntityTable<SongLink, 'id'>
   songComments!: EntityTable<SongComment, 'id'>
   projects!: EntityTable<Project, 'id'>
+  listenProjects!: EntityTable<ListenProject, 'id'>
   syncQueue!: EntityTable<SyncQueueItem, 'id'>
   syncMeta!: EntityTable<SyncMeta, 'key'>
   folderWatch!: EntityTable<FolderWatch, 'key'>
@@ -220,6 +222,13 @@ export class MemoDatabase extends Dexie {
       audioMarkers: 'id, versionId, ms',
       playlists: 'id, sortOrder, createdAt',
       playlistSongs: 'id, playlistId, songId, position',
+    })
+
+    // 16 Sept 2026: projects in Listen (039).
+    this.version(10).stores({
+      songs:
+        'id, columnSlug, projectId, listenProjectId, isFavourite, sortOrder, updatedAt, deletedAt, recordedAt',
+      listenProjects: 'id, sortOrder, deletedAt',
     })
   }
 }

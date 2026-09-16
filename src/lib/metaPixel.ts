@@ -58,7 +58,7 @@ let askingAgain = false
 const NEVER_ON = [/^\/share\//, /^\/invite\//, /^\/playlist\//, /^\/admin(\/|$)/]
 
 /** Public pages where a page view is counted. Everything else is private. */
-const PAGE_VIEW_ROUTES = [/^\/$/, /^\/sign-in\/?$/, /^\/privacy\/?$/, /^\/terms\/?$/]
+const PAGE_VIEW_ROUTES = [/^\/$/, /^\/sign-in\/?$/, /^\/sign-up\/?$/, /^\/privacy\/?$/, /^\/terms\/?$/]
 
 type Fbq = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void

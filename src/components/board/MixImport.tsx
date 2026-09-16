@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { addAudioVersionToSong, getSongsWithMixes, setAudioVersionKind } from '@/db/repositories/audioRepo'
 import { createSong, getAllSongs, getColumns } from '@/db/repositories/boardRepo'
+import { moveSongsToListenProject } from '@/db/repositories/listenProjectRepo'
 import { flush, scheduleFlush } from '@/sync/syncEngine'
 import {
   extractAudioFiles,
@@ -137,7 +138,14 @@ function sizeLabel(bytes: number) {
   return bytes > 1e6 ? `${(bytes / 1e6).toFixed(0)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`
 }
 
-export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty' | 'circle' }) {
+export function MixImport({
+  variant = 'button',
+  projectId = null,
+}: {
+  variant?: 'button' | 'empty' | 'circle'
+  /** The Listen project this was opened in. Everything saved lands in it. */
+  projectId?: string | null
+}) {
   const inputRef = useRef<HTMLInputElement>(null)
   const songs = useLiveQuery(() => getAllSongs(), [])
   const stacks = useLiveQuery(() => getSongsWithMixes(), [])
@@ -254,6 +262,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
       const columns = await getColumns()
       const column = columns.length ? columns[columns.length - 1].slug : INBOX_SLUG
       const created = new Map<string, string>()
+      const touched: string[] = []
 
       // Oldest version first, so the newest lands on top of each stack.
       const ordered = [...rows].sort((a, b) => (a.version ?? 0) - (b.version ?? 0))
@@ -272,7 +281,9 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
         }
         const version = await addAudioVersionToSong(songId, row.file, row.label.trim() || tidyLabel(row.file.name))
         await setAudioVersionKind(version.id, row.kind)
+        if (!touched.includes(songId)) touched.push(songId)
       }
+      if (projectId) await moveSongsToListenProject(touched, projectId)
       const count = rows.length
       setRows([])
       setNotice(`${count} added. Uploading now, keep songdrafts open.`)

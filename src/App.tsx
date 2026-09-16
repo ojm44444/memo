@@ -58,6 +58,7 @@ export default function App() {
         <Routes>
           <Route index element={<LandingPage />} />
           <Route path="sign-in" element={<SignInPage />} />
+          <Route path="sign-up" element={<SignInPage mode="create" />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="terms" element={<TermsPage />} />
           <Route path="app/*" element={<BoardPage />} />

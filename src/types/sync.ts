@@ -8,6 +8,7 @@ export type SyncEntityType =
   | 'board'
   | 'column'
   | 'project'
+  | 'listen_project'
 
 export interface SyncQueueItem {
   id: string

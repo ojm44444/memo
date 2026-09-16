@@ -36,6 +36,10 @@ export interface Song {
   /** Original ID3 title (e.g. iPhone location name like "Obermattliebweg 4") when it
    *  differs from the filename. Shown as a subtitle under the card title. */
   locationName?: string | null
+  /** The Listen project this song's stack sits in, if any (039). */
+  listenProjectId?: string | null
+  /** Order within that Listen project. */
+  listenPosition?: number | null
   createdAt: string
   updatedAt: string
   syncedAt: string | null

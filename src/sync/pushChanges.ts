@@ -46,6 +46,8 @@ async function processQueueItem(
           updated_at: payload.updatedAt,
           deleted_at: payload.deletedAt,
           project_id: payload.projectId ?? null,
+          listen_project_id: payload.listenProjectId ?? null,
+          listen_position: payload.listenPosition ?? null,
         } as never),
       )
       await db.songs.update(item.entityId, { syncedAt: new Date().toISOString() })
@@ -71,6 +73,12 @@ async function processQueueItem(
       if (payload.tuning !== undefined) (patch as Record<string, unknown>).tuning = payload.tuning
       if (payload.projectId !== undefined) {
         ;(patch as { project_id?: string | null }).project_id = payload.projectId
+      }
+      if (payload.listenProjectId !== undefined) {
+        ;(patch as Record<string, unknown>).listen_project_id = payload.listenProjectId
+      }
+      if (payload.listenPosition !== undefined) {
+        ;(patch as Record<string, unknown>).listen_position = payload.listenPosition
       }
 
       await assertNoError(
@@ -170,6 +178,24 @@ async function processQueueItem(
   if (item.entityType === 'board' && item.op === 'update') {
     await assertNoError(
       await supabase!.from('boards').update({ name: payload.name }).eq('id', boardId),
+    )
+  }
+
+  if (item.entityType === 'listen_project') {
+    // The whole row every time: a Listen project is small, and an upsert
+    // makes a create and an edit the same operation, so order cannot matter.
+    await assertNoError(
+      await supabase!.from('listen_projects' as never).upsert({
+        id: payload.id,
+        board_id: boardId,
+        title: payload.title,
+        artist: payload.artist ?? null,
+        cover_path: payload.coverPath ?? null,
+        position: payload.sortOrder ?? 0,
+        created_at: payload.createdAt,
+        updated_at: payload.updatedAt ?? new Date().toISOString(),
+        deleted_at: payload.deletedAt ?? null,
+      } as never),
     )
   }
 

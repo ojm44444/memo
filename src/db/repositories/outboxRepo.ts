@@ -6,6 +6,7 @@ const PUSH_PRIORITY: Record<SyncEntityType, number> = {
   board: 0,
   project: 1,
   column: 2,
+  listen_project: 2, // before songs: a song can point at one
   song: 3,
   song_link: 4,
   song_comment: 4,

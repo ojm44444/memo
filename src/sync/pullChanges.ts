@@ -179,6 +179,47 @@ export async function pullChanges(userId: string) {
     }
   }
 
+  /* Listen projects before songs, so a song never points at a project this
+     device has not heard of yet. */
+  const { data: remoteListenProjects, error: listenProjectError } = await supabase
+    .from('listen_projects' as never)
+    .select('*')
+    .eq('board_id', boardId)
+    .gt('updated_at', since)
+  if (listenProjectError) throw listenProjectError
+
+  for (const remote of (remoteListenProjects ?? []) as unknown as {
+    id: string
+    title: string
+    artist: string | null
+    cover_path: string | null
+    position: number
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
+  }[]) {
+    cursor = maxTimestamp(cursor, remote.updated_at)
+    const pending = await db.syncQueue
+      .where('entityId')
+      .equals(remote.id)
+      .filter((item) => item.entityType === 'listen_project')
+      .first()
+    if (pending) continue
+    const local = await db.listenProjects.get(remote.id)
+    if (local && new Date(local.updatedAt).getTime() > new Date(remote.updated_at).getTime()) continue
+    await db.listenProjects.put({
+      id: remote.id,
+      title: remote.title,
+      artist: remote.artist,
+      coverPath: remote.cover_path,
+      sortOrder: remote.position,
+      createdAt: remote.created_at,
+      updatedAt: remote.updated_at,
+      deletedAt: remote.deleted_at,
+    })
+    pulled++
+  }
+
   const { data: remoteSongs, error } = await supabase
     .from('songs')
     .select('*')
@@ -236,6 +277,14 @@ export async function pullChanges(userId: string) {
         updatedAt: remote.updated_at,
         syncedAt: new Date().toISOString(),
         deletedAt: remote.deleted_at,
+        listenProjectId:
+          'listen_project_id' in remote
+            ? ((remote as { listen_project_id?: string | null }).listen_project_id ?? null)
+            : (local?.listenProjectId ?? null),
+        listenPosition:
+          'listen_position' in remote
+            ? ((remote as { listen_position?: number | null }).listen_position ?? null)
+            : (local?.listenPosition ?? null),
       }
       await db.songs.put(song)
       pulled++

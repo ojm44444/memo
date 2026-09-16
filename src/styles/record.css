@@ -832,3 +832,144 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* ── Projects (Listen's front page) ── */
+.rec-projects-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.rec-projects {
+  list-style: none;
+  margin: 0 0 40px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 28px 22px;
+}
+
+.rec-project {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rec-project .rec-art {
+  width: 100%;
+  margin-bottom: 10px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.rec-project:hover .rec-art,
+.rec-project:focus-visible .rec-art {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+
+.rec-project .rec-art.is-loose {
+  filter: grayscale(0.85);
+  opacity: 0.7;
+}
+
+.rec-project-title {
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-project-meta {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rec-project-new {
+  aspect-ratio: 1;
+  width: 100%;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.rec-project.is-new:hover .rec-project-new {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.rec-projects-empty {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 72px 24px;
+  margin-bottom: 40px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.rec-projects-empty-title {
+  font-family: var(--font-serif);
+  font-size: 34px;
+}
+
+.rec-projects-empty-sub {
+  max-width: 440px;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.rec-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -12px 0 22px;
+  padding: 6px 10px 6px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rec-back:hover {
+  color: var(--text);
+}
+
+.rec-back-icon {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 640px) {
+  .rec-projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 14px;
+  }
+}

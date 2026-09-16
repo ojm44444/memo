@@ -5,6 +5,7 @@ import { SpeedControl } from '@/components/audio/SpeedControl'
 import { AccountSection } from '@/components/settings/AccountSection'
 import { PlanSection } from '@/components/settings/PlanSection'
 import { ShareLinksSection } from '@/components/settings/ShareLinksSection'
+import { TrashSection } from '@/components/board/TrashSection'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
 import {
   DAY_NAMES,
@@ -340,6 +341,11 @@ export function SettingsPanel() {
                 </button>
               </section>
             )}
+
+            <section className="settings-section">
+              <h3 className="settings-section-title">Deleted songs</h3>
+              <TrashSection />
+            </section>
 
             <section className="settings-section">
               <h3 className="settings-section-title">Backup</h3>

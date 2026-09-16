@@ -11845,3 +11845,37 @@ html.light .song-drawer {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* Project sheet (Listen): smaller than Share, with a quiet delete on the left. */
+.send-sheet.is-narrow {
+  width: min(520px, 100%);
+}
+
+.send-sheet-spacer {
+  flex: 1;
+}
+
+.send-sheet-link {
+  border: 0;
+  background: none;
+  padding: 0 4px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.send-sheet-link.is-danger:hover {
+  color: var(--danger);
+}
+
+.send-sheet-danger {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -9,7 +9,9 @@ import {
   uploadCollectionCover,
   type CollectionItem,
 } from '@/db/repositories/collectionShareRepo'
+import { listenCoverUrl } from '@/db/repositories/listenProjectRepo'
 import { RecordArt } from '@/components/share/RecordParts'
+import { kindName } from '@/lib/kindName'
 
 type Stack = { song: Song; latest: AudioVersion; versions: AudioVersion[] }
 
@@ -29,16 +31,20 @@ export function ShareCollectionSheet({
   stacks,
   onClose,
   onCreated,
+  defaults,
 }: {
   stacks: Stack[]
   onClose: () => void
   onCreated: () => void
+  /** A project's own title, artist and cover, so sharing it is one press. */
+  defaults?: { title: string; artist: string | null; coverPath: string | null }
 }) {
   const [picks, setPicks] = useState<Pick[]>(() =>
     stacks.map((s) => ({ songId: s.song.id, versionId: s.latest.id, on: !!s.latest.storagePath })),
   )
-  const [title, setTitle] = useState('')
-  const [artist, setArtist] = useState('')
+  const [title, setTitle] = useState(defaults?.title ?? '')
+  const [artist, setArtist] = useState(defaults?.artist ?? '')
+  const [projectCover, setProjectCover] = useState<string | null>(null)
   const [withEarlier, setWithEarlier] = useState(false)
   const [allowDownload, setAllowDownload] = useState(false)
   const [password, setPassword] = useState('')
@@ -54,6 +60,14 @@ export function ShareCollectionSheet({
   useEffect(() => () => {
     if (coverPreview) URL.revokeObjectURL(coverPreview)
   }, [coverPreview])
+
+  useEffect(() => {
+    let live = true
+    if (defaults?.coverPath) void listenCoverUrl(defaults.coverPath).then((u) => live && setProjectCover(u))
+    return () => {
+      live = false
+    }
+  }, [defaults?.coverPath])
 
   useEffect(() => {
     void getMyDisplayName().then((name) => setArtist((prev) => prev || (name === 'You' ? '' : name)))
@@ -101,7 +115,7 @@ export function ShareCollectionSheet({
     setBusy(true)
     setError(null)
     try {
-      const coverPath = cover ? await uploadCollectionCover(cover) : null
+      const coverPath = cover ? await uploadCollectionCover(cover) : (defaults?.coverPath ?? null)
       const link = await createCollectionShare(items, {
         title,
         artist,
@@ -179,8 +193,8 @@ export function ShareCollectionSheet({
                 onClick={() => coverInput.current?.click()}
                 aria-label={cover ? 'Change the cover' : 'Add a cover'}
               >
-                <RecordArt seed={title || 'cover'} label="" src={coverPreview} />
-                <span className="send-cover-label">{cover ? 'Change' : 'Add cover'}</span>
+                <RecordArt seed={title || 'cover'} label="" src={coverPreview ?? projectCover} />
+                <span className="send-cover-label">{cover || projectCover ? 'Change' : 'Add cover'}</span>
               </button>
               <input
                 ref={coverInput}
@@ -246,7 +260,7 @@ export function ShareCollectionSheet({
                           {stack.versions.map((v, vi) => (
                             <option key={v.id} value={v.id} disabled={!v.storagePath}>
                               V{stack.versions.length - vi}
-                              {vi === 0 ? ' (top)' : ''} · {v.kind === 'master' ? 'Master' : 'Mix'}
+                              {vi === 0 ? ' (top)' : ''} · {kindName(v.kind)}
                               {v.label ? ` · ${v.label}` : ''} · {formatDuration(v.durationMs)}
                               {!v.storagePath ? ' · not uploaded' : ''}
                             </option>

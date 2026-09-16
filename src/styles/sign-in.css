@@ -218,3 +218,16 @@
   font-size: 0.8rem;
   line-height: 1.5;
 }
+
+/* Two doors, one step: the line that moves between Create account and Sign in. */
+.sign-in-switch {
+  margin: 18px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.sign-in-switch a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -12,8 +12,12 @@ import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
 /** Our own pause between resends, so a double tap cannot send two links. */
 const RESEND_COOLDOWN_S = 30
 
-export function SignInPage() {
-  usePageTitle('Sign in · songdrafts', 'Sign in to your songdrafts board.')
+export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }) {
+  const creating = mode === 'create'
+  usePageTitle(
+    creating ? 'Create account · songdrafts' : 'Sign in · songdrafts',
+    creating ? 'Create your songdrafts account.' : 'Sign in to your songdrafts board.',
+  )
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -174,7 +178,8 @@ export function SignInPage() {
           </Link>
           <h2 className="sign-in-title">Check your email</h2>
           <p className="sign-in-sub">
-            We sent a sign-in link to <strong className="sign-in-sent-to">{sentTo}</strong>.
+            We sent a link to <strong className="sign-in-sent-to">{sentTo}</strong>.
+            {creating ? ' Open it and your account is made.' : ''}
           </p>
 
           {/* PKCE: the link is bound to the browser that asked for it (the
@@ -222,15 +227,15 @@ export function SignInPage() {
         <Link to="/" className="sign-in-logo">
           <Wordmark />
         </Link>
-        {/* Every "Get started" on the landing page lands here, so the first
-            person to read this heading is usually someone with no board yet.
-            "Sign in to your board" told them to sign in to something that did
-            not exist. It is the same step either way: signInWithOtp creates
-            the account the first time. So the page says that. */}
-        <h2 className="sign-in-title">Open your board</h2>
+        {/* 16 Sept, Owen: "there's no way to create an account". There was:
+            signInWithOtp makes the account the first time. But no screen ever
+            said so, so a new person saw only Sign in. Now there are two doors,
+            /sign-up and /sign-in, each saying plainly what it does. */}
+        <h2 className="sign-in-title">{creating ? 'Create your account' : 'Sign in'}</h2>
         <p className="sign-in-sub">
-          New here or coming back, it&apos;s the same step: we email you a link and you&apos;re in.
-          No password to remember.
+          {creating
+            ? 'Enter your email and we send you a link. Open it and your account is ready. No password.'
+            : 'We email you a link and you are in. No password to remember.'}
         </p>
 
         {offline && (
@@ -263,7 +268,7 @@ export function SignInPage() {
           disabled={busy || offline}
           onClick={() => void signInWithEmail()}
         >
-          {busy ? 'Sending…' : 'Email me a sign-in link'}
+          {busy ? 'Sending…' : creating ? 'Create account' : 'Email me a sign-in link'}
         </button>
 
         {/* Right under the button that caused it. It used to sit at the very
@@ -281,8 +286,20 @@ export function SignInPage() {
           disabled={busy || offline}
           onClick={() => void signInWithGoogle()}
         >
-          Continue with Google
+          {creating ? 'Sign up with Google' : 'Continue with Google'}
         </button>
+
+        <p className="sign-in-switch">
+          {creating ? (
+            <>
+              Already have an account? <Link to="/sign-in">Sign in</Link>
+            </>
+          ) : (
+            <>
+              New to songdrafts? <Link to="/sign-up">Create an account</Link>
+            </>
+          )}
+        </p>
 
         {/* The one promise worth repeating at the moment someone hands over
             an email address. Quoted from the landing page, not paraphrased. */}

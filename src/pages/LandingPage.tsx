@@ -335,7 +335,7 @@ function PricingToggle() {
             : `Or $${PRICES.year.amount} a year`}
       </p>
 
-      <Link to="/sign-in" className="price-cta" onMouseEnter={prefetchAppChunks}>
+      <Link to="/sign-up" className="price-cta" onMouseEnter={prefetchAppChunks}>
         Get started
       </Link>
 
@@ -406,9 +406,14 @@ export function LandingPage() {
           >
             Sign in
           </Link>
-          <a href="#how" className="nav-cta nav-cta--app">
-            See how it works
-          </a>
+          <Link
+            to="/sign-up"
+            className="nav-cta nav-cta--app"
+            onMouseEnter={prefetchAppChunks}
+            onTouchStart={prefetchAppChunks}
+          >
+            Create account
+          </Link>
           {/* Below 768px the nav links are hidden with nothing replacing them,
               so Compare, Pricing and FAQ were only reachable by scrolling
               8,000+ pixels. It lives inside nav-right because the <nav> is
@@ -439,6 +444,9 @@ export function LandingPage() {
               {label}
             </a>
           ))}
+          <Link to="/sign-up" className="mobile-menu-signin" onClick={() => setMenuOpen(false)}>
+            Create account
+          </Link>
           <Link to="/sign-in" className="mobile-menu-signin" onClick={() => setMenuOpen(false)}>
             Sign in
           </Link>
@@ -479,7 +487,7 @@ export function LandingPage() {
               quietly pocketing addresses it never writes back to is the exact
               hypocrisy this product positions against. It returns when there is a
               real confirmation email and a promise we keep. */}
-          <Link to="/sign-in" className="hero-cta" onMouseEnter={prefetchAppChunks}>
+          <Link to="/sign-up" className="hero-cta" onMouseEnter={prefetchAppChunks}>
             Get started
           </Link>
           <p className="hero-trial-note">
@@ -780,7 +788,7 @@ export function LandingPage() {
           <em>a proper home.</em>
         </h2>
         <p>Open the board. Drag the first memo in. See what you've actually got.</p>
-        <Link to="/sign-in" className="cta-button" onMouseEnter={prefetchAppChunks}>
+        <Link to="/sign-up" className="cta-button" onMouseEnter={prefetchAppChunks}>
           Get started
         </Link>
         <p className="cta-status">

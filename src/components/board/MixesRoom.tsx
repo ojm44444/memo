@@ -10,22 +10,32 @@ import { playSongAtTimestamp, playSongVersion } from '@/lib/playSongVersion'
 import { formatDuration } from '@/lib/audio-utils'
 import { getMyDisplayName } from '@/lib/displayName'
 import { scheduleFlush } from '@/sync/syncEngine'
+import {
+  getListenProject,
+  getListenProjects,
+  listenCoverUrl,
+  moveSongsToListenProject,
+  reorderListenProject,
+} from '@/db/repositories/listenProjectRepo'
+import type { ListenProject } from '@/types/listen-project'
 import { SongComments } from '@/components/song/SongComments'
 import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
 import { kindName } from '@/lib/kindName'
 import {
   CheckIcon,
+  ChevronRightIcon,
   CommentIcon,
   EqIcon,
   LinkIcon,
   MoreIcon,
   PauseIcon,
   PlayIcon,
+  PlusIcon,
   ShuffleIcon,
   StackIcon,
 } from '@/components/ui/Icons'
 import { MixImport } from './MixImport'
-import { SentCollections } from './SentCollections'
+import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 import '@/styles/record.css'
 
@@ -60,6 +70,9 @@ function StackRow({
   onChoose,
   notesOpen,
   onToggleNotes,
+  projectId,
+  projects,
+  onMoveBy,
 }: {
   stack: Stack
   index: number
@@ -67,6 +80,9 @@ function StackRow({
   onChoose: (versionId: string) => void
   notesOpen: boolean
   onToggleNotes: () => void
+  projectId: string | null
+  projects: ListenProject[]
+  onMoveBy?: (by: -1 | 1) => void
 }) {
   const { song, versions } = stack
   const isCurrent = usePlayerStore((s) => s.currentSongId === song.id)
@@ -217,6 +233,53 @@ function StackRow({
                   <span>Open the song</span>
                   <span />
                 </button>
+                {projectId && onMoveBy && (
+                  <>
+                    <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); onMoveBy(-1) }}>
+                      <span />
+                      <span>Move up</span>
+                      <span />
+                    </button>
+                    <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); onMoveBy(1) }}>
+                      <span />
+                      <span>Move down</span>
+                      <span />
+                    </button>
+                  </>
+                )}
+                {projects
+                  .filter((p) => p.id !== projectId)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="menuitem"
+                      className="rec-menu-item"
+                      onClick={() => {
+                        close()
+                        void moveSongsToListenProject([song.id], p.id).then(() => scheduleFlush())
+                      }}
+                    >
+                      <span />
+                      <span>Move to {p.title}</span>
+                      <span />
+                    </button>
+                  ))}
+                {projectId && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="rec-menu-item"
+                    onClick={() => {
+                      close()
+                      void moveSongsToListenProject([song.id], null).then(() => scheduleFlush())
+                    }}
+                  >
+                    <span />
+                    <span>Take out of this project</span>
+                    <span />
+                  </button>
+                )}
                 {(['demo', 'mix', 'master'] as const)
                   .filter((k) => k !== (chosen.kind ?? 'mix'))
                   .map((k) => (
@@ -266,13 +329,19 @@ function StackRow({
   )
 }
 
-export function MixesRoom() {
+export function MixesRoom({ projectId, onBack }: { projectId: string | null; onBack: () => void }) {
   const mixes = useLiveQuery(() => getSongsWithMixes(), [])
+  const projects = useLiveQuery(() => getListenProjects(), [])
+  const project = useLiveQuery(
+    () => (projectId ? getListenProject(projectId).then((p) => p ?? null) : Promise.resolve(null)),
+    [projectId],
+  )
   const [pickedVersion, setPickedVersion] = useState<Record<string, string>>({})
   const [notesRow, setNotesRow] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
-  const [sentKey, setSentKey] = useState(0)
+  const [editing, setEditing] = useState(false)
   const [artist, setArtist] = useState('')
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
   useEffect(() => {
     let live = true
@@ -282,19 +351,43 @@ export function MixesRoom() {
     }
   }, [])
 
+  useEffect(() => {
+    let live = true
+    void listenCoverUrl(project?.coverPath).then((url) => live && setCoverUrl(url))
+    return () => {
+      live = false
+    }
+  }, [project?.coverPath])
+
+  // A project deleted elsewhere (another device, or the sheet) goes back to Projects.
+  useEffect(() => {
+    if (projectId && project === null) onBack()
+  }, [projectId, project, onBack])
+
   const ordered = useMemo(() => {
     if (!mixes) return []
+    const here = mixes.filter((s) => (s.song.listenProjectId ?? null) === projectId)
+    if (projectId) {
+      return here.sort(
+        (a, b) =>
+          (a.song.listenPosition ?? Number.MAX_SAFE_INTEGER) - (b.song.listenPosition ?? Number.MAX_SAFE_INTEGER),
+      )
+    }
     const rank = (s: Stack) => (s.latest.kind === 'master' ? 0 : s.latest.kind === 'mix' ? 1 : 2)
-    return [...mixes].sort((a, b) => rank(a) - rank(b))
-  }, [mixes])
+    return here.sort((a, b) => rank(a) - rank(b))
+  }, [mixes, projectId])
 
-  if (mixes === undefined) return null
+  const loose = useMemo(() => (mixes ?? []).filter((s) => !s.song.listenProjectId), [mixes])
+
+  if (mixes === undefined || projects === undefined || (projectId && project === undefined)) return null
 
   const totalMs = ordered.reduce((sum, s) => {
     const chosen = s.versions.find((v) => v.id === pickedVersion[s.song.id]) ?? s.latest
     return sum + (chosen.durationMs || 0)
   }, 0)
   const uploading = ordered.flatMap((s) => s.versions).filter((v) => !v.storagePath && !v.uploadBlockedReason).length
+  const title = project?.title ?? 'Not in a project'
+  const byLine = project ? project.artist || artist : 'Demos, mixes and masters not yet in a project'
 
   const playAll = (shuffle: boolean) => {
     if (!ordered.length) return
@@ -314,17 +407,31 @@ export function MixesRoom() {
     usePlayerStore.setState({ isPlaying: true, pendingSeekMs: null })
   }
 
+  const moveBy = (songId: string, by: -1 | 1) => {
+    const ids = ordered.map((s) => s.song.id)
+    const from = ids.indexOf(songId)
+    const to = from + by
+    if (from < 0 || to < 0 || to >= ids.length) return
+    ;[ids[from], ids[to]] = [ids[to], ids[from]]
+    void reorderListenProject(ids).then(() => scheduleFlush())
+  }
+
   return (
     <div className="rec">
+      <button type="button" className="rec-back" onClick={onBack}>
+        <ChevronRightIcon size={16} className="rec-back-icon" />
+        Projects
+      </button>
+
       <section className="rec-hero">
-        <RecordArt seed={`listen-${artist}`} label="Listen" />
+        <RecordArt seed={project?.id ?? 'loose'} label={title} src={coverUrl} />
         <div>
           <p className="rec-eyebrow">
             {ordered.length} {ordered.length === 1 ? 'track' : 'tracks'}
             {totalMs ? ` · ${formatDuration(totalMs)}` : ''}
           </p>
-          <h2 className="rec-title">Listen</h2>
-          <p className="rec-artist">{artist ? `${artist} · demos, mixes and masters` : 'Demos, mixes and masters'}</p>
+          <h2 className="rec-title">{title}</h2>
+          {byLine && <p className="rec-artist">{byLine}</p>}
 
           <div className="rec-actions">
             <PlayAllButton
@@ -337,7 +444,44 @@ export function MixesRoom() {
               Shuffle
             </button>
             <div className="rec-actions-end">
-              <MixImport variant="circle" />
+              {project && (
+                <RecordMenu
+                  label={`More for ${project.title}`}
+                  trigger={({ open, toggle }) => (
+                    <button type="button" className="rec-circle" aria-expanded={open} aria-label="Project options" onClick={toggle}>
+                      <MoreIcon size={20} />
+                    </button>
+                  )}
+                >
+                  {(close) => (
+                    <>
+                      <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); setEditing(true) }}>
+                        <span />
+                        <span>Edit title, artist and cover</span>
+                        <span />
+                      </button>
+                      {loose.length > 0 && <p className="rec-menu-title">Add from Not in a project</p>}
+                      {loose.map((s) => (
+                        <button
+                          key={s.song.id}
+                          type="button"
+                          role="menuitem"
+                          className="rec-menu-item"
+                          onClick={() => {
+                            close()
+                            void moveSongsToListenProject([s.song.id], project.id).then(() => scheduleFlush())
+                          }}
+                        >
+                          <span><PlusIcon size={15} /></span>
+                          <span>{s.song.title}</span>
+                          <span className="rec-menu-meta">{formatDuration(s.latest.durationMs)}</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </RecordMenu>
+              )}
+              <MixImport variant="circle" projectId={projectId} />
               <button
                 type="button"
                 className="rec-pill is-accent"
@@ -361,7 +505,7 @@ export function MixesRoom() {
       )}
 
       {ordered.length === 0 ? (
-        <MixImport variant="empty" />
+        <MixImport variant="empty" projectId={projectId} />
       ) : (
         <ol className="rec-list">
           {ordered.map((stack, i) => (
@@ -373,18 +517,32 @@ export function MixesRoom() {
               onChoose={(versionId) => setPickedVersion((prev) => ({ ...prev, [stack.song.id]: versionId }))}
               notesOpen={notesRow === stack.song.id}
               onToggleNotes={() => setNotesRow((prev) => (prev === stack.song.id ? null : stack.song.id))}
+              projectId={projectId}
+              projects={projects}
+              onMoveBy={projectId ? (by) => moveBy(stack.song.id, by) : undefined}
             />
           ))}
         </ol>
       )}
 
-      <SentCollections refreshKey={sentKey} />
-
       {sending && (
         <ShareCollectionSheet
           stacks={ordered}
           onClose={() => setSending(false)}
-          onCreated={() => setSentKey((n) => n + 1)}
+          onCreated={() => {}}
+          defaults={project ? { title: project.title, artist: project.artist || artist, coverPath: project.coverPath } : undefined}
+        />
+      )}
+
+      {editing && project && (
+        <ProjectSheet
+          project={project}
+          onClose={() => setEditing(false)}
+          onSaved={() => setEditing(false)}
+          onDeleted={() => {
+            setEditing(false)
+            onBack()
+          }}
         />
       )}
     </div>
