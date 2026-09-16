@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
 import { ShareCommentThread } from '@/components/share/ShareCommentThread'
-import { SpeedControl } from '@/components/audio/SpeedControl'
+import { RecordArt } from '@/components/share/RecordParts'
+import { DownloadIcon, PauseIcon, PlayIcon } from '@/components/ui/Icons'
 import { formatDuration } from '@/lib/audio-utils'
-import type { PlaybackRate } from '@/lib/constants'
+import { PLAYBACK_RATES, type PlaybackRate } from '@/lib/constants'
 import {
   addShareListenComment,
   downloadSharedAudio,
@@ -16,6 +17,8 @@ import {
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
+import '@/styles/record.css'
+import '@/styles/collection-share.css'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -198,111 +201,127 @@ export function SharePage() {
     )
   }
 
+  const extraLabel =
+    versionLabel && versionLabel.trim().toLowerCase() !== title.trim().toLowerCase() ? versionLabel : null
+
+  const togglePlay = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (isPlaying) audio.pause()
+    else void audio.play().then(() => recordListen())
+  }
+
   return (
-    <div className="share-page">
-      <header className="share-header">
-        <Link to="/" className="share-logo">
+    <div className="coll-page">
+      <header className="coll-top">
+        <Link to="/" className="coll-logo" aria-label="songdrafts">
           <Wordmark />
         </Link>
-        <span className="share-badge">a demo, shared from the board</span>
+        <span className="coll-chip">Shared privately</span>
       </header>
 
-      <main className="share-main">
-        {loading && <p className="share-muted">Finding the take…</p>}
+      {loading && <p className="coll-state">Opening…</p>}
 
-        {needsPassword && !loading && (
-          <div className="share-password-card">
-            <h1>This one is locked.</h1>
-            <p className="share-muted">Whoever sent it gave you a password. Type it in and press play.</p>
-            <input
-              type="password"
-              className="share-password-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') void loadShare(password)
-              }}
-            />
-            <button type="button" className="share-primary" onClick={() => void loadShare(password)}>
-              Listen
-            </button>
-          </div>
-        )}
+      {needsPassword && !loading && (
+        <form
+          className="coll-lock"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void loadShare(password)
+          }}
+        >
+          <h1 className="coll-lock-title">This one has a password.</h1>
+          <p className="coll-muted">Whoever sent the link will have given it to you.</p>
+          <input
+            type="password"
+            className="coll-input"
+            value={password}
+            autoFocus
+            onChange={(e) => setPassword(e.target.value)}
+            aria-label="Password"
+          />
+          <button type="submit" className="rec-pill is-primary">
+            Listen
+          </button>
+        </form>
+      )}
 
-        {error && <p className="share-error">{error}</p>}
+      {error && !loading && (
+        <p className="coll-state">
+          {/not found|expired/i.test(error) ? 'This link has stopped working. Ask whoever sent it for a new one.' : error}
+        </p>
+      )}
 
-        {!loading && !needsPassword && !error && audioUrl && (
-          <div className="share-player-card" style={{ ['--stage-ink' as string]: stageColorVar(columnSlug) }}>
-            <h1 className="share-title">{title}</h1>
-            {/* The take's label usually IS the song title, because a take is
-                named after the file it came from, so this printed the name
-                twice: "not stick season" in large type, then "NOT STICK
-                SEASON" under it. Only show it when it says something new,
-                like "Mix 3" or "Full band, 12 June". */}
-            {versionLabel &&
-              versionLabel.trim().toLowerCase() !== title.trim().toLowerCase() && (
-                <p className="share-version">{versionLabel}</p>
-              )}
+      {!loading && !needsPassword && !error && audioUrl && (
+        <main className="rec" style={{ ['--stage-ink' as string]: stageColorVar(columnSlug) }}>
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            onPlay={() => {
+              setIsPlaying(true)
+              recordListen()
+            }}
+            onPause={() => setIsPlaying(false)}
+            onLoadedMetadata={(e) => {
+              const ms = e.currentTarget.duration * 1000
+              if (ms) setDurationMs(ms)
+            }}
+            onTimeUpdate={(e) => {
+              const el = e.currentTarget
+              if (!el.duration) return
+              setProgress(el.currentTime / el.duration)
+              setCurrentMs(el.currentTime * 1000)
+            }}
+          />
 
-            <audio
-              ref={audioRef}
-              src={audioUrl}
-              onPlay={() => {
-                setIsPlaying(true)
-                recordListen()
-              }}
-              onPause={() => setIsPlaying(false)}
-              onLoadedMetadata={(e) => {
-                const ms = e.currentTarget.duration * 1000
-                if (ms) setDurationMs(ms)
-              }}
-              onTimeUpdate={(e) => {
-                const el = e.currentTarget
-                if (!el.duration) return
-                setProgress(el.currentTime / el.duration)
-                setCurrentMs(el.currentTime * 1000)
-              }}
-            />
-
-            <div className="share-transport">
-              <button
-                type="button"
-                className="share-play"
-                onClick={() => {
-                  const audio = audioRef.current
-                  if (!audio) return
-                  if (isPlaying) audio.pause()
-                  else {
-                    void audio.play().then(() => recordListen())
-                  }
-                }}
-              >
-                {isPlaying ? '❚❚' : '▶'}
-              </button>
-              <span className="share-time">
-                {formatDuration(currentMs)} / {formatDuration(durationMs)}
-              </span>
-              <SpeedControl
-                value={playbackRate}
-                onChange={(rate) => {
-                  setPlaybackRate(rate)
-                  const audio = audioRef.current
-                  if (audio) audio.playbackRate = rate
-                }}
-              />
-              {allowDownload && (
-                <button type="button" className="share-download" onClick={download}>
-                  Download
+          <section className="rec-hero">
+            <RecordArt seed={token ?? title} label={`Cover for ${title}`} />
+            <div>
+              <p className="rec-eyebrow">
+                One song · {formatDuration(durationMs)}
+                {comments.length ? ` · ${comments.length} ${comments.length === 1 ? 'note' : 'notes'}` : ''}
+              </p>
+              <h1 className="rec-title">{title}</h1>
+              {extraLabel && <p className="rec-artist">{extraLabel}</p>}
+              <div className="rec-actions">
+                <button type="button" className="rec-pill is-primary" onClick={togglePlay}>
+                  {isPlaying ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
+                  {isPlaying ? 'Pause' : 'Play'}
                 </button>
-              )}
+                <div className="rec-rates" role="group" aria-label="Playback speed">
+                  {PLAYBACK_RATES.map((rate) => (
+                    <button
+                      key={rate}
+                      type="button"
+                      className={rate === playbackRate ? 'is-on' : ''}
+                      aria-pressed={rate === playbackRate}
+                      onClick={() => {
+                        setPlaybackRate(rate)
+                        if (audioRef.current) audioRef.current.playbackRate = rate
+                      }}
+                    >
+                      {rate}×
+                    </button>
+                  ))}
+                </div>
+                {allowDownload && (
+                  <div className="rec-actions-end">
+                    <button type="button" className="rec-circle" onClick={download} aria-label="Download" title="Download">
+                      <DownloadIcon size={19} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+          </section>
 
+          <section className="rec-song-wave">
             <InteractiveWaveform
               audioUrl={audioUrl}
               progress={progress}
               active={isPlaying}
-              height={96}
-              className="share-waveform"
+              height={88}
+              className="rec-big-wave"
               markers={commentMarkers}
               onSeek={seekTo}
               onMarkerClick={(id) => {
@@ -310,7 +329,13 @@ export function SharePage() {
                 if (comment) seekToMs(comment.timestamp_ms)
               }}
             />
+            <div className="rec-song-times">
+              <span>{formatDuration(currentMs)}</span>
+              <span>{formatDuration(durationMs)}</span>
+            </div>
+          </section>
 
+          <section className="rec-song-notes">
             <ShareCommentThread
               comments={comments}
               currentMs={currentMs}
@@ -325,9 +350,11 @@ export function SharePage() {
               submitting={submitting}
               onSeek={seekToMs}
             />
-          </div>
-        )}
-      </main>
+          </section>
+
+          <p className="coll-foot">Shared from songdrafts.</p>
+        </main>
+      )}
     </div>
   )
 }
