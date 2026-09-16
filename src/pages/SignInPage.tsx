@@ -1,5 +1,5 @@
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { resolveBoardAuth } from '@/lib/auth/session'
 import { supabase, supabaseConfigured } from '@/lib/supabase/client'
@@ -8,6 +8,7 @@ import '@/styles/sign-in.css'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
+import { renderGoogleButton } from '@/lib/auth/googleIdentity'
 
 /** Our own pause between resends, so a double tap cannot send two links. */
 const RESEND_COOLDOWN_S = 30
@@ -29,6 +30,25 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
      "Check your email" instead of the form. See signInWithEmail for why. */
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [resendIn, setResendIn] = useState(0)
+  const [code, setCode] = useState('')
+  const [googleReady, setGoogleReady] = useState(false)
+  const googleSlot = useRef<HTMLDivElement>(null)
+
+  /* Google's own button, so its screen says songdrafts.com rather than the
+     Supabase address. Our redirect button stays as the fallback. */
+  useEffect(() => {
+    const el = googleSlot.current
+    if (!el || checking || sentTo || !supabase) return
+    let live = true
+    void renderGoogleButton(el, {
+      text: creating ? 'signup_with' : 'continue_with',
+      width: Math.min(360, Math.round(el.getBoundingClientRect().width) || 320),
+      onError: (m) => live && setMessage(m),
+    }).then((ok) => live && setGoogleReady(ok))
+    return () => {
+      live = false
+    }
+  }, [checking, sentTo, creating])
 
   useEffect(() => {
     if (resendIn <= 0) return
@@ -128,6 +148,16 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
     setResendIn(RESEND_COOLDOWN_S)
   }
 
+  const verifyCode = async () => {
+    const token = code.replace(/\D/g, '')
+    if (!sentTo || token.length < 6) return
+    setBusy(true)
+    setMessage('')
+    const { error } = await client.auth.verifyOtp({ email: sentTo, token, type: 'email' })
+    setBusy(false)
+    if (error) setMessage('That code did not work. Check it, or send a new one.')
+  }
+
   if (checking) {
     return (
       <div className="sign-in-page">
@@ -182,18 +212,29 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
             {creating ? ' Open it and your account is made.' : ''}
           </p>
 
-          {/* PKCE: the link is bound to the browser that asked for it (the
-              code verifier lives here), so opening it in a phone's mail app
-              signs nobody in. Said up front, because the failure otherwise
-              looks like a broken link. */}
-          <ul className="sign-in-steps">
-            <li>Open it on this device, in this browser. It won&apos;t sign you in anywhere else.</li>
-            <li>It works once.</li>
-            <li>
-              Nothing there after a minute? Check spam. For now it comes from{' '}
-              <strong>Supabase Auth</strong>, the service that runs sign-in.
-            </li>
-          </ul>
+          <p className="sign-in-sub">Open the link on this device, or type the code from the email.</p>
+          <input
+            className="sign-in-input sign-in-code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="6-digit code"
+            aria-label="Code from the email"
+            maxLength={8}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void verifyCode()
+            }}
+          />
+          <button
+            type="button"
+            className="sign-in-submit"
+            disabled={busy || code.replace(/\D/g, '').length < 6}
+            onClick={() => void verifyCode()}
+          >
+            {busy ? 'Checking…' : 'Continue'}
+          </button>
+          <p className="sign-in-muted sign-in-spam">Nothing after a minute? Check spam.</p>
 
           <button
             type="button"
@@ -280,14 +321,17 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           <span>or</span>
         </div>
 
-        <button
-          type="button"
-          className="sign-in-google"
-          disabled={busy || offline}
-          onClick={() => void signInWithGoogle()}
-        >
-          {creating ? 'Sign up with Google' : 'Continue with Google'}
-        </button>
+        <div ref={googleSlot} className="sign-in-google-slot" style={googleReady ? undefined : { display: "none" }} />
+        {!googleReady && (
+          <button
+            type="button"
+            className="sign-in-google"
+            disabled={busy || offline}
+            onClick={() => void signInWithGoogle()}
+          >
+            {creating ? 'Sign up with Google' : 'Continue with Google'}
+          </button>
+        )}
 
         <p className="sign-in-switch">
           {creating ? (

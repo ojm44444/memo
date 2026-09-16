@@ -11879,3 +11879,48 @@ html.light .song-drawer {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* First-run choice: writing or sharing mixes. */
+.onboarding-tour-card.is-choice {
+  width: min(480px, 100%);
+}
+
+.onboarding-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 6px 0 4px;
+}
+
+.onboarding-choice button {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.onboarding-choice button:hover {
+  border-color: var(--accent);
+}
+
+.onboarding-choice strong {
+  font-size: 0.98rem;
+}
+
+.onboarding-choice span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .onboarding-choice {
+    grid-template-columns: 1fr;
+  }
+}

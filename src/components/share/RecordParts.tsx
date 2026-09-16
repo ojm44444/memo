@@ -13,6 +13,17 @@ function hashSeed(value: string) {
 }
 
 /** Generated artwork: the stage ramp turned by a seed, with the mark's four bars. */
+/* Every generated cover is different, but all from the brand's own colours:
+   the four stages of the ramp and the deep slate, in set orders. */
+const COVER_PALETTES: [string, string, string][] = [
+  ['var(--stage-inbox)', 'var(--stage-ideas)', 'var(--stage-done)'],
+  ['var(--stage-ideas)', 'var(--stage-half)', 'var(--stage-done)'],
+  ['var(--stage-inbox)', 'var(--stage-half)', 'var(--stage-ideas)'],
+  ['var(--stage-done)', 'var(--stage-inbox)', 'var(--stage-ideas)'],
+  ['var(--stage-half)', 'var(--stage-done)', 'var(--stage-inbox)'],
+  ['var(--stage-inbox)', 'var(--stage-done)', 'var(--stage-half)'],
+]
+
 export function RecordArt({
   seed,
   label,
@@ -26,12 +37,18 @@ export function RecordArt({
   src?: string | null
 }) {
   const h = hashSeed(seed)
+  const [a, b, c] = COVER_PALETTES[h % COVER_PALETTES.length]
   const angle = 110 + (h % 140)
   const bars = [0.5, 0.78, 0.62, 0.95].map((b, i) => Math.max(0.45, b - ((h >> (i * 4)) & 15) / 90))
   return (
     <div
       className={`rec-art${className ? ` ${className}` : ''}`}
-      style={{ ['--rec-angle' as string]: `${angle}deg` }}
+      style={{
+        ['--rec-angle' as string]: `${angle}deg`,
+        ['--rec-a' as string]: a,
+        ['--rec-b' as string]: b,
+        ['--rec-c' as string]: c,
+      }}
       role="img"
       aria-label={label}
     >

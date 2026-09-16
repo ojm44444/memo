@@ -50,10 +50,23 @@ interface UiState {
   requestColumnScroll: (columnSlug: ColumnSlug) => void
 }
 
+/* Open where you left off. Someone who only shares mixes should land on
+   Listen every time, not on a songwriting board they never use. */
+const MODE_KEY = 'sd-board-mode'
+
+function savedBoardMode(): BoardMode {
+  try {
+    const saved = localStorage.getItem(MODE_KEY)
+    return saved === 'listen' ? 'listen' : 'manage'
+  } catch {
+    return 'manage'
+  }
+}
+
 export const useUiStore = create<UiState>((set) => ({
   selectedSongId: null,
   drawerOpen: false,
-  boardMode: 'manage',
+  boardMode: savedBoardMode(),
   onboardingTourNonce: 0,
   selectionMode: false,
   selectedSongIds: [],
@@ -81,7 +94,14 @@ export const useUiStore = create<UiState>((set) => ({
 
   closeDrawer: () => set({ drawerOpen: false }),
 
-  setBoardMode: (boardMode) => set({ boardMode }),
+  setBoardMode: (boardMode) => {
+    try {
+      localStorage.setItem(MODE_KEY, boardMode)
+    } catch {
+      /* private window: just do not remember */
+    }
+    set({ boardMode })
+  },
 
   requestOnboardingTour: () =>
     set((state) => ({ onboardingTourNonce: state.onboardingTourNonce + 1 })),

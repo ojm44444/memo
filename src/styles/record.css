@@ -35,10 +35,9 @@
   overflow: hidden;
   background: linear-gradient(
     var(--rec-angle, 135deg),
-    var(--stage-inbox) 0%,
-    var(--stage-ideas) 40%,
-    var(--stage-half) 72%,
-    var(--stage-done) 100%
+    var(--rec-a, var(--stage-inbox)) 0%,
+    var(--rec-b, var(--stage-ideas)) 45%,
+    var(--rec-c, var(--stage-done)) 100%
   );
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
 }
@@ -479,11 +478,11 @@
   border-radius: 1px;
   background: var(--accent);
   transform-origin: bottom;
-  animation: eq-bounce 900ms ease-in-out infinite;
 }
 
-.eq-icon i:nth-child(2) { animation-delay: -300ms; }
-.eq-icon i:nth-child(3) { animation-delay: -600ms; }
+/* Still, not bouncing (17 Sept, Owen: moving bars looked childish). */
+.eq-icon i:nth-child(1) { transform: scaleY(0.6); }
+.eq-icon i:nth-child(3) { transform: scaleY(0.4); }
 
 .eq-icon.is-paused i {
   animation: none;
