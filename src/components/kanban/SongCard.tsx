@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { PauseIcon, PlayIcon } from '@/components/ui/Icons'
 import { cn } from '@/lib/cn'
 import { formatDuration } from '@/lib/audio-utils'
 import { looksUnnamedInLibrary } from '@/lib/unnamedTitles'
@@ -196,7 +197,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
             aria-label={isEmptyRecording ? 'No take on this song yet' : isActive ? 'Pause' : 'Play'}
             disabled={isEmptyRecording}
           >
-            {isEmptyRecording ? '!' : isActive ? '❚❚' : '▶'}
+            {isEmptyRecording ? '!' : isActive ? <PauseIcon size={13} /> : <PlayIcon size={13} />}
           </button>
         )}
         <div className="song-card-title-group">
@@ -244,6 +245,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
           progress={isActive ? progress : 0}
           active={isActive}
           className="song-card-waveform"
+          height={26}
         />
       )}
 

@@ -62,8 +62,8 @@ export function AdConsentBanner() {
   return (
     <div className="ad-consent" role="dialog" aria-live="polite" aria-label="Ad measurement">
       <p className="ad-consent-text">
-        Can we use Meta to see which of our ads work? It sets one cookie and tells Meta you
-        visited. Never your music, and never anything in your board.{' '}
+        <strong>Allow an ad cookie?</strong> It tells Meta you visited, so we know which ads
+        work. Meta never sees your music or your board.{' '}
         <Link to="/privacy">Details</Link>
       </p>
       <div className="ad-consent-actions">

@@ -58,7 +58,17 @@ let askingAgain = false
 const NEVER_ON = [/^\/share\//, /^\/invite\//, /^\/playlist\//, /^\/admin(\/|$)/]
 
 /** Public pages where a page view is counted. Everything else is private. */
-const PAGE_VIEW_ROUTES = [/^\/$/, /^\/sign-in\/?$/, /^\/sign-up\/?$/, /^\/privacy\/?$/, /^\/terms\/?$/]
+/* 17 Sept, Owen: the pixel on every part of the site, so the app counts
+   too (path only, nothing from the board). Share, playlist and invite links
+   stay off: their URLs carry private tokens. */
+const PAGE_VIEW_ROUTES = [
+  /^\/$/,
+  /^\/sign-in\/?$/,
+  /^\/sign-up\/?$/,
+  /^\/privacy\/?$/,
+  /^\/terms\/?$/,
+  /^\/app(\/|$)/,
+]
 
 type Fbq = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void
@@ -267,6 +277,9 @@ function canSend(): boolean {
 
 export function trackPageView(pathname: string) {
   if (!PAGE_VIEW_ROUTES.some((pattern) => pattern.test(pathname))) return
+  // The pixel reports the full URL. A sign-in lands on /app?code=... and
+  // that code must never reach Meta, so any URL with a query or hash is skipped.
+  if (window.location.search || window.location.hash) return
   if (!canSend()) return
   window.fbq!('track', 'PageView')
 }

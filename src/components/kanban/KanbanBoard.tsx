@@ -37,6 +37,7 @@ import { useUiStore } from '@/stores/uiStore'
 import { repeatedStems } from '@/lib/unnamedTitles'
 import { db } from '@/db/database'
 import { KanbanColumn } from './KanbanColumn'
+import { BoardHero } from './BoardHero'
 import { DragOverlayCard } from './DragOverlay'
 import type { ColumnSlug } from '@/types/column'
 import type { Song } from '@/types/song'
@@ -290,6 +291,11 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
         setOptimisticMove(null)
       }}
     >
+      <BoardHero
+        songCount={Object.values(columnCounts ?? {}).reduce((a, b) => a + b, 0)}
+        stageCount={columns?.length ?? 0}
+      />
+
       {columns && columns.length > 0 && (
         <div className="board-column-tabs" role="tablist" aria-label="Board sections">
           {columns.map((column, index) => {

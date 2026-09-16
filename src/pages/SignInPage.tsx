@@ -345,9 +345,6 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           )}
         </p>
 
-        {/* The one promise worth repeating at the moment someone hands over
-            an email address. Quoted from the landing page, not paraphrased. */}
-        <p className="sign-in-trust">And nothing you record trains an AI. Not ours, not anyone&apos;s.</p>
 
         <Link to="/" className="sign-in-secondary">
           ← Back to home
