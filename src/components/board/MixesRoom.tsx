@@ -9,6 +9,8 @@ import { formatDuration } from '@/lib/audio-utils'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { SongComments } from '@/components/song/SongComments'
 import { MixUpload } from './MixUpload'
+import { SentCollections } from './SentCollections'
+import { ShareCollectionSheet } from './ShareCollectionSheet'
 
 /**
  * Listen: the mixes that came back.
@@ -175,6 +177,8 @@ export function MixesRoom() {
   const mixes = useLiveQuery(() => getSongsWithMixes(), [])
   const [pickedVersion, setPickedVersion] = useState<Record<string, string>>({})
   const [openRow, setOpenRow] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+  const [sentKey, setSentKey] = useState(0)
 
   if (mixes === undefined) return null
 
@@ -238,15 +242,29 @@ export function MixesRoom() {
         <div>
           <h2 className="mixes-title">The mixes that came back</h2>
           <p className="mixes-sub">
-            Plays the top of each stack. Pick a V to hear an earlier one, or to A/B without losing
-            your place while it is playing. Tap a title for its comments.
+            Plays the top of each stack. Pick a V to hear an earlier one. Tap a title for its comments.
           </p>
         </div>
-        <MixUpload />
+        <div className="mixes-head-actions">
+          <MixUpload />
+          <button type="button" className="mixes-send-btn" onClick={() => setSending(true)}>
+            Send mixes
+          </button>
+        </div>
       </div>
+
+      <SentCollections refreshKey={sentKey} />
 
       {renderSection('Masters', 'Finished. This is what goes out.', mastered)}
       {renderSection('Mixes', 'Still moving. The last V is the current one.', inProgress)}
+
+      {sending && (
+        <ShareCollectionSheet
+          stacks={[...mastered, ...inProgress]}
+          onClose={() => setSending(false)}
+          onCreated={() => setSentKey((n) => n + 1)}
+        />
+      )}
     </div>
   )
 }

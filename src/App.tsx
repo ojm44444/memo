@@ -33,8 +33,8 @@ const SignInPage = lazy(() =>
 const SharePage = lazy(() =>
   import('@/pages/SharePage').then((m) => ({ default: m.SharePage })),
 )
-const PlaylistSharePage = lazy(() =>
-  import('@/pages/PlaylistSharePage').then((m) => ({ default: m.PlaylistSharePage })),
+const CollectionSharePage = lazy(() =>
+  import('@/pages/CollectionSharePage').then((m) => ({ default: m.CollectionSharePage })),
 )
 const InvitePage = lazy(() =>
   import('@/pages/InvitePage').then((m) => ({ default: m.InvitePage })),
@@ -66,7 +66,7 @@ export default function App() {
           <Route path="admin" element={<AdminPage />} />
           <Route path="invite/:token" element={<InvitePage />} />
           <Route path="share/:token" element={<SharePage />} />
-          <Route path="playlist/:token" element={<PlaylistSharePage />} />
+          <Route path="playlist/:token" element={<CollectionSharePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
