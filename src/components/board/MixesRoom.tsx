@@ -8,7 +8,7 @@ import { playSongAtTimestamp, playSongVersion } from '@/lib/playSongVersion'
 import { formatDuration } from '@/lib/audio-utils'
 import { CachedWaveform } from '@/components/audio/CachedWaveform'
 import { SongComments } from '@/components/song/SongComments'
-import { MixUpload } from './MixUpload'
+import { MixImport } from './MixImport'
 import { SentCollections } from './SentCollections'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 
@@ -120,6 +120,16 @@ function StackRow({
             <span>{chosen.label || 'Untitled'}</span>
             <span className="mix-dot">·</span>
             <span>{whenReceived(chosen.createdAt)}</span>
+            {/* Sending needs the file in the cloud, so say where it is. */}
+            {chosen.storagePath ? (
+              <span className="mix-cloud is-in">In cloud</span>
+            ) : chosen.uploadBlockedReason ? (
+              <span className="mix-cloud is-blocked">
+                {chosen.uploadBlockedReason === 'too_large' ? 'Too big for the cloud' : 'Cloud refused this file'}
+              </span>
+            ) : (
+              <span className="mix-cloud is-pending">Uploading</span>
+            )}
           </div>
 
           {/* The stack. Newest is the highest V and the one armed by default,
@@ -195,7 +205,7 @@ export function MixesRoom() {
           Each song keeps one stack, newest on top, so V3 sits above V2 and the last one is always
           the current one. Your rough takes stay on the Songwriting board.
         </p>
-        <MixUpload />
+        <MixImport variant="empty" />
       </div>
     )
   }
@@ -207,6 +217,10 @@ export function MixesRoom() {
    * thing, the one that goes out. Sorting both into one list by date buries a
    * master under three rough mixes that happened to arrive after it.
    */
+  const allVersions = mixes.flatMap((m) => m.versions)
+  const uploading = allVersions.filter((v) => !v.storagePath && !v.uploadBlockedReason).length
+  const blocked = allVersions.filter((v) => !v.storagePath && v.uploadBlockedReason).length
+
   const mastered = mixes.filter((m) => m.latest.kind === 'master')
   const inProgress = mixes.filter((m) => m.latest.kind !== 'master')
 
@@ -246,12 +260,22 @@ export function MixesRoom() {
           </p>
         </div>
         <div className="mixes-head-actions">
-          <MixUpload />
           <button type="button" className="mixes-send-btn" onClick={() => setSending(true)}>
             Send mixes
           </button>
+          <MixImport />
         </div>
       </div>
+
+      {(uploading > 0 || blocked > 0) && (
+        <p className="mixes-upload-banner">
+          {uploading > 0 &&
+            `${uploading} ${uploading === 1 ? 'mix is' : 'mixes are'} still going up to the cloud. Keep songdrafts open on this device; they can be sent once they say In cloud.`}
+          {uploading > 0 && blocked > 0 ? ' ' : ''}
+          {blocked > 0 &&
+            `${blocked} ${blocked === 1 ? 'file' : 'files'} could not go to the cloud (usually over 200 MB), so ${blocked === 1 ? 'it plays' : 'they play'} here only.`}
+        </p>
+      )}
 
       <SentCollections refreshKey={sentKey} />
 

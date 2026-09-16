@@ -11255,3 +11255,160 @@ html.light .song-drawer {
     gap: 6px;
   }
 }
+
+/* ── Adding mixes ─────────────────────────────────────────────────────── */
+.mix-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 160px;
+  margin-top: 18px;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.mix-drop-zone:hover {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.mix-drop-title {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+}
+
+.mix-drop-sub {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.mix-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 14, 18, 0.55);
+  pointer-events: none;
+}
+
+.mix-drop-overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 36px 48px;
+  border: 2px dashed var(--accent);
+  border-radius: 16px;
+  background: var(--bg-2);
+}
+
+.mix-import-notice {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  flex-basis: 100%;
+}
+
+.mixes-upload-banner {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  font-size: 0.86rem;
+}
+
+.mix-cloud {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.mix-cloud.is-in {
+  color: var(--stage-done);
+  border-color: color-mix(in srgb, var(--stage-done) 50%, transparent);
+}
+
+.mix-cloud.is-pending {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 50%, transparent);
+}
+
+.mix-cloud.is-blocked {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 50%, transparent);
+}
+
+.import-rows {
+  list-style: none;
+  margin: 12px 0 8px;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.import-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.import-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.import-file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.import-file-size {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.import-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.import-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.import-more {
+  background: transparent;
+  border: 0;
+  padding: 6px 0;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+}
