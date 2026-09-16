@@ -147,7 +147,7 @@ export function PrivacyPage() {
         </p>
         <p>If it runs, Meta receives:</p>
         <ul>
-          <li>that you visited our public pages (the home page, sign in, this page, the terms);</li>
+          <li>that you visited the site, including the app (the page address only, never what is on it);</li>
           <li>
             that you created an account, imported recordings (as a count only), started a
             checkout, or paid, with the amount and currency.
