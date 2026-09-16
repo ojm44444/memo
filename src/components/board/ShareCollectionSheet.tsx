@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AudioVersion } from '@/types/audio-version'
 import type { Song } from '@/types/song'
 import { formatDuration } from '@/lib/audio-utils'
 import { getMyDisplayName } from '@/lib/displayName'
 import { SHARE_LIFETIMES, type ShareLifetimeDays } from '@/db/repositories/shareRepo'
-import { createCollectionShare, type CollectionItem } from '@/db/repositories/collectionShareRepo'
+import {
+  createCollectionShare,
+  uploadCollectionCover,
+  type CollectionItem,
+} from '@/db/repositories/collectionShareRepo'
+import { RecordArt } from '@/components/share/RecordParts'
 
 type Stack = { song: Song; latest: AudioVersion; versions: AudioVersion[] }
 
@@ -42,6 +47,13 @@ export function ShareCollectionSheet({
   const [error, setError] = useState<string | null>(null)
   const [url, setUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [cover, setCover] = useState<File | null>(null)
+  const coverInput = useRef<HTMLInputElement>(null)
+  const coverPreview = useMemo(() => (cover ? URL.createObjectURL(cover) : null), [cover])
+
+  useEffect(() => () => {
+    if (coverPreview) URL.revokeObjectURL(coverPreview)
+  }, [coverPreview])
 
   useEffect(() => {
     void getMyDisplayName().then((name) => setArtist((prev) => prev || (name === 'You' ? '' : name)))
@@ -89,12 +101,14 @@ export function ShareCollectionSheet({
     setBusy(true)
     setError(null)
     try {
+      const coverPath = cover ? await uploadCollectionCover(cover) : null
       const link = await createCollectionShare(items, {
         title,
         artist,
         allowDownload,
         expiresInDays,
         password,
+        coverPath,
       })
       setUrl(link)
       onCreated()
@@ -117,11 +131,11 @@ export function ShareCollectionSheet({
         className="send-sheet"
         role="dialog"
         aria-modal="true"
-        aria-label="Send mixes"
+        aria-label="Share"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="send-sheet-head">
-          <h2 className="send-sheet-title">{url ? 'Your link is ready' : 'Send mixes'}</h2>
+          <h2 className="send-sheet-title">{url ? 'Your link is ready' : 'Share'}</h2>
           <button type="button" className="send-sheet-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
@@ -158,6 +172,27 @@ export function ShareCollectionSheet({
           </div>
         ) : (
           <>
+            <div className="send-sheet-top">
+              <button
+                type="button"
+                className="send-cover"
+                onClick={() => coverInput.current?.click()}
+                aria-label={cover ? 'Change the cover' : 'Add a cover'}
+              >
+                <RecordArt seed={title || 'cover'} label="" src={coverPreview} />
+                <span className="send-cover-label">{cover ? 'Change' : 'Add cover'}</span>
+              </button>
+              <input
+                ref={coverInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  e.target.value = ''
+                  if (file) setCover(file)
+                }}
+              />
             <div className="send-sheet-fields">
               <label className="send-field">
                 <span>Title</span>
@@ -173,6 +208,7 @@ export function ShareCollectionSheet({
                 <span>Artist</span>
                 <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Your artist name" maxLength={120} />
               </label>
+            </div>
             </div>
 
             <p className="send-sheet-label">

@@ -11803,3 +11803,45 @@ html.light .song-drawer {
     padding-left: 6px;
   }
 }
+
+/* Cover picker in Send mixes */
+.send-sheet-top {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.send-sheet-top .send-sheet-fields {
+  grid-template-columns: 1fr;
+  margin-bottom: 0;
+}
+
+.send-cover {
+  position: relative;
+  width: 112px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.send-cover .rec-art {
+  box-shadow: none;
+}
+
+.send-cover-label {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 3;
+  padding: 5px 0;
+  border-radius: 999px;
+  background: rgba(8, 20, 26, 0.72);
+  color: #eef5f2;
+  font-size: 12px;
+  font-weight: 600;
+}

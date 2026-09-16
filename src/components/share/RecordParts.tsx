@@ -13,7 +13,18 @@ function hashSeed(value: string) {
 }
 
 /** Generated artwork: the stage ramp turned by a seed, with the mark's four bars. */
-export function RecordArt({ seed, label, className }: { seed: string; label: string; className?: string }) {
+export function RecordArt({
+  seed,
+  label,
+  className,
+  src,
+}: {
+  seed: string
+  label: string
+  className?: string
+  /** A real cover. The generated art shows until (and unless) it loads. */
+  src?: string | null
+}) {
   const h = hashSeed(seed)
   const angle = 110 + (h % 140)
   const bars = [0.5, 0.78, 0.62, 0.95].map((b, i) => Math.max(0.45, b - ((h >> (i * 4)) & 15) / 90))
@@ -29,6 +40,7 @@ export function RecordArt({ seed, label, className }: { seed: string; label: str
           <span key={i} style={{ height: `${Math.round(height * 100)}%` }} />
         ))}
       </div>
+      {src && <img className="rec-art-img" src={src} alt="" draggable={false} />}
     </div>
   )
 }

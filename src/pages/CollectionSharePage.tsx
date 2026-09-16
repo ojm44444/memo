@@ -91,6 +91,7 @@ export function CollectionSharePage() {
   const [currentMs, setCurrentMs] = useState(0)
   const [repeat, setRepeat] = useState(false)
   const [notesFor, setNotesFor] = useState<string | null>(null)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
   const [authorName, setAuthorName] = useState(() => {
     try {
@@ -141,6 +142,20 @@ export function CollectionSharePage() {
   useEffect(() => {
     queueMicrotask(() => void load())
   }, [load])
+
+  useEffect(() => {
+    const path = data?.cover_path
+    if (!path) return
+    let live = true
+    signedTrackUrl(path)
+      .then((url) => live && setCoverUrl(url))
+      .catch(() => {
+        /* the generated art stays */
+      })
+    return () => {
+      live = false
+    }
+  }, [data?.cover_path])
 
   useEffect(() => {
     try {
@@ -469,7 +484,7 @@ export function CollectionSharePage() {
       {!loading && data && (
         <main className="rec">
           <section className="rec-hero">
-            <RecordArt seed={token ?? title} label={`Cover for ${title}`} />
+            <RecordArt seed={token ?? title} label={`Cover for ${title}`} src={coverUrl} />
             <div>
               <p className="rec-eyebrow">
                 {eyebrowKind} · {songs.length} {songs.length === 1 ? 'track' : 'tracks'} · {formatDuration(totalMs)}
@@ -675,7 +690,7 @@ export function CollectionSharePage() {
       {currentTrack && data && (
         <div className="rec-player" role="region" aria-label="Player">
           <div className="rec-player-now">
-            <RecordArt seed={token ?? title} label="" />
+            <RecordArt seed={token ?? title} label="" src={coverUrl} />
             <div className="rec-player-text">
               <span className="rec-player-eyebrow">{title}</span>
               <span className="rec-player-title">{currentTrack.title}</span>

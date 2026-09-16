@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase/client'
 import { resolveBoardId } from '@/lib/supabase/boardAccess'
 import { getBoardUserId } from '@/lib/auth/session'
 import type { ShareLifetimeDays } from '@/db/repositories/shareRepo'
+import { createId } from '@/lib/ids'
 
 /**
  * Collections: one link to a set of mixes (036).
@@ -41,6 +42,7 @@ export interface CollectionPayload {
   artist: string | null
   allow_download: boolean
   expires_at: string | null
+  cover_path: string | null
   tracks: CollectionTrack[]
   comments: CollectionComment[]
 }
@@ -77,6 +79,7 @@ export async function createCollectionShare(
     allowDownload?: boolean
     expiresInDays?: ShareLifetimeDays
     password?: string
+    coverPath?: string | null
   } = {},
 ): Promise<string> {
   if (!supabase) throw new Error('Cloud sync is not configured')
@@ -93,6 +96,7 @@ export async function createCollectionShare(
     p_allow_download: options.allowDownload ?? false,
     p_expires_in_days: options.expiresInDays ?? 90,
     p_password: options.password?.trim() || null,
+    p_cover_path: options.coverPath ?? null,
   })
   if (error) throw new Error(error.message)
   return collectionUrl(data as string)
@@ -209,4 +213,37 @@ export async function signedTrackUrl(storagePath: string, download?: string): Pr
     .createSignedUrl(storagePath, 60 * 60 * 6, download ? { download } : undefined)
   if (error || !data?.signedUrl) throw new Error(error?.message ?? 'Could not open that file')
   return data.signedUrl
+}
+
+/**
+ * Upload a cover for a collection: centre-cropped square, 1200px, JPEG.
+ * Phone photos arrive at 4000px and 5 MB; a cover never needs more than this,
+ * and a listener on 4G should not download a camera original to see it.
+ * Stored in your own folder, so the upload rule and your quota apply as usual.
+ */
+export async function uploadCollectionCover(file: File): Promise<string> {
+  if (!supabase) throw new Error('Cloud sync is not configured')
+  const userId = await getBoardUserId()
+  if (!userId) throw new Error('Sign in to add a cover')
+
+  const bitmap = await createImageBitmap(file)
+  const side = Math.min(bitmap.width, bitmap.height)
+  const size = Math.min(1200, side)
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Could not read that image')
+  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size)
+  bitmap.close()
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88))
+  if (!blob) throw new Error('Could not read that image')
+
+  const path = `${userId}/covers/${createId()}.jpg`
+  const { error } = await supabase.storage.from('audio').upload(path, blob, {
+    contentType: 'image/jpeg',
+    upsert: false,
+  })
+  if (error) throw new Error('The cover did not upload. Try again, or send without one.')
+  return path
 }
