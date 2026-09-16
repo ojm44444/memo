@@ -15,9 +15,9 @@ import { supabase } from '@/lib/supabase/client'
 /** Flip on once www.songdrafts.com is an Authorised JavaScript origin on the
     client below. Google still draws its button for an unlisted origin and
     then fails on click, so this cannot be detected; it has to be switched. */
-export const GOOGLE_BUTTON_ON = false
+export const GOOGLE_BUTTON_ON = true
 
-export const GOOGLE_CLIENT_ID = '640615928143-5bvivvvegjd9ljdhcg3gvnsl63hs3e7f.apps.googleusercontent.com'
+export const GOOGLE_CLIENT_ID = '96702736151-05enp21jqi4dtdsrh2cgr3crm7doal4m.apps.googleusercontent.com'
 
 type GoogleId = {
   accounts: {
