@@ -1,3 +1,6 @@
+/** take: a private rough recording (Songwriting). demo, mix, master: Listen. */
+export type TakeKind = 'take' | 'demo' | 'mix' | 'master'
+
 export interface AudioVersion {
   id: string
   songId: string
@@ -21,7 +24,7 @@ export interface AudioVersion {
    * The distinction is about audience, not audio: takes are private and messy,
    * mixes are the thing you play to the band.
    */
-  kind?: 'take' | 'mix' | 'master'
+  kind?: TakeKind
   /** Playback start offset in ms — skips the silence/intro on play. */
   trimStartMs?: number
   /**

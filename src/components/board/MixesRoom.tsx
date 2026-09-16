@@ -1,39 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { AudioVersion } from '@/types/audio-version'
 import type { Song } from '@/types/song'
-import { getSongsWithMixes } from '@/db/repositories/audioRepo'
+import { db } from '@/db/database'
+import { getSongsWithMixes, setAudioVersionKind } from '@/db/repositories/audioRepo'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useUiStore } from '@/stores/uiStore'
 import { playSongAtTimestamp, playSongVersion } from '@/lib/playSongVersion'
 import { formatDuration } from '@/lib/audio-utils'
-import { CachedWaveform } from '@/components/audio/CachedWaveform'
+import { getMyDisplayName } from '@/lib/displayName'
+import { scheduleFlush } from '@/sync/syncEngine'
 import { SongComments } from '@/components/song/SongComments'
+import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
+import { kindName } from '@/lib/kindName'
+import {
+  CheckIcon,
+  CommentIcon,
+  EqIcon,
+  LinkIcon,
+  MoreIcon,
+  PauseIcon,
+  PlayIcon,
+  ShuffleIcon,
+  StackIcon,
+} from '@/components/ui/Icons'
 import { MixImport } from './MixImport'
 import { SentCollections } from './SentCollections'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
+import '@/styles/record.css'
 
 /**
- * Listen: the mixes that came back.
+ * Listen: demos, mixes and masters, and where they go out from.
  *
- * NOT a favourites list. Favourites are a filter on your own work; this is the
- * room where other people's work arrives - the rough mix from the producer,
- * mix 2, the master from the engineer. Different audience, different level of
- * mess you are willing to show, which is the real line between this and the
- * songwriting board.
+ * Rebuilt 16 Sept to the standard Owen set by pointing at Samply: a cover, a
+ * title, Play and Shuffle, and a quiet tracklist with notes, versions and
+ * length on the right. Samply is only this half of the job. songdrafts has
+ * the board behind it, so this room has to be at least as good at the half
+ * Samply does.
  *
- * A row here is a STACK, not a song card. It deliberately does not open into
- * the songwriting drawer: a stack is a simpler object than a song, and the
- * point of this room is that you are listening rather than working. Expanding
- * a row gets you the one thing you actually want while listening, which is
- * the comments.
+ * A row is a STACK: the top version plays, the stack button picks another,
+ * and swapping while it plays keeps your place so you can A/B the same bar.
  */
 
 type Stack = { song: Song; latest: AudioVersion; mixCount: number; versions: AudioVersion[] }
 
 function whenReceived(iso: string | null | undefined) {
   if (!iso) return ''
-  const then = new Date(iso).getTime()
-  const days = Math.floor((Date.now() - then) / 86400_000)
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400_000)
   if (days <= 0) return 'today'
   if (days === 1) return 'yesterday'
   if (days < 7) return `${days} days ago`
@@ -42,42 +55,34 @@ function whenReceived(iso: string | null | undefined) {
 
 function StackRow({
   stack,
+  index,
   chosenId,
   onChoose,
-  expanded,
-  onToggleExpand,
+  notesOpen,
+  onToggleNotes,
 }: {
   stack: Stack
+  index: number
   chosenId: string | null
   onChoose: (versionId: string) => void
-  expanded: boolean
-  onToggleExpand: () => void
+  notesOpen: boolean
+  onToggleNotes: () => void
 }) {
-  const { song, versions, mixCount } = stack
-  const { currentSongId, isPlaying } = usePlayerStore()
+  const { song, versions } = stack
+  const isCurrent = usePlayerStore((s) => s.currentSongId === song.id)
+  const isPlaying = usePlayerStore((s) => s.isPlaying)
   const chosen = versions.find((v) => v.id === chosenId) ?? stack.latest
-  const active = currentSongId === song.id && isPlaying
+  const playing = isCurrent && isPlaying
+  const noteCount = useLiveQuery(
+    () => db.songComments.where('songId').equals(song.id).filter((c) => !c.deletedAt).count(),
+    [song.id],
+  )
 
-  /**
-   * A/B, not restart.
-   *
-   * The only way to hear what changed between V2 and V3 is to hear the SAME
-   * BAR twice. Restarting the new version from zero destroys that: by the time
-   * you have scrubbed back to the chorus you have lost the sound of the one
-   * you were comparing it against. So while a song is playing, swapping
-   * version lands at the same elapsed position and keeps going.
-   *
-   * Matched in milliseconds rather than as a fraction, because two mixes of
-   * one song are rarely the same length and a fraction would drift further out
-   * the longer the song ran.
-   */
   const chooseAndPlay = (version: AudioVersion) => {
     onChoose(version.id)
     const player = usePlayerStore.getState()
-    const playingThis = player.currentSongId === song.id
-    const currentMs = playingThis ? player.progress * (chosen.durationMs || 0) : 0
-
-    if (playingThis && currentMs > 0) {
+    const currentMs = player.currentSongId === song.id ? player.progress * (chosen.durationMs || 0) : 0
+    if (currentMs > 0) {
       const clamped = Math.min(currentMs, Math.max(0, (version.durationMs || 0) - 250))
       void playSongAtTimestamp(song.columnSlug, song.id, version.id, clamped)
       return
@@ -85,97 +90,175 @@ function StackRow({
     void playSongVersion(song.columnSlug, song.id, version.id)
   }
 
-  return (
-    <li className={`mix-row${active ? ' is-playing' : ''}${expanded ? ' is-open' : ''}`}>
-      <div className="mix-row-main">
-        <button
-          type="button"
-          className="mix-play"
-          aria-label={active ? `Pause ${song.title}` : `Play ${song.title}`}
-          onClick={() => {
-            if (active) {
-              usePlayerStore.getState().setPlaying(false)
-              return
-            }
-            void playSongVersion(song.columnSlug, song.id, chosen.id)
-          }}
-        >
-          {active ? '❚❚' : '▶'}
-        </button>
+  const togglePlay = () => {
+    const player = usePlayerStore.getState()
+    if (isCurrent) {
+      player.setPlaying(!player.isPlaying)
+      return
+    }
+    void playSongVersion(song.columnSlug, song.id, chosen.id)
+  }
 
-        <div className="mix-body">
+  const cloud = chosen.storagePath ? null : chosen.uploadBlockedReason ? 'blocked' : 'uploading'
+  const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+
+  return (
+    <li className={`rec-row${isCurrent ? ' is-current' : ''}`}>
+      <div
+        className="rec-line"
+        role="button"
+        tabIndex={0}
+        aria-label={`${playing ? 'Pause' : 'Play'} ${song.title}`}
+        onClick={togglePlay}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            togglePlay()
+          }
+        }}
+      >
+        <span className="rec-num">
+          {isCurrent ? (
+            <EqIcon className={playing ? undefined : 'is-paused'} />
+          ) : (
+            <>
+              <span className="rec-num-index">{index}</span>
+              <span className="rec-num-play">
+                <PlayIcon size={14} />
+              </span>
+            </>
+          )}
+        </span>
+
+        <span className="rec-name">
+          <span className="rec-name-title">{song.title}</span>
+          <span className={`rec-name-kind is-${chosen.kind ?? 'mix'}`}>{kindName(chosen.kind)}</span>
+          {cloud === 'uploading' && <span className="rec-name-warn">Uploading</span>}
+          {cloud === 'blocked' && <span className="rec-name-warn is-bad">Too big for the cloud</span>}
+        </span>
+
+        <span className="rec-right" onClick={stop} onKeyDown={stop}>
           <button
             type="button"
-            className="mix-title"
-            aria-expanded={expanded}
-            onClick={onToggleExpand}
+            className={`rec-stat${noteCount ? '' : ' is-empty'}`}
+            aria-expanded={notesOpen}
+            aria-label={`Notes on ${song.title}`}
+            onClick={onToggleNotes}
           >
-            {song.title}
+            <CommentIcon size={17} />
+            {noteCount ? <span>{noteCount}</span> : null}
           </button>
 
-          <div className="mix-meta">
-            <span className={`mix-kind is-${chosen.kind ?? 'mix'}`}>
-              {chosen.kind === 'master' ? 'Master' : 'Mix'}
-            </span>
-            <span>{chosen.label || 'Untitled'}</span>
-            <span className="mix-dot">·</span>
-            <span>{whenReceived(chosen.createdAt)}</span>
-            {/* Sending needs the file in the cloud, so say where it is. */}
-            {chosen.storagePath ? (
-              <span className="mix-cloud is-in">In cloud</span>
-            ) : chosen.uploadBlockedReason ? (
-              <span className="mix-cloud is-blocked">
-                {chosen.uploadBlockedReason === 'too_large' ? 'Too big for the cloud' : 'Cloud refused this file'}
-              </span>
-            ) : (
-              <span className="mix-cloud is-pending">Uploading</span>
+          <RecordMenu
+            label={`Versions of ${song.title}`}
+            trigger={({ open, toggle }) => (
+              <button
+                type="button"
+                className="rec-stat"
+                aria-expanded={open}
+                aria-label={`${versions.length} versions of ${song.title}`}
+                onClick={toggle}
+              >
+                <StackIcon size={17} />
+                <span>v{versions.length}</span>
+              </button>
             )}
-          </div>
-
-          {/* The stack. Newest is the highest V and the one armed by default,
-              because the last mix is the one that gets used. */}
-          {mixCount > 1 && (
-            <div className="mix-stack" role="group" aria-label={`Versions of ${song.title}`}>
-              {versions.map((version, i) => {
-                const number = versions.length - i
-                const isChosen = version.id === chosen.id
-                return (
+          >
+            {(close) => (
+              <>
+                <p className="rec-menu-title">Versions</p>
+                {versions.map((version, i) => (
                   <button
                     key={version.id}
                     type="button"
-                    className={`mix-stack-v${isChosen ? ' is-chosen' : ''}${
-                      version.kind === 'master' ? ' is-master' : ''
-                    }`}
-                    aria-pressed={isChosen}
-                    title={`${version.label || `Version ${number}`} · ${whenReceived(
-                      version.createdAt,
-                    )}${active ? ' · swaps without losing your place' : ''}`}
-                    onClick={() => chooseAndPlay(version)}
+                    role="menuitem"
+                    className="rec-menu-item"
+                    onClick={() => {
+                      close()
+                      chooseAndPlay(version)
+                    }}
                   >
-                    V{number}
-                    {i === 0 && <span className="mix-stack-top">top</span>}
+                    <span>{version.id === chosen.id ? <CheckIcon size={16} /> : null}</span>
+                    <span>
+                      v{versions.length - i} · {kindName(version.kind)}
+                      <small>
+                        {version.label || 'Untitled'} · {whenReceived(version.createdAt)}
+                      </small>
+                    </span>
+                    <span className="rec-menu-meta">{formatDuration(version.durationMs)}</span>
                   </button>
-                )
-              })}
-              {active && <span className="mix-stack-hint">swaps in place</span>}
-            </div>
-          )}
+                ))}
+              </>
+            )}
+          </RecordMenu>
 
-          <CachedWaveform
-            versionId={chosen.id}
-            localBlobId={chosen.localBlobId}
-            storagePath={chosen.storagePath}
-            progress={0}
-            active={active}
-            className="mix-wave"
-          />
-        </div>
+          <span className="rec-dur">{formatDuration(chosen.durationMs)}</span>
 
-        <span className="mix-time">{formatDuration(chosen.durationMs)}</span>
+          <RecordMenu
+            label={`More for ${song.title}`}
+            trigger={({ open, toggle }) => (
+              <button type="button" className="rec-more" aria-expanded={open} aria-label="More" onClick={toggle}>
+                <MoreIcon size={18} />
+              </button>
+            )}
+          >
+            {(close) => (
+              <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="rec-menu-item"
+                  onClick={() => {
+                    close()
+                    useUiStore.getState().openDrawer(song.id)
+                  }}
+                >
+                  <span />
+                  <span>Open the song</span>
+                  <span />
+                </button>
+                {(['demo', 'mix', 'master'] as const)
+                  .filter((k) => k !== (chosen.kind ?? 'mix'))
+                  .map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      role="menuitem"
+                      className="rec-menu-item"
+                      onClick={() => {
+                        close()
+                        void setAudioVersionKind(chosen.id, k).then(() => scheduleFlush())
+                      }}
+                    >
+                      <span />
+                      <span>Call this version a {kindName(k).toLowerCase()}</span>
+                      <span />
+                    </button>
+                  ))}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="rec-menu-item is-danger"
+                  onClick={() => {
+                    close()
+                    void setAudioVersionKind(chosen.id, 'take').then(() => scheduleFlush())
+                  }}
+                >
+                  <span />
+                  <span>
+                    Take out of Listen
+                    <small>It stays on the song as a rough take.</small>
+                  </span>
+                  <span />
+                </button>
+              </>
+            )}
+          </RecordMenu>
+        </span>
       </div>
 
-      {expanded && (
-        <div className="mix-row-comments">
+      {notesOpen && (
+        <div className="rec-panel">
           <SongComments songId={song.id} />
         </div>
       )}
@@ -186,109 +269,153 @@ function StackRow({
 export function MixesRoom() {
   const mixes = useLiveQuery(() => getSongsWithMixes(), [])
   const [pickedVersion, setPickedVersion] = useState<Record<string, string>>({})
-  const [openRow, setOpenRow] = useState<string | null>(null)
+  const [notesRow, setNotesRow] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [sentKey, setSentKey] = useState(0)
+  const [artist, setArtist] = useState('')
+
+  useEffect(() => {
+    let live = true
+    void getMyDisplayName().then((name) => live && setArtist(name === 'You' ? '' : name))
+    return () => {
+      live = false
+    }
+  }, [])
+
+  const ordered = useMemo(() => {
+    if (!mixes) return []
+    const rank = (s: Stack) => (s.latest.kind === 'master' ? 0 : s.latest.kind === 'mix' ? 1 : 2)
+    return [...mixes].sort((a, b) => rank(a) - rank(b))
+  }, [mixes])
 
   if (mixes === undefined) return null
 
-  if (mixes.length === 0) {
-    return (
-      <div className="mixes-empty">
-        <h2 className="mixes-empty-title">Nothing has come back yet.</h2>
-        <p>
-          Mixes come back the way they always do: a WeTransfer link, a Dropbox folder, a file on an
-          email. Download it, drop it here, and it stacks on the song it belongs to. Your engineer
-          does not need an account and never touches this.
-        </p>
-        <p className="mixes-empty-note">
-          Each song keeps one stack, newest on top, so V3 sits above V2 and the last one is always
-          the current one. Your rough takes stay on the Songwriting board.
-        </p>
-        <MixImport variant="empty" />
-      </div>
-    )
+  const totalMs = ordered.reduce((sum, s) => {
+    const chosen = s.versions.find((v) => v.id === pickedVersion[s.song.id]) ?? s.latest
+    return sum + (chosen.durationMs || 0)
+  }, 0)
+  const uploading = ordered.flatMap((s) => s.versions).filter((v) => !v.storagePath && !v.uploadBlockedReason).length
+
+  const playAll = (shuffle: boolean) => {
+    if (!ordered.length) return
+    const items = ordered.map((s) => {
+      const chosen = s.versions.find((v) => v.id === pickedVersion[s.song.id]) ?? s.latest
+      return { songId: s.song.id, audioVersionId: chosen.id, songTitle: s.song.title, columnSlug: s.song.columnSlug }
+    })
+    if (shuffle) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[items[i], items[j]] = [items[j], items[i]]
+      }
+    }
+    const first = items[0]
+    const player = usePlayerStore.getState()
+    player.setPlaylist(first.columnSlug, items, 0, first.audioVersionId)
+    usePlayerStore.setState({ isPlaying: true, pendingSeekMs: null })
   }
 
-  /**
-   * Two sections, split by what sits on TOP of each stack.
-   *
-   * A master is a different kind of object from a mix: it is the finished
-   * thing, the one that goes out. Sorting both into one list by date buries a
-   * master under three rough mixes that happened to arrive after it.
-   */
-  const allVersions = mixes.flatMap((m) => m.versions)
-  const uploading = allVersions.filter((v) => !v.storagePath && !v.uploadBlockedReason).length
-  const blocked = allVersions.filter((v) => !v.storagePath && v.uploadBlockedReason).length
+  return (
+    <div className="rec">
+      <section className="rec-hero">
+        <RecordArt seed={`listen-${artist}`} label="Listen" />
+        <div>
+          <p className="rec-eyebrow">
+            {ordered.length} {ordered.length === 1 ? 'track' : 'tracks'}
+            {totalMs ? ` · ${formatDuration(totalMs)}` : ''}
+          </p>
+          <h2 className="rec-title">Listen</h2>
+          <p className="rec-artist">{artist ? `${artist} · demos, mixes and masters` : 'Demos, mixes and masters'}</p>
 
-  const mastered = mixes.filter((m) => m.latest.kind === 'master')
-  const inProgress = mixes.filter((m) => m.latest.kind !== 'master')
-
-  const renderSection = (title: string, note: string, rows: Stack[]) =>
-    rows.length > 0 ? (
-      <section className="mixes-section">
-        <div className="mixes-section-head">
-          <h3 className="mixes-section-title">{title}</h3>
-          <span className="mixes-section-note">{note}</span>
+          <div className="rec-actions">
+            <PlayAllButton
+              disabled={!ordered.length}
+              onPlay={() => playAll(false)}
+              songIds={ordered.map((s) => s.song.id)}
+            />
+            <button type="button" className="rec-pill is-quiet" disabled={ordered.length < 2} onClick={() => playAll(true)}>
+              <ShuffleIcon size={17} />
+              Shuffle
+            </button>
+            <div className="rec-actions-end">
+              <MixImport variant="circle" />
+              <button
+                type="button"
+                className="rec-pill is-accent"
+                disabled={!ordered.length}
+                onClick={() => setSending(true)}
+              >
+                Share
+                <LinkIcon size={17} />
+              </button>
+            </div>
+          </div>
         </div>
-        <ul className="mixes-list">
-          {rows.map((stack) => (
+      </section>
+
+      {uploading > 0 && (
+        <p className="rec-status">
+          <span className="rec-status-dot" aria-hidden />
+          {uploading} {uploading === 1 ? 'file is' : 'files are'} uploading. Keep songdrafts open; they can be shared
+          once they finish.
+        </p>
+      )}
+
+      {ordered.length === 0 ? (
+        <MixImport variant="empty" />
+      ) : (
+        <ol className="rec-list">
+          {ordered.map((stack, i) => (
             <StackRow
               key={stack.song.id}
               stack={stack}
+              index={i + 1}
               chosenId={pickedVersion[stack.song.id] ?? null}
-              onChoose={(versionId) =>
-                setPickedVersion((prev) => ({ ...prev, [stack.song.id]: versionId }))
-              }
-              expanded={openRow === stack.song.id}
-              onToggleExpand={() =>
-                setOpenRow((prev) => (prev === stack.song.id ? null : stack.song.id))
-              }
+              onChoose={(versionId) => setPickedVersion((prev) => ({ ...prev, [stack.song.id]: versionId }))}
+              notesOpen={notesRow === stack.song.id}
+              onToggleNotes={() => setNotesRow((prev) => (prev === stack.song.id ? null : stack.song.id))}
             />
           ))}
-        </ul>
-      </section>
-    ) : null
-
-  return (
-    <div className="mixes-room">
-      <div className="mixes-head">
-        <div>
-          <h2 className="mixes-title">The mixes that came back</h2>
-          <p className="mixes-sub">
-            Plays the top of each stack. Pick a V to hear an earlier one. Tap a title for its comments.
-          </p>
-        </div>
-        <div className="mixes-head-actions">
-          <button type="button" className="mixes-send-btn" onClick={() => setSending(true)}>
-            Send mixes
-          </button>
-          <MixImport />
-        </div>
-      </div>
-
-      {(uploading > 0 || blocked > 0) && (
-        <p className="mixes-upload-banner">
-          {uploading > 0 &&
-            `${uploading} ${uploading === 1 ? 'mix is' : 'mixes are'} still going up to the cloud. Keep songdrafts open on this device; they can be sent once they say In cloud.`}
-          {uploading > 0 && blocked > 0 ? ' ' : ''}
-          {blocked > 0 &&
-            `${blocked} ${blocked === 1 ? 'file' : 'files'} could not go to the cloud (usually over 200 MB), so ${blocked === 1 ? 'it plays' : 'they play'} here only.`}
-        </p>
+        </ol>
       )}
 
       <SentCollections refreshKey={sentKey} />
 
-      {renderSection('Masters', 'Finished. This is what goes out.', mastered)}
-      {renderSection('Mixes', 'Still moving. The last V is the current one.', inProgress)}
-
       {sending && (
         <ShareCollectionSheet
-          stacks={[...mastered, ...inProgress]}
+          stacks={ordered}
           onClose={() => setSending(false)}
           onCreated={() => setSentKey((n) => n + 1)}
         />
       )}
     </div>
+  )
+}
+
+function PlayAllButton({
+  disabled,
+  onPlay,
+  songIds,
+}: {
+  disabled: boolean
+  onPlay: () => void
+  songIds: string[]
+}) {
+  const isPlaying = usePlayerStore((s) => s.isPlaying)
+  const currentSongId = usePlayerStore((s) => s.currentSongId)
+  const playingHere = !!currentSongId && songIds.includes(currentSongId)
+  const showPause = playingHere && isPlaying
+  return (
+    <button
+      type="button"
+      className="rec-pill is-primary"
+      disabled={disabled}
+      onClick={() => {
+        if (playingHere) usePlayerStore.getState().setPlaying(!isPlaying)
+        else onPlay()
+      }}
+    >
+      {showPause ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
+      {showPause ? 'Pause' : 'Play'}
+    </button>
   )
 }

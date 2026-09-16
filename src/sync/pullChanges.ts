@@ -10,7 +10,7 @@ import { resolveBoardId } from '@/lib/supabase/boardAccess'
 import { db } from '@/db/database'
 import type { Column } from '@/types/column'
 import type { Song } from '@/types/song'
-import type { AudioVersion } from '@/types/audio-version'
+import type { AudioVersion, TakeKind } from '@/types/audio-version'
 import type { SongComment } from '@/types/song-comment'
 import type { SongLink } from '@/types/song'
 import type { ColumnSlug } from '@/types/column'
@@ -278,7 +278,7 @@ export async function pullChanges(userId: string) {
             id: remote.id,
             songId: remote.song_id,
             label: remote.label,
-            kind: (remote as { kind?: 'take' | 'mix' | 'master' }).kind ?? 'take',
+            kind: (remote as { kind?: TakeKind }).kind ?? 'take',
             durationMs: remote.duration_ms,
             mimeType: local?.mimeType ?? 'audio/mpeg',
             sortOrder: remote.position,

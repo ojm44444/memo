@@ -22,7 +22,7 @@ export interface CollectionTrack {
   version_id: string
   title: string
   version_label: string | null
-  kind: 'take' | 'mix' | 'master' | null
+  kind: 'take' | 'demo' | 'mix' | 'master' | null
   duration_ms: number
   storage_path: string
 }

@@ -10,6 +10,7 @@ import {
   isFileDragEvent,
 } from '@/lib/extract-audio-files'
 import { INBOX_SLUG } from '@/types/column'
+import { PlusIcon } from '@/components/ui/Icons'
 
 /**
  * Getting mixes into Listen.
@@ -35,7 +36,7 @@ interface Row {
   file: File
   target: Target
   newTitle: string
-  kind: 'mix' | 'master'
+  kind: 'demo' | 'mix' | 'master'
   label: string
   version: number | null
 }
@@ -136,7 +137,7 @@ function sizeLabel(bytes: number) {
   return bytes > 1e6 ? `${(bytes / 1e6).toFixed(0)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`
 }
 
-export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty' }) {
+export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty' | 'circle' }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const songs = useLiveQuery(() => getAllSongs(), [])
   const stacks = useLiveQuery(() => getSongsWithMixes(), [])
@@ -178,7 +179,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
             file,
             target: songId ? { type: 'song', songId } : { type: 'new', key: normalise(file.name) || file.name },
             newTitle: titleFrom(file.name),
-            kind: /\bmaster(ed)?\b/i.test(file.name) ? 'master' : 'mix',
+            kind: /\bmaster(ed)?\b/i.test(file.name) ? 'master' : /\bdemo\b/i.test(file.name) ? 'demo' : 'mix',
             label: tidyLabel(file.name),
             version: versionNumber(file.name),
           }
@@ -274,7 +275,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
       }
       const count = rows.length
       setRows([])
-      setNotice(`${count} ${count === 1 ? 'mix' : 'mixes'} added. Uploading now: keep songdrafts open until they say In cloud.`)
+      setNotice(`${count} added. Uploading now, keep songdrafts open.`)
       scheduleFlush()
       void flush()
     } catch (err) {
@@ -304,8 +305,19 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
       {picker}
       {variant === 'empty' ? (
         <button type="button" className="mix-drop-zone" onClick={() => inputRef.current?.click()}>
-          <span className="mix-drop-title">{reading ? 'Reading…' : 'Drop mixes here'}</span>
+          <span className="mix-drop-title">{reading ? 'Reading…' : 'Drop demos, mixes or masters here'}</span>
           <span className="mix-drop-sub">WAVs, a folder, or the WeTransfer zip as it came. Or click to choose.</span>
+        </button>
+      ) : variant === 'circle' ? (
+        <button
+          type="button"
+          className="rec-circle"
+          onClick={() => inputRef.current?.click()}
+          disabled={reading}
+          aria-label="Add demos, mixes or masters"
+          title="Add demos, mixes or masters"
+        >
+          <PlusIcon size={20} />
         </button>
       ) : (
         <button type="button" className="mix-upload-btn" onClick={() => inputRef.current?.click()} disabled={reading}>
@@ -314,7 +326,9 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
       )}
 
       {(notice || (error && rows.length === 0)) && (
-        <p className={error ? 'mix-upload-error' : 'mix-import-notice'}>{error ?? notice}</p>
+        <p className={`${error ? 'mix-upload-error' : 'mix-import-notice'}${variant === 'circle' ? ' is-toast' : ''}`}>
+          {error ?? notice}
+        </p>
       )}
 
       {dragging && (
@@ -331,7 +345,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
           <div className="send-sheet" role="dialog" aria-modal="true" aria-label="Add mixes" onClick={(e) => e.stopPropagation()}>
             <div className="send-sheet-head">
               <h2 className="send-sheet-title">
-                {rows.length === 1 ? 'One mix' : `${rows.length} mixes`}
+                {rows.length === 1 ? 'One file' : `${rows.length} files`}
               </h2>
               <button type="button" className="send-sheet-close" onClick={() => setRows([])} aria-label="Close">
                 ✕
@@ -406,8 +420,8 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
                       </label>
                       <div className="send-field">
                         <span>Is it</span>
-                        <div className="mix-upload-kind" role="group" aria-label="Mix or master">
-                          {(['mix', 'master'] as const).map((k) => (
+                        <div className="mix-upload-kind" role="group" aria-label="Demo, mix or master">
+                          {(['demo', 'mix', 'master'] as const).map((k) => (
                             <button
                               key={k}
                               type="button"
@@ -415,7 +429,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
                               aria-pressed={row.kind === k}
                               onClick={() => update(row.id, { kind: k })}
                             >
-                              {k === 'mix' ? 'Mix' : 'Master'}
+                              {k === 'demo' ? 'Demo' : k === 'mix' ? 'Mix' : 'Master'}
                             </button>
                           ))}
                         </div>
@@ -437,7 +451,7 @@ export function MixImport({ variant = 'button' }: { variant?: 'button' | 'empty'
                 Cancel
               </button>
               <button type="button" className="send-sheet-primary" onClick={() => void save()} disabled={saving}>
-                {saving ? 'Adding…' : rows.length === 1 ? 'Add mix' : `Add ${rows.length} mixes`}
+                {saving ? 'Adding…' : rows.length === 1 ? 'Add to Listen' : `Add ${rows.length} to Listen`}
               </button>
             </div>
           </div>

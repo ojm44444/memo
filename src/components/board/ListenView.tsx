@@ -118,7 +118,9 @@ const favouriteTotal = useLiveQuery(async () => {
 
   return (
     <div className="listen-view">
-      <NowPlayingBanner />
+      {/* The player bar already shows what is playing; a second banner on top
+          of the Mixes room only pushed the list down. */}
+      {tab !== 'mixes' && <NowPlayingBanner />}
 
       {/* Tab bar */}
       <div className="listen-tab-bar">
@@ -127,21 +129,21 @@ const favouriteTotal = useLiveQuery(async () => {
           className={cn('listen-tab-btn', tab === 'mixes' && 'listen-tab-btn--active')}
           onClick={() => setTab('mixes')}
         >
-          ◉ Mixes
+          Mixes
         </button>
         <button
           type="button"
           className={cn('listen-tab-btn', tab === 'favourites' && 'listen-tab-btn--active')}
           onClick={() => setTab('favourites')}
         >
-          ★ Starred songs
+          Starred
         </button>
         <button
           type="button"
           className={cn('listen-tab-btn', tab === 'playlists' && 'listen-tab-btn--active')}
           onClick={() => { setTab('playlists'); setActivePlaylistId(null) }}
         >
-          ♫ Playlists
+          Playlists
         </button>
         {tab === 'favourites' && (
           <ListenScopeToggle scope={scope} onChange={setScope} />

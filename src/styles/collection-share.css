@@ -5,13 +5,16 @@
 
 .coll-page {
   min-height: 100dvh;
-  background: var(--bg);
+  /* The one wash this page gets: light from above, as if the cover lit it. */
+  background:
+    radial-gradient(90% 60% at 50% -10%, color-mix(in srgb, var(--stage-ideas) 18%, transparent), transparent 70%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
 }
 
 .coll-page.has-player {
-  padding-bottom: 96px;
+  padding-bottom: 110px;
 }
 
 .coll-top {

@@ -1,6 +1,6 @@
 import { createId } from '@/lib/ids'
 import { getAudioDuration } from '@/lib/audio-utils'
-import type { AudioBlob, AudioVersion } from '@/types/audio-version'
+import type { AudioBlob, AudioVersion, TakeKind } from '@/types/audio-version'
 import type { ColumnSlug } from '@/types/column'
 import type { Song, SongLink } from '@/types/song'
 import { db } from '../database'
@@ -455,7 +455,7 @@ export async function deleteAudioVersion(versionId: string) {
  */
 export async function setAudioVersionKind(
   versionId: string,
-  kind: 'take' | 'mix' | 'master',
+  kind: TakeKind,
 ) {
   const version = await db.audioVersions.get(versionId)
   if (!version) return null
@@ -480,7 +480,7 @@ export async function getSongsWithMixes(): Promise<
   { song: Song; latest: AudioVersion; mixCount: number; versions: AudioVersion[] }[]
 > {
   const mixes = await db.audioVersions
-    .filter((v) => v.kind === 'mix' || v.kind === 'master')
+    .filter((v) => v.kind === 'demo' || v.kind === 'mix' || v.kind === 'master')
     .toArray()
 
   const bySong = new Map<string, AudioVersion[]>()
