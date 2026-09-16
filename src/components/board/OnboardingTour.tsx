@@ -13,12 +13,12 @@ import { useUiStore, type BoardMode } from '@/stores/uiStore'
  * a songwriting board first. So the tour opens on a choice, switches the
  * screen behind it to that side, and ends by pointing at the other one.
  */
-type Path = 'write' | 'listen'
+type Path = 'write' | 'listen' | 'both'
 
 type Step = { title: string; body: string; points?: string[]; mode: BoardMode }
 
 /* Owen's script, 17 Sept. */
-const STEPS: Record<Path, Step[]> = {
+const BASE: Record<'write' | 'listen', Step[]> = {
   write: [
     {
       title: 'Your songwriting board',
@@ -43,6 +43,12 @@ const STEPS: Record<Path, Step[]> = {
     },
     { title: 'Share it as one link', body: 'Anyone can listen and leave notes. No account needed.', mode: 'listen' },
   ],
+}
+
+const STEPS: Record<Path, Step[]> = {
+  ...BASE,
+  // Both: the board first, then everything about Listen.
+  both: [...BASE.write.slice(0, 2), ...BASE.listen],
 }
 
 interface OnboardingTourProps {
@@ -119,6 +125,16 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
             >
               <strong>Listening and sharing</strong>
               <span>Demos, mixes and masters in playlists</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPath('both')
+                setBoardMode('manage')
+              }}
+            >
+              <strong>Both</strong>
+              <span>Write on the board, share in Listen</span>
             </button>
           </div>
           <div className="onboarding-tour-actions">

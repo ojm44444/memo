@@ -179,6 +179,27 @@ export async function pullChanges(userId: string) {
     }
   }
 
+  /* A project deleted on another device (or tidied on the server) was never
+     removed here, because the pull only asks for live ones. An empty
+     duplicate "My Project" stayed in the picker, and landing on it made 92
+     songs look gone (17 Sept). Drop local projects the server no longer has,
+     unless they are waiting to be pushed or still hold songs. */
+  if (remoteProjects && remoteProjects.length > 0) {
+    const liveIds = new Set(remoteProjects.map((p) => p.id))
+    const pendingCreates = new Set(
+      (
+        await db.syncQueue
+          .filter((item) => item.entityType === 'project' && item.op === 'create')
+          .toArray()
+      ).map((item) => item.entityId),
+    )
+    for (const local of await db.projects.toArray()) {
+      if (liveIds.has(local.id) || pendingCreates.has(local.id)) continue
+      const holding = await db.songs.filter((s) => s.projectId === local.id && !s.deletedAt).count()
+      if (holding === 0) await db.projects.delete(local.id)
+    }
+  }
+
   /* Listen projects before songs, so a song never points at a project this
      device has not heard of yet. */
   const { data: remoteListenProjects, error: listenProjectError } = await supabase

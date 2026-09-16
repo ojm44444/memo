@@ -129,22 +129,13 @@ export function PrivacyPage() {
         </p>
         <ul>
           <li>
-            <strong>In the UK, the EU and most places:</strong> it only runs if you press Allow. If
-            you say no, nothing from Meta loads at all.
+            It runs when you visit, unless you turn it off with Your privacy choices at the bottom
+            of the page. Turning it off stops it and removes Meta&apos;s cookie.
           </li>
           <li>
-            <strong>In the US:</strong> it runs unless you opt out, with Your privacy choices at the
-            bottom of the page.
-          </li>
-          <li>
-            <strong>Everywhere:</strong> if your browser sends Global Privacy Control, we treat it
-            as a no.
+            If your browser sends Global Privacy Control, we treat it as a no.
           </li>
         </ul>
-        <p>
-          To know which applies, the site reads the country from your IP address when the page
-          loads. We do not keep it. If it cannot tell, you are asked.
-        </p>
         <p>If it runs, Meta receives:</p>
         <ul>
           <li>that you visited the site, including the app (the page address only, never what is on it);</li>
@@ -227,8 +218,8 @@ export function PrivacyPage() {
         <p>
           The only other one is Meta&apos;s, when the pixel runs (see above): it sets a cookie called
           _fbp so it can tell whether someone who saw an ad later signed up. There are no other
-          analytics or advertising cookies. The link at the bottom of this page (Cookie settings, or
-          Your privacy choices in the US) asks you again and removes Meta&apos;s cookie if you say no.
+          analytics or advertising cookies. Your privacy choices, at the bottom of this page, turns it off
+          and removes Meta&apos;s cookie.
         </p>
 
         <h2>Changes</h2>

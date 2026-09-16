@@ -31,21 +31,16 @@ describe('ad consent by region', () => {
     vi.unstubAllGlobals()
   })
 
-  it('asks in the UK before anything applies', async () => {
+  /* 17 Sept, Owen's decision: opt-out everywhere, no banner up front. */
+  it('does not ask up front in the UK either, and counts as yes until they opt out', async () => {
     const m = await freshModule('GB')
-    expect(m.effectiveAdConsent()).toBeNull()
-    expect(m.shouldAskForConsent()).toBe(true)
-    expect(m.adConsentForCheckout()).toEqual({ adConsent: false })
+    expect(m.shouldAskForConsent()).toBe(false)
+    expect(m.effectiveAdConsent()).toBe('granted')
   })
 
-  it('asks in the EU', async () => {
-    const m = await freshModule('DE')
-    expect(m.shouldAskForConsent()).toBe(true)
-  })
-
-  it('asks when the country is missing or the lookup fails, never assumes the US', async () => {
-    expect((await freshModule(null)).shouldAskForConsent()).toBe(true)
-    expect((await freshModule('error')).shouldAskForConsent()).toBe(true)
+  it('same when the country is unknown', async () => {
+    expect((await freshModule(null)).shouldAskForConsent()).toBe(false)
+    expect((await freshModule('error')).effectiveAdConsent()).toBe('granted')
   })
 
   it('does not ask up front in the US, and counts as yes until they opt out', async () => {

@@ -81,8 +81,10 @@ const FEATURES = [
     // never carries those, so the common case still needs typing, exactly
     // what the compare table's ~ two sections down already says. This card
     // was overclaiming against the table's own honest answer.
-    title: 'Key and tempo, read from the file',
-    desc: 'Bounce from your DAW and songdrafts reads the key and BPM off the file and fills in the card. A raw voice memo has no tags to read, so that one you still type.',
+    // 17 Sept, Owen: "read from the file" was not true in practice (most
+    // bounces carry no key or BPM tags). Now says what the app does.
+    title: 'Key, tempo and tuning on every song',
+    desc: 'Type them once on the song and filter the whole board by key or BPM. Every idea in D at 92, in one tap.',
   },
   {
     size: 'small',
@@ -157,7 +159,7 @@ const COMPARE_ROWS = [
   // drawer's manual key/tempo/tuning inputs exist precisely because of that.
   // Dubnote's paywall advertises real BPM DETECTION, so on the harder
   // capability they beat us, and the old row had that backwards.
-  { feature: 'Key and tempo filled in from the file', songdrafts: 'partial', voicememos: false, notes: false, trello: false, dubnote: true,  tapeit: 'partial' },
+  { feature: 'Filter by key and tempo', songdrafts: true, voicememos: false, notes: false, trello: false, dubnote: true,  tapeit: 'partial' },
   { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
   { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial' },
   { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true },
@@ -769,7 +771,7 @@ export function LandingPage() {
               than making the reader hold three footnotes in their head at
               once. */}
           <ul className="compare-footnotes">
-            <li>~ means partly. Apple Notes holds lyrics but not the recording. Key and tempo come off a file's tags, so a bounced mp3 arrives filled in and a raw voice memo doesn't, which is why you can also type them.</li>
+            <li>~ means partly. Apple Notes holds lyrics but not the recording.</li>
             <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
           </ul>
           <p className="compare-footnote-date">Checked 31 August 2026.</p>

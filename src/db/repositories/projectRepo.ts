@@ -130,7 +130,15 @@ async function resolveActiveProjectId() {
     return lastMeta.value
   }
 
+  /* No choice saved: open the project with the most songs, never an empty
+     one that happens to sort first. */
   const projects = await getProjects()
+  if (projects.length > 1) {
+    const songs = await db.songs.filter((s) => !s.deletedAt && !!s.projectId).toArray()
+    const counts = new Map<string, number>()
+    for (const song of songs) counts.set(song.projectId!, (counts.get(song.projectId!) ?? 0) + 1)
+    return [...projects].sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))[0].id
+  }
   if (projects[0]) return projects[0].id
 
   const first = await db.projects.orderBy('sortOrder').first()

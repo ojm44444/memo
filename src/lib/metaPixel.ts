@@ -121,34 +121,16 @@ export function getConsentRegion(): ConsentRegion | null {
  * including a timeout, an error, or no answer: the banner is the safe side.
  */
 export async function resolveConsentRegion(): Promise<ConsentRegion> {
-  if (region) return region
+  /* 17 Sept 2026, Owen's decision, made after being told it goes against the
+     UK/EU cookie rules (consent before loading): the pixel runs for everyone
+     by default with no banner. Opting out stays one tap away (Your privacy
+     choices), and Global Privacy Control still counts as a no. To go back to
+     asking outside the US, restore the /api/geo lookup from git history. */
+  region = 'optout'
   try {
-    const cached = sessionStorage.getItem(REGION_KEY)
-    if (cached === 'optout' || cached === 'ask') {
-      region = cached
-      return region
-    }
+    sessionStorage.setItem(REGION_KEY, region)
   } catch {
-    /* storage blocked: ask the endpoint */
-  }
-
-  let next: ConsentRegion
-  try {
-    const controller = new AbortController()
-    const timer = window.setTimeout(() => controller.abort(), 2000)
-    const res = await fetch('/api/geo', { cache: 'no-store', signal: controller.signal })
-    window.clearTimeout(timer)
-    const body = res.ok ? ((await res.json()) as { country?: string | null }) : null
-    next = body?.country === 'US' ? 'optout' : 'ask'
-  } catch {
-    next = 'ask'
-  }
-
-  region = next
-  try {
-    sessionStorage.setItem(REGION_KEY, next)
-  } catch {
-    /* fine: asked again next tab */
+    /* nothing to remember */
   }
   return region
 }

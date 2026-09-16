@@ -1,4 +1,5 @@
-import { memo, useEffect } from 'react'
+import { memo, useEffect, useSyncExternalStore } from 'react'
+import { getSyncStatus, subscribeSync } from '@/sync/syncEngine'
 import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -75,6 +76,7 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
     [song.id],
   )
   const primary = versions?.[0]
+  const syncing = useSyncExternalStore(subscribeSync, () => getSyncStatus().status === 'syncing')
 
   /* Narrow subscriptions. These were `usePlayerStore()` and `useUiStore()`
      with no selector, which subscribes a card to the WHOLE store: every card
@@ -125,9 +127,16 @@ export const SongCard = memo(function SongCard({ song, columnSlug, readOnly = fa
   // reason to block playback.
   //
   // The only genuinely unplayable card is one with no version at all.
+  //
+  // 17 Sept, Owen: cards said "No take on this one yet" for a moment and then
+  // loaded. That was the query still running (versions undefined) read as
+  // "no versions". Loading now shows a quiet placeholder, never the warning.
+  // A song can arrive from the cloud a moment before its takes do, so while a
+  // sync is running an empty card is also treated as still loading.
+  const versionsLoading = versions === undefined || (versions.length === 0 && syncing)
   const hasTake = primary != null
   const durationUnknown = hasTake && (primary.durationMs ?? 0) === 0
-  const isEmptyRecording = !hasTake
+  const isEmptyRecording = !versionsLoading && !hasTake
 
   /**
    * Flag the ones that are still called what the recorder called them.

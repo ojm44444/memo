@@ -12203,3 +12203,17 @@ html.light .song-drawer {
 .board-page .song-card-footer {
   justify-content: flex-start;
 }
+
+.onboarding-tour-card.is-choice {
+  width: min(560px, 100%);
+}
+
+.onboarding-choice {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 560px) {
+  .onboarding-choice {
+    grid-template-columns: 1fr;
+  }
+}
