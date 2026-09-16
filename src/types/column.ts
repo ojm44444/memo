@@ -1,5 +1,8 @@
 export const INBOX_SLUG = 'inbox' as const
 
+/** Where Listen-only tracks live. Not a board section: the board never shows it. */
+export const LISTEN_SLUG = '__listen__'
+
 /** Any board section slug — inbox is the fixed intake column. */
 export type ColumnSlug = string
 

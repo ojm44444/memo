@@ -175,7 +175,7 @@ function AuthenticatedBoard() {
                 <BoardProjectAccent />
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
-                  <BoardSearch />
+                  {boardMode !== 'listen' && <BoardSearch />}
                   <BoardSwitcher />
                   {/* Songwriting projects group the board. Listen has its own
                       Projects page, so two different "Project" pickers never

@@ -54,31 +54,32 @@ function ProjectsGrid({ onOpen }: { onOpen: (id: string) => void }) {
       <header className="rec-projects-head">
         <div>
           <p className="rec-eyebrow">
-            {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+            {projects.length} {projects.length === 1 ? 'playlist' : 'playlists'}
           </p>
-          <h2 className="rec-title">Projects</h2>
+          <h2 className="rec-title">Playlists</h2>
         </div>
         <div className="rec-actions-end">
           <MixImport variant="circle" />
           <button type="button" className="rec-pill is-primary" onClick={() => setCreating(true)}>
             <PlusIcon size={16} />
-            New project
+            New playlist
           </button>
         </div>
       </header>
 
       {projects.length === 0 && loose.count === 0 ? (
         <button type="button" className="rec-projects-empty" onClick={() => setCreating(true)}>
-          <span className="rec-projects-empty-title">Make your first project</span>
+          <span className="rec-projects-empty-title">Make your first playlist</span>
           <span className="rec-projects-empty-sub">
-            An EP, a single, a session. Give it a cover, drop the demos, mixes and masters in, and share it as one link.
+            An EP, a single, songs for a label. Drop audio in and share it as one link.
           </span>
         </button>
       ) : (
         <ul className="rec-projects">
-          {projects.map((project) => (
+          {projects.map((project, i) => (
             <ProjectCard
               key={project.id}
+              variant={i}
               project={project}
               fallbackArtist={artist}
               stats={statsFor(project.id)}
@@ -89,7 +90,7 @@ function ProjectsGrid({ onOpen }: { onOpen: (id: string) => void }) {
             <li>
               <button type="button" className="rec-project" onClick={() => onOpen('loose')}>
                 <RecordArt seed="loose" label="" className="is-loose" />
-                <span className="rec-project-title">Not in a project</span>
+                <span className="rec-project-title">Not in a playlist</span>
                 <span className="rec-project-meta">
                   {loose.count} {loose.count === 1 ? 'track' : 'tracks'} · {formatDuration(loose.ms)}
                 </span>
@@ -101,7 +102,7 @@ function ProjectsGrid({ onOpen }: { onOpen: (id: string) => void }) {
               <span className="rec-project-new">
                 <PlusIcon size={28} />
               </span>
-              <span className="rec-project-title">New project</span>
+              <span className="rec-project-title">New playlist</span>
             </button>
           </li>
         </ul>
@@ -127,7 +128,9 @@ function ProjectCard({
   fallbackArtist,
   stats,
   onOpen,
+  variant,
 }: {
+  variant: number
   project: ListenProject
   fallbackArtist: string
   stats: { count: number; ms: number }
@@ -146,7 +149,7 @@ function ProjectCard({
   return (
     <li>
       <button type="button" className="rec-project" onClick={onOpen}>
-        <RecordArt seed={project.id} label="" src={cover} />
+        <RecordArt seed={project.id} label="" src={cover} variant={variant} />
         <span className="rec-project-title">{project.title}</span>
         <span className="rec-project-meta">
           {by ? `${by} · ` : ''}

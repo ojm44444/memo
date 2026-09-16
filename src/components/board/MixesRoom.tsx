@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { AudioVersion } from '@/types/audio-version'
 import type { Song } from '@/types/song'
@@ -6,7 +6,6 @@ import { db } from '@/db/database'
 import { getSongsWithMixes, setAudioVersionKind } from '@/db/repositories/audioRepo'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
-import { playSongAtTimestamp, playSongVersion } from '@/lib/playSongVersion'
 import { formatDuration } from '@/lib/audio-utils'
 import { getMyDisplayName } from '@/lib/displayName'
 import { scheduleFlush } from '@/sync/syncEngine'
@@ -20,7 +19,8 @@ import {
 import type { ListenProject } from '@/types/listen-project'
 import { SongComments } from '@/components/song/SongComments'
 import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
-import { kindName } from '@/lib/kindName'
+import { deleteSong, mergeSongsInto, updateSong } from '@/db/repositories/boardRepo'
+import { LISTEN_SLUG } from '@/types/column'
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -35,6 +35,7 @@ import {
   StackIcon,
 } from '@/components/ui/Icons'
 import { MixImport } from './MixImport'
+import { addVersionFiles } from '@/lib/listenImport'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 import '@/styles/record.css'
@@ -73,6 +74,10 @@ function StackRow({
   projectId,
   projects,
   onMoveBy,
+  onPlay,
+  selected,
+  selecting,
+  onToggleSelect,
 }: {
   stack: Stack
   index: number
@@ -83,12 +88,21 @@ function StackRow({
   projectId: string | null
   projects: ListenProject[]
   onMoveBy?: (by: -1 | 1) => void
+  onPlay: (versionId: string, seekMs?: number) => void
+  selected: boolean
+  selecting: boolean
+  onToggleSelect: () => void
 }) {
   const { song, versions } = stack
   const isCurrent = usePlayerStore((s) => s.currentSongId === song.id)
   const isPlaying = usePlayerStore((s) => s.isPlaying)
   const chosen = versions.find((v) => v.id === chosenId) ?? stack.latest
   const playing = isCurrent && isPlaying
+  const onBoard = song.columnSlug !== LISTEN_SLUG
+  const [renaming, setRenaming] = useState(false)
+  const [name, setName] = useState(song.title)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const versionInput = useRef<HTMLInputElement>(null)
   const noteCount = useLiveQuery(
     () => db.songComments.where('songId').equals(song.id).filter((c) => !c.deletedAt).count(),
     [song.id],
@@ -98,28 +112,55 @@ function StackRow({
     onChoose(version.id)
     const player = usePlayerStore.getState()
     const currentMs = player.currentSongId === song.id ? player.progress * (chosen.durationMs || 0) : 0
-    if (currentMs > 0) {
-      const clamped = Math.min(currentMs, Math.max(0, (version.durationMs || 0) - 250))
-      void playSongAtTimestamp(song.columnSlug, song.id, version.id, clamped)
-      return
-    }
-    void playSongVersion(song.columnSlug, song.id, version.id)
+    const clamped = Math.min(currentMs, Math.max(0, (version.durationMs || 0) - 250))
+    onPlay(version.id, clamped > 0 ? clamped : undefined)
   }
 
   const togglePlay = () => {
+    if (renaming) return
+    if (selecting) {
+      onToggleSelect()
+      return
+    }
     const player = usePlayerStore.getState()
     if (isCurrent) {
       player.setPlaying(!player.isPlaying)
       return
     }
-    void playSongVersion(song.columnSlug, song.id, chosen.id)
+    onPlay(chosen.id)
+  }
+
+  const saveName = () => {
+    setRenaming(false)
+    const title = name.trim()
+    if (title && title !== song.title) void updateSong(song.id, { title }).then(() => scheduleFlush())
+    else setName(song.title)
   }
 
   const cloud = chosen.storagePath ? null : chosen.uploadBlockedReason ? 'blocked' : 'uploading'
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
+  const item = (label: React.ReactNode, onClick: () => void, className = '') => (
+    <button type="button" role="menuitem" className={`rec-menu-item ${className}`} onClick={onClick}>
+      <span />
+      <span>{label}</span>
+      <span />
+    </button>
+  )
 
   return (
-    <li className={`rec-row${isCurrent ? ' is-current' : ''}`}>
+    <li className={`rec-row${isCurrent ? ' is-current' : ''}${selected ? ' is-selected' : ''}${selecting ? ' is-selecting' : ''}`}>
+      <input
+        ref={versionInput}
+        type="file"
+        accept="audio/*,.wav,.aif,.aiff,.flac,.zip,application/zip"
+        multiple
+        hidden
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? [])
+          e.target.value = ''
+          if (files.length) void addVersionFiles(song.id, files)
+        }}
+      />
       <div
         className="rec-line"
         role="button"
@@ -127,6 +168,7 @@ function StackRow({
         aria-label={`${playing ? 'Pause' : 'Play'} ${song.title}`}
         onClick={togglePlay}
         onKeyDown={(e) => {
+          if (renaming) return
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             togglePlay()
@@ -134,21 +176,54 @@ function StackRow({
         }}
       >
         <span className="rec-num">
-          {isCurrent ? (
-            <EqIcon className={playing ? undefined : 'is-paused'} />
-          ) : (
-            <>
-              <span className="rec-num-index">{index}</span>
-              <span className="rec-num-play">
-                <PlayIcon size={14} />
-              </span>
-            </>
-          )}
+          <button
+            type="button"
+            className={`rec-check${selected ? ' is-on' : ''}`}
+            aria-pressed={selected}
+            aria-label={`Select ${song.title}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleSelect()
+            }}
+          >
+            {selected ? <CheckIcon size={14} /> : null}
+          </button>
+          <span className="rec-num-face">
+            {isCurrent ? (
+              <EqIcon className={playing ? undefined : 'is-paused'} />
+            ) : (
+              <>
+                <span className="rec-num-index">{index}</span>
+                <span className="rec-num-play">
+                  <PlayIcon size={14} />
+                </span>
+              </>
+            )}
+          </span>
         </span>
 
         <span className="rec-name">
-          <span className="rec-name-title">{song.title}</span>
-          <span className={`rec-name-kind is-${chosen.kind ?? 'mix'}`}>{kindName(chosen.kind)}</span>
+          {renaming ? (
+            <input
+              className="rec-rename"
+              value={name}
+              autoFocus
+              onClick={stop}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={(e) => {
+                e.stopPropagation()
+                if (e.key === 'Enter') saveName()
+                if (e.key === 'Escape') {
+                  setName(song.title)
+                  setRenaming(false)
+                }
+              }}
+              aria-label="Track name"
+            />
+          ) : (
+            <span className="rec-name-title">{song.title}</span>
+          )}
           {cloud === 'uploading' && <span className="rec-name-warn">Uploading</span>}
           {cloud === 'blocked' && <span className="rec-name-warn is-bad">Too big for the cloud</span>}
         </span>
@@ -170,13 +245,13 @@ function StackRow({
             trigger={({ open, toggle }) => (
               <button
                 type="button"
-                className="rec-stat"
+                className="rec-stat rec-versions-btn"
                 aria-expanded={open}
                 aria-label={`${versions.length} versions of ${song.title}`}
                 onClick={toggle}
               >
                 <StackIcon size={17} />
-                <span>v{versions.length}</span>
+                <span>v{versions.length - versions.findIndex((v) => v.id === chosen.id)}</span>
               </button>
             )}
           >
@@ -188,22 +263,35 @@ function StackRow({
                     key={version.id}
                     type="button"
                     role="menuitem"
-                    className="rec-menu-item"
+                    className={`rec-menu-item rec-version${version.id === chosen.id ? ' is-on' : ''}`}
                     onClick={() => {
                       close()
                       chooseAndPlay(version)
                     }}
                   >
-                    <span>{version.id === chosen.id ? <CheckIcon size={16} /> : null}</span>
+                    <span className="rec-version-num">v{versions.length - i}</span>
                     <span>
-                      v{versions.length - i} · {kindName(version.kind)}
-                      <small>
-                        {version.label || 'Untitled'} · {whenReceived(version.createdAt)}
-                      </small>
+                      {version.label || 'Untitled'}
+                      <small>{whenReceived(version.createdAt)}</small>
                     </span>
                     <span className="rec-menu-meta">{formatDuration(version.durationMs)}</span>
                   </button>
                 ))}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="rec-menu-item rec-version-add"
+                  onClick={() => {
+                    close()
+                    versionInput.current?.click()
+                  }}
+                >
+                  <span>
+                    <PlusIcon size={15} />
+                  </span>
+                  <span>Add version</span>
+                  <span />
+                </button>
               </>
             )}
           </RecordMenu>
@@ -220,100 +308,70 @@ function StackRow({
           >
             {(close) => (
               <>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="rec-menu-item"
-                  onClick={() => {
-                    close()
-                    useUiStore.getState().openDrawer(song.id)
-                  }}
-                >
-                  <span />
-                  <span>Open the song</span>
-                  <span />
-                </button>
-                {projectId && onMoveBy && (
-                  <>
-                    <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); onMoveBy(-1) }}>
-                      <span />
-                      <span>Move up</span>
-                      <span />
-                    </button>
-                    <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); onMoveBy(1) }}>
-                      <span />
-                      <span>Move down</span>
-                      <span />
-                    </button>
-                  </>
-                )}
+                {item('Add version', () => {
+                  close()
+                  versionInput.current?.click()
+                })}
+                {item('Rename', () => {
+                  close()
+                  setName(song.title)
+                  setRenaming(true)
+                })}
+                {projectId && onMoveBy && item('Move up', () => {
+                  close()
+                  onMoveBy(-1)
+                })}
+                {projectId && onMoveBy && item('Move down', () => {
+                  close()
+                  onMoveBy(1)
+                })}
                 {projects
                   .filter((p) => p.id !== projectId)
                   .map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      role="menuitem"
-                      className="rec-menu-item"
-                      onClick={() => {
+                    <span key={p.id}>
+                      {item(`Move to ${p.title}`, () => {
                         close()
                         void moveSongsToListenProject([song.id], p.id).then(() => scheduleFlush())
-                      }}
-                    >
-                      <span />
-                      <span>Move to {p.title}</span>
-                      <span />
-                    </button>
+                      })}
+                    </span>
                   ))}
-                {projectId && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="rec-menu-item"
-                    onClick={() => {
-                      close()
-                      void moveSongsToListenProject([song.id], null).then(() => scheduleFlush())
-                    }}
-                  >
-                    <span />
-                    <span>Take out of this project</span>
-                    <span />
-                  </button>
-                )}
-                {(['demo', 'mix', 'master'] as const)
-                  .filter((k) => k !== (chosen.kind ?? 'mix'))
-                  .map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      role="menuitem"
-                      className="rec-menu-item"
-                      onClick={() => {
+                {projectId && item('Take out of this playlist', () => {
+                  close()
+                  void moveSongsToListenProject([song.id], null).then(() => scheduleFlush())
+                })}
+                {onBoard && item('Open on the board', () => {
+                  close()
+                  useUiStore.getState().openDrawer(song.id)
+                })}
+                {onBoard
+                  ? item(
+                      <>
+                        Remove from Listen
+                        <small>It stays on your board.</small>
+                      </>,
+                      () => {
                         close()
-                        void setAudioVersionKind(chosen.id, k).then(() => scheduleFlush())
-                      }}
-                    >
-                      <span />
-                      <span>Call this version a {kindName(k).toLowerCase()}</span>
-                      <span />
-                    </button>
-                  ))}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="rec-menu-item is-danger"
-                  onClick={() => {
-                    close()
-                    void setAudioVersionKind(chosen.id, 'take').then(() => scheduleFlush())
-                  }}
-                >
-                  <span />
-                  <span>
-                    Take out of Listen
-                    <small>It stays on the song as a rough take.</small>
-                  </span>
-                  <span />
-                </button>
+                        void Promise.all(versions.map((v) => setAudioVersionKind(v.id, 'take'))).then(() => scheduleFlush())
+                      },
+                      'is-danger',
+                    )
+                  : confirmDelete
+                    ? item('Tap again to delete', () => {
+                        close()
+                        void deleteSong(song.id).then(() => scheduleFlush())
+                      }, 'is-danger')
+                    : (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="rec-menu-item is-danger"
+                        onClick={() => setConfirmDelete(true)}
+                      >
+                        <span />
+                        <span>Delete</span>
+                        <span />
+                      </button>
+                    )}
               </>
             )}
           </RecordMenu>
@@ -342,6 +400,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
   const [editing, setEditing] = useState(false)
   const [artist, setArtist] = useState('')
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string[]>([])
 
   useEffect(() => {
     let live = true
@@ -386,8 +445,8 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
     return sum + (chosen.durationMs || 0)
   }, 0)
   const uploading = ordered.flatMap((s) => s.versions).filter((v) => !v.storagePath && !v.uploadBlockedReason).length
-  const title = project?.title ?? 'Not in a project'
-  const byLine = project ? project.artist || artist : 'Demos, mixes and masters not yet in a project'
+  const title = project?.title ?? 'Not in a playlist'
+  const byLine = project ? project.artist || artist : 'Tracks not in a playlist yet'
 
   const playAll = (shuffle: boolean) => {
     if (!ordered.length) return
@@ -407,6 +466,24 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
     usePlayerStore.setState({ isPlaying: true, pendingSeekMs: null })
   }
 
+  const playFrom = (songId: string, versionId: string, seekMs?: number) => {
+    const items = ordered.map((s) => {
+      const v = s.song.id === songId ? versionId : (s.versions.find((x) => x.id === pickedVersion[s.song.id]) ?? s.latest).id
+      return { songId: s.song.id, audioVersionId: v, songTitle: s.song.title, columnSlug: s.song.columnSlug }
+    })
+    const index = Math.max(0, items.findIndex((i) => i.songId === songId))
+    usePlayerStore.getState().setPlaylist(items[index].columnSlug, items, index, versionId)
+    usePlayerStore.setState({ isPlaying: true, pendingSeekMs: seekMs ?? null })
+  }
+
+  const joinSelected = async () => {
+    const inOrder = ordered.map((s) => s.song.id).filter((id) => selected.includes(id))
+    if (inOrder.length < 2) return
+    await mergeSongsInto(inOrder[0], inOrder.slice(1))
+    setSelected([])
+    scheduleFlush()
+  }
+
   const moveBy = (songId: string, by: -1 | 1) => {
     const ids = ordered.map((s) => s.song.id)
     const from = ids.indexOf(songId)
@@ -420,11 +497,11 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
     <div className="rec">
       <button type="button" className="rec-back" onClick={onBack}>
         <ChevronRightIcon size={16} className="rec-back-icon" />
-        Projects
+        Playlists
       </button>
 
       <section className="rec-hero">
-        <RecordArt seed={project?.id ?? 'loose'} label={title} src={coverUrl} />
+        <RecordArt seed={project?.id ?? 'loose'} label={title} src={coverUrl} variant={project ? (projects.findIndex((p) => p.id === project.id)) : undefined} />
         <div>
           <p className="rec-eyebrow">
             {ordered.length} {ordered.length === 1 ? 'track' : 'tracks'}
@@ -448,7 +525,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
                 <RecordMenu
                   label={`More for ${project.title}`}
                   trigger={({ open, toggle }) => (
-                    <button type="button" className="rec-circle" aria-expanded={open} aria-label="Project options" onClick={toggle}>
+                    <button type="button" className="rec-circle" aria-expanded={open} aria-label="Playlist options" onClick={toggle}>
                       <MoreIcon size={20} />
                     </button>
                   )}
@@ -460,7 +537,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
                         <span>Edit title, artist and cover</span>
                         <span />
                       </button>
-                      {loose.length > 0 && <p className="rec-menu-title">Add from Not in a project</p>}
+                      {loose.length > 0 && <p className="rec-menu-title">Add from Not in a playlist</p>}
                       {loose.map((s) => (
                         <button
                           key={s.song.id}
@@ -505,7 +582,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
       )}
 
       {ordered.length === 0 ? (
-        <MixImport variant="empty" projectId={projectId} />
+        <MixImport variant="empty" projectId={projectId} acceptDrops={false} />
       ) : (
         <ol className="rec-list">
           {ordered.map((stack, i) => (
@@ -520,9 +597,36 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
               projectId={projectId}
               projects={projects}
               onMoveBy={projectId ? (by) => moveBy(stack.song.id, by) : undefined}
+              onPlay={(versionId, seekMs) => playFrom(stack.song.id, versionId, seekMs)}
+              selected={selected.includes(stack.song.id)}
+              selecting={selected.length > 0}
+              onToggleSelect={() =>
+                setSelected((prev) =>
+                  prev.includes(stack.song.id) ? prev.filter((id) => id !== stack.song.id) : [...prev, stack.song.id],
+                )
+              }
             />
           ))}
         </ol>
+      )}
+
+      {selected.length > 0 && (
+        <div className="rec-selectbar" role="toolbar" aria-label="Selected tracks">
+          <span>{selected.length} selected</span>
+          <button
+            type="button"
+            className="rec-pill is-accent"
+            disabled={selected.length < 2}
+            onClick={() => void joinSelected()}
+            title={selected.length < 2 ? 'Select two or more' : undefined}
+          >
+            <StackIcon size={16} />
+            Join as versions
+          </button>
+          <button type="button" className="rec-pill is-quiet" onClick={() => setSelected([])}>
+            Cancel
+          </button>
+        </div>
       )}
 
       {sending && (

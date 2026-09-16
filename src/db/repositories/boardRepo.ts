@@ -1,6 +1,6 @@
 import { createId } from '@/lib/ids'
 import { slugifySection } from '@/lib/slugify'
-import { INBOX_SLUG, type Column, type ColumnSlug } from '@/types/column'
+import { INBOX_SLUG, LISTEN_SLUG, type Column, type ColumnSlug } from '@/types/column'
 import type { Song } from '@/types/song'
 import { db } from '../database'
 import { enqueueSync } from './outboxRepo'
@@ -54,6 +54,8 @@ async function getFilterContext(): Promise<FilterContext> {
 
 function songMatchesFilters(song: Song, ctx: FilterContext): boolean {
   if (song.deletedAt) return false
+  // Listen tracks are their own side (17 Sept): never on the board, in search or Starred.
+  if (song.columnSlug === LISTEN_SLUG) return false
   if (ctx.activeTag && !(song.tags ?? []).includes(ctx.activeTag)) return false
   if (ctx.favouritesOnly && !song.isFavourite) return false
   // Search reaches the LYRICS, not just the title.

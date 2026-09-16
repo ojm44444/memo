@@ -280,7 +280,7 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
                   className="song-detail-playlist-btn"
                   onClick={() => setPlaylistOpen(true)}
                 >
-                  + Add to playlist
+                  + Add to Listen
                 </button>
               </div>
             </>

@@ -11924,3 +11924,17 @@ html.light .song-drawer {
     grid-template-columns: 1fr;
   }
 }
+
+.onboarding-tour-points {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.onboarding-tour-card.is-choice .onboarding-tour-body {
+  margin-bottom: 14px;
+}

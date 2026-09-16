@@ -15,36 +15,33 @@ import { useUiStore, type BoardMode } from '@/stores/uiStore'
  */
 type Path = 'write' | 'listen'
 
-type Step = { title: string; body: string; mode: BoardMode }
+type Step = { title: string; body: string; points?: string[]; mode: BoardMode }
 
+/* Owen's script, 17 Sept. */
 const STEPS: Record<Path, Step[]> = {
   write: [
-    { title: 'Everything starts in the Inbox', body: 'Import a folder or drop voice memos in.', mode: 'manage' },
-    { title: 'Move a song right when it gets better', body: 'Nothing expires, nothing nags you.', mode: 'manage' },
     {
-      title: 'Put every take on the same card',
-      body: 'Add a new recording to the song it belongs to, then play them back to back.',
+      title: 'Your songwriting board',
+      body: 'A pipeline that moves each song from stage to stage. Merge cards when new ideas belong to the same song, so you always know:',
+      points: ['what is still a work in progress', 'what needs its chords finished', 'what is waiting in your DAW'],
       mode: 'manage',
     },
+    { title: 'Move a song right when it gets better', body: 'Nothing expires. Nothing nags you.', mode: 'manage' },
     {
-      title: 'Mixes live in Listen',
-      body: 'When demos, mixes and masters come back, make a project and share it as one link.',
+      title: 'Listen is for songs further down the line',
+      body: 'Demos, mixes and masters in playlists. Drop audio in, and share a playlist as one link.',
       mode: 'listen',
     },
   ],
   listen: [
-    { title: 'One project per release', body: 'An EP, a single, a session. Give it a cover.', mode: 'listen' },
-    { title: 'Drop the files in', body: 'WAVs, a folder, or the zip as it came. Versions stack up.', mode: 'listen' },
+    { title: 'Make a playlist', body: 'An EP, a single, songs for a label. Give it a cover.', mode: 'listen' },
+    { title: 'Drop audio in', body: 'Each file becomes a track. WAVs, a folder or a zip.', mode: 'listen' },
     {
-      title: 'Share the project as one link',
-      body: 'Anyone can listen and leave notes. No account needed.',
+      title: 'Versions',
+      body: 'Select two tracks and Join as versions, or use Add version on a track. Switch between v1 and v2 as it plays.',
       mode: 'listen',
     },
-    {
-      title: 'Writing too?',
-      body: 'Songwriting is next to Listen at the top: a board for voice memos and rough takes.',
-      mode: 'listen',
-    },
+    { title: 'Share it as one link', body: 'Anyone can listen and leave notes. No account needed.', mode: 'listen' },
   ],
 }
 
@@ -98,7 +95,10 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
       <div className="onboarding-tour-overlay" role="dialog" aria-modal="true" aria-label="Welcome">
         <button type="button" className="onboarding-tour-backdrop" aria-label="Skip" onClick={() => void finish()} />
         <div className="onboarding-tour-card is-choice">
-          <h2 className="onboarding-tour-title">What are you here for?</h2>
+          <h2 className="onboarding-tour-title">Welcome to songdrafts</h2>
+          <p className="onboarding-tour-body">
+            The new home for your songwriting: works in progress, mixes and masters. What are you here for first?
+          </p>
           <div className="onboarding-choice">
             <button
               type="button"
@@ -117,8 +117,8 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
                 setBoardMode('listen')
               }}
             >
-              <strong>Sharing mixes</strong>
-              <span>Demos, mixes and masters, sent as one link</span>
+              <strong>Listening and sharing</strong>
+              <span>Demos, mixes and masters in playlists</span>
             </button>
           </div>
           <div className="onboarding-tour-actions">
@@ -154,6 +154,13 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
         </p>
         <h2 className="onboarding-tour-title">{current.title}</h2>
         <p className="onboarding-tour-body">{current.body}</p>
+        {current.points && (
+          <ul className="onboarding-tour-points">
+            {current.points.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        )}
 
         <div className="onboarding-tour-dots" aria-hidden="true">
           {steps.map((_, index) => (

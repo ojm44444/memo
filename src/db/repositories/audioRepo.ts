@@ -479,9 +479,16 @@ export async function setAudioVersionKind(
 export async function getSongsWithMixes(): Promise<
   { song: Song; latest: AudioVersion; mixCount: number; versions: AudioVersion[] }[]
 > {
-  const mixes = await db.audioVersions
-    .filter((v) => v.kind === 'demo' || v.kind === 'mix' || v.kind === 'master')
-    .toArray()
+  /* A song is in Listen when it has a demo, mix or master, or when it was
+     added to a Listen playlist from the board (then all its takes count). */
+  const [allVersions, inPlaylists] = await Promise.all([
+    db.audioVersions.toArray(),
+    db.songs.filter((s) => !!s.listenProjectId && !s.deletedAt).primaryKeys(),
+  ])
+  const playlistSongs = new Set(inPlaylists as string[])
+  const mixes = allVersions.filter(
+    (v) => v.kind === 'demo' || v.kind === 'mix' || v.kind === 'master' || playlistSongs.has(v.songId),
+  )
 
   const bySong = new Map<string, AudioVersion[]>()
   for (const v of mixes) {

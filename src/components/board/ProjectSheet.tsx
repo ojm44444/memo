@@ -12,7 +12,7 @@ import { scheduleFlush } from '@/sync/syncEngine'
 import type { ListenProject } from '@/types/listen-project'
 
 /**
- * Make or edit a Listen project: a cover, a title, who it is by.
+ * Make or edit a Listen playlist: a cover, a title, who it is by.
  * Three fields, because that is what a release is before it has songs in it.
  */
 export function ProjectSheet({
@@ -70,7 +70,7 @@ export function ProjectSheet({
         }
       }
       const saved = project
-        ? await updateListenProject(project.id, { title: title.trim() || 'Untitled', artist: artist.trim() || null, coverPath })
+        ? await updateListenProject(project.id, { title: title, artist: artist.trim() || null, coverPath })
         : await createListenProject({ title, artist, coverPath })
       scheduleFlush()
       if (saved) onSaved(saved)
@@ -81,9 +81,9 @@ export function ProjectSheet({
 
   return (
     <div className="send-sheet-backdrop" onClick={onClose}>
-      <div className="send-sheet is-narrow" role="dialog" aria-modal="true" aria-label={project ? 'Edit project' : 'New project'} onClick={(e) => e.stopPropagation()}>
+      <div className="send-sheet is-narrow" role="dialog" aria-modal="true" aria-label={project ? 'Edit playlist' : 'New playlist'} onClick={(e) => e.stopPropagation()}>
         <div className="send-sheet-head">
-          <h2 className="send-sheet-title">{project ? 'Edit project' : 'New project'}</h2>
+          <h2 className="send-sheet-title">{project ? 'Edit playlist' : 'New playlist'}</h2>
           <button type="button" className="send-sheet-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
@@ -114,7 +114,7 @@ export function ProjectSheet({
             <div className="send-sheet-fields">
               <label className="send-field">
                 <span>Title</span>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="The EP" maxLength={120} autoFocus />
+                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Untitled" maxLength={120} autoFocus />
               </label>
               <label className="send-field">
                 <span>Artist</span>
@@ -142,7 +142,7 @@ export function ProjectSheet({
                 </button>
               ) : (
                 <button type="button" className="send-sheet-link is-danger" onClick={() => setConfirmDelete(true)}>
-                  Delete project
+                  Delete playlist
                 </button>
               )
             )}
@@ -151,7 +151,7 @@ export function ProjectSheet({
               Cancel
             </button>
             <button type="submit" className="send-sheet-primary" disabled={busy}>
-              {busy ? 'Saving…' : project ? 'Save' : 'Create project'}
+              {busy ? 'Saving…' : project ? 'Save' : 'Create playlist'}
             </button>
           </div>
         </form>

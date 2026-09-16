@@ -13,15 +13,18 @@ function hashSeed(value: string) {
 }
 
 /** Generated artwork: the stage ramp turned by a seed, with the mark's four bars. */
-/* Every generated cover is different, but all from the brand's own colours:
-   the four stages of the ramp and the deep slate, in set orders. */
+/* Every generated cover is different, all in the brand's sea-to-mint family,
+   but far enough apart to tell playlists apart at a glance (17 Sept). Given
+   a `variant` (a playlist's place in the grid) neighbours never match. */
 const COVER_PALETTES: [string, string, string][] = [
-  ['var(--stage-inbox)', 'var(--stage-ideas)', 'var(--stage-done)'],
-  ['var(--stage-ideas)', 'var(--stage-half)', 'var(--stage-done)'],
-  ['var(--stage-inbox)', 'var(--stage-half)', 'var(--stage-ideas)'],
-  ['var(--stage-done)', 'var(--stage-inbox)', 'var(--stage-ideas)'],
-  ['var(--stage-half)', 'var(--stage-done)', 'var(--stage-inbox)'],
-  ['var(--stage-inbox)', 'var(--stage-done)', 'var(--stage-half)'],
+  ['#1f5f6b', '#51a0a9', '#bbe6b8'], // sea
+  ['#0e2a3a', '#2f6f9e', '#8ed2b2'], // night
+  ['#3f8f73', '#8fcf9a', '#e3f2b8'], // lime
+  ['#0d1f27', '#1f5f6b', '#66baaf'], // deep
+  ['#24507a', '#4f9bb8', '#bfe6dc'], // ocean
+  ['#274b3a', '#5c9a73', '#c9e8b8'], // moss
+  ['#1d3b4f', '#6a8fa8', '#d6e9df'], // dusk
+  ['#2f7f8a', '#8ed2b2', '#f1f7da'], // glass
 ]
 
 export function RecordArt({
@@ -29,7 +32,10 @@ export function RecordArt({
   label,
   className,
   src,
+  variant,
 }: {
+  /** Pick the palette by position instead of by seed. */
+  variant?: number
   seed: string
   label: string
   className?: string
@@ -37,7 +43,7 @@ export function RecordArt({
   src?: string | null
 }) {
   const h = hashSeed(seed)
-  const [a, b, c] = COVER_PALETTES[h % COVER_PALETTES.length]
+  const [a, b, c] = COVER_PALETTES[Math.abs(variant ?? h) % COVER_PALETTES.length]
   const angle = 110 + (h % 140)
   const bars = [0.5, 0.78, 0.62, 0.95].map((b, i) => Math.max(0.45, b - ((h >> (i * 4)) & 15) / 90))
   return (

@@ -972,3 +972,117 @@
     gap: 22px 14px;
   }
 }
+
+/* ── Select, join as versions (17 Sept) ── */
+.rec-num {
+  position: relative;
+}
+
+.rec-check {
+  display: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1.5px solid color-mix(in srgb, var(--text) 45%, transparent);
+  background: transparent;
+  color: var(--accent-on);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.rec-check.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.rec-row.is-selecting .rec-check,
+.rec-row .rec-line:hover .rec-check {
+  display: inline-flex;
+}
+
+.rec-row.is-selecting .rec-num-face,
+.rec-row .rec-line:hover .rec-num-face {
+  display: none;
+}
+
+.rec-num-face {
+  display: inline-flex;
+}
+
+.rec-row.is-selected > .rec-line,
+.rec-row.is-selected:nth-child(even) > .rec-line {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.rec-rename {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--rec-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.rec-selectbar {
+  position: sticky;
+  bottom: 96px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  margin: 18px auto 0;
+  padding: 8px 8px 8px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.rec-selectbar .rec-pill {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+/* Versions menu: a numbered list, current one marked in the accent. */
+.rec-menu-item.rec-version {
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  min-height: 48px;
+}
+
+.rec-version-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--rec-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.rec-menu-item.rec-version.is-on .rec-version-num {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.rec-menu-item.rec-version-add {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+  color: var(--text-muted);
+}
+
+.rec-menu-item.rec-version-add:hover {
+  color: var(--text);
+}

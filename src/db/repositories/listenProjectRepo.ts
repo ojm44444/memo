@@ -23,6 +23,22 @@ export async function getListenProject(id: string) {
   return row && !row.deletedAt ? row : undefined
 }
 
+/** No two playlists share a name: blank is "Untitled 1", "Untitled 2"; a repeat gets a number. */
+async function uniqueTitle(wanted: string, exceptId?: string) {
+  const taken = new Set(
+    (await db.listenProjects.toArray())
+      .filter((p) => !p.deletedAt && p.id !== exceptId)
+      .map((p) => p.title.trim().toLowerCase()),
+  )
+  const base = wanted.trim()
+  if (base && !taken.has(base.toLowerCase())) return base
+  const stem = base || 'Untitled'
+  for (let n = base ? 2 : 1; ; n++) {
+    const candidate = `${stem} ${n}`
+    if (!taken.has(candidate.toLowerCase())) return candidate
+  }
+}
+
 export async function createListenProject(input: {
   title: string
   artist?: string | null
@@ -32,7 +48,7 @@ export async function createListenProject(input: {
   const count = await db.listenProjects.filter((p) => !p.deletedAt).count()
   const project: ListenProject = {
     id: createId(),
-    title: input.title.trim() || 'Untitled',
+    title: await uniqueTitle(input.title),
     artist: input.artist?.trim() || null,
     coverPath: input.coverPath ?? null,
     sortOrder: count,
@@ -51,6 +67,7 @@ export async function updateListenProject(
 ) {
   const project = await db.listenProjects.get(id)
   if (!project) return null
+  if (patch.title !== undefined) patch = { ...patch, title: await uniqueTitle(patch.title, id) }
   const updated: ListenProject = { ...project, ...patch, updatedAt: new Date().toISOString() }
   await db.listenProjects.put(updated)
   await enqueueSync('update', 'listen_project', id, updated)
