@@ -1,31 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { COVER_PALETTES, coverBars, coverAngle, hashSeed } from '@/lib/generatedCover'
 
 /**
  * Pieces shared by the two record-shaped screens: Listen in the app, and the
  * page a label opens. They should look like the same product, because they
  * are the two ends of the same handover.
  */
-
-function hashSeed(value: string) {
-  let h = 2166136261
-  for (let i = 0; i < value.length; i++) h = Math.imul(h ^ value.charCodeAt(i), 16777619)
-  return h >>> 0
-}
-
-/** Generated artwork: the stage ramp turned by a seed, with the mark's four bars. */
-/* Every generated cover is different, all in the brand's sea-to-mint family,
-   but far enough apart to tell playlists apart at a glance (17 Sept). Given
-   a `variant` (a playlist's place in the grid) neighbours never match. */
-const COVER_PALETTES: [string, string, string][] = [
-  ['#1f5f6b', '#51a0a9', '#bbe6b8'], // sea
-  ['#0e2a3a', '#2f6f9e', '#8ed2b2'], // night
-  ['#3f8f73', '#8fcf9a', '#e3f2b8'], // lime
-  ['#0d1f27', '#1f5f6b', '#66baaf'], // deep
-  ['#24507a', '#4f9bb8', '#bfe6dc'], // ocean
-  ['#274b3a', '#5c9a73', '#c9e8b8'], // moss
-  ['#1d3b4f', '#6a8fa8', '#d6e9df'], // dusk
-  ['#2f7f8a', '#8ed2b2', '#f1f7da'], // glass
-]
 
 export function RecordArt({
   seed,
@@ -44,8 +24,8 @@ export function RecordArt({
 }) {
   const h = hashSeed(seed)
   const [a, b, c] = COVER_PALETTES[Math.abs(variant ?? h) % COVER_PALETTES.length]
-  const angle = 110 + (h % 140)
-  const bars = [0.5, 0.78, 0.62, 0.95].map((b, i) => Math.max(0.45, b - ((h >> (i * 4)) & 15) / 90))
+  const angle = coverAngle(h)
+  const bars = coverBars(h)
   return (
     <div
       className={`rec-art${className ? ` ${className}` : ''}`}

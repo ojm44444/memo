@@ -149,7 +149,7 @@ export function ShareCollectionSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="send-sheet-head">
-          <h2 className="send-sheet-title">{url ? 'Your link is ready' : 'Share'}</h2>
+          <h2 className="send-sheet-title">{url ? 'Your link is ready' : 'Share settings'}</h2>
           <button type="button" className="send-sheet-close" onClick={onClose} aria-label="Close">
             ✕
           </button>

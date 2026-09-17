@@ -15,6 +15,7 @@ import {
   listenCoverUrl,
   moveSongsToListenProject,
   reorderListenProject,
+  updateListenProject,
 } from '@/db/repositories/listenProjectRepo'
 import type { ListenProject } from '@/types/listen-project'
 import { SongComments } from '@/components/song/SongComments'
@@ -36,6 +37,8 @@ import {
 } from '@/components/ui/Icons'
 import { MixImport } from './MixImport'
 import { addVersionFiles } from '@/lib/listenImport'
+import { renderGeneratedCover } from '@/lib/generatedCover'
+import { createCollectionShare, uploadCollectionCover } from '@/db/repositories/collectionShareRepo'
 import { useUploadProgress } from '@/sync/uploadProgress'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
@@ -407,6 +410,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
   const [pickedVersion, setPickedVersion] = useState<Record<string, string>>({})
   const [notesRow, setNotesRow] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
+  const [quick, setQuick] = useState<{ busy: boolean; url: string | null; copied: boolean; error: string | null } | null>(null)
   const [editing, setEditing] = useState(false)
   const [artist, setArtist] = useState('')
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -494,6 +498,50 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
     scheduleFlush()
   }
 
+  /* One tap (17 Sept, Owen): Share makes the link straight away with the
+     plain defaults, copies it, and offers Settings for the extras. The link
+     wears the playlist's own cover: a generated one is saved as an image the
+     first time, so the page a listener opens looks exactly like this one. */
+  const variant = project ? projects.findIndex((p) => p.id === project.id) : undefined
+  const quickShare = async () => {
+    if (!ordered.length) return
+    setQuick({ busy: true, url: null, copied: false, error: null })
+    try {
+      let coverPath = project?.coverPath ?? null
+      if (project && !coverPath) {
+        try {
+          const file = await renderGeneratedCover(project.id, variant)
+          coverPath = await uploadCollectionCover(file)
+          await updateListenProject(project.id, { coverPath })
+          scheduleFlush()
+        } catch {
+          coverPath = null
+        }
+      }
+      const items = ordered.map((s) => ({
+        songId: s.song.id,
+        versionId: (s.versions.find((v) => v.id === pickedVersion[s.song.id]) ?? s.latest).id,
+      }))
+      const url = await createCollectionShare(items, {
+        title: project?.title ?? 'Tracks',
+        artist: project?.artist || artist,
+        allowDownload: false,
+        expiresInDays: 30,
+        coverPath,
+      })
+      let copied = false
+      try {
+        await navigator.clipboard.writeText(url)
+        copied = true
+      } catch {
+        /* shown to copy by hand */
+      }
+      setQuick({ busy: false, url, copied, error: null })
+    } catch (err) {
+      setQuick({ busy: false, url: null, copied: false, error: err instanceof Error ? err.message : 'Could not make the link.' })
+    }
+  }
+
   const moveBy = (songId: string, by: -1 | 1) => {
     const ids = ordered.map((s) => s.song.id)
     const from = ids.indexOf(songId)
@@ -573,7 +621,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
                 type="button"
                 className="rec-pill is-accent"
                 disabled={!ordered.length}
-                onClick={() => setSending(true)}
+                onClick={() => void quickShare()}
               >
                 Share
                 <LinkIcon size={17} />
@@ -636,6 +684,64 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
           <button type="button" className="rec-pill is-quiet" onClick={() => setSelected([])}>
             Cancel
           </button>
+        </div>
+      )}
+
+      {quick && (
+        <div className="send-sheet-backdrop" onClick={() => !quick.busy && setQuick(null)}>
+          <div className="send-sheet is-narrow" role="dialog" aria-modal="true" aria-label="Share" onClick={(e) => e.stopPropagation()}>
+            <div className="send-sheet-head">
+              <h2 className="send-sheet-title">
+                {quick.busy ? 'Making your link…' : quick.error ? 'That did not work' : quick.copied ? 'Link copied' : 'Your link'}
+              </h2>
+              <button type="button" className="send-sheet-close" onClick={() => setQuick(null)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            {quick.error && <p className="send-sheet-error">{quick.error}</p>}
+            {quick.url && (
+              <>
+                <p className="send-sheet-note">
+                  Anyone with it can listen and leave notes. No account needed. Works for 30 days.
+                </p>
+                <div className="send-sheet-url">
+                  <input readOnly value={quick.url} onFocus={(e) => e.currentTarget.select()} aria-label="Link" />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void navigator.clipboard
+                        .writeText(quick.url!)
+                        .then(() => setQuick({ ...quick, copied: true }))
+                        .catch(() => undefined)
+                    }
+                  >
+                    Copy
+                  </button>
+                </div>
+              </>
+            )}
+            <div className="send-sheet-actions">
+              <button
+                type="button"
+                className="send-sheet-secondary"
+                disabled={quick.busy}
+                onClick={() => {
+                  setQuick(null)
+                  setSending(true)
+                }}
+              >
+                Settings
+              </button>
+              {quick.url && (
+                <a className="send-sheet-secondary" href={quick.url} target="_blank" rel="noopener noreferrer">
+                  Open
+                </a>
+              )}
+              <button type="button" className="send-sheet-primary" disabled={quick.busy} onClick={() => setQuick(null)}>
+                Done
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
