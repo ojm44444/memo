@@ -1091,3 +1091,15 @@
   margin: 14px 0 0;
   padding: 0;
 }
+
+@media (max-width: 640px) {
+  .rec-name {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .rec-name-title {
+    max-width: 100%;
+  }
+}

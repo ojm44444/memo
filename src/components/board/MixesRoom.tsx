@@ -586,8 +586,8 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
       {uploading > 0 && (
         <p className="rec-status">
           <span className="rec-status-dot" aria-hidden />
-          {uploading} {uploading === 1 ? 'file is' : 'files are'} uploading. Keep songdrafts open; they can be shared
-          once they finish.
+          {uploading} {uploading === 1 ? 'file is' : 'files are'} uploading. Keep songdrafts open until
+          {uploading === 1 ? ' it finishes' : ' they finish'}. You can share the link already.
         </p>
       )}
 

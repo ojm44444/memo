@@ -12514,3 +12514,56 @@ html.light .song-drawer {
   font-family: var(--font-mono);
   font-size: 13px;
 }
+
+/* Phones: keep the swipe-one-column layout the record pass must not undo. */
+@media (max-width: 767px) {
+  .board-page .board-kanban {
+    gap: 0;
+    padding: 0;
+  }
+
+  .board-page .board-column {
+    border-right: 0;
+    padding: 6px 14px 14px;
+  }
+
+  .board-titlebar {
+    min-width: 0;
+  }
+
+  .board-titlebar-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .board-titlebar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .board-titlebar-actions > * {
+    flex: none;
+  }
+
+  .board-page .board-hero {
+    align-items: center;
+  }
+
+  .board-page .board-hero-title {
+    font-size: 32px;
+  }
+
+  .board-page .board-hero .rec-pill {
+    min-height: 38px;
+    padding: 0 16px;
+    font-size: 13.5px;
+  }
+
+  .board-page .recent-songs-header,
+  .board-page .board-activity-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
