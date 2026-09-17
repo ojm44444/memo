@@ -5,6 +5,8 @@ import { resolveBoardAuth } from '@/lib/auth/session'
 import { supabase, supabaseConfigured } from '@/lib/supabase/client'
 import '@/styles/globals.css'
 import '@/styles/sign-in.css'
+import '@/styles/record.css'
+import { RecordArt } from '@/components/share/RecordParts'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
@@ -91,6 +93,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   if (!supabaseConfigured || !supabase) {
     return (
       <div className="sign-in-page">
+        <SignInArt />
         <div className="sign-in-card">
           <h1>
             <Wordmark />
@@ -161,6 +164,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   if (checking) {
     return (
       <div className="sign-in-page">
+        <SignInArt />
         <div className="sign-in-card">
           <p className="sign-in-muted">Checking session…</p>
         </div>
@@ -174,6 +178,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   if (!allowed) {
     return (
       <div className="sign-in-page">
+        <SignInArt />
         <div className="sign-in-card">
           <Link to="/" className="sign-in-logo">
             <Wordmark />
@@ -202,6 +207,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   if (sentTo) {
     return (
       <div className="sign-in-page">
+        <SignInArt />
         <div className="sign-in-card" role="status" aria-live="polite">
           <Link to="/" className="sign-in-logo">
             <Wordmark />
@@ -264,6 +270,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
 
   return (
     <div className="sign-in-page">
+        <SignInArt />
       <div className="sign-in-card">
         <Link to="/" className="sign-in-logo">
           <Wordmark />
@@ -350,6 +357,20 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           ← Back to home
         </Link>
       </div>
+    </div>
+  )
+}
+
+/** The brand cover beside the form (17 Sept, Owen: the login page looked bad). */
+function SignInArt() {
+  return (
+    <div className="sign-in-art" aria-hidden>
+      <RecordArt seed="sign-in" label="" variant={0} />
+      <p className="sign-in-art-line">
+        Voice memos, demos, mixes and masters.
+        <br />
+        One place, one link.
+      </p>
     </div>
   )
 }

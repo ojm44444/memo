@@ -251,3 +251,122 @@
 .sign-in-spam {
   margin: 14px 0 0;
 }
+
+/* ═══ Record pass (17 Sept): the same voice as Listen. A big cover beside
+   the form on wide screens, stacked small on phones; no boxed card; pill
+   controls; the serif carries the page. ═══ */
+
+.sign-in-page {
+  gap: clamp(32px, 7vw, 96px);
+  background: var(--bg);
+}
+
+.sign-in-art {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: min(380px, 38vw);
+}
+
+.sign-in-art .rec-art {
+  border-radius: 18px;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+}
+
+.sign-in-art-line {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.sign-in-card {
+  max-width: 400px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  overflow: visible;
+}
+
+.sign-in-card::before {
+  display: none;
+}
+
+.sign-in-title {
+  font-family: var(--font-serif);
+  font-size: clamp(38px, 5vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+
+.sign-in-sub {
+  font-size: 15px;
+}
+
+.sign-in-input {
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  font-size: 16px;
+}
+
+.sign-in-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  outline: none;
+}
+
+.sign-in-submit,
+.sign-in-google {
+  height: 50px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sign-in-google {
+  border: 0;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
+}
+
+.sign-in-google-slot {
+  min-height: 50px;
+}
+
+.sign-in-divider span {
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 760px) {
+  .sign-in-page {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 26px;
+    padding: 28px 22px 40px;
+  }
+
+  .sign-in-art {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .sign-in-art .rec-art {
+    width: 76px;
+    flex: none;
+    border-radius: 14px;
+  }
+
+  .sign-in-art-line {
+    font-size: 19px;
+  }
+
+  .sign-in-title {
+    font-size: 38px;
+  }
+}
