@@ -481,10 +481,23 @@ export function LandingPage() {
             You've got hundreds of voice memos called "New Recording 612". Somewhere in
             there is the single.
           </p>
+          {/* 17 Sept, Owen: mixes need to be as clear as songwriting, on the
+              same page. The two jobs, said side by side, each jumping to its
+              own section. */}
           <p className="hero-sub hero-sub--second">
-            songdrafts is a board for your music. Drag a song right as it gets better, and
-            actually finish it.
+            songdrafts is where a song lives while you write it, and where the mixes go when
+            they come back: one link to a label, lossless.
           </p>
+          <div className="hero-paths">
+            <a href="#features" className="hero-path">
+              <strong>Writing songs</strong>
+              <span>A board for voice memos and takes</span>
+            </a>
+            <a href="#listen" className="hero-path">
+              <strong>Sharing mixes</strong>
+              <span>Playlists you send as one link</span>
+            </a>
+          </div>
           {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
               and no mechanism to send one, so every signup got a tick on screen
               and silence afterwards. A page that says "delete means delete" while

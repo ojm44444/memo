@@ -5049,3 +5049,44 @@ html { scroll-padding-top: 88px; }
     gap: 36px;
   }
 }
+
+.hero-paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 10px;
+  margin: 4px 0 26px;
+}
+
+.hero-path {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(238, 245, 242, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.hero-path:hover {
+  border-color: var(--accent);
+  background: rgba(238, 245, 242, 0.09);
+}
+
+.hero-path strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hero-path span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .hero-paths {
+    grid-template-columns: 1fr;
+  }
+}
