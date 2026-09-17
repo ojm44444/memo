@@ -390,10 +390,12 @@ export function LandingPage() {
     <div className="landing">
       <nav>
         <div className="logo">
+          <img className="logo-square" src="/brand/now-playing-512.png" alt="" width={30} height={30} />
           <Wordmark />
         </div>
         <ul className="nav-links">
           <li><a href="#features">Features</a></li>
+          <li><a href="#listen">Listen</a></li>
           <li><a href="#compare">Compare</a></li>
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="#faq">FAQ</a></li>
@@ -517,6 +519,85 @@ export function LandingPage() {
             playing card, and a card lifts out of Ideas into Half written every
             few seconds, which is the one gesture the product is about. */}
         <LiveBoard />
+      </section>
+
+      {/* 17 Sept, Owen: the page only spoke to songwriters, but Listen is a
+          whole second reason to be here: mixes back from the producer, sent
+          to a label as one link. Same record shape as the app itself. */}
+      <section className="listen-band" id="listen">
+        <div className="listen-band-inner">
+          <div>
+            <div className="section-label">Listen</div>
+            <h2>
+              Send mixes like
+              <br />
+              <em>a record.</em>
+            </h2>
+            <p className="listen-lede">
+              Demos, mixes and masters in playlists with a cover. One link to a label, your band or your
+              mix engineer. They press play, no account.
+            </p>
+            <ul className="listen-points">
+              <li>Lossless. The exact file your engineer sent, never compressed.</li>
+              <li>Every version on one track. Switch v1 to v2 and keep your place in the song.</li>
+              <li>Notes pinned to the second, from you or whoever you send it to.</li>
+              <li>Links that expire, a password if you want one, downloads off unless you say so.</li>
+            </ul>
+            <Link to="/sign-up" className="hero-cta" onMouseEnter={prefetchAppChunks}>
+              Start sharing
+            </Link>
+          </div>
+
+          <div className="listen-mock" aria-hidden>
+            <div className="listen-mock-top">
+              <div className="listen-mock-cover">
+                <span style={{ left: '17%', height: '20%' }} />
+                <span style={{ left: '35%', height: '32%' }} />
+                <span style={{ left: '53%', height: '25%' }} />
+                <span style={{ left: '71%', height: '38%' }} />
+              </div>
+              <div>
+                <div className="listen-mock-eyebrow">Mixes · 4 tracks · 15:02</div>
+                <div className="listen-mock-title">Evergreen EP</div>
+                <div className="listen-mock-artist">Harbour Lights</div>
+              </div>
+            </div>
+            <div className="listen-mock-pills">
+              <span>Play</span>
+              <span>Shuffle</span>
+              <span>Share</span>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <div className="listen-mock-row is-playing">
+                <span className="n">1</span>
+                <span>Heaven</span>
+                <span className="v">v3</span>
+                <span className="d">3:10</span>
+              </div>
+              <div className="listen-mock-note">
+                <b>1:43</b>Vocal a touch louder in the chorus?
+              </div>
+              <div className="listen-mock-row">
+                <span className="n">2</span>
+                <span>Lost</span>
+                <span className="v">v2</span>
+                <span className="d">4:49</span>
+              </div>
+              <div className="listen-mock-row">
+                <span className="n">3</span>
+                <span>Appreciation</span>
+                <span className="v">v1</span>
+                <span className="d">3:36</span>
+              </div>
+              <div className="listen-mock-row">
+                <span className="n">4</span>
+                <span>Evergreen</span>
+                <span className="v">v4</span>
+                <span className="d">3:27</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
 

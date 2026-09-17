@@ -4835,3 +4835,217 @@ html { scroll-padding-top: 88px; }
   color: var(--text-muted);
   margin: 10px 0 0;
 }
+
+/* ═══ 17 Sept, Owen: "too dark". The ground lifts from near-black to the
+   slate of the app icon's own circle, so the page reads as songdrafts blue
+   rather than black. Scoped to .landing so the app is untouched. ═══ */
+.landing {
+  --bg: #1b3a46;
+  --bg2: #22444f;
+  --bg3: #2a4f5b;
+  --bg-2: #22444f;
+  background: linear-gradient(180deg, #1f4150 0%, #1b3a46 38%, #19343f 100%);
+}
+
+.landing > nav {
+  background: rgba(27, 58, 70, 0.9) !important;
+}
+
+/* Square mark beside the wordmark: the app icon, which Owen prefers to the round mark. */
+.landing .logo-square {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  border-radius: 8px;
+  flex: none;
+}
+
+/* ── Listen section: for people who share mixes, not only write songs ── */
+.listen-band {
+  position: relative;
+  padding: 110px 24px;
+}
+
+.listen-band-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 64px;
+  align-items: center;
+}
+
+.listen-band h2 {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+  font-size: clamp(40px, 5vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin: 12px 0 18px;
+}
+
+.listen-band h2 em {
+  color: var(--accent);
+}
+
+.listen-band p.listen-lede {
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.55;
+  margin-bottom: 26px;
+}
+
+.listen-points {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.listen-points li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.listen-points li::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.listen-mock {
+  border-radius: 20px;
+  padding: 28px;
+  background: color-mix(in srgb, #eef5f2 5%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.35);
+}
+
+.listen-mock-top {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 22px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.listen-mock-cover {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background:
+    radial-gradient(130% 100% at 15% 115%, rgba(8, 20, 26, 0.55), transparent 62%),
+    linear-gradient(140deg, #24507a 0%, #4f9bb8 45%, #bfe6dc 100%);
+  position: relative;
+}
+
+.listen-mock-cover span {
+  position: absolute;
+  bottom: 17%;
+  width: 11.5%;
+  border-radius: 999px;
+  background: rgba(244, 249, 246, 0.94);
+}
+
+.listen-mock-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.listen-mock-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 40px;
+  line-height: 1;
+  margin: 6px 0 4px;
+}
+
+.listen-mock-artist {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.listen-mock-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.listen-mock-pills span {
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(238, 245, 242, 0.1);
+}
+
+.listen-mock-pills span:first-child {
+  background: #eef5f2;
+  color: #0e1f26;
+}
+
+.listen-mock-pills span:last-child {
+  margin-left: auto;
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.listen-mock-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.listen-mock-row:nth-child(odd) {
+  background: rgba(238, 245, 242, 0.04);
+}
+
+.listen-mock-row .n,
+.listen-mock-row .d,
+.listen-mock-row .v {
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.listen-mock-row.is-playing {
+  color: var(--accent);
+}
+
+.listen-mock-note {
+  margin: 4px 0 6px 38px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(157, 219, 173, 0.1);
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.listen-mock-note b {
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
+  color: var(--accent);
+  margin-right: 8px;
+}
+
+@media (max-width: 860px) {
+  .listen-band {
+    padding: 72px 20px;
+  }
+
+  .listen-band-inner {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}

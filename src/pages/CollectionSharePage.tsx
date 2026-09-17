@@ -247,6 +247,36 @@ export function CollectionSharePage() {
     } else playSong(currentSong)
   }
 
+  /* Close to gapless (17 Sept, Owen asked for Samply's gapless playback):
+     once a track is past 60%, sign the next one's link and start buffering it
+     in the background, so the change-over does not wait on the network.
+     Only the next track, and only once it is likely to be reached. */
+  const prewarmed = useRef<{ versionId: string; el: HTMLAudioElement } | null>(null)
+  const prewarmNext = () => {
+    if (currentSong === null) return
+    const at = playOrder.indexOf(currentSong)
+    const nextIndex = playOrder[at + 1] ?? (repeat ? playOrder[0] : undefined)
+    if (nextIndex === undefined) return
+    const track = trackFor(nextIndex)
+    if (prewarmed.current?.versionId === track.version_id) return
+    prewarmed.current = { versionId: track.version_id, el: new Audio() }
+    const warm = prewarmed.current
+    void (async () => {
+      try {
+        let url = urlCache.current.get(track.version_id)
+        if (!url) {
+          url = await signedTrackUrl(track.storage_path)
+          urlCache.current.set(track.version_id, url)
+        }
+        warm.el.preload = 'auto'
+        warm.el.src = url
+        warm.el.load()
+      } catch {
+        prewarmed.current = null
+      }
+    })()
+  }
+
   const step = (by: 1 | -1) => {
     if (currentSong === null) return
     const at = playOrder.indexOf(currentSong)
@@ -449,6 +479,7 @@ export function CollectionSharePage() {
           if (!el.duration) return
           setProgress(el.currentTime / el.duration)
           setCurrentMs(el.currentTime * 1000)
+          if (el.currentTime / el.duration > 0.6) prewarmNext()
         }}
         onEnded={() => step(1)}
       />
