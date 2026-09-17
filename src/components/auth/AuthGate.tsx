@@ -1,4 +1,5 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
+import { getTwoStepFactor, needsTwoStepCode, verifyTwoStepCode } from '@/lib/auth/twoStep'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuthSession } from '@/hooks/useAuthSession'
 
@@ -66,5 +67,82 @@ export function AuthGate({ children }: AuthGateProps) {
     return <Navigate to="/sign-in" replace />
   }
 
-  return <>{children}</>
+  return <TwoStepGate>{children}</TwoStepGate>
+}
+
+/**
+ * Accounts with two-step login on give their authenticator code before the
+ * board opens. Offline, the board still opens from this device (the cloud
+ * refuses the data without the code anyway), so nobody is locked out of the
+ * music already on their own machine.
+ */
+function TwoStepGate({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<'checking' | 'needs' | 'ok'>('checking')
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let live = true
+    void needsTwoStepCode().then((needs) => live && setState(needs ? 'needs' : 'ok'))
+    return () => {
+      live = false
+    }
+  }, [])
+
+  if (state === 'ok') return <>{children}</>
+  if (state === 'checking') {
+    return (
+      <div className="auth-gate-loading">
+        <p>Loading your board…</p>
+      </div>
+    )
+  }
+
+  const submit = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const factor = await getTwoStepFactor()
+      if (!factor) {
+        setState('ok')
+        return
+      }
+      await verifyTwoStepCode(factor.id, code)
+      setState('ok')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'That did not work.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="auth-gate-loading two-step-gate">
+      <h2 className="two-step-gate-title">Enter your code</h2>
+      <p className="auth-gate-loading-sub">Open your authenticator app and type the 6-digit code for songdrafts.</p>
+      <input
+        className="two-step-code"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        placeholder="123456"
+        maxLength={6}
+        autoFocus
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && code.replace(/\D/g, '').length === 6) void submit()
+        }}
+      />
+      <button
+        type="button"
+        className="two-step-gate-btn"
+        disabled={busy || code.replace(/\D/g, '').length !== 6}
+        onClick={() => void submit()}
+      >
+        {busy ? 'Checking…' : 'Continue'}
+      </button>
+      {error && <p className="two-step-error">{error}</p>}
+    </div>
+  )
 }

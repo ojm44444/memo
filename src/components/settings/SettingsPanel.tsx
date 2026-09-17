@@ -5,6 +5,7 @@ import { SpeedControl } from '@/components/audio/SpeedControl'
 import { AccountSection } from '@/components/settings/AccountSection'
 import { PlanSection } from '@/components/settings/PlanSection'
 import { ShareLinksSection } from '@/components/settings/ShareLinksSection'
+import { TwoStepSection } from '@/components/settings/TwoStepSection'
 import { TrashSection } from '@/components/board/TrashSection'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
 import {
@@ -241,6 +242,7 @@ export function SettingsPanel() {
                   onSignOutEverywhere={signOutEverywhere}
                 />
                 <PlanSection />
+                <TwoStepSection />
                 <ShareLinksSection />
               </>
             )}

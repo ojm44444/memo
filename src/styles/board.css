@@ -12585,3 +12585,71 @@ html.light .song-drawer {
   color: var(--danger);
   background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
+
+/* Two-step login */
+.two-step-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.two-step-qr {
+  width: 180px;
+  height: 180px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.two-step-secret code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  word-break: break-all;
+  color: var(--text);
+}
+
+.two-step-code {
+  width: 180px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 22px;
+  letter-spacing: 0.25em;
+  text-align: center;
+}
+
+.two-step-error {
+  color: var(--danger);
+}
+
+.two-step-gate {
+  min-height: 70dvh;
+  padding: 24px;
+  text-align: center;
+}
+
+.two-step-gate-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 40px;
+  color: var(--text);
+}
+
+.two-step-gate-btn {
+  min-height: 46px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.two-step-gate-btn:disabled {
+  opacity: 0.5;
+}
