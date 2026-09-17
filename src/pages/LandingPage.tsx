@@ -344,7 +344,7 @@ function PricingToggle() {
       {founding && <p className="price-refund">Full refund within 30 days.</p>}
 
       {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
-      <a className="price-support" href="mailto:support@songdrafts.com">
+      <a className="price-support" href="mailto:songdraftsapp@gmail.com">
         Questions? Email us, a person answers.
       </a>
 
@@ -990,7 +990,7 @@ export function LandingPage() {
           <span aria-hidden="true">·</span>
           <Link to="/terms">Terms</Link>
           <span aria-hidden="true">·</span>
-          <a href="mailto:support@songdrafts.com">support@songdrafts.com</a>
+          <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>
           <span aria-hidden="true">·</span>
           <CookieSettingsLink />
         </nav>

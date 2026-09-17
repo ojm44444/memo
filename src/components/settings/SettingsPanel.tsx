@@ -193,7 +193,7 @@ export function SettingsPanel() {
         /not found|404|failed to send|failed to fetch|non-2xx/i.test(raw)
       setDeleteError(
         notDeployed
-          ? 'Account deletion is not switched on yet, so nothing was removed. Email support@songdrafts.com and it will be done by hand.'
+          ? 'Account deletion is not switched on yet, so nothing was removed. Email songdraftsapp@gmail.com and it will be done by hand.'
           : raw || 'Could not delete the account. Nothing was removed.',
       )
     } finally {

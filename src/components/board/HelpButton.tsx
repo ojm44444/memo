@@ -6,12 +6,12 @@ import { getImportWatermark } from '@/db/repositories/integrityRepo'
  * Help, bottom right (Owen's ask). One sheet, three sections: how audio gets
  * in (the B6 honest routes), where things live, and a person to write to.
  *
- * SUPPORT EMAIL IS A PLACEHOLDER: support@songdrafts.com has no mailbox behind
+ * SUPPORT EMAIL IS A PLACEHOLDER: songdraftsapp@gmail.com has no mailbox behind
  * it yet. Owen has to create the address (or a forward) at IONOS before launch,
  * or this line is a promise the product does not keep. Tracked in the decision
  * log; do not ship the waitlist-era mistake twice.
  */
-const SUPPORT_EMAIL = 'support@songdrafts.com'
+const SUPPORT_EMAIL = 'songdraftsapp@gmail.com'
 
 export function HelpButton() {
   const [open, setOpen] = useState(false)

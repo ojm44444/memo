@@ -98,7 +98,7 @@ export function TermsPage() {
         <p>
           Yearly plans: a full refund if you ask within 30 days of your first payment. Monthly
           plans: a full refund of your first month if you ask within 14 days. Use the refund
-          button in Settings, or email support@songdrafts.com. No reason needed. Your plan ends
+          button in Settings, or email songdraftsapp@gmail.com. No reason needed. Your plan ends
           when the refund is made.
         </p>
         <p>
@@ -144,7 +144,7 @@ export function TermsPage() {
         <p>These terms are governed by the law of England and Wales.</p>
 
         <p className="legal-contact">
-          Questions: <a href="mailto:support@songdrafts.com">support@songdrafts.com</a>
+          Questions: <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>
         </p>
       </main>
 
