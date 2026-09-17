@@ -116,9 +116,10 @@ export function getConsentRegion(): ConsentRegion | null {
 }
 
 /**
- * Where the visitor is, as far as consent goes. Read once per tab from the
- * site's own edge endpoint (/api/geo). Anything but a clear "US" is 'ask',
- * including a timeout, an error, or no answer: the banner is the safe side.
+ * Where the visitor is, as far as consent goes. Everyone is opt-out now, so
+ * nothing is looked up: the /api/geo edge function it used to call was the
+ * only serverless function on the site, and it burned Vercel's free CPU
+ * allowance on every visit for an answer nothing reads (17 Sept).
  */
 export async function resolveConsentRegion(): Promise<ConsentRegion> {
   /* 17 Sept 2026, Owen's decision, made after being told it goes against the
