@@ -240,7 +240,9 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           >
             {busy ? 'Checking…' : 'Continue'}
           </button>
-          <p className="sign-in-muted sign-in-spam">Nothing after a minute? Check spam.</p>
+          <p className="sign-in-muted sign-in-spam">
+            It can take a minute to arrive. If it is not there, check spam and junk, then send it again.
+          </p>
 
           <button
             type="button"

@@ -487,16 +487,6 @@ export function LandingPage() {
             songdrafts is where a song lives while you write it, and where the mixes go when
             they come back: one link to a label, lossless.
           </p>
-          <div className="hero-paths">
-            <a href="#features" className="hero-path">
-              <strong>Writing songs</strong>
-              <span>A board for voice memos and takes</span>
-            </a>
-            <a href="#listen" className="hero-path">
-              <strong>Sharing mixes</strong>
-              <span>Playlists you send as one link</span>
-            </a>
-          </div>
           {/* Waitlist REMOVED (BD ruling 6). There was no confirmation email
               and no mechanism to send one, so every signup got a tick on screen
               and silence afterwards. A page that says "delete means delete" while
