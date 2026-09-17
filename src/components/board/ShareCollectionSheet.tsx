@@ -40,7 +40,7 @@ export function ShareCollectionSheet({
   defaults?: { title: string; artist: string | null; coverPath: string | null }
 }) {
   const [picks, setPicks] = useState<Pick[]>(() =>
-    stacks.map((s) => ({ songId: s.song.id, versionId: s.latest.id, on: !!s.latest.storagePath })),
+    stacks.map((s) => ({ songId: s.song.id, versionId: s.latest.id, on: true })),
   )
   const [title, setTitle] = useState(defaults?.title ?? '')
   const [artist, setArtist] = useState(defaults?.artist ?? '')
@@ -91,7 +91,7 @@ export function ShareCollectionSheet({
       if (withEarlier) {
         const stack = stackBySong.get(pick.songId)
         for (const v of stack?.versions ?? []) {
-          if (v.id !== pick.versionId && v.storagePath) out.push({ songId: pick.songId, versionId: v.id })
+          if (v.id !== pick.versionId) out.push({ songId: pick.songId, versionId: v.id })
         }
       }
     }
@@ -232,14 +232,13 @@ export function ShareCollectionSheet({
               {picks.map((pick, index) => {
                 const stack = stackBySong.get(pick.songId)
                 if (!stack) return null
-                const uploaded = stack.versions.filter((v) => v.storagePath)
-                const disabled = uploaded.length === 0
+                // Still-uploading takes can go in the link now (17 Sept); they fill in when they land.
+                const uploading = !stack.versions.find((v) => v.id === pick.versionId)?.storagePath
                 return (
-                  <li key={pick.songId} className={`send-track${pick.on ? '' : ' is-off'}${disabled ? ' is-disabled' : ''}`}>
+                  <li key={pick.songId} className={`send-track${pick.on ? '' : ' is-off'}`}>
                     <input
                       type="checkbox"
                       checked={pick.on}
-                      disabled={disabled}
                       onChange={(e) =>
                         setPicks((prev) => prev.map((p, i) => (i === index ? { ...p, on: e.target.checked } : p)))
                       }
@@ -247,9 +246,10 @@ export function ShareCollectionSheet({
                     />
                     <div className="send-track-body">
                       <span className="send-track-title">{stack.song.title}</span>
-                      {disabled ? (
-                        <span className="send-track-warn">Not uploaded yet. Open songdrafts on the device it was added on.</span>
-                      ) : (
+                      {uploading && (
+                        <span className="send-track-warn">Still uploading. It appears in the link as soon as it finishes.</span>
+                      )}
+                      {(
                         <select
                           value={pick.versionId}
                           onChange={(e) =>
@@ -258,11 +258,11 @@ export function ShareCollectionSheet({
                           aria-label={`Version of ${stack.song.title}`}
                         >
                           {stack.versions.map((v, vi) => (
-                            <option key={v.id} value={v.id} disabled={!v.storagePath}>
+                            <option key={v.id} value={v.id}>
                               V{stack.versions.length - vi}
                               {vi === 0 ? ' (top)' : ''} · {kindName(v.kind)}
                               {v.label ? ` · ${v.label}` : ''} · {formatDuration(v.durationMs)}
-                              {!v.storagePath ? ' · not uploaded' : ''}
+                              {!v.storagePath ? ' · uploading' : ''}
                             </option>
                           ))}
                         </select>
@@ -287,8 +287,8 @@ export function ShareCollectionSheet({
             </ul>
             {notUploaded > 0 && (
               <p className="send-sheet-note">
-                {notUploaded} {notUploaded === 1 ? 'stack is' : 'stacks are'} not in the cloud yet, so
-                {notUploaded === 1 ? ' it cannot' : ' they cannot'} be sent until the upload finishes.
+                {notUploaded} {notUploaded === 1 ? 'track is' : 'tracks are'} still uploading. Keep songdrafts open;
+                {notUploaded === 1 ? ' it appears' : ' they appear'} in the link the moment the upload finishes.
               </p>
             )}
 

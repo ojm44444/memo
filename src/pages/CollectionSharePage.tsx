@@ -491,6 +491,13 @@ export function CollectionSharePage() {
               </p>
               <h1 className="rec-title">{title}</h1>
               {data.artist && <p className="rec-artist">{data.artist}</p>}
+              {(data.pending_count ?? 0) > 0 && (
+                <p className="rec-status coll-pending">
+                  <span className="rec-status-dot" aria-hidden />
+                  {data.pending_count} more {data.pending_count === 1 ? 'track is' : 'tracks are'} on the way. Refresh in a
+                  few minutes.
+                </p>
+              )}
               <div className="rec-actions">
                 <button type="button" className="rec-pill is-primary" onClick={togglePlay} disabled={!songs.length}>
                   {isPlaying ? <PauseIcon size={16} /> : <PlayIcon size={16} />}

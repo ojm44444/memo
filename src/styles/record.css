@@ -1086,3 +1086,8 @@
 .rec-menu-item.rec-version-add:hover {
   color: var(--text);
 }
+
+.coll-pending {
+  margin: 14px 0 0;
+  padding: 0;
+}

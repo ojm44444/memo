@@ -44,6 +44,8 @@ export interface CollectionPayload {
   expires_at: string | null
   cover_path: string | null
   tracks: CollectionTrack[]
+  /** Tracks in the link still uploading; they appear once they land. */
+  pending_count?: number
   comments: CollectionComment[]
 }
 
@@ -87,6 +89,11 @@ export async function createCollectionShare(
   if (!userId) throw new Error('Sign in to share')
   const boardId = await resolveBoardId(userId)
   if (!boardId) throw new Error('Board not found')
+
+  /* Share before the upload finishes (17 Sept): make sure every chosen take
+     at least exists in the cloud, so the link can hold it and fill in when
+     its audio arrives. */
+  await ensureVersionRows(items.map((i) => i.versionId))
 
   const { data, error } = await rpc('create_collection_share', {
     p_board_id: boardId,
@@ -165,6 +172,27 @@ export async function revokeCollectionLink(token: string) {
   if (!supabase) throw new Error('Cloud sync is not configured')
   const { error } = await rpc('revoke_playlist_share', { p_token: token })
   if (error) throw new Error(error.message)
+}
+
+async function ensureVersionRows(versionIds: string[]) {
+  if (!supabase) return
+  const { db } = await import('@/db/database')
+  const pending = (await db.audioVersions.bulkGet(versionIds)).filter((v) => v && !v.storagePath)
+  if (!pending.length) return
+  const { error } = await supabase.from('audio_versions').upsert(
+    pending.map((v) => ({
+      id: v!.id,
+      song_id: v!.songId,
+      file_name: v!.label || 'audio',
+      label: v!.label,
+      duration_ms: v!.durationMs,
+      position: v!.sortOrder,
+      kind: v!.kind ?? 'mix',
+      updated_at: new Date().toISOString(),
+    })) as never,
+    { onConflict: 'id', ignoreDuplicates: true },
+  )
+  if (error) throw new Error('A song has not reached the cloud yet. Try again in a moment.')
 }
 
 // ── The listener's side, no account ────────────────────────────────────────
