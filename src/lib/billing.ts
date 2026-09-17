@@ -23,6 +23,9 @@ import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
  */
 export const BILLING_LIVE = false
 
+/** Accounts created before this are free for good (Owen and early testers). */
+export const PAYWALL_FROM = '2026-09-18T00:00:00Z'
+
 export type SubscriptionStatus =
   | 'none'
   | 'trialing'

@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from 'react'
+import { PlanGate } from './PlanGate'
 import { getTwoStepFactor, needsTwoStepCode, verifyTwoStepCode } from '@/lib/auth/twoStep'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuthSession } from '@/hooks/useAuthSession'
@@ -67,7 +68,11 @@ export function AuthGate({ children }: AuthGateProps) {
     return <Navigate to="/sign-in" replace />
   }
 
-  return <TwoStepGate>{children}</TwoStepGate>
+  return (
+    <TwoStepGate>
+      <PlanGate>{children}</PlanGate>
+    </TwoStepGate>
+  )
 }
 
 /**
