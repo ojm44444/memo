@@ -1103,3 +1103,29 @@
     max-width: 100%;
   }
 }
+
+.rec-shared {
+  margin: 8px 0 40px;
+}
+
+.rec-shared .rec-eyebrow {
+  margin-bottom: 16px;
+}
+
+.rec-shared a.rec-project {
+  text-decoration: none;
+}
+
+.rec-shared-remove {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.rec-shared-remove:hover {
+  color: var(--text);
+}

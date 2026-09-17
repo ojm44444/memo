@@ -11,6 +11,13 @@ import { MixesRoom } from './MixesRoom'
 import { MixImport } from './MixImport'
 import { ProjectSheet } from './ProjectSheet'
 import { SentCollections } from './SentCollections'
+import {
+  listSavedLinks,
+  removeSavedLink,
+  savePendingLink,
+  type SavedLink,
+} from '@/db/repositories/savedLinksRepo'
+import { signedTrackUrl } from '@/db/repositories/collectionShareRepo'
 import '@/styles/record.css'
 
 /**
@@ -108,6 +115,8 @@ function ProjectsGrid({ onOpen }: { onOpen: (id: string) => void }) {
         </ul>
       )}
 
+      <SharedWithYou />
+
       <SentCollections refreshKey={0} />
 
       {creating && (
@@ -157,5 +166,62 @@ function ProjectCard({
         </span>
       </button>
     </li>
+  )
+}
+
+/**
+ * Playlists other people shared and this person saved from the link page
+ * (17 Sept). Opening one opens the link itself, so the owner's settings
+ * (expiry, password, turning it off) still apply.
+ */
+function SharedWithYou() {
+  const [links, setLinks] = useState<SavedLink[] | null>(null)
+  const [covers, setCovers] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    let live = true
+    void (async () => {
+      await savePendingLink()
+      const list = await listSavedLinks()
+      if (!live) return
+      setLinks(list)
+      for (const link of list) {
+        if (!link.cover_path) continue
+        void signedTrackUrl(link.cover_path)
+          .then((url) => live && setCovers((prev) => ({ ...prev, [link.token]: url })))
+          .catch(() => undefined)
+      }
+    })()
+    return () => {
+      live = false
+    }
+  }, [])
+
+  if (!links?.length) return null
+
+  return (
+    <section className="rec-shared">
+      <p className="rec-eyebrow">Shared with you</p>
+      <ul className="rec-projects">
+        {links.map((link) => (
+          <li key={link.token}>
+            <a className="rec-project" href={`/playlist/${link.token}`}>
+              <RecordArt seed={link.token} label="" src={covers[link.token] ?? null} />
+              <span className="rec-project-title">{link.title || 'Untitled'}</span>
+              <span className="rec-project-meta">{link.artist || 'Shared playlist'}</span>
+            </a>
+            <button
+              type="button"
+              className="rec-shared-remove"
+              onClick={() => {
+                void removeSavedLink(link.token).then(() => setLinks((prev) => prev?.filter((l) => l.token !== link.token) ?? null))
+              }}
+            >
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

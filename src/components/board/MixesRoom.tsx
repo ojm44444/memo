@@ -14,6 +14,7 @@ import {
   getListenProjects,
   listenCoverUrl,
   moveSongsToListenProject,
+  deleteListenProject,
   reorderListenProject,
   updateListenProject,
 } from '@/db/repositories/listenProjectRepo'
@@ -593,6 +594,23 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
                       <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); setEditing(true) }}>
                         <span />
                         <span>Edit title, artist and cover</span>
+                        <span />
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="rec-menu-item is-danger"
+                        onClick={() => {
+                          close()
+                          if (!window.confirm(`Delete the playlist "${project.title}"? The songs stay in Listen.`)) return
+                          void deleteListenProject(project.id).then(() => {
+                            scheduleFlush()
+                            onBack()
+                          })
+                        }}
+                      >
+                        <span />
+                        <span>Delete playlist</span>
                         <span />
                       </button>
                       {loose.length > 0 && <p className="rec-menu-title">Add from Not in a playlist</p>}

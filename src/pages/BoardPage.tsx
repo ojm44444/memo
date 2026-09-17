@@ -145,6 +145,12 @@ function AuthenticatedBoard() {
     // AuthGate has already confirmed a session, so the code in the URL has
     // been exchanged and is spent. Take it out of the address bar.
     clearAuthCallbackFromUrl()
+    // Came from "Save to my songdrafts" on a shared link: keep it, open Listen.
+    void import('@/db/repositories/savedLinksRepo').then(({ savePendingLink }) =>
+      savePendingLink().then((saved) => {
+        if (saved) useUiStore.getState().setBoardMode('listen')
+      }),
+    )
     void ensureSeeded()
     initSyncEngine()
     void registerBackgroundSync()

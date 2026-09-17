@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
 import { ShareCommentThread } from '@/components/share/ShareCommentThread'
+import { isSignedIn, rememberPendingLink, saveLink } from '@/db/repositories/savedLinksRepo'
 import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
 import { kindName } from '@/lib/kindName'
 import {
@@ -507,6 +508,9 @@ export function CollectionSharePage() {
                   <ShuffleIcon size={17} />
                   Shuffle
                 </button>
+                <SaveToSongdrafts
+                  link={{ token: token ?? '', title: data.title, artist: data.artist, cover_path: data.cover_path }}
+                />
                 {data.allow_download && songs.length > 0 && (
                   <div className="rec-actions-end">
                     <button
@@ -763,5 +767,40 @@ export function CollectionSharePage() {
         </div>
       )}
     </div>
+  )
+}
+
+/** Keep this playlist in your own songdrafts (signed in), or sign up and keep it. */
+function SaveToSongdrafts({
+  link,
+}: {
+  link: { token: string; title: string | null; artist: string | null; cover_path: string | null }
+}) {
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  if (!link.token) return null
+  return (
+    <button
+      type="button"
+      className="rec-pill is-quiet"
+      disabled={state === 'saving' || state === 'saved'}
+      onClick={() => {
+        void (async () => {
+          if (!(await isSignedIn())) {
+            rememberPendingLink(link)
+            window.location.assign('/sign-up')
+            return
+          }
+          setState('saving')
+          try {
+            await saveLink(link)
+            setState('saved')
+          } catch {
+            setState('error')
+          }
+        })()
+      }}
+    >
+      {state === 'saved' ? 'Saved to your Listen' : state === 'error' ? 'Try again' : 'Save to my songdrafts'}
+    </button>
   )
 }

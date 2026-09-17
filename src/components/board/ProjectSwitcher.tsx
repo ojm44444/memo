@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   createProject,
+  deleteProject,
   getActiveProjectId,
   getProjectAccentMap,
   getProjects,
@@ -153,6 +154,28 @@ export function ProjectSwitcher({ readOnly = false }: ProjectSwitcherProps) {
                 Add
               </button>
             </div>
+          )}
+
+          {(projects?.length ?? 0) > 1 && activeProjectId && (
+            <button
+              type="button"
+              className="project-switcher-delete"
+              onClick={() => {
+                void (async () => {
+                  const { db } = await import('@/db/database')
+                  const count = await db.songs.filter((s) => !s.deletedAt && s.projectId === activeProjectId).count()
+                  const message = count
+                    ? `Delete "${name}"? Its ${count} ${count === 1 ? 'song goes' : 'songs go'} to Deleted songs in Settings for 30 days.`
+                    : `Delete "${name}"? It is empty.`
+                  if (!window.confirm(message)) return
+                  await deleteProject(activeProjectId)
+                  scheduleFlush()
+                  setOpen(false)
+                })()
+              }}
+            >
+              Delete this project
+            </button>
           )}
 
           <label className="project-switcher-rename">
