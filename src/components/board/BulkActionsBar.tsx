@@ -111,7 +111,7 @@ export function BulkActionsBar() {
   const remove = async () => {
     if (
       !confirm(
-        `Delete ${selectedSongIds.length} song${selectedSongIds.length === 1 ? '' : 's'}? This cannot be undone.`,
+        `Delete ${selectedSongIds.length} song${selectedSongIds.length === 1 ? '' : 's'} forever? Every take and audio file goes now. This cannot be undone.`,
       )
     ) {
       return

@@ -17,8 +17,16 @@ import { evictLocalUrl } from '@/lib/audio/resolvePlaybackUrl'
 export const TRASH_RETENTION_DAYS = 30
 
 export async function getTrashedSongs(): Promise<Song[]> {
-  const songs = await db.songs.filter((s) => !!s.deletedAt).toArray()
-  return songs.sort((a, b) => (b.deletedAt ?? '').localeCompare(a.deletedAt ?? ''))
+  const [songs, versions] = await Promise.all([
+    db.songs.filter((s) => !!s.deletedAt).toArray(),
+    db.audioVersions.toArray(),
+  ])
+  // A song deleted forever can come back from the cloud as an empty
+  // tombstone; it has nothing left to restore, so it is not listed.
+  const withAudio = new Set(versions.map((v) => v.songId))
+  return songs
+    .filter((s) => withAudio.has(s.id))
+    .sort((a, b) => (b.deletedAt ?? '').localeCompare(a.deletedAt ?? ''))
 }
 
 export function daysLeft(deletedAt: string): number {
@@ -67,4 +75,15 @@ export async function purgeExpiredTrash(): Promise<number> {
   const expired = await db.songs.filter((s) => !!s.deletedAt && s.deletedAt < cutoff).toArray()
   for (const s of expired) await purgeSongForGood(s.id)
   return expired.length
+}
+
+/**
+ * Delete forever, from the song itself (17 Sept, Owen: "deleted is deleted,
+ * it is gone"). No 30 days in a bin: the song, every take and every audio
+ * file go now, here and in the cloud.
+ */
+export async function deleteSongForever(id: string): Promise<void> {
+  const { deleteSong } = await import('./boardRepo')
+  await deleteSong(id)
+  await purgeSongForGood(id)
 }

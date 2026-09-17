@@ -849,9 +849,9 @@ export async function deleteProject(projectId: string) {
     .toArray()
 
   if (songs.length > 0) {
-    const { deleteSong } = await import('./boardRepo')
+    const { deleteSongForever } = await import('./trashRepo')
     for (const song of songs) {
-      await deleteSong(song.id)
+      await deleteSongForever(song.id)
     }
   }
 

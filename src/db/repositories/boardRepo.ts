@@ -582,8 +582,9 @@ export async function bulkUnfavouriteSongs(songIds: string[]) {
 
 export async function bulkDeleteSongs(songIds: string[]) {
   const uniqueIds = [...new Set(songIds)]
+  const { deleteSongForever } = await import('./trashRepo')
   for (const songId of uniqueIds) {
-    await deleteSong(songId)
+    await deleteSongForever(songId)
   }
 }
 

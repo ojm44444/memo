@@ -7,7 +7,7 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { SpeedControl } from '@/components/audio/SpeedControl'
 import { formatDuration } from '@/lib/audio-utils'
 import { recordEvent } from '@/lib/analytics'
-import { deleteSong, getSong, updateSong } from '@/db/repositories/boardRepo'
+import { getSong, updateSong } from '@/db/repositories/boardRepo'
 import { markFeedbackSeen } from '@/db/repositories/shareFeedbackRepo'
 import { SongStageSelect } from './SongStageSelect'
 import { SongProjectSelect } from './SongProjectSelect'
@@ -165,9 +165,10 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
   }
 
   const handleDelete = async () => {
-    if (!confirm(`Delete "${song.title}"? This cannot be undone.`)) return
+    if (!confirm(`Delete "${song.title}" forever? Every take and audio file goes now. This cannot be undone.`)) return
     usePlayerStore.getState().stop()
-    await deleteSong(song.id)
+    const { deleteSongForever } = await import('@/db/repositories/trashRepo')
+    await deleteSongForever(song.id)
     scheduleFlush()
     closeDrawer()
   }

@@ -21,7 +21,8 @@ import {
 import type { ListenProject } from '@/types/listen-project'
 import { SongComments } from '@/components/song/SongComments'
 import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
-import { deleteSong, mergeSongsInto, updateSong } from '@/db/repositories/boardRepo'
+import { mergeSongsInto, updateSong } from '@/db/repositories/boardRepo'
+import { deleteSongForever } from '@/db/repositories/trashRepo'
 import { LISTEN_SLUG } from '@/types/column'
 import {
   CheckIcon,
@@ -373,9 +374,9 @@ function StackRow({
                       'is-danger',
                     )
                   : confirmDelete
-                    ? item('Tap again to delete', () => {
+                    ? item('Tap again: delete forever', () => {
                         close()
-                        void deleteSong(song.id).then(() => scheduleFlush())
+                        void deleteSongForever(song.id).then(() => scheduleFlush())
                       }, 'is-danger')
                     : (
                       <button

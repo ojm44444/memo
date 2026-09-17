@@ -165,7 +165,7 @@ export function ProjectSwitcher({ readOnly = false }: ProjectSwitcherProps) {
                   const { db } = await import('@/db/database')
                   const count = await db.songs.filter((s) => !s.deletedAt && s.projectId === activeProjectId).count()
                   const message = count
-                    ? `Delete "${name}"? Its ${count} ${count === 1 ? 'song goes' : 'songs go'} to Deleted songs in Settings for 30 days.`
+                    ? `Delete "${name}" forever? Its ${count} ${count === 1 ? 'song' : 'songs'} and every audio file go now. This cannot be undone.`
                     : `Delete "${name}"? It is empty.`
                   if (!window.confirm(message)) return
                   await deleteProject(activeProjectId)

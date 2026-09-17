@@ -126,6 +126,19 @@ async function processQueueItem(
           .eq('id', item.entityId),
       )
     } else if (item.op === 'delete') {
+      /* Deleted is deleted (17 Sept, Owen): the audio file goes from storage
+         in the same step as its row, not weeks later by a sweep. Storage
+         first, so a row can never outlive knowledge of its file. */
+      const { data: row } = await supabase!
+        .from('audio_versions')
+        .select('storage_path')
+        .eq('id', item.entityId)
+        .maybeSingle()
+      const path = (row as { storage_path?: string | null } | null)?.storage_path
+      if (path) {
+        const { error: removeError } = await supabase!.storage.from('audio').remove([path])
+        if (removeError) throw removeError
+      }
       await assertNoError(
         await supabase!.from('audio_versions').delete().eq('id', item.entityId),
       )
