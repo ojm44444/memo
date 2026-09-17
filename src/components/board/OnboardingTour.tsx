@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   isOnboardingTourComplete,
   setOnboardingTourComplete,
+  snoozeOnboardingTour,
 } from '@/lib/onboarding'
 import { useBoardRole } from '@/hooks/useBoardRole'
 import { useUiStore, type BoardMode } from '@/stores/uiStore'
@@ -138,6 +139,16 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
             </button>
           </div>
           <div className="onboarding-tour-actions">
+            <button
+              type="button"
+              className="onboarding-tour-skip"
+              onClick={() => {
+                snoozeOnboardingTour()
+                setOpen(false)
+              }}
+            >
+              Remind me later
+            </button>
             <button type="button" className="onboarding-tour-skip" onClick={() => void finish()}>
               Skip
             </button>

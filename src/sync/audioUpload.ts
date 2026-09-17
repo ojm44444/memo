@@ -1,5 +1,6 @@
 import { getAudioBlob, updateAudioVersionStoragePath } from '@/db/repositories/audioRepo'
 import { errorMessage } from '@/lib/errorMessage'
+import { clearUploadProgress, setUploadFailed, setUploadProgress } from '@/sync/uploadProgress'
 import { INBOX_SLUG } from '@/types/column'
 import { supabase } from '@/lib/supabase/client'
 import { db } from '@/db/database'
@@ -48,12 +49,32 @@ export async function uploadAudioVersion(
     )
   }
 
+  /* Big files go up in resumable 6 MB chunks (17 Sept). A single request for
+     a studio WAV was refused outright on the phone, over and over, and even
+     when it works a phone that sleeps mid-upload starts again from zero.
+     Chunks survive that, and report progress. Small files stay one request. */
+  if (blobRecord.blob.size > RESUMABLE_OVER_BYTES) {
+    try {
+      await uploadResumable(versionId, storagePath, blobRecord.blob, contentType)
+    } catch (err) {
+      const msg = errorMessage(err)
+      setUploadFailed(versionId, msg)
+      const blocked = classifyStorageRefusal(msg)
+      if (blocked) throw new UploadBlockedError(blocked, msg)
+      throw err
+    }
+    await finishUpload(versionId, storagePath, payload)
+    return
+  }
+
+  setUploadProgress(versionId, 0)
   const { error: uploadError } = await supabase.storage
     .from('audio')
     .upload(storagePath, blobRecord.blob, {
       contentType,
       upsert: true,
     })
+  if (uploadError) setUploadFailed(versionId, String(uploadError.message ?? 'Upload failed'))
 
   if (uploadError) {
     // The quota policy (migration 017) refuses the insert at the database, so
@@ -77,6 +98,48 @@ export async function uploadAudioVersion(
     throw uploadError
   }
 
+  await finishUpload(versionId, storagePath, payload)
+}
+
+const RESUMABLE_OVER_BYTES = 6 * 1024 * 1024
+
+async function uploadResumable(versionId: string, storagePath: string, blob: Blob, contentType: string) {
+  if (!supabase) throw new Error('Supabase not configured')
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) throw new Error('Signed out, so this take is waiting on this device')
+  const base = String(import.meta.env.VITE_SUPABASE_URL ?? '').replace(/\/$/, '')
+  // The storage hostname is Supabase's recommended endpoint for large uploads.
+  const endpoint = base.replace('.supabase.co', '.storage.supabase.co') + '/storage/v1/upload/resumable'
+  const { Upload } = await import('tus-js-client')
+
+  setUploadProgress(versionId, 0)
+  await new Promise<void>((resolve, reject) => {
+    const upload = new Upload(blob, {
+      endpoint,
+      retryDelays: [0, 2000, 5000, 10000],
+      headers: { authorization: `Bearer ${token}`, 'x-upsert': 'true' },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: { bucketName: 'audio', objectName: storagePath, contentType, cacheControl: '3600' },
+      chunkSize: 6 * 1024 * 1024, // Supabase requires exactly 6 MB chunks
+      onProgress: (sent, total) => setUploadProgress(versionId, total ? sent / total : 0),
+      onError: (error) => reject(error),
+      onSuccess: () => resolve(),
+    })
+    void upload.findPreviousUploads().then((previous) => {
+      if (previous.length) upload.resumeFromPreviousUpload(previous[0])
+      upload.start()
+    })
+  })
+}
+
+async function finishUpload(
+  versionId: string,
+  storagePath: string,
+  payload: { songId: string; fileName: string; label: string; durationMs: number; sortOrder: number },
+) {
+  if (!supabase) throw new Error('Supabase not configured')
   const { error: dbError } = await supabase.from('audio_versions').upsert({
     id: versionId,
     song_id: payload.songId,
@@ -91,6 +154,7 @@ export async function uploadAudioVersion(
   if (dbError) throw dbError
 
   await updateAudioVersionStoragePath(versionId, storagePath)
+  clearUploadProgress(versionId)
 }
 
 async function syncLocalColumnsToBoard(boardId: string) {

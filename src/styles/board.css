@@ -12425,3 +12425,35 @@ html.light .song-drawer {
   background: none;
   box-shadow: none;
 }
+
+.board-switcher-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.board-switcher-list li > .board-switcher-item {
+  flex: 1;
+}
+
+.board-switcher-delete {
+  border: 0;
+  background: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.board-switcher-delete:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.board-switcher-notice {
+  margin: 8px 4px 2px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

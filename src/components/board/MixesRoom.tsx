@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/Icons'
 import { MixImport } from './MixImport'
 import { addVersionFiles } from '@/lib/listenImport'
+import { useUploadProgress } from '@/sync/uploadProgress'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 import '@/styles/record.css'
@@ -138,6 +139,7 @@ function StackRow({
   }
 
   const cloud = chosen.storagePath ? null : chosen.uploadBlockedReason ? 'blocked' : 'uploading'
+  const upload = useUploadProgress(cloud === 'uploading' ? chosen.id : null)
   const stop = (e: React.SyntheticEvent) => e.stopPropagation()
   const item = (label: React.ReactNode, onClick: () => void, className = '') => (
     <button type="button" role="menuitem" className={`rec-menu-item ${className}`} onClick={onClick}>
@@ -224,7 +226,15 @@ function StackRow({
           ) : (
             <span className="rec-name-title">{song.title}</span>
           )}
-          {cloud === 'uploading' && <span className="rec-name-warn">Uploading</span>}
+          {cloud === 'uploading' && (
+            <span className={`rec-name-warn${upload?.failed ? ' is-bad' : ''}`} title={upload?.failed ?? undefined}>
+              {upload?.failed
+                ? 'Upload failed, retrying'
+                : upload
+                  ? `Uploading ${Math.round(upload.fraction * 100)}%`
+                  : 'Waiting to upload'}
+            </span>
+          )}
           {cloud === 'blocked' && <span className="rec-name-warn is-bad">Too big for the cloud</span>}
         </span>
 
