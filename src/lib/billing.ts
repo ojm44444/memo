@@ -21,7 +21,7 @@ import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
  * Flip to true on the same day the Stripe keys are set. It is deliberately
  * separate from SIGNUPS_OPEN: signups can open before billing, or after.
  */
-export const BILLING_LIVE = false
+export const BILLING_LIVE = true
 
 /** Accounts created before this are free for good (Owen and early testers). */
 export const PAYWALL_FROM = '2026-09-18T00:00:00Z'
