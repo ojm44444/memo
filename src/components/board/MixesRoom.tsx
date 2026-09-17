@@ -25,6 +25,7 @@ import { deleteSong, mergeSongsInto, updateSong } from '@/db/repositories/boardR
 import { LISTEN_SLUG } from '@/types/column'
 import {
   CheckIcon,
+  DownloadIcon,
   ChevronRightIcon,
   CommentIcon,
   EqIcon,
@@ -41,6 +42,8 @@ import { addVersionFiles } from '@/lib/listenImport'
 import { renderGeneratedCover } from '@/lib/generatedCover'
 import { createCollectionShare, uploadCollectionCover } from '@/db/repositories/collectionShareRepo'
 import { useUploadProgress } from '@/sync/uploadProgress'
+import { cacheRemoteAudioVersion } from '@/sync/audioDownload'
+import { requestStoragePersistence } from '@/lib/storagePersistence'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 import '@/styles/record.css'
@@ -579,6 +582,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
               <ShuffleIcon size={17} />
               Shuffle
             </button>
+            <OfflineButton versions={ordered.flatMap((st) => st.versions)} />
             <div className="rec-actions-end">
               {project && (
                 <RecordMenu
@@ -784,6 +788,68 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
         />
       )}
     </div>
+  )
+}
+
+/**
+ * "Make offline", like Google Drive (17 Sept, Owen): offline was one of the
+ * best things about the Songwriting board, so a Listen playlist can do it
+ * too. Saves every version in the playlist onto this device, then plays
+ * without a connection. Done is read from the files themselves, so it stays
+ * true across visits.
+ */
+function OfflineButton({ versions }: { versions: AudioVersion[] }) {
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [failed, setFailed] = useState(false)
+  const reachable = versions.filter((v) => v.localBlobId || v.storagePath)
+  const missing = reachable.filter((v) => !v.localBlobId)
+  if (!reachable.length) return null
+
+  if (progress) {
+    return (
+      <span className="rec-pill is-quiet rec-offline is-busy" aria-live="polite">
+        Saving {progress.done} of {progress.total}
+      </span>
+    )
+  }
+
+  if (!missing.length) {
+    return (
+      <span className="rec-pill is-quiet rec-offline is-done" title="Every track here plays without a connection">
+        <CheckIcon size={16} />
+        Offline
+      </span>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className="rec-pill is-quiet rec-offline"
+      onClick={() => {
+        void (async () => {
+          setFailed(false)
+          void requestStoragePersistence()
+          const total = missing.length
+          setProgress({ done: 0, total })
+          let errors = 0
+          for (const [i, v] of missing.entries()) {
+            try {
+              await cacheRemoteAudioVersion(v.id)
+            } catch {
+              errors++
+            }
+            setProgress({ done: i + 1, total })
+          }
+          setProgress(null)
+          setFailed(errors > 0)
+        })()
+      }}
+      title="Save every track to this device so it plays without a connection"
+    >
+      <DownloadIcon size={16} />
+      {failed ? 'Try again' : 'Make offline'}
+    </button>
   )
 }
 

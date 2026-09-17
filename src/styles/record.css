@@ -1129,3 +1129,13 @@
 .rec-shared-remove:hover {
   color: var(--text);
 }
+
+.rec-offline.is-done {
+  color: var(--accent);
+  cursor: default;
+}
+
+.rec-offline.is-busy {
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
