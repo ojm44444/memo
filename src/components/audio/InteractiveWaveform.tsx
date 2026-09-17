@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { decodeWaveformPeaks } from '@/lib/audio/decodeWaveformPeaks'
+import { getCachedPeaks } from '@/db/repositories/waveformRepo'
 import './InteractiveWaveform.css'
+
+const FULL_BARS = 200
+/** Smaller sets other views save (board cards, thumbnails), newest renderers first. */
+const PREVIEW_BARS = [160, 120, 80, 40]
+
+function stretch(source: number[], count: number) {
+  if (!source.length) return source
+  return Array.from({ length: count }, (_, i) => source[Math.min(source.length - 1, Math.floor((i / count) * source.length))])
+}
 
 export interface WaveformMarker {
   id: string
@@ -45,54 +55,66 @@ export function InteractiveWaveform({
   onMarkerClick,
 }: InteractiveWaveformProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [peaks, setPeaks] = useState<number[]>([])
-  const [loading, setLoading] = useState(false)
-  // Use a ref for barCount so ResizeObserver doesn't trigger decode cancellation
-  // on every pixel change — only commit a new decode when the bucket changes.
-  const barCountRef = useRef(120)
-  const [barBucket, setBarBucket] = useState(120)
+  /* 17 Sept, Owen: the player waveform flashed and loaded late. Three causes:
+     the bar count followed the width, so every resize threw away a decode
+     and started another; nothing showed until the audio URL resolved, even
+     when the peaks were already saved on this device; and switching songs
+     kept the old song's shape until the new one decoded. Now: one fixed bar
+     count, saved peaks (or the board card's smaller set, stretched) appear
+     at once, and the peaks belong to a song, so a new song never shows the
+     last one's shape. */
+  const [state, setState] = useState<{ key: string; peaks: number[]; full: boolean }>({
+    key: '',
+    peaks: [],
+    full: false,
+  })
+  const identity = cacheKey ?? audioUrl ?? ''
+  const peaks = state.key === identity ? state.peaks : []
+  const haveFull = state.key === identity && state.full
 
-  // Auto-size: 1 bar per ~2.5px, normalised to nearest 40 so minor resizes
-  // don't cancel an in-flight decode.
+  // Instant: anything already saved for this version.
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const ro = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width
-      if (w <= 0) return
-      const raw = Math.max(40, Math.floor(w / 2.5))
-      barCountRef.current = raw
-      const bucket = Math.round(raw / 40) * 40 || raw
-      setBarBucket((prev) => (prev === bucket ? prev : bucket))
-    })
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!audioUrl) {
-      setPeaks([])
-      return
-    }
-
+    if (!cacheKey) return
     let cancelled = false
-    setLoading(true)
-
-    void decodeWaveformPeaks(audioUrl, barBucket, cacheKey)
-      .then((decoded) => {
-        if (!cancelled) setPeaks(decoded)
-      })
-      .catch(() => {
-        if (!cancelled) setPeaks([])
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
+    void (async () => {
+      const full = await getCachedPeaks(cacheKey, FULL_BARS)
+      if (cancelled) return
+      if (full) {
+        setState({ key: cacheKey, peaks: full, full: true })
+        return
+      }
+      for (const count of PREVIEW_BARS) {
+        const preview = await getCachedPeaks(cacheKey, count)
+        if (cancelled) return
+        if (preview) {
+          setState((prev) =>
+            prev.key === cacheKey && prev.full ? prev : { key: cacheKey, peaks: stretch(preview, FULL_BARS), full: false },
+          )
+          return
+        }
+      }
+    })()
     return () => {
       cancelled = true
     }
-  }, [audioUrl, barBucket, cacheKey])
+  }, [cacheKey])
+
+  // Detailed: decode once the audio is reachable, unless saved peaks already arrived.
+  useEffect(() => {
+    if (!audioUrl || haveFull) return
+    let cancelled = false
+    const key = identity
+    void decodeWaveformPeaks(audioUrl, FULL_BARS, cacheKey)
+      .then((decoded) => {
+        if (!cancelled && decoded.length) setState({ key, peaks: decoded, full: true })
+      })
+      .catch(() => {
+        /* keep whatever preview is showing */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [audioUrl, cacheKey, identity, haveFull])
 
   const seekFromClientX = useCallback(
     (clientX: number) => {
@@ -143,7 +165,7 @@ export function InteractiveWaveform({
         if (e.key === 'ArrowLeft') onSeek(Math.max(0, progress - 0.05))
       }}
     >
-      {loading && peaks.length === 0 ? (
+      {peaks.length === 0 ? (
         <div className="interactive-waveform-skeleton" />
       ) : (
         peaks.map((peak, index) => (
