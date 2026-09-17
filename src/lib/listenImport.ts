@@ -69,10 +69,29 @@ function guessType(name: string) {
 
 
 /** Each file becomes its own track, in the project if there is one. */
+/* Files bounced together often share a prefix ("evergreen EP - Heaven",
+   "evergreen EP - Lost"). The album name on every row is noise, so a prefix
+   shared by all of them is dropped (17 Sept, Owen). */
+function sharedPrefix(names: string[]) {
+  if (names.length < 2) return ''
+  let prefix = names[0]
+  for (const name of names.slice(1)) {
+    let i = 0
+    while (i < prefix.length && i < name.length && prefix[i].toLowerCase() === name[i].toLowerCase()) i++
+    prefix = prefix.slice(0, i)
+    if (!prefix) return ''
+  }
+  const cut = Math.max(prefix.lastIndexOf('-'), prefix.lastIndexOf('_'), prefix.lastIndexOf('·'))
+  return cut > 2 ? prefix.slice(0, cut + 1) : ''
+}
+
 export async function addListenFiles(files: File[], projectId: string | null) {
   const ids: string[] = []
+  const names = files.map((f) => tidyLabel(f.name))
+  const prefix = sharedPrefix(names)
   for (const file of files) {
-    const title = tidyLabel(file.name) || 'Untitled'
+    const tidy = tidyLabel(file.name)
+    const title = (prefix && tidy.length > prefix.length ? tidy.slice(prefix.length).trim() : tidy) || 'Untitled'
     const song = await createSong({ title, columnSlug: LISTEN_SLUG })
     const version = await addAudioVersionToSong(song.id, file, title)
     await setAudioVersionKind(version.id, 'mix')

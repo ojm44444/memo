@@ -237,7 +237,7 @@ const FAQS = [
   },
   {
     q: 'Can I get my money back?',
-    a: 'Yes. Yearly plans: a full refund within 30 days, from a button in Settings. Monthly: your first month, within 14 days. No questions.',
+    a: 'Cancel any time from Settings and it stops at the end of the period you have paid for. If you change your mind early there is a refund button in Settings too: yearly within 30 days, monthly within 14.',
   },
 ] as const
 
@@ -321,20 +321,20 @@ function PricingToggle() {
         {founding
           ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
           : annual
-            ? 'Full refund within 30 days.'
-            : 'Full refund of your first month within 14 days.'}
+            ? 'Cancel anytime.'
+            : 'Cancel anytime.'}
       </p>
 
       <p className="price-headline">
-        ${price}
-        <span className="price-period">{annual ? ' a year' : ' a month'}</span>
+        ${annual && !founding ? (PRICES.year.amount / 12).toFixed(2) : price}
+        <span className="price-period"> a month</span>
       </p>
       <p className="price-secondary">
         {founding
           ? `${FOUNDING_TERMS} After the first ${FOUNDING_CAP}, $${PRICES.year.amount} a year.`
           : annual
-            ? `Works out at $${(PRICES.year.amount / 12).toFixed(2)} a month`
-            : `Or $${PRICES.year.amount} a year`}
+            ? `Billed annually, $${PRICES.year.amount}. Two months cheaper than monthly.`
+            : `Billed monthly. Everything included, no limits on songs, playlists or links.`}
       </p>
 
       <Link to="/sign-up" className="price-cta" onMouseEnter={prefetchAppChunks}>
@@ -390,7 +390,6 @@ export function LandingPage() {
     <div className="landing">
       <nav>
         <div className="logo">
-          <img className="logo-square" src="/brand/now-playing-512.png" alt="" width={30} height={30} />
           <Wordmark />
         </div>
         <ul className="nav-links">
@@ -542,9 +541,9 @@ export function LandingPage() {
           <div>
             <div className="section-label">Listen</div>
             <h2>
-              Send mixes like
+              Your mixes,
               <br />
-              <em>a record.</em>
+              <em>sent as one link.</em>
             </h2>
             <p className="listen-lede">
               Demos, mixes and masters in playlists with a cover. One link to a label, your band or your
@@ -887,9 +886,7 @@ export function LandingPage() {
         <Link to="/sign-up" className="cta-button" onMouseEnter={prefetchAppChunks}>
           Get started
         </Link>
-        <p className="cta-status">
-          Full refund within 30 days on yearly plans.
-        </p>
+        <p className="cta-status">Cancel anytime.</p>
       </section>
 
       <section className="workflow" id="workflow">

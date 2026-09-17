@@ -4840,11 +4840,25 @@ html { scroll-padding-top: 88px; }
    slate of the app icon's own circle, so the page reads as songdrafts blue
    rather than black. Scoped to .landing so the app is untouched. ═══ */
 .landing {
-  --bg: #1b3a46;
-  --bg2: #22444f;
-  --bg3: #2a4f5b;
-  --bg-2: #22444f;
-  background: linear-gradient(180deg, #1f4150 0%, #1b3a46 38%, #19343f 100%);
+  /* 17 Sept, Owen: closer to the logo's greens, and brighter than before. */
+  --bg: #1c4247;
+  --bg2: #245055;
+  --bg3: #2c5d61;
+  --bg-2: #245055;
+  background: #1c4247;
+}
+
+/* One fixed layer instead of a gradient painted down a very long page: the
+   long version repainted while scrolling and left bands of bare colour. */
+.landing::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 80% 0%, rgba(138, 196, 166, 0.22), transparent 70%),
+    linear-gradient(180deg, #235055 0%, #1c4247 45%, #18383f 100%);
 }
 
 .landing > nav {

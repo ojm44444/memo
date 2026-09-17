@@ -42,7 +42,16 @@ export async function listSavedLinks(): Promise<SavedLink[]> {
     .select('token, title, artist, cover_path, saved_at')
     .order('saved_at', { ascending: false })
   if (error) return []
-  return (data ?? []) as unknown as SavedLink[]
+  const saved = (data ?? []) as unknown as SavedLink[]
+  if (!saved.length) return saved
+  /* Your own link saved from your own page is not "shared with you"
+     (17 Sept, Owen). It already sits above, in Links you have sent. */
+  const { data: mine } = await supabase
+    .from('playlist_shares')
+    .select('token')
+    .in('token', saved.map((l) => l.token))
+  const own = new Set(((mine ?? []) as { token: string }[]).map((r) => r.token))
+  return saved.filter((l) => !own.has(l.token))
 }
 
 export async function removeSavedLink(token: string) {
