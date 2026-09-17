@@ -12772,3 +12772,26 @@ html.light .song-drawer {
     grid-template-columns: 1fr;
   }
 }
+
+.help-sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.help-sheet-btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.help-sheet-btn:hover {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getImportWatermark } from '@/db/repositories/integrityRepo'
+import { useUiStore } from '@/stores/uiStore'
+import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
 
 /**
  * Help, bottom right (Owen's ask). One sheet, three sections: how audio gets
@@ -15,6 +17,7 @@ const SUPPORT_EMAIL = 'songdraftsapp@gmail.com'
 
 export function HelpButton() {
   const [open, setOpen] = useState(false)
+  const [phone, setPhone] = useState(false)
   const sheetRef = useRef<HTMLDivElement>(null)
   // "Where did I get up to" is a question you ask while using the app, not on
   // an empty board, so the watermark lives here as well as on the import
@@ -49,9 +52,36 @@ export function HelpButton() {
         ?
       </button>
 
+      {phone && <PhoneInstallGuide onClose={() => setPhone(false)} />}
+
       {open && (
         <div className="help-sheet" ref={sheetRef} role="dialog" aria-label="Help">
           <h3 className="help-sheet-title">Getting your memos in</h3>
+
+          {/* 17 Sept, Owen: the guide should be reachable whenever, not only
+              on the first run. */}
+          <div className="help-sheet-actions">
+            <button
+              type="button"
+              className="help-sheet-btn"
+              onClick={() => {
+                setOpen(false)
+                useUiStore.getState().requestOnboardingTour()
+              }}
+            >
+              Show me the guide again
+            </button>
+            <button
+              type="button"
+              className="help-sheet-btn"
+              onClick={() => {
+                setOpen(false)
+                setPhone(true)
+              }}
+            >
+              Put it on your phone
+            </button>
+          </div>
 
           {watermark && (
             <div className="help-watermark">
