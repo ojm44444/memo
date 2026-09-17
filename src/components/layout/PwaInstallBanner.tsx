@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePwaInstall } from '@/hooks/usePwaInstall'
+import { PhoneInstallGuide } from './PhoneInstallGuide'
 
 const DISMISS_KEY = 'memo_pwa_install_dismiss'
 
@@ -7,12 +8,15 @@ function isIos() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !(navigator as Navigator & { standalone?: boolean }).standalone
 }
 
-function isIosSafari() {
-  return isIos() && /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent)
+/* Any iPhone browser, not just Safari: Chrome on iPhone can add to the home
+   screen too (iOS 16.4+), and that is what Owen uses. */
+function isIosBrowser() {
+  return isIos()
 }
 
 export function PwaInstallBanner() {
   const { canInstall, isInstalled, install } = usePwaInstall()
+  const [guide, setGuide] = useState(false)
   const [dismissed, setDismissed] = useState(
     () => sessionStorage.getItem(DISMISS_KEY) === '1',
   )
@@ -25,16 +29,21 @@ export function PwaInstallBanner() {
   if (isInstalled || dismissed) return null
 
   // iOS Safari: show manual "Add to Home Screen" instructions
-  if (isIosSafari()) {
+  // Inside the app only: the guide uses the app's sheet styles.
+  if (isIosBrowser() && window.location.pathname.startsWith('/app')) {
     return (
-      <div className="pwa-install-banner" role="status">
-        <span>
-          Install songdrafts: tap <strong>Share ⬆</strong> in Safari, then <strong>Add to Home Screen</strong>
-        </span>
-        <button type="button" className="pwa-install-dismiss" onClick={dismiss}>
-          ✕
-        </button>
-      </div>
+      <>
+        <div className="pwa-install-banner" role="status">
+          <span>Put songdrafts on your home screen so it opens like an app.</span>
+          <button type="button" className="pwa-install-btn" onClick={() => setGuide(true)}>
+            Show me how
+          </button>
+          <button type="button" className="pwa-install-dismiss" onClick={dismiss} aria-label="Not now">
+            ✕
+          </button>
+        </div>
+        {guide && <PhoneInstallGuide onClose={() => setGuide(false)} />}
+      </>
     )
   }
 

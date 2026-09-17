@@ -36,6 +36,7 @@ import {
 } from '@/sync/audioDownload'
 import { getBudgetState, resetEgressBudget } from '@/sync/egressBudget'
 import { useUiStore } from '@/stores/uiStore'
+import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
 
 /** A message the delete-account function wrote itself, shown as-is. */
 class DeleteAccountError extends Error {}
@@ -60,6 +61,7 @@ export function SettingsPanel() {
   }
 
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [phoneGuide, setPhoneGuide] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -609,6 +611,10 @@ export function SettingsPanel() {
                   Screen.
                 </p>
               )}
+              <button type="button" className="settings-install-btn" onClick={() => setPhoneGuide(true)}>
+                Put it on your phone
+              </button>
+              {phoneGuide && <PhoneInstallGuide onClose={() => setPhoneGuide(false)} />}
             </section>
 
             {supabaseConfigured && email && (
