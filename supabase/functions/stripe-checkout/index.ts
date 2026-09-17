@@ -45,8 +45,10 @@ const LIVE_STATUSES = ['trialing', 'active', 'past_due']
 /** Said on the Stripe page itself, above the pay button. */
 const FOUNDING_TERMS =
   '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price. Full refund within 30 days.'
-const YEAR_TERMS = 'Full refund within 30 days. Cancel any time in Settings.'
-const MONTH_TERMS = 'Full refund of your first month within 14 days. Cancel any time in Settings.'
+/* 17 Sept, Owen: refunds stay (the button in Settings, the Terms) but are not
+   advertised on the pay page. */
+const YEAR_TERMS = 'Cancel any time in Settings.'
+const MONTH_TERMS = 'Cancel any time in Settings.'
 
 const REFUND_DAYS = { year: 30, month: 14 } as const
 
