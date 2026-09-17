@@ -12217,3 +12217,211 @@ html.light .song-drawer {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Record pass on the song panel (17 Sept, Owen: give the song view the same
+   overhaul). One quiet surface, the title large in the serif, small mono
+   labels, soft filled fields with no hard borders, sans tags, one accent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.song-drawer-overlay .song-drawer {
+  max-width: 760px;
+  background: var(--bg-2);
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: 18px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55);
+}
+
+.song-drawer .scp-header {
+  align-items: flex-end;
+  gap: 16px;
+  padding: 30px 32px 22px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 7%, transparent);
+  background: none;
+}
+
+.song-drawer .scp-title-input {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.song-drawer .scp-title-input:focus {
+  color: var(--text);
+}
+
+.song-drawer .scp-header-actions {
+  align-items: center;
+  gap: 10px;
+}
+
+.song-drawer .scp-body {
+  padding: 24px 32px 32px;
+  gap: 22px;
+}
+
+/* Labels: small mono caps, like the eyebrows in Listen. */
+.song-drawer .song-detail-label,
+.song-drawer .song-project-label,
+.song-drawer .song-stage-label,
+.song-drawer .lyrics-label,
+.song-drawer .song-meta-field > span,
+.song-drawer .song-meta-field label {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Stage and project: quiet pills in sentence case, not shouting capitals. */
+.song-drawer .song-stage-select,
+.song-drawer .song-stage-custom-select,
+.song-drawer .song-project-select,
+.song-drawer .song-project-custom-select {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.song-drawer .song-project-new-btn,
+.song-drawer .song-detail-link {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.song-drawer .song-project-new-btn:hover,
+.song-drawer .song-detail-link:hover {
+  color: var(--text);
+}
+
+/* Share: the one accent in the header. */
+.song-drawer .song-share > button:first-child {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-weight: 600;
+}
+
+/* Audio: the Listen row. */
+.song-drawer .scp-audio-item {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  border: 0;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.song-drawer .version-stack-item--active .scp-audio-item {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Fields: soft fills, no hard outlines, a thin accent ring on focus. */
+.song-drawer input:not([type='checkbox']):not(.scp-title-input),
+.song-drawer textarea,
+.song-drawer select:not(.song-stage-select):not(.song-project-select) {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-style: normal;
+  box-shadow: none;
+}
+
+.song-drawer input:not([type='checkbox']):not(.scp-title-input):focus,
+.song-drawer textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.song-drawer input::placeholder,
+.song-drawer textarea::placeholder {
+  font-style: normal;
+  font-family: var(--font-sans);
+  color: color-mix(in srgb, var(--text-muted) 75%, transparent);
+}
+
+/* Tags: sans, quiet, the active ones in accent. */
+.song-drawer .song-tag-pill {
+  min-height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.song-drawer .song-tag-pill.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+
+.song-drawer .song-tags-add-btn,
+.song-drawer .song-comments-send {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.song-drawer .song-detail-playlist-btn {
+  min-height: 42px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.song-drawer .song-detail-footer-actions {
+  border-top-color: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+@media (max-width: 600px) {
+  .song-drawer .scp-header {
+    padding: 22px 18px 16px;
+    flex-wrap: wrap;
+  }
+
+  .song-drawer .scp-body {
+    padding: 18px 18px 28px;
+  }
+}
+
+/* The wrappers stay bare; only the controls inside are pills. */
+.song-drawer .song-stage-select,
+.song-drawer .song-project-select,
+.song-drawer .song-project-row {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
