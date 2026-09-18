@@ -31,7 +31,7 @@ export function PrivacyPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 15 September 2026</p>
+        <p className="legal-updated">Last updated 18 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -89,6 +89,12 @@ export function PrivacyPage() {
           When you share a song, we count views and plays so you can see whether the person
           opened it. Whoever you send it to does not need an account and we do not ask them for
           one. If they leave a comment, we store the comment and the timestamp it is pinned to.
+        </p>
+        <p>
+          For each open or play we keep when it happened, their name if they chose to give it,
+          their browser's time zone and the rough place it points to (such as London), and a
+          random id their browser makes so a repeat visit is not counted twice. We do not look up
+          IP addresses for this.
         </p>
 
                 <h2>Who we are</h2>

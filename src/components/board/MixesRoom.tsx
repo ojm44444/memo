@@ -48,6 +48,7 @@ import { requestStoragePersistence } from '@/lib/storagePersistence'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
 import '@/styles/record.css'
+import '@/styles/listeners.css'
 
 /**
  * Listen: demos, mixes and masters, and where they go out from.
@@ -651,6 +652,9 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
               </button>
             </div>
           </div>
+          {needsOffline(ordered.flatMap((st) => st.versions)) && (
+            <p className="listeners-offline-note">This playlist plays offline only once you tap Make offline.</p>
+          )}
         </div>
       </section>
 
@@ -799,6 +803,11 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
  * without a connection. Done is read from the files themselves, so it stays
  * true across visits.
  */
+/** True while some track here streams from the cloud rather than this device. */
+function needsOffline(versions: AudioVersion[]) {
+  return versions.some((v) => !v.localBlobId && v.storagePath)
+}
+
 function OfflineButton({ versions }: { versions: AudioVersion[] }) {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [failed, setFailed] = useState(false)

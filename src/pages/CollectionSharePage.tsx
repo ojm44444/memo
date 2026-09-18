@@ -26,16 +26,17 @@ import { supabaseConfigured } from '@/lib/supabase/client'
 import {
   addCollectionComment,
   getCollectionShare,
-  recordCollectionListen,
   signedTrackUrl,
   type CollectionComment,
   type CollectionPayload,
   type CollectionTrack,
 } from '@/db/repositories/collectionShareRepo'
+import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
+import { ListenerNameField } from '@/components/share/ListenerNameField'
 import '@/styles/record.css'
 import '@/styles/collection-share.css'
 
-const AUTHOR_KEY = 'memo-share-author'
+const AUTHOR_KEY = LISTENER_NAME_KEY
 
 /**
  * The page a label opens.
@@ -72,6 +73,7 @@ export function CollectionSharePage() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const urlCache = useRef(new Map<string, string>())
   const listenRecorded = useRef(false)
+  const openRecorded = useRef(false)
   const passwordRef = useRef<string | undefined>(undefined)
 
   const [loading, setLoading] = useState(true)
@@ -101,6 +103,7 @@ export function CollectionSharePage() {
       return ''
     }
   })
+  const nameRef = useRef(authorName)
   const [draftBody, setDraftBody] = useState('')
   const [pinMs, setPinMs] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -121,6 +124,12 @@ export function CollectionSharePage() {
         setComments(payload.comments ?? [])
         setNeedsPassword(false)
         setPasswordWrong(false)
+        if (!openRecorded.current) {
+          openRecorded.current = true
+          void recordShareListener('collection', token, 'open', { name: nameRef.current, password }).catch(() => {
+            openRecorded.current = false
+          })
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : ''
         if (/password/i.test(message)) {
@@ -159,6 +168,7 @@ export function CollectionSharePage() {
   }, [data?.cover_path])
 
   useEffect(() => {
+    nameRef.current = authorName
     try {
       if (authorName.trim()) localStorage.setItem(AUTHOR_KEY, authorName.trim())
     } catch {
@@ -218,7 +228,10 @@ export function CollectionSharePage() {
         await audio.play()
         if (!listenRecorded.current && token) {
           listenRecorded.current = true
-          void recordCollectionListen(token).catch(() => {
+          void recordShareListener('collection', token, 'play', {
+            name: nameRef.current,
+            password: passwordRef.current,
+          }).catch(() => {
             listenRecorded.current = false
           })
         }
@@ -557,6 +570,18 @@ export function CollectionSharePage() {
                   </div>
                 )}
               </div>
+              <ListenerNameField
+                value={authorName}
+                onChange={setAuthorName}
+                onCommit={(name) => {
+                  if (token) {
+                    void recordShareListener('collection', token, 'name', {
+                      name,
+                      password: passwordRef.current,
+                    }).catch(() => {})
+                  }
+                }}
+              />
             </div>
           </section>
 

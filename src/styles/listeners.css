@@ -1,0 +1,89 @@
+/* Who listened on a share link (046): the optional name field on the share
+   pages, and the listener list under a row in Links you have sent. */
+
+/* ── Share page: "Your name (optional)" ─────────────────────────────────── */
+.listener-name {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+  max-width: 320px;
+}
+
+.listener-name-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.listener-name-input {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 16px; /* no zoom on iPhone */
+}
+
+.listener-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ── Listen: Links you have sent ────────────────────────────────────────── */
+.listeners-head {
+  margin: 4px 0 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.listeners-head:not(:first-child) {
+  margin-top: 14px;
+}
+
+.listeners-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+}
+
+.listeners-list li {
+  color: var(--text-muted);
+}
+
+.listeners-list li.is-played {
+  color: var(--text);
+}
+
+.listeners-hint {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* ── Listen: the Make offline line under a playlist's buttons ──────────── */
+.listeners-offline-note {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.listeners-more {
+  margin-top: 10px;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.78rem;
+  cursor: pointer;
+}

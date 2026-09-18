@@ -10,10 +10,10 @@ import {
   addShareListenComment,
   downloadSharedAudio,
   getSongShareListen,
-  recordShareListen,
-  recordShareView,
   type ShareListenComment,
 } from '@/db/repositories/shareRepo'
+import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
+import { ListenerNameField } from '@/components/share/ListenerNameField'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
@@ -22,7 +22,7 @@ import '@/styles/collection-share.css'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
-const AUTHOR_KEY = 'memo-share-author'
+const AUTHOR_KEY = LISTENER_NAME_KEY
 
 export function SharePage() {
   const { token } = useParams<{ token: string }>()
@@ -60,7 +60,10 @@ export function SharePage() {
   const recordListen = () => {
     if (!token || listenRecordedRef.current) return
     listenRecordedRef.current = true
-    void recordShareListen(token).catch(() => {
+    void recordShareListener('song', token, 'play', {
+      name: authorName,
+      password: savedPasswordRef.current,
+    }).catch(() => {
       listenRecordedRef.current = false
     })
   }
@@ -95,7 +98,7 @@ export function SharePage() {
 
       if (!viewRecordedRef.current) {
         viewRecordedRef.current = true
-        void recordShareView(token).catch(() => {
+        void recordShareListener('song', token, 'open', { name: authorName, password: pwd }).catch(() => {
           viewRecordedRef.current = false
         })
       }
@@ -113,7 +116,7 @@ export function SharePage() {
   }
 
   useEffect(() => {
-    void loadShare()
+    queueMicrotask(() => void loadShare())
     return () => {
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
     }
@@ -312,6 +315,18 @@ export function SharePage() {
                   </div>
                 )}
               </div>
+              <ListenerNameField
+                value={authorName}
+                onChange={setAuthorName}
+                onCommit={(name) => {
+                  if (token) {
+                    void recordShareListener('song', token, 'name', {
+                      name,
+                      password: savedPasswordRef.current,
+                    }).catch(() => {})
+                  }
+                }}
+              />
             </div>
           </section>
 
