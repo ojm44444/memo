@@ -18,7 +18,10 @@ export function BoardActivityFeed() {
   if (!activity?.length) return null
 
   return (
-    <section className="board-activity" aria-label="Recent activity">
+    <section
+      className={collapsed ? 'board-activity is-collapsed' : 'board-activity'}
+      aria-label="Recent activity"
+    >
       <button
         type="button"
         className="board-activity-header"

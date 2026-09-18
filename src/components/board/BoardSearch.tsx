@@ -5,6 +5,9 @@ import { getTitleSearchFilter, setTitleSearchFilter } from '@/db/repositories/pr
 export function BoardSearch() {
   const activeQuery = useLiveQuery(() => getTitleSearchFilter(), [])
   const [draft, setDraft] = useState('')
+  // Phone: the collapsed icon opens into a full-width field across the top
+  // bar while focused. Tracked in state so the close button can hang off it.
+  const [focused, setFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -43,8 +46,20 @@ export function BoardSearch() {
     inputRef.current?.focus()
   }
 
+  const close = () => {
+    setDraft('')
+    void setTitleSearchFilter('')
+    inputRef.current?.blur()
+  }
+
   return (
-    <label className="board-search">
+    <label
+      className={[
+        'board-search',
+        focused && 'is-open',
+        !focused && draft && 'has-query',
+      ].filter(Boolean).join(' ')}
+    >
       <span className="board-search-icon" aria-hidden>
         ⌕
       </span>
@@ -56,6 +71,14 @@ export function BoardSearch() {
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         aria-label="Search songs"
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          // A short grace period so a tap on Cancel still lands on touch
+          // browsers that blur before the click.
+          window.setTimeout(() => {
+            if (document.activeElement !== inputRef.current) setFocused(false)
+          }, 150)
+        }}
       />
       {draft && (
         <button type="button" className="board-search-clear" onClick={clear} aria-label="Clear search">
@@ -63,6 +86,17 @@ export function BoardSearch() {
         </button>
       )}
       <kbd className="board-search-kbd">⌘K</kbd>
+      {/* Phone only (CSS): a plain way out of the full-width field. Pressing
+          it must not blur the input first, or the field would close before
+          the click lands. */}
+      <button
+        type="button"
+        className="board-search-close"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={close}
+      >
+        Cancel
+      </button>
     </label>
   )
 }

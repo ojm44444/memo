@@ -12,56 +12,44 @@ export const PRESET_TAGS = [
 ] as const
 
 /**
- * Tags carry FOUR hues, not ten, and all four come from the stage ramp that is
- * already on screen beside them.
+ * Every tag gets its own colour (18 Sept, Owen: "the tags should be different
+ * colours when you tag them, and that should be more evident").
  *
- * The previous version gave every preset its own hue: clay, rose, blue, green,
- * amber, indigo, teal, emerald, olive, sea green. Ten hues across the whole
- * wheel, in an identity whose whole rule is one accent. On a real drawer that
- * tag row was the loudest thing on the page and it was decorating, not
- * informing, because the colours carried no meaning: "Riff" being clay and
- * "Bridge" being amber tells you nothing.
+ * The previous version grouped ten presets into four hues from the stage
+ * ramp, so on a real board Chorus, Verse and Bridge all rendered the same
+ * blue and most chips read as one green-grey. Tags now spread around the
+ * whole wheel, spaced roughly 36 degrees apart so neighbours never blur.
  *
- * Colour now encodes the one thing about a tag worth encoding at a glance,
- * which is what KIND of tag it is:
- *
- *   where in the song   Chorus, Verse, Bridge, Instrumental
- *   what kind of idea   Riff, Vocal idea, Inspiration, Full idea
- *   how far the words   Lyrics drafted, Lyrics finished
- *   yours               anything you typed
- *
- * Four groups, four hues, drawn from the blue-to-lime ramp so the pills belong
- * to the board instead of sitting on top of it.
+ * Tags you type yourself hash onto the same wheel, so a custom tag keeps one
+ * colour everywhere it appears (card, panel, filter) without being stored.
  */
-const HUE_SECTION = 206 // where in the song, the ramp's blue end
-const HUE_IDEA = 173    // what kind of idea, teal
-const HUE_LYRICS = 78   // how far the words got, the ramp's lime end
-const HUE_CUSTOM = 137  // yours, the ramp's green middle
+const PRESET_HUES: Record<string, number> = {
+  'riff': 22,             // orange
+  'bridge': 46,           // amber
+  'lyrics drafted': 72,   // yellow-lime
+  'full idea': 112,       // green
+  'lyrics finished': 150, // emerald
+  'instrumental': 182,    // cyan
+  'chorus': 208,          // sky blue
+  'verse': 244,           // indigo
+  'inspiration': 282,     // violet
+  'vocal idea': 322,      // pink
+}
 
-const TAG_GROUPS: Record<string, number> = {
-  'chorus': HUE_SECTION,
-  'verse': HUE_SECTION,
-  'bridge': HUE_SECTION,
-  'instrumental': HUE_SECTION,
-  'riff': HUE_IDEA,
-  'vocal idea': HUE_IDEA,
-  'inspiration': HUE_IDEA,
-  'full idea': HUE_IDEA,
-  'lyrics drafted': HUE_LYRICS,
-  'lyrics finished': HUE_LYRICS,
+/** Twelve evenly spaced hues for tags that are not presets. */
+const CUSTOM_HUES = [8, 38, 64, 96, 128, 162, 194, 222, 256, 290, 312, 338]
+
+function hashTag(tag: string): number {
+  let h = 2166136261
+  for (let i = 0; i < tag.length; i++) h = Math.imul(h ^ tag.charCodeAt(i), 16777619)
+  return h >>> 0
 }
 
 export function getTagHue(tag: string): number {
-  const known = TAG_GROUPS[tag.trim().toLowerCase()]
+  const key = tag.trim().toLowerCase()
+  const known = PRESET_HUES[key]
   if (known !== undefined) return known
-  // A tag someone typed themselves. "lyrics started" should not be a different
-  // colour from "Lyrics drafted" just because it missed the preset list, so
-  // anything whose words place it in a group joins that group.
-  const t = tag.toLowerCase()
-  if (t.includes('lyric') || t.includes('words')) return HUE_LYRICS
-  if (t.includes('chorus') || t.includes('verse') || t.includes('bridge') || t.includes('intro') || t.includes('outro') || t.includes('solo')) return HUE_SECTION
-  if (t.includes('idea') || t.includes('riff') || t.includes('hook')) return HUE_IDEA
-  return HUE_CUSTOM
+  return CUSTOM_HUES[hashTag(key) % CUSTOM_HUES.length]
 }
 
 /** Inline style helper: sets the hue custom property the pill CSS reads. */

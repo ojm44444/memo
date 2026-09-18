@@ -1,0 +1,691 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Board polish (18 Sept). Owen: "the UI of Listen is maybe better than the UI
+   of the rest of the tool". This layer brings the Songwriting board and the
+   top bar up to Listen: one ground with no banded bar, white pills for the
+   thing that is on, clear stage colours per column, coloured tags, and the
+   same look on phone as on desktop.
+
+   Loaded after board.css from BoardPage. Every rule is scoped under
+   .board-page so it wins over the older layers without !important, and so
+   nothing here leaks into Listen, share pages or the landing page.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── The board's stage ramp ────────────────────────────────────────────────
+   Cold to warm across the columns: blue, sky, teal, lime, gold. The brand's
+   four stage tokens were all teal-to-green and separated mostly on
+   lightness, so neighbours blurred together. These separate on hue.
+   stageColorAt() reads them. Dark: all clear 6:1 on the ground. Light: all
+   clear 4.5:1 on the darkest end of the light wash, so counts stay legible. */
+.board-page {
+  --board-stage-1: #7c9cff;
+  --board-stage-2: #45c4e8;
+  --board-stage-3: #3fd6a4;
+  --board-stage-4: #a6dd5a;
+  --board-stage-5: #f5c451;
+  --board-soft: color-mix(in srgb, var(--text) 8%, transparent);
+  --board-soft-hover: color-mix(in srgb, var(--text) 13%, transparent);
+}
+
+html.light .board-page {
+  --board-stage-1: #3f55c9;
+  --board-stage-2: #0a6f93;
+  --board-stage-3: #087352;
+  --board-stage-4: #456f0c;
+  --board-stage-5: #93570a;
+}
+
+/* ── Top bar: part of the page, not a band across it ───────────────────── */
+.board-page .board-titlebar {
+  background: var(--bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+  padding: 10px 20px;
+  gap: 12px;
+}
+
+.board-page .board-titlebar-logo {
+  margin-right: 8px;
+}
+
+/* Mode toggle: the mode you are in is a white pill, like Listen's Play. */
+.board-page .board-mode-toggle {
+  background: var(--board-soft);
+  border: 0;
+  padding: 3px;
+  gap: 2px;
+}
+
+.board-page .board-mode-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.board-page .board-mode-btn:hover {
+  color: var(--text);
+}
+
+.board-page .board-mode-btn.is-active,
+html.light .board-page .board-mode-btn.is-active {
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: none;
+}
+
+/* Search: a soft pill, same fill as the toggle track. */
+.board-page .board-search {
+  border: 0;
+  background: var(--board-soft);
+  padding: 6px 12px;
+  min-height: 34px;
+}
+
+.board-page .board-search:focus-within {
+  background: var(--board-soft-hover);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.board-page .board-search-input {
+  font-size: 13px;
+}
+
+.board-page .board-search-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Cancel is the phone's way out of the full-width field. Desktop has Escape. */
+.board-page .board-search-close {
+  display: none;
+}
+
+/* ── Hero: the project name, and Play without shouting ─────────────────── */
+.board-page .board-hero .rec-pill.board-hero-play {
+  min-height: 38px;
+  padding: 0 18px;
+  font-size: 13.5px;
+  gap: 8px;
+}
+
+/* ── Recent and Activity: two small toggles, not two bands ─────────────── */
+.board-page .board-strips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 28px 12px;
+}
+
+/* The sections dissolve so both headers share one row and whichever list is
+   open drops below them at full width. */
+.board-page .board-strips > .recent-songs,
+.board-page .board-strips > .board-activity {
+  display: contents;
+}
+
+.board-page .board-strips .recent-songs-header,
+.board-page .board-strips .board-activity-header {
+  order: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: auto;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--board-soft);
+  color: var(--text);
+  transition: background 120ms ease;
+}
+
+.board-page .board-strips .recent-songs-header:hover,
+.board-page .board-strips .board-activity-header:hover,
+.board-page .board-strips .recent-songs-header[aria-expanded='true'],
+.board-page .board-strips .board-activity-header[aria-expanded='true'] {
+  background: var(--board-soft-hover);
+}
+
+.board-page .board-strips .recent-songs-title,
+.board-page .board-strips .board-activity-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+  opacity: 1;
+}
+
+.board-page .board-strips .recent-songs-hint,
+.board-page .board-strips .board-activity-hint {
+  display: none;
+}
+
+.board-page .board-strips .recent-songs-toggle,
+.board-page .board-strips .board-activity-toggle {
+  margin: 0;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.board-page .board-strips .recent-songs-track,
+.board-page .board-strips .board-activity-list {
+  order: 1;
+  flex: 0 0 100%;
+  min-width: 0;
+  margin: 2px 0 0;
+}
+
+/* ── Columns: each one lit in its own stage colour ─────────────────────── */
+.board-page .board-kanban .board-column {
+  border-radius: 16px;
+  padding: 0 10px 10px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 22%, transparent) 0px,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 9%, transparent) 150px,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 70%,
+    transparent 100%
+  );
+}
+
+html.light .board-page .board-kanban .board-column {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 20%, transparent) 0px,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 8%, transparent) 150px,
+    color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 70%,
+    transparent 100%
+  );
+}
+
+.board-page .board-kanban .board-column.is-over,
+.board-page .board-kanban .board-column.is-file-drop {
+  outline: 2px solid color-mix(in srgb, var(--stage-ink, var(--accent)) 70%, transparent);
+  outline-offset: 0;
+}
+
+.board-page .board-kanban .board-column-header {
+  min-height: 48px;
+  padding: 12px 4px 10px;
+  margin-bottom: 2px;
+  border-bottom: 3px solid var(--stage-ink, var(--border));
+  box-shadow: 0 6px 14px -10px var(--stage-ink, transparent);
+}
+
+.board-page .board-column-header > span:first-child::before {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage-ink, var(--accent)) 28%, transparent);
+}
+
+.board-page .board-kanban .board-column-count {
+  color: var(--stage-ink, var(--text-muted));
+  font-weight: 500;
+}
+
+/* The hover reveal used to float over the title on a fade to the bare
+   ground, which would show as a dark block over the new wash. Keep it in the
+   row instead: the title already truncates. */
+.board-page .board-column:hover .board-column-header-actions,
+.board-page .board-column-header-actions:focus-within {
+  position: static;
+  padding-left: 0;
+  background: none;
+  flex: none;
+}
+
+.board-page .board-column-header > span:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ── Cards: the Listen row, tinted by its stage ────────────────────────── */
+.board-page .board-kanban .board-column .song-card {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 20%, transparent) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 5%, transparent) 65%
+    ),
+    color-mix(in srgb, var(--bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--border)) 22%, transparent);
+  border-left: 3px solid var(--stage-ink, var(--border));
+  border-radius: 12px;
+  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.6);
+}
+
+.board-page .board-kanban .board-column .song-card:hover {
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 45%, transparent);
+  border-left-color: var(--stage-ink, var(--border));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 28%, transparent) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 8%, transparent) 65%
+    ),
+    color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+html.light .board-page .board-kanban .board-column .song-card {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 16%, transparent) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 65%
+    ),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 26%, transparent);
+  border-left-color: var(--stage-ink, var(--border));
+  box-shadow:
+    0 1px 2px rgba(15, 43, 46, 0.06),
+    0 8px 18px -12px color-mix(in srgb, var(--stage-ink, #0f2b2e) 55%, transparent);
+}
+
+html.light .board-page .board-kanban .board-column .song-card:hover {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 24%, transparent) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 6%, transparent) 65%
+    ),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 45%, transparent);
+  border-left-color: var(--stage-ink, var(--border));
+}
+
+/* Playing and selected keep the accent: one lit card, as before. */
+.board-page .board-kanban .board-column .song-card.is-active,
+html.light .board-page .board-kanban .board-column .song-card.is-active {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 8%, transparent) 70%
+    ),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  border-left-color: var(--accent);
+}
+
+.board-page .board-kanban .board-column .song-card.is-dragging {
+  background: var(--bg-2);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.board-page .board-kanban .board-column .song-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.board-page .board-column .song-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.board-page .board-column .song-card-play {
+  background: color-mix(in srgb, var(--stage-ink, var(--text)) 22%, transparent);
+  color: var(--text);
+}
+
+.board-page .board-column .song-card-play:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.board-page .board-column .song-card-play.is-playing {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+/* ── Tags: every tag its own colour, clearly ───────────────────────────── */
+.board-page .song-card-tag-pill,
+html.light .board-page .song-card-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 8px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  background: hsl(var(--tag-h, 150) 70% 55% / 0.2);
+  color: hsl(var(--tag-h, 150) 90% 80%);
+  box-shadow: inset 0 0 0 1px hsl(var(--tag-h, 150) 75% 62% / 0.5);
+}
+
+.board-page .song-card-tag-pill::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: hsl(var(--tag-h, 150) 85% 65%);
+}
+
+html.light .board-page .song-card-tag-pill {
+  background: hsl(var(--tag-h, 150) 85% 88%);
+  color: hsl(var(--tag-h, 150) 80% 22%);
+  box-shadow: inset 0 0 0 1px hsl(var(--tag-h, 150) 60% 42% / 0.45);
+}
+
+html.light .board-page .song-card-tag-pill::before {
+  background: hsl(var(--tag-h, 150) 80% 42%);
+}
+
+/* ── Player bar: the Listen cover, not a waveform smudge ───────────────── */
+.player-bar-inner .rec-art.player-bar-cover {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.player-bar-inner .rec-art.player-bar-cover .rec-art-bars {
+  gap: 8%;
+}
+
+/* board.css hides the old waveform thumb on phone. The cover earns its
+   place there, smaller, the way Listen's player shows it. */
+@media (max-width: 768px) {
+  .player-bar-inner .rec-art.player-bar-cover {
+    display: block;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+}
+
+/* ── Phone column tabs: the same ramp, and clearly which one you are on ── */
+@media (max-width: 900px) {
+  .board-page .board-column-tabs {
+    gap: 6px;
+    padding: 8px 16px 10px;
+    border-bottom: 0;
+    scrollbar-width: none;
+  }
+
+  .board-page .board-column-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .board-page .board-column-tabs button,
+  .board-page .board-column-tabs button.has-project-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px 7px 11px;
+    border: 1px solid color-mix(in srgb, var(--stage-ink, var(--border)) 40%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--stage-ink, transparent) 12%, transparent);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+  }
+
+  .board-page .board-column-tabs button::before {
+    content: '';
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--stage-ink, var(--accent));
+  }
+
+  .board-page .board-column-tabs button.is-active,
+  .board-page .board-column-tabs button.is-active.has-project-accent,
+  html.light .board-page .board-column-tabs button.is-active {
+    border-color: transparent;
+    background: linear-gradient(
+      135deg,
+      var(--stage-ink, var(--accent)) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 65%, var(--bg)) 100%
+    );
+    color: var(--bg);
+    box-shadow: 0 6px 16px -8px var(--stage-ink, transparent);
+  }
+
+  html.light .board-page .board-column-tabs button.is-active,
+  html.light .board-page .board-column-tabs button.is-active.has-project-accent {
+    color: #fff;
+    background: linear-gradient(
+      135deg,
+      var(--stage-ink, var(--accent)) 0%,
+      color-mix(in srgb, var(--stage-ink, var(--accent)) 78%, #000) 100%
+    );
+  }
+
+  .board-page .board-column-tabs button.is-active::before {
+    background: currentColor;
+  }
+
+  .board-page .board-column-tabs button.is-playing-column,
+  .board-page .board-column-tabs button.is-playing-column.has-project-accent {
+    box-shadow: inset 0 -2px 0 var(--stage-ink, var(--accent));
+  }
+
+  .board-page .board-column-tab-count,
+  .board-page .board-column-tabs button.is-active .board-column-tab-count,
+  html.light .board-page .board-column-tabs button.is-active .board-column-tab-count {
+    margin-left: 0;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  /* Phone gets the desktop surfaces: the column keeps its wash and the cards
+     keep the stage-tinted row, instead of the older flat mobile panel. */
+  .board-page .board-kanban .board-column {
+    border-radius: 0;
+    padding: 12px 16px 16px;
+  }
+
+  .board-page .mobile-import-card {
+    border: 0;
+    border-radius: 12px;
+    background: var(--board-soft);
+  }
+
+  .board-page .mobile-import-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .board-page .mobile-import-steps,
+  .board-page .mobile-import-note {
+    font-size: 13px;
+  }
+}
+
+/* ── Phone ─────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Hero: small title, and Play folds into a round control on the right. */
+  .board-page .board-hero {
+    align-items: center;
+    padding: 14px 16px 6px;
+  }
+
+  .board-page .board-hero .rec-eyebrow {
+    margin-bottom: 4px;
+  }
+
+  .board-page .board-hero-title {
+    font-size: 28px;
+  }
+
+  .board-page .board-hero .rec-pill.board-hero-play {
+    flex: none;
+    width: 40px;
+    min-height: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .board-page .board-hero-play-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .board-page .board-strips {
+    padding: 0 16px 6px;
+    gap: 6px;
+  }
+
+  .board-page .board-strips .recent-songs-header,
+  .board-page .board-strips .board-activity-header {
+    padding: 5px 11px;
+  }
+
+  .board-page .board-strips .recent-songs-header,
+  .board-page .board-strips .board-activity-header {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+}
+
+@media (max-width: 560px) {
+  .board-page .board-titlebar {
+    position: relative;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .board-page .board-titlebar-logo {
+    margin-right: 2px;
+  }
+
+  .board-page .board-titlebar-actions {
+    position: static;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  /* Write / Listen in words: the mode you are in is the white pill. */
+  .board-page .board-mode-btn {
+    padding: 6px 10px;
+    font-size: 12.5px;
+  }
+
+  /* Search: a round icon until tapped. */
+  .board-page .board-search {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* 16px or iOS zooms the whole page in on focus, which is what put the
+     field in a corner where you could not see what you typed. */
+  .board-page .board-search-input {
+    width: 0;
+    padding: 0;
+    font-size: 16px;
+  }
+
+  .board-page .board-search-clear,
+  .board-page .board-search-kbd {
+    display: none;
+  }
+
+  /* A search is still filtering the board after the field closes. */
+  .board-page .board-search.has-query {
+    box-shadow: 0 0 0 1.5px var(--accent);
+  }
+
+  /* Open: a full-width field across the whole top bar, with Cancel. */
+  .board-page .board-search.is-open,
+  .board-page .board-search:focus-within {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    width: auto;
+    height: auto;
+    padding: 0 12px 0 16px;
+    gap: 10px;
+    justify-content: flex-start;
+    border-radius: 0;
+    background: var(--bg);
+    box-shadow: none;
+  }
+
+  .board-page .board-search.is-open .board-search-input,
+  .board-page .board-search:focus-within .board-search-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--board-soft-hover);
+  }
+
+  .board-page .board-search.is-open .board-search-clear,
+  .board-page .board-search:focus-within .board-search-clear {
+    display: inline-flex;
+    font-size: 14px;
+    padding: 6px;
+  }
+
+  .board-page .board-search.is-open .board-search-close,
+  .board-page .board-search:focus-within .board-search-close {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    height: 38px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .board-page .board-titlebar-overflow-trigger {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--board-soft);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+  }
+}
+
+/* Very narrow phones: a smaller wordmark keeps the row from overflowing. */
+@media (max-width: 380px) {
+  .board-page .board-titlebar-logo .wordmark-img img {
+    height: 18px;
+  }
+
+  .board-page .board-mode-btn {
+    padding: 6px 9px;
+  }
+}

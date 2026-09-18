@@ -20,7 +20,7 @@ export function BoardModeToggle() {
         onClick={() => setMode('manage')}
       >
         <span className="board-mode-label-full">Songwriting</span>
-        <span className="board-mode-label-short">▦</span>
+        <span className="board-mode-label-short">Write</span>
       </button>
       <button
         type="button"
@@ -30,7 +30,7 @@ export function BoardModeToggle() {
         onClick={() => setMode('listen')}
       >
         <span className="board-mode-label-full">Listen</span>
-        <span className="board-mode-label-short">♫</span>
+        <span className="board-mode-label-short">Listen</span>
       </button>
     </div>
   )

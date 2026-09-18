@@ -15,7 +15,8 @@ import { PlayerLoopButton } from './PlayerLoopButton'
 import { PlayerQueueDrawer } from './PlayerQueueDrawer'
 import { InteractiveWaveform } from './InteractiveWaveform'
 import { getMarkersForVersion } from '@/db/repositories/markerRepo'
-import { WaveformThumb } from '@/components/audio/WaveformThumb'
+import { RecordArt } from '@/components/share/RecordParts'
+import '@/styles/record.css'
 
 export function ColumnPlayerBar() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -459,16 +460,12 @@ export function ColumnPlayerBar() {
           )}
 
           <div className="player-bar-inner">
-            {/* The song's own waveform in its stage colour, not a generated
-                gradient cover. Same renderer as the board card. */}
-            <WaveformThumb
-              versionId={currentVersionId}
-              localBlobId={version?.localBlobId ?? null}
-              storagePath={version?.storagePath ?? null}
-              columnSlug={displaySong?.columnSlug}
-              size={44}
-              bars={14}
-              className="player-bar-thumb"
+            {/* The same generated cover as Listen, keyed to the song, so a
+                song keeps one face everywhere it plays. */}
+            <RecordArt
+              seed={displaySong!.id}
+              label=""
+              className="player-bar-thumb player-bar-cover"
             />
 
             {/* Centre: title/meta + scrubber */}

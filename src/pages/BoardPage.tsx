@@ -30,7 +30,6 @@ import { useBoardKeyboardShortcuts } from '@/hooks/useBoardKeyboardShortcuts'
 import { getDefaultPlaybackRate, getLoopMode } from '@/lib/preferences'
 import { useShareImport } from '@/hooks/useShareImport'
 import { BoardFrame } from '@/components/board/BoardFrame'
-import { BoardProjectAccent } from '@/components/board/BoardProjectAccent'
 import { ProjectSwitcher } from '@/components/board/ProjectSwitcher'
 import { BoardSwitcher } from '@/components/board/BoardSwitcher'
 import { useUiStore } from '@/stores/uiStore'
@@ -45,6 +44,7 @@ import { MergeUndoToast } from '@/components/board/MergeUndoToast'
 import { recordSessionOncePerDay } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
+import '@/styles/board-polish.css'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { BoardTitlebarOverflow } from '@/components/layout/BoardTitlebarOverflow'
@@ -181,7 +181,6 @@ function AuthenticatedBoard() {
                 <Link to="/app" className="board-titlebar-logo">
                   <Wordmark />
                 </Link>
-                <BoardProjectAccent />
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
                   {boardMode !== 'listen' && <BoardSearch />}
@@ -221,7 +220,7 @@ function AuthenticatedBoard() {
                           <AddSectionButton />
                         </>
                       )}
-                      <InviteBandmateButton />
+                      {boardMode !== 'listen' && <InviteBandmateButton />}
                       <ThemeToggle />
                       <SettingsPanel />
                       <FeedbackBadge />
@@ -230,7 +229,7 @@ function AuthenticatedBoard() {
                     </BoardTitlebarOverflow>
                   ) : (
                     <>
-                      <InviteBandmateButton />
+                      {boardMode !== 'listen' && <InviteBandmateButton />}
                       <ThemeToggle />
                       <SettingsPanel />
                       <SyncAuthButton />
