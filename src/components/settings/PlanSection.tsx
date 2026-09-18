@@ -7,6 +7,7 @@ import {
   NO_SUBSCRIPTION,
   PAYWALL_FROM,
   PRICES,
+  REFUND_DAYS,
   describeSubscription,
   getFoundingPlacesLeft,
   getSubscription,
@@ -19,6 +20,7 @@ import {
   type PlanChoice,
   type Subscription,
 } from '@/lib/billing'
+import { PRICE_TABLE, getPreferredCurrency, money, type Currency } from '@/lib/currency'
 import { supabase } from '@/lib/supabase/client'
 import '@/styles/onboarding.css'
 
@@ -58,6 +60,10 @@ export function PlanSection() {
   // Comped and early accounts are free for good (PlanGate and the database
   // agree): no subscription, so nothing to cancel and nothing to buy.
   const [freeForGood, setFreeForGood] = useState(false)
+  // Display only, and the same choice the landing page remembered. Passed to
+  // checkout so the price on the button is the price on the card.
+  const [currency] = useState<Currency>(getPreferredCurrency)
+  const table = PRICE_TABLE[currency]
 
   useEffect(() => {
     if (!BILLING_LIVE) return
@@ -86,7 +92,7 @@ export function PlanSection() {
       <section className="settings-section">
         <h3 className="settings-section-title">Plan</h3>
         <p className="settings-section-copy">
-          {`Billing is not on yet, so nothing is charging you. When it is: $${PRICES.year.amount} a year or $${PRICES.month.amount} a month.`}
+          {`Billing is not on yet, so nothing is charging you. When it is: ${money(currency, table.year)} a year or ${money(currency, table.month)} a month.`}
           {FOUNDING_OFFER &&
             ` The first ${FOUNDING_CAP} yearly plans are $${PRICES.founding.amount}.`}
         </p>
@@ -110,7 +116,7 @@ export function PlanSection() {
     }
   }
 
-  const checkout = (plan: PlanChoice) => run(() => startCheckout(plan))
+  const checkout = (plan: PlanChoice) => run(() => startCheckout(plan, { currency }))
 
   const takeRefund = () =>
     run(async () => {
@@ -244,7 +250,7 @@ export function PlanSection() {
               disabled={busy}
               onClick={() => void checkout('year')}
             >
-              ${PRICES.year.amount} a year
+              {money(currency, table.year)} a year
             </button>
             <button
               type="button"
@@ -252,11 +258,15 @@ export function PlanSection() {
               disabled={busy}
               onClick={() => void checkout('month')}
             >
-              ${PRICES.month.amount} a month
+              {money(currency, table.month)} a month
             </button>
           </div>
+          {/* 18 Sept: one guarantee, 30 days, yearly or monthly. Written
+              from REFUND_DAYS so it cannot drift from what the refund
+              button actually allows. */}
           <p className="settings-field-note">
-            30 days, fully refunded if it is not for you. No questions. Cancel any time.
+            {REFUND_DAYS.year} days, fully refunded if it is not for you. No questions. Cancel any
+            time.
           </p>
         </>
       )}

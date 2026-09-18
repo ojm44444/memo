@@ -2,12 +2,19 @@ import { type ReactNode, useEffect, useState } from 'react'
 import {
   BILLING_LIVE,
   PAYWALL_FROM,
-  PRICES,
   getSubscription,
   hasAccess,
   startCheckout,
   type PlanChoice,
 } from '@/lib/billing'
+import {
+  PRICE_TABLE,
+  getPreferredCurrency,
+  money,
+  perMonthOfYear,
+  setPreferredCurrency,
+  type Currency,
+} from '@/lib/currency'
 import { supabase } from '@/lib/supabase/client'
 
 const ACCESS_KEY = 'sd-plan-access'
@@ -46,6 +53,7 @@ function hadAccessRecently(userId: string): boolean {
 export function PlanGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<'checking' | 'needs' | 'ok'>(BILLING_LIVE ? 'checking' : 'ok')
   const [plan, setPlan] = useState<PlanChoice>('year')
+  const [currency, setCurrency] = useState<Currency>(getPreferredCurrency)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const returning = new URLSearchParams(window.location.search).get('checkout') === 'done'
@@ -105,14 +113,23 @@ export function PlanGate({ children }: { children: ReactNode }) {
     setBusy(true)
     setError(null)
     try {
-      await startCheckout(plan)
+      // The currency argument is being added to startCheckout in parallel;
+      // cast until it lands rather than edit billing.ts from here.
+      await (startCheckout as (p: PlanChoice, o?: { currency?: Currency }) => Promise<void>)(
+        plan,
+        { currency },
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not open checkout. Nothing was charged.')
       setBusy(false)
     }
   }
 
-  const perMonth = (PRICES.year.amount / 12).toFixed(2)
+  const table = PRICE_TABLE[currency]
+  const pickCurrency = (next: Currency) => {
+    setCurrency(next)
+    setPreferredCurrency(next)
+  }
 
   return (
     <div className="plan-gate">
@@ -123,6 +140,23 @@ export function PlanGate({ children }: { children: ReactNode }) {
           Everything: the songwriting board, Listen playlists, share links, offline, lossless.
         </p>
 
+        {/* Dollars or pounds, remembered for next time, and sent to checkout
+            so the page and the card agree. */}
+        <div className="plan-gate-currency" role="group" aria-label="Currency">
+          {(['usd', 'gbp'] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={currency === c ? 'is-on' : ''}
+              aria-pressed={currency === c}
+              aria-label={c === 'usd' ? 'US dollars' : 'Pounds'}
+              onClick={() => pickCurrency(c)}
+            >
+              {PRICE_TABLE[c].symbol}
+            </button>
+          ))}
+        </div>
+
         <div className="plan-gate-options" role="radiogroup" aria-label="Plan">
           <button
             type="button"
@@ -132,8 +166,10 @@ export function PlanGate({ children }: { children: ReactNode }) {
             onClick={() => setPlan('year')}
           >
             <span className="plan-gate-option-name">Yearly</span>
-            <span className="plan-gate-option-price">${PRICES.year.amount} a year</span>
-            <span className="plan-gate-option-note">${perMonth} a month</span>
+            <span className="plan-gate-option-price">{money(currency, table.year)} a year</span>
+            <span className="plan-gate-option-note">
+              {money(currency, perMonthOfYear(currency))} a month
+            </span>
           </button>
           <button
             type="button"
@@ -143,8 +179,8 @@ export function PlanGate({ children }: { children: ReactNode }) {
             onClick={() => setPlan('month')}
           >
             <span className="plan-gate-option-name">Monthly</span>
-            <span className="plan-gate-option-price">${PRICES.month.amount} a month</span>
-            <span className="plan-gate-option-note">Cancel anytime</span>
+            <span className="plan-gate-option-price">{money(currency, table.month)} a month</span>
+            <span className="plan-gate-option-note">Billed monthly</span>
           </button>
         </div>
 
@@ -152,8 +188,11 @@ export function PlanGate({ children }: { children: ReactNode }) {
           {busy ? 'Opening checkout…' : 'Continue'}
         </button>
         {error && <p className="plan-gate-error">{error}</p>}
+        {/* The guarantee, under the button, in place of a cancel line. */}
+        <p className="plan-gate-guarantee">30 days, refunded if it&rsquo;s not for you.</p>
         <p className="plan-gate-foot">
-          Cancel anytime in Settings. Anyone you share a link with listens free.
+          Full refund of your first payment, no questions. Anyone you share a link with listens
+          free.
         </p>
         <button
           type="button"

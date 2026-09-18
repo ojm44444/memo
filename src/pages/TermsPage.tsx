@@ -2,6 +2,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { Link } from 'react-router-dom'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { CookieSettingsLink } from '@/components/layout/AdConsent'
+import { PRICE_TABLE } from '@/lib/currency'
 
 /**
  * Terms of service.
@@ -17,10 +18,12 @@ import { CookieSettingsLink } from '@/components/layout/AdConsent'
  *   2. What happens when you stop paying, stated in the same words as the
  *      pricing page.
  *
- * PRICING IS NOT STATED HERE ON PURPOSE. Billing does not exist yet. Writing
- * a number into the terms before Stripe is wired would put a false claim in
- * the one document that is supposed to be exact. The clause below describes
- * the shape and points at the pricing page for figures.
+ * Prices are read from lib/currency, the same table the pricing page and the
+ * checkout use, so the two can never drift apart.
+ *
+ * The 30-day money-back guarantee (Owen, 18 Sept) is stated plainly here
+ * because it is stated plainly on the landing page: same 30 days on yearly
+ * and monthly, full refund of the first payment, no questions.
  *
  * NOT LEGAL ADVICE. Have this reviewed before taking money.
  */
@@ -30,7 +33,7 @@ export function TermsPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 15 September 2026</p>
+        <p className="legal-updated">Last updated 18 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -79,8 +82,10 @@ export function TermsPage() {
 
         <h2>Paying, and stopping</h2>
         <p>
-          songdrafts is $79 a year or $12 a month, charged when you subscribe. There is no free
-          trial. Prices are also on the <Link to="/#pricing">pricing section</Link>.
+          songdrafts is ${PRICE_TABLE.usd.year} a year or ${PRICE_TABLE.usd.month} a month,
+          charged when you subscribe. In pounds it is £{PRICE_TABLE.gbp.year} a year or £
+          {PRICE_TABLE.gbp.month} a month. There is no free trial. Prices are also on the{' '}
+          <Link to="/#pricing">pricing section</Link>.
         </p>
         {/* The founding price paragraph lived here while the $49 offer was on
             (15 Sept, a few hours). Bring it back only with FOUNDING_OFFER. */}
@@ -94,12 +99,13 @@ export function TermsPage() {
           days after a plan ends, and we email you twice before they are removed.
         </p>
 
-        <h3>Refunds</h3>
+        <h3>30-day money-back guarantee</h3>
         <p>
-          Yearly plans: a full refund if you ask within 30 days of your first payment. Monthly
-          plans: a full refund of your first month if you ask within 14 days. Use the refund
-          button in Settings, or email songdraftsapp@gmail.com. No reason needed. Your plan ends
-          when the refund is made.
+          <strong>Ask within 30 days of your first payment and we refund it in full.</strong>{' '}
+          Yearly or monthly, the same 30 days. No reason needed, no questions, and nothing is
+          pro-rated: you get the whole of that payment back. Use the refund button in Settings,
+          or email <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>. Your
+          plan ends when the refund is made.
         </p>
         <p>
           If you are a consumer in the UK or EU you also have a legal right to cancel within 14

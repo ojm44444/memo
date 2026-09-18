@@ -13,6 +13,20 @@ import { CookieSettingsLink } from '@/components/layout/AdConsent'
    that one import put all of supabase-js in the landing's first download. */
 import { FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS, PRICES } from '@/lib/prices'
 import { captureFirstTouch } from '@/lib/attribution'
+import {
+  PRICE_TABLE,
+  getPreferredCurrency,
+  money,
+  perMonthOfYear,
+  setPreferredCurrency,
+  type Currency,
+} from '@/lib/currency'
+
+/* The money-back guarantee (Owen, 18 Sept): 30 days, full refund, no
+   questions, yearly and monthly alike. It sits under every buy button in
+   place of "Cancel anytime", which is not risk reversal: it only tells
+   someone what happens after they have already paid. */
+const GUARANTEE_LINE = "30 days, refunded if it's not for you."
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -268,8 +282,10 @@ const FAQS = [
     a: 'Sync and sharing stop. Songs on your devices stay, and the zip export always works. Copies in our cloud are kept for 90 days, and we email you twice before they go.',
   },
   {
+    // 18 Sept, Owen: one guarantee for both plans, 30 days, no questions.
+    // Was yearly 30 days, monthly 14.
     q: 'Can I get my money back?',
-    a: 'Cancel any time from Settings and it stops at the end of the period you have paid for. If you change your mind early there is a refund button in Settings too: yearly within 30 days, monthly within 14.',
+    a: 'Yes. Every plan, yearly or monthly, has a 30-day money-back guarantee: a full refund of your first payment, no questions. Use the refund button in Settings or email songdraftsapp@gmail.com.',
   },
 ] as const
 
@@ -292,19 +308,57 @@ function FaqItem({ q, a }: { q: string; a: string }) {
    page was that it looked like it was still loading, arriving in pieces as he
    scrolled. The whole page is simply there. Do not add a reveal back. */
 
+/** Dollars or pounds, a small $ / £ switch. Remembered for the next visit. */
+function CurrencyToggle({
+  currency,
+  onChange,
+}: {
+  currency: Currency
+  onChange: (next: Currency) => void
+}) {
+  return (
+    <div className="currency-toggle" role="group" aria-label="Currency">
+      {(['usd', 'gbp'] as const).map((c) => (
+        <button
+          key={c}
+          type="button"
+          className={currency === c ? 'is-active' : ''}
+          aria-pressed={currency === c}
+          aria-label={c === 'usd' ? 'US dollars' : 'Pounds'}
+          onClick={() => onChange(c)}
+        >
+          {PRICE_TABLE[c].symbol}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /**
- * The price card: yearly or monthly, with the founding offer leading the
- * yearly side while any of the 100 places are left.
+ * The price card: yearly or monthly, in dollars or pounds, with the founding
+ * offer leading the yearly side while any of the 100 places are left.
  *
- * Prices decided 15 Sept 2026: $79 a year, $12 a month. No $1 week and no
- * trial. The $49 founding offer is built but off (FOUNDING_OFFER in billing).
- * If it is ever on, its condition is said here, at the point of sale.
+ * Prices decided 15 Sept 2026: $79 a year, $12 a month (£59 and £9, see
+ * lib/currency). No $1 week and no trial. The $49 founding offer is built but
+ * off (FOUNDING_OFFER in prices.ts), and is dollars only. If it is ever on,
+ * its condition is said here, at the point of sale.
+ *
+ * The refund used to be kept, not advertised: a button in Settings and a line
+ * in the FAQ. Owen reversed that on 18 Sept. It is now a 30-day money-back
+ * guarantee, said on this card, under both Get started buttons, in the FAQ
+ * and in the terms.
  *
  * The count of places is read from the database, the same number the checkout
  * enforces. If it cannot be read the page still offers the price, without a
  * number, rather than inventing one.
  */
-function PricingToggle() {
+function PricingToggle({
+  currency,
+  onCurrency,
+}: {
+  currency: Currency
+  onCurrency: (next: Currency) => void
+}) {
   const [annual, setAnnual] = useState(true)
   const [placesLeft, setPlacesLeft] = useState<number | null>(null)
 
@@ -322,8 +376,13 @@ function PricingToggle() {
     }
   }, [])
 
+  const table = PRICE_TABLE[currency]
   const founding = FOUNDING_OFFER && annual && placesLeft !== 0
-  const price = !annual ? PRICES.month.amount : founding ? PRICES.founding.amount : PRICES.year.amount
+  const perMonth = !annual
+    ? money(currency, table.month)
+    : founding
+      ? money('usd', (PRICES.founding.amount / 12).toFixed(2))
+      : money(currency, perMonthOfYear(currency))
 
   return (
     <div className="price-card">
@@ -346,31 +405,34 @@ function PricingToggle() {
         </button>
       </div>
 
-      <p className="price-trial">
-        {founding
-          ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
-          : annual
-            ? 'Cancel anytime.'
-            : 'Cancel anytime.'}
-      </p>
+      <div className="price-top">
+        <p className="price-trial">
+          {founding
+            ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
+            : '30 days, full refund'}
+        </p>
+        <CurrencyToggle currency={currency} onChange={onCurrency} />
+      </div>
 
       <p className="price-headline">
-        ${annual && !founding ? (PRICES.year.amount / 12).toFixed(2) : price}
+        {perMonth}
         <span className="price-period"> a month</span>
       </p>
       <p className="price-secondary">
         {founding
           ? `${FOUNDING_TERMS} After the first ${FOUNDING_CAP}, $${PRICES.year.amount} a year.`
           : annual
-            ? `Billed annually, $${PRICES.year.amount}. Two months cheaper than monthly.`
+            ? `Billed yearly, ${money(currency, table.year)}. ${money(currency, table.month * 12 - table.year)} less than paying monthly.`
             : `Billed monthly. Everything included, no limits on songs, playlists or links.`}
       </p>
 
       <Link to="/sign-up" className="price-cta" onMouseEnter={prefetchAppChunks}>
-        Get started
+        Start for {perMonth} a month
       </Link>
 
-      {founding && <p className="price-refund">Full refund within 30 days.</p>}
+      <p className="price-refund">
+        {GUARANTEE_LINE} Full refund, yearly or monthly, no questions.
+      </p>
 
       {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
       <a className="price-support" href="mailto:songdraftsapp@gmail.com">
@@ -410,6 +472,13 @@ function usePaperThemeColor() {
 
 export function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
+  // Dollars or pounds, chosen once and remembered. Every price on the page
+  // reads from this: hero, compare line, price card, closing band.
+  const [currency, setCurrency] = useState<Currency>(getPreferredCurrency)
+  const pickCurrency = (next: Currency) => {
+    setCurrency(next)
+    setPreferredCurrency(next)
+  }
   usePageTitle(
     'songdrafts · Finish more songs',
     'A board for your voice memos. Stack takes, drag songs right as they get better, send a demo link. Works offline. Nobody trains on your music.',
@@ -527,8 +596,10 @@ export function LandingPage() {
               hypocrisy this product positions against. It returns when there is a
               real confirmation email and a promise we keep. */}
           <Link to="/sign-up" className="hero-cta" onMouseEnter={prefetchAppChunks}>
-            Get started
+            Start for {money(currency, perMonthOfYear(currency))} a month
           </Link>
+          {/* The guarantee, under the button, in place of a cancel line. */}
+          <p className="hero-guarantee">{GUARANTEE_LINE}</p>
           <p className="hero-trial-note">
             Keep recording in Voice Memos. songdrafts is what happens next.
           </p>
@@ -555,6 +626,15 @@ export function LandingPage() {
             few seconds, which is the one gesture the product is about. */}
         <LiveBoard />
       </section>
+
+      {/* Owen's record, moved up here (18 Sept) from the grey box near the
+          bottom of the page. One quiet line under the hero, said once, not
+          repeated lower down. */}
+      <p className="hero-credential">
+        Built by the team behind two million streams, BBC Introducing, and sold out rooms across
+        the UK and Europe.
+        <span> We still lost the good ones in a list of a thousand files.</span>
+      </p>
 
       {/* 17 Sept, Owen: the page only spoke to songwriters, but Listen is a
           whole second reason to be here: mixes back from the producer, sent
@@ -661,6 +741,75 @@ export function LandingPage() {
               <p className="feature-desc">{desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="compare" id="compare">
+        <div className="section-label">vs. everything else</div>
+        <h2 className="section-h2">
+          Voice Memos syncs your recordings.
+          <br />
+          songdrafts syncs your songwriting.
+        </h2>
+        <p className="section-sub">
+          Most songwriters are already running a system. Voice Memos for the humming, Apple
+          Notes for the lyrics, a folder somewhere for the bounces, and if you are organised,
+          a Trello board with the mp3s dragged onto the cards. It works right up until the
+          pile gets big. None of it covers the messy stretch between a voice note and a
+          finished demo, which is where songs actually go to die. Apple made an app for
+          songwriters once, and then deleted it.
+        </p>
+        {/* Owen, 18 Sept: the sentence that says what this replaces, next to
+            the table that proves it. Price follows the currency switch. */}
+        <p className="compare-oneline">
+          Samply for sending mixes and a Trello board for the songs, in one thing, for{' '}
+          {money(currency, PRICE_TABLE[currency].year)} a year.
+        </p>
+        <div className="compare-wrap">
+          {/* Scrolls sideways inside its card on a phone, never the page. */}
+          <div className="compare-scroll">
+          <table className="compare-table">
+            <thead>
+              <tr>
+                <th />
+                <th className="compare-col compare-col--memo">
+                  <span className="compare-col-name">songdrafts</span>
+                </th>
+                <th className="compare-col">Voice Memos</th>
+                <th className="compare-col">Apple Notes</th>
+                <th className="compare-col">Trello</th>
+                <th className="compare-col">Dubnote</th>
+                <th className="compare-col">Tape.it</th>
+                <th className="compare-col">Samply</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARE_ROWS.map((row) => (
+                <tr key={row.feature}>
+                  <td className="compare-feature">{row.feature}</td>
+                  <td className="compare-cell compare-cell--memo"><Tick val={row.songdrafts} /></td>
+                  <td className="compare-cell"><Tick val={row.voicememos} /></td>
+                  <td className="compare-cell"><Tick val={row.notes} /></td>
+                  <td className="compare-cell"><Tick val={row.trello} /></td>
+                  <td className="compare-cell"><Tick val={row.dubnote} /></td>
+                  <td className="compare-cell"><Tick val={row.tapeit} /></td>
+                  <td className="compare-cell"><Tick val={row.samply} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+          {/* Was one paragraph doing three jobs at once (the half, the
+              tilde, the loss). Split so each claim is its own line rather
+              than making the reader hold three footnotes in their head at
+              once. */}
+          <ul className="compare-footnotes">
+            <li>~ means partly. Apple Notes holds lyrics but not the recording. Samply plays offline in its iPhone app.</li>
+            <li>? means their own site and docs do not say, so we have not guessed.</li>
+            <li>Samply is built for sending mixes and masters, and it does that well: version stacks and password links are real there too.</li>
+            <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
+          </ul>
+          <p className="compare-footnote-date">Checked 18 September 2026.</p>
         </div>
       </section>
 
@@ -827,105 +976,13 @@ export function LandingPage() {
             finish your song. It makes sure the one you would have finished is still there when
             you are ready.
           </p>
-          {/* Owen's own record, and it belongs HERE rather than in the hero,
-              for the same reason as before: this argument needs someone who
-              demonstrably finishes to make it, and the hero is peer-to-peer
-              territory, not a credentials slot.
-
-              Voice changed from first person to third on Owen's direction:
-              "it should speak like a brand". Not rewritten as "the team
-              behind" though, because there is no team, and inventing one to
-              sound bigger is exactly the kind of claim this whole page exists
-              to NOT make. Third person about one real person is brand voice
-              without being a fabricated one. */}
-          <p className="discipline-credential">
-            Built by the team behind two million streams, BBC Introducing, and sold out
-            rooms across the UK and Europe.
-            <span> We still lost the good ones in a list of a thousand files.</span>
-          </p>
+          {/* The credential line used to sit here in a grey box. Owen, 18
+              Sept: it belongs under the hero, as one quiet line, so it is
+              read before anything else. Moved, not duplicated. */}
         </div>
       </section>
 
-      <section className="compare" id="compare">
-        <div className="section-label">vs. everything else</div>
-        <h2 className="section-h2">
-          Voice Memos syncs your recordings.
-          <br />
-          songdrafts syncs your songwriting.
-        </h2>
-        <p className="section-sub">
-          Most songwriters are already running a system. Voice Memos for the humming, Apple
-          Notes for the lyrics, a folder somewhere for the bounces, and if you are organised,
-          a Trello board with the mp3s dragged onto the cards. It works right up until the
-          pile gets big. None of it covers the messy stretch between a voice note and a
-          finished demo, which is where songs actually go to die. Apple made an app for
-          songwriters once, and then deleted it.
-        </p>
-        <div className="compare-wrap">
-          {/* Scrolls sideways inside its card on a phone, never the page. */}
-          <div className="compare-scroll">
-          <table className="compare-table">
-            <thead>
-              <tr>
-                <th />
-                <th className="compare-col compare-col--memo">
-                  <span className="compare-col-name">songdrafts</span>
-                </th>
-                <th className="compare-col">Voice Memos</th>
-                <th className="compare-col">Apple Notes</th>
-                <th className="compare-col">Trello</th>
-                <th className="compare-col">Dubnote</th>
-                <th className="compare-col">Tape.it</th>
-                <th className="compare-col">Samply</th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMPARE_ROWS.map((row) => (
-                <tr key={row.feature}>
-                  <td className="compare-feature">{row.feature}</td>
-                  <td className="compare-cell compare-cell--memo"><Tick val={row.songdrafts} /></td>
-                  <td className="compare-cell"><Tick val={row.voicememos} /></td>
-                  <td className="compare-cell"><Tick val={row.notes} /></td>
-                  <td className="compare-cell"><Tick val={row.trello} /></td>
-                  <td className="compare-cell"><Tick val={row.dubnote} /></td>
-                  <td className="compare-cell"><Tick val={row.tapeit} /></td>
-                  <td className="compare-cell"><Tick val={row.samply} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-          {/* Was one paragraph doing three jobs at once (the half, the
-              tilde, the loss). Split so each claim is its own line rather
-              than making the reader hold three footnotes in their head at
-              once. */}
-          <ul className="compare-footnotes">
-            <li>~ means partly. Apple Notes holds lyrics but not the recording. Samply plays offline in its iPhone app.</li>
-            <li>? means their own site and docs do not say, so we have not guessed.</li>
-            <li>Samply is built for sending mixes and masters, and it does that well: version stacks and password links are real there too.</li>
-            <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
-          </ul>
-          <p className="compare-footnote-date">Checked 18 September 2026.</p>
-        </div>
-      </section>
 
-      {/* Moved up from the very bottom. Owen: "I really like that bit, and
-          I think that could be further up the page." It now sits straight
-          after the compare table, which is the point where someone has just
-          seen what this does that the alternatives don't. */}
-      <section className="cta-section" id="get-started">
-        <p className="cta-kicker">Stop losing songs to the void.</p>
-        <h2>
-          Your songs deserve
-          <br />
-          <em>a proper home.</em>
-        </h2>
-        <p>Open the board. Drag the first memo in. See what you've actually got.</p>
-        <Link to="/sign-up" className="cta-button" onMouseEnter={prefetchAppChunks}>
-          Get started
-        </Link>
-        <p className="cta-status">Cancel anytime.</p>
-      </section>
 
       <section className="workflow" id="workflow">
         <div className="workflow-inner">
@@ -985,12 +1042,13 @@ export function LandingPage() {
         </div>
       </section>
 
+
       <section className="pricing" id="pricing">
         <div className="section-label">Pricing</div>
         {/* Yearly or monthly. Nothing here charges anyone: checkout lives
             in the app, and billing is off until BILLING_LIVE. */}
         <h2 className="section-h2">One plan. Everything in it.</h2>
-        <PricingToggle />
+        <PricingToggle currency={currency} onCurrency={pickCurrency} />
         {/* Used to carry its own "What happens if I stop paying?" card, right
             under the price. That question already has an answer in the FAQ
             section below (same text, kept there), so this was a duplicate,
@@ -998,6 +1056,22 @@ export function LandingPage() {
             deciding to pay, which is the wrong place to plant that doubt.
             Owen's call. The pricing section now ends on the price and what is
             included, not on an exit door. */}
+      </section>
+
+      {/* The last push, and it comes straight after the price (Owen, 18
+          Sept: people should see what it costs before the final ask). */}
+      <section className="cta-section" id="get-started">
+        <p className="cta-kicker">Stop losing songs to the void.</p>
+        <h2>
+          Your songs deserve
+          <br />
+          <em>a proper home.</em>
+        </h2>
+        <p>Open the board. Drag the first memo in. See what you've actually got.</p>
+        <Link to="/sign-up" className="cta-button" onMouseEnter={prefetchAppChunks}>
+          Start for {money(currency, perMonthOfYear(currency))} a month
+        </Link>
+        <p className="cta-status">{GUARANTEE_LINE}</p>
       </section>
 
       {/* Two-column: the heading sits on its own on the left, the actual
