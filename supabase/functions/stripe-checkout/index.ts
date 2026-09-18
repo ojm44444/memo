@@ -80,12 +80,26 @@ async function priceFor(stripe: Stripe, plan: Plan): Promise<{ id: string; curre
   return { id: price.id, currencies: Object.keys(price.currency_options ?? { [price.currency]: {} }) }
 }
 
-/** An active promotion code's id, from the code a partner link carried. */
-async function promotionCodeId(stripe: Stripe, raw: unknown): Promise<string | null> {
+/**
+ * An active promotion code from the code a partner link carried: its id, and
+ * whether it takes the whole price off (the friends' free year).
+ */
+async function promotionCodeFor(
+  stripe: Stripe,
+  raw: unknown,
+): Promise<{ id: string; free: boolean } | null> {
   const code = typeof raw === 'string' ? raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40) : ''
   if (!code) return null
   const found = await stripe.promotionCodes.list({ code, active: true, limit: 1 })
-  return found.data[0]?.id ?? null
+  const promo = found.data[0] as
+    | (Stripe.PromotionCode & { promotion?: { coupon?: string | Stripe.Coupon | null } })
+    | undefined
+  if (!promo) return null
+  // basil carries the coupon on `coupon`; newer API versions on `promotion.coupon`.
+  let coupon: string | Stripe.Coupon | null | undefined = (promo as { coupon?: string | Stripe.Coupon }).coupon
+  coupon ??= promo.promotion?.coupon
+  if (typeof coupon === 'string') coupon = await stripe.coupons.retrieve(coupon)
+  return { id: promo.id, free: coupon?.percent_off === 100 }
 }
 
 serve(async (req) => {
@@ -231,14 +245,19 @@ serve(async (req) => {
     // possible by pressing the button twice, and each one would have billed.
     if (isLive) return json({ error: 'already_subscribed' }, 409)
 
-    const plan: Plan = body.plan === 'founding' || body.plan === 'month' ? body.plan : 'year'
+    const promo = await promotionCodeFor(stripe, body.promo)
+    const promotionCode = promo?.id ?? null
+    // A 100%-off code is a free year (Owen's five friends). Its coupon lasts
+    // one billing period, so on the monthly plan it would be one free month.
+    // Whatever button they pressed, a free code gets the yearly plan.
+    const asked: Plan = body.plan === 'founding' || body.plan === 'month' ? body.plan : 'year'
+    const plan: Plan = promo?.free ? 'year' : asked
     if (plan === 'founding' && !foundingOn) return json({ error: 'founding_off' }, 409)
 
     const price = await priceFor(stripe, plan)
     if (!price) return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
     const wantCurrency = body.currency === 'gbp' || body.currency === 'usd' ? body.currency : null
     const currency = wantCurrency && price.currencies.includes(wantCurrency) ? wantCurrency : null
-    const promotionCode = await promotionCodeId(stripe, body.promo)
 
     let foundingPlaceId: string | null = null
     if (plan === 'founding') {
