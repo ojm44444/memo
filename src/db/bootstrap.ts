@@ -26,6 +26,14 @@ export async function bootstrapDatabase(): Promise<void> {
   await ensureSeeded()
   void backfillSongTitlesFromVersionLabels()
 
+  // Card positions from before 18 Sept could be fractional, which the cloud's
+  // integer column refuses on every sync. Renumber those columns once.
+  void import('@/db/repositories/songOrder').then(({ repairFractionalSortOrders }) =>
+    repairFractionalSortOrders().catch((err) =>
+      console.error('[songdrafts] order repair failed:', err),
+    ),
+  )
+
   // Import integrity. Silent orphan cards are the failure mode that makes
   // someone think their music is gone, so they get named in the console rather
   // than sitting there quietly. Never blocks boot.

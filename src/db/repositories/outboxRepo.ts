@@ -22,7 +22,7 @@ export async function enqueueSync(
   payload: unknown,
 ) {
   // Coalesce duplicate ops for the same entity so rapid edits don't flood the queue.
-  // - update + update → merge (latest payload wins)
+  // - update + update → merge (fields from both, latest wins per field)
   // - update + delete → promote to delete (no point uploading then deleting)
   // - delete + delete → deduplicate
   await db.transaction('rw', db.syncQueue, async () => {
@@ -34,9 +34,23 @@ export async function enqueueSync(
         .first()
 
       if (existing) {
+        // update + update MERGES the two patches. It used to replace the old
+        // payload, so a title edit still queued offline was dropped by the
+        // next reorder of the same song (whose patch is only sortOrder).
+        let next = payload
+        if (op === 'update' && existing.op === 'update') {
+          try {
+            const before = JSON.parse(existing.payload) as unknown
+            if (before && typeof before === 'object' && payload && typeof payload === 'object') {
+              next = { ...(before as object), ...(payload as object) }
+            }
+          } catch {
+            // Unreadable old payload: the new one alone is still correct.
+          }
+        }
         await db.syncQueue.update(existing.id, {
           op,
-          payload: JSON.stringify(payload),
+          payload: JSON.stringify(next),
           createdAt: new Date().toISOString(),
           attempts: 0,
           lastError: null,
@@ -95,7 +109,7 @@ export async function getPendingUploadsForSong(songId: string) {
 export async function getPendingHint() {
   const count = await db.syncQueue.count()
   if (count === 0) return null
-  return `${count} upload${count === 1 ? '' : 's'} not finished — tap to retry`
+  return `${count} upload${count === 1 ? '' : 's'} not finished. Tap to retry`
 }
 
 export async function removeSyncItem(id: string) {

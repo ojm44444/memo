@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { getBoardRole, resolveBoardId } from '@/lib/supabase/boardAccess'
 import type { Database } from '@/lib/supabase/database.types'
 import { db } from '@/db/database'
+import { toCloudPosition } from '@/db/repositories/songOrder'
 import { uploadAudioVersion, ensureBoardForUser } from './audioUpload'
 import type { SyncQueueItem } from '@/types/sync'
 import { UploadBlockedError } from '@/lib/cloudAudio'
@@ -42,12 +43,12 @@ async function processQueueItem(
           is_favourite: payload.isFavourite ?? false,
           musical_key: payload.musicalKey ?? null,
           bpm: payload.bpm ?? null,
-          position: payload.sortOrder,
+          position: toCloudPosition(payload.sortOrder),
           updated_at: payload.updatedAt,
           deleted_at: payload.deletedAt,
           project_id: payload.projectId ?? null,
           listen_project_id: payload.listenProjectId ?? null,
-          listen_position: payload.listenPosition ?? null,
+          listen_position: toCloudPosition(payload.listenPosition) ?? null,
         } as never),
       )
       await db.songs.update(item.entityId, { syncedAt: new Date().toISOString() })
@@ -56,7 +57,7 @@ async function processQueueItem(
         updated_at: payload.updatedAt ?? new Date().toISOString(),
       }
       if (payload.columnSlug !== undefined) patch.column_slug = payload.columnSlug
-      if (payload.sortOrder !== undefined) patch.position = payload.sortOrder
+      if (payload.sortOrder !== undefined) patch.position = toCloudPosition(payload.sortOrder)
       if (payload.title !== undefined) patch.title = payload.title
       if (payload.notes !== undefined) patch.notes = payload.notes
       if (payload.tags !== undefined) (patch as { tags?: string[] }).tags = payload.tags
@@ -78,7 +79,7 @@ async function processQueueItem(
         ;(patch as Record<string, unknown>).listen_project_id = payload.listenProjectId
       }
       if (payload.listenPosition !== undefined) {
-        ;(patch as Record<string, unknown>).listen_position = payload.listenPosition
+        ;(patch as Record<string, unknown>).listen_position = toCloudPosition(payload.listenPosition) ?? null
       }
 
       await assertNoError(
@@ -104,14 +105,14 @@ async function processQueueItem(
         .maybeSingle()
 
       if (!remoteSong) {
-        throw new Error('Song info has not reached the cloud yet — retrying')
+        throw new Error('Song info has not reached the cloud yet, retrying')
       }
 
       await uploadAudioVersion(item.entityId, userId, boardId, payload)
     } else if (item.op === 'update') {
       const patch: Record<string, unknown> = {
         label: payload.label,
-        position: payload.sortOrder,
+        position: toCloudPosition(payload.sortOrder),
         updated_at: new Date().toISOString(),
       }
       // song_id changes from merge operations
@@ -204,7 +205,7 @@ async function processQueueItem(
         title: payload.title,
         artist: payload.artist ?? null,
         cover_path: payload.coverPath ?? null,
-        position: payload.sortOrder ?? 0,
+        position: toCloudPosition(payload.sortOrder) ?? 0,
         created_at: payload.createdAt,
         updated_at: payload.updatedAt ?? new Date().toISOString(),
         deleted_at: payload.deletedAt ?? null,
@@ -219,7 +220,7 @@ async function processQueueItem(
           id: payload.id,
           board_id: boardId,
           name: payload.name,
-          position: payload.sortOrder ?? 0,
+          position: toCloudPosition(payload.sortOrder) ?? 0,
           updated_at: payload.createdAt ?? new Date().toISOString(),
         }),
       )
@@ -228,7 +229,7 @@ async function processQueueItem(
         updated_at: payload.updatedAt ?? new Date().toISOString(),
       }
       if (payload.name !== undefined) update.name = payload.name
-      if (payload.sortOrder !== undefined) update.position = payload.sortOrder
+      if (payload.sortOrder !== undefined) update.position = toCloudPosition(payload.sortOrder)
 
       await assertNoError(
         await supabase!.from('projects').update(update).eq('id', item.entityId),
@@ -252,7 +253,7 @@ async function processQueueItem(
             board_id: boardId,
             slug: payload.slug,
             title: payload.title,
-            position: payload.sortOrder,
+            position: toCloudPosition(payload.sortOrder) ?? 0,
           },
           { onConflict: 'board_id,slug' },
         ),
@@ -263,7 +264,7 @@ async function processQueueItem(
       await assertNoError(
         await supabase!
           .from('columns')
-          .update({ title: payload.title, position: payload.sortOrder })
+          .update({ title: payload.title, position: toCloudPosition(payload.sortOrder) })
           .eq('board_id', boardId)
           .eq('slug', payload.slug),
       )
@@ -314,7 +315,7 @@ async function bootstrapProjects(boardId: string) {
         id: project.id,
         board_id: boardId,
         name: project.name,
-        position: project.sortOrder,
+        position: toCloudPosition(project.sortOrder),
         updated_at: new Date().toISOString(),
       })),
       { onConflict: 'id' },
