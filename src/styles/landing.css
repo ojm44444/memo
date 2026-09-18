@@ -5231,3 +5231,39 @@ html { scroll-padding-top: 88px; }
 .landing .wave-divider {
   opacity: 0.16;
 }
+
+/* The logo's own gradient, at page scale (17 Sept, Owen: closer to the logo).
+   Cold teal top left, mint bottom right, deep enough to keep paper text
+   readable on it. The ground is the brand mark, blown up. */
+.landing {
+  --bg: #1f5560;
+  --bg2: #2a6670;
+  --bg3: #347681;
+  --bg-2: #2a6670;
+  --border: rgba(238, 245, 242, 0.2);
+  --muted: #c3dbd6;
+  background: #1f5560;
+}
+
+.landing::before {
+  background:
+    radial-gradient(45% 35% at 88% 8%, rgba(195, 232, 189, 0.3), transparent 72%),
+    linear-gradient(135deg, #24616e 0%, #2a6f6d 34%, #3c8676 66%, #52996f 100%);
+}
+
+.landing .feature-card,
+.landing .faq-item,
+.landing .price-card,
+.landing .listen-mock,
+.landing .compare-table {
+  background: rgba(13, 38, 43, 0.34);
+  border-color: rgba(238, 245, 242, 0.18);
+}
+
+.landing .feature-card:hover {
+  background: rgba(13, 38, 43, 0.44);
+}
+
+.landing > nav {
+  background: rgba(31, 85, 96, 0.88) !important;
+}
