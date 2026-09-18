@@ -162,41 +162,44 @@ html.light .board-page {
   min-width: 0;
 }
 
-/* ── Tags: every tag its own colour, clearly ───────────────────────────── */
+/* ── Tags: every tag its own colour, quietly ───────────────────────────
+   Owen, 18 Sept: coloured tags "look better, could be a bit more slick".
+   Same hues; no outline ring, a softer fill, a small dot, lighter type. */
 .board-page .song-card-tag-pill,
 html.light .board-page .song-card-tag-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 9px 3px 8px;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px 0 7px;
+  border: 0;
   border-radius: 999px;
   font-family: var(--font-sans);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   text-transform: none;
-  background: hsl(var(--tag-h, 150) 70% 55% / 0.2);
-  color: hsl(var(--tag-h, 150) 90% 80%);
-  box-shadow: inset 0 0 0 1px hsl(var(--tag-h, 150) 75% 62% / 0.5);
+  background: hsl(var(--tag-h, 150) 55% 55% / 0.14);
+  color: hsl(var(--tag-h, 150) 70% 82%);
+  box-shadow: none;
 }
 
 .board-page .song-card-tag-pill::before {
   content: '';
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
-  background: hsl(var(--tag-h, 150) 85% 65%);
+  background: hsl(var(--tag-h, 150) 80% 66%);
 }
 
 html.light .board-page .song-card-tag-pill {
-  background: hsl(var(--tag-h, 150) 85% 88%);
-  color: hsl(var(--tag-h, 150) 80% 22%);
-  box-shadow: inset 0 0 0 1px hsl(var(--tag-h, 150) 60% 42% / 0.45);
+  background: hsl(var(--tag-h, 150) 60% 50% / 0.12);
+  color: hsl(var(--tag-h, 150) 70% 26%);
 }
 
 html.light .board-page .song-card-tag-pill::before {
-  background: hsl(var(--tag-h, 150) 80% 42%);
+  background: hsl(var(--tag-h, 150) 70% 42%);
 }
 
 /* ── Player bar: the Listen cover, not a waveform smudge ───────────────── */

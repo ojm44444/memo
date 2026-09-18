@@ -65,9 +65,11 @@ export default defineConfig(({ mode }) => ({
          * Bump the suffix whenever the mark changes. */
       includeAssets: [
         'favicon.svg',
-        'apple-touch-icon.v2.png',
-        'pwa-192x192.v2.png',
-        'pwa-512x512.v2.png',
+        'apple-touch-icon.v3.png',
+        'pwa-192x192.v3.png',
+        'pwa-512x512.v3.png',
+        'pwa-maskable-512.v3.png',
+        'brand/now-playing-square-512.png',
       ],
       manifest: {
         id: '/',
@@ -106,19 +108,22 @@ export default defineConfig(({ mode }) => ({
         },
         icons: [
           {
-            src: '/pwa-192x192.v2.png',
+            src: '/pwa-192x192.v3.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/pwa-512x512.v2.png',
+            src: '/pwa-512x512.v3.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: '/pwa-512x512.v2.png',
+            // Full-bleed squares: the phone applies its own rounding. The v2
+            // set had the rounding baked in over a white fill, which showed as
+            // white corners on the home screen and lock screen (Owen, 18 Sept).
+            src: '/pwa-maskable-512.v3.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',

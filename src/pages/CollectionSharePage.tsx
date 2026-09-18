@@ -357,7 +357,12 @@ export function CollectionSharePage() {
   useEffect(() => {
     if (!('mediaSession' in navigator) || currentSong === null || !songs[currentSong]) return
     const track = trackFor(currentSong)
-    navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: data?.artist ?? '', album: title })
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.title,
+      artist: data?.artist ?? '',
+      album: title,
+      artwork: [{ src: '/brand/now-playing-square-512.png', sizes: '512x512', type: 'image/png' }],
+    })
     navigator.mediaSession.setActionHandler('play', () => void audioRef.current?.play())
     navigator.mediaSession.setActionHandler('pause', () => audioRef.current?.pause())
     navigator.mediaSession.setActionHandler('nexttrack', () => step(1))

@@ -291,7 +291,7 @@ export function ColumnPlayerBar() {
       artist: 'songdrafts',
       album: version?.label ?? undefined,
       // Full-bleed square (17 Sept, Owen: not the round icon on the lock screen).
-      artwork: [{ src: '/brand/now-playing-circle-512.png', sizes: '512x512', type: 'image/png' }],
+      artwork: [{ src: '/brand/now-playing-square-512.png', sizes: '512x512', type: 'image/png' }],
     })
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
 
