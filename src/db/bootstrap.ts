@@ -1,5 +1,6 @@
 import { db } from './database'
 import { ensureSeeded } from './seed'
+import { installIdbResumeGuard } from './idbRecovery'
 import { backfillSongTitlesFromVersionLabels } from './migrations/backfillSongTitlesFromVersionLabels'
 
 /**
@@ -22,6 +23,10 @@ export async function bootstrapDatabase(): Promise<void> {
     console.error('[songdrafts] DB failed to open:', err)
     return
   }
+
+  // iPhone app resumed after iOS dropped the IndexedDB connection: reopen it
+  // before a live query trips over it. See idbRecovery.ts.
+  installIdbResumeGuard()
 
   await ensureSeeded()
   void backfillSongTitlesFromVersionLabels()
