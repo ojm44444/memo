@@ -22,9 +22,17 @@ import Stripe from 'https://esm.sh/stripe@18.5.0?target=deno'
  * this is on stripe-node 18 (basil). The product needs an eligible tax code.
  * STRIPE_MANAGED_PAYMENTS=off disables it, for a sandbox without it.
  *
- * REFUNDS: annual, in full, within 30 days of the first payment; monthly, the
- * first month in full, within 14 days. One button in Settings, no questions.
- * The subscription is cancelled at the same moment, so nothing renews.
+ * REFUNDS: the 30-day money-back guarantee (Owen, 18 Sept), on both plans:
+ * everything paid in the first 30 days, in full, no questions, no pro-rata.
+ * One button in Settings. The subscription is cancelled at the same moment,
+ * so nothing renews.
+ *
+ * CURRENCY: dollars by default; pounds when the visitor chose them and the
+ * Stripe price carries a GBP currency option. Without that option the
+ * session stays in dollars rather than failing.
+ *
+ * PROMO CODES: typed in at checkout, or pre-applied from a partner link
+ * (?promo=CODE on the site, passed through as body.promo).
  */
 
 const corsHeaders = {
@@ -45,12 +53,11 @@ const LIVE_STATUSES = ['trialing', 'active', 'past_due']
 /** Said on the Stripe page itself, above the pay button. */
 const FOUNDING_TERMS =
   '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price. Full refund within 30 days.'
-/* 17 Sept, Owen: refunds stay (the button in Settings, the Terms) but are not
-   advertised on the pay page. */
-const YEAR_TERMS = 'Cancel any time in Settings.'
-const MONTH_TERMS = 'Cancel any time in Settings.'
+/* 18 Sept, Owen: the guarantee is advertised everywhere, including here. */
+const YEAR_TERMS = '30 days, fully refunded if it is not for you. No questions.'
+const MONTH_TERMS = '30 days, fully refunded if it is not for you. No questions.'
 
-const REFUND_DAYS = { year: 30, month: 14 } as const
+const REFUND_DAYS = { year: 30, month: 30 } as const
 
 const clip = (value: string | null | undefined, max = 480) => (value ?? '').slice(0, max)
 
@@ -61,8 +68,23 @@ const LOOKUP_KEYS: Record<Plan, string> = {
   month: 'songdrafts_monthly_12',
 }
 
-async function priceFor(stripe: Stripe, plan: Plan): Promise<string | null> {
-  const found = await stripe.prices.list({ lookup_keys: [LOOKUP_KEYS[plan]], active: true, limit: 1 })
+async function priceFor(stripe: Stripe, plan: Plan): Promise<{ id: string; currencies: string[] } | null> {
+  const found = await stripe.prices.list({
+    lookup_keys: [LOOKUP_KEYS[plan]],
+    active: true,
+    limit: 1,
+    expand: ['data.currency_options'],
+  })
+  const price = found.data[0]
+  if (!price) return null
+  return { id: price.id, currencies: Object.keys(price.currency_options ?? { [price.currency]: {} }) }
+}
+
+/** An active promotion code's id, from the code a partner link carried. */
+async function promotionCodeId(stripe: Stripe, raw: unknown): Promise<string | null> {
+  const code = typeof raw === 'string' ? raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40) : ''
+  if (!code) return null
+  const found = await stripe.promotionCodes.list({ code, active: true, limit: 1 })
   return found.data[0]?.id ?? null
 }
 
@@ -151,13 +173,10 @@ serve(async (req) => {
 
       const sub = await stripe.subscriptions.retrieve(row.stripe_subscription_id)
       const interval = sub.items.data[0]?.price?.recurring?.interval === 'month' ? 'month' : 'year'
-      const paid = await stripe.invoices.list({ subscription: sub.id, status: 'paid', limit: 3 })
+      const paid = await stripe.invoices.list({ subscription: sub.id, status: 'paid', limit: 10 })
       const first = paid.data[paid.data.length - 1]
 
       if (!first) return json({ error: 'There is no payment to refund.' }, 409)
-      if (paid.data.length > 1) {
-        return json({ error: 'Refunds cover the first payment only. Cancel in Manage billing to stop the next one.' }, 409)
-      }
 
       const paidAt = (first.status_transitions?.paid_at ?? first.created) * 1000
       const days = (Date.now() - paidAt) / 86_400_000
@@ -165,20 +184,28 @@ serve(async (req) => {
         return json({ error: `The ${REFUND_DAYS[interval]} day refund window has closed. Cancel in Manage billing to stop renewal.` }, 409)
       }
 
-      // Basil: an invoice no longer points at its payment. The Invoice
-      // Payments list does.
-      const payments = await stripe.invoicePayments.list({ invoice: first.id!, limit: 5 })
-      const pi = payments.data.find((p: Stripe.InvoicePayment) => p.payment?.type === 'payment_intent')?.payment?.payment_intent
-      const paymentIntent = typeof pi === 'string' ? pi : pi?.id
-      if (!paymentIntent) return json({ error: 'Could not find that payment. Email support@songdrafts.com.' }, 500)
-
-      // Refund first: if the cancel then fails, they have their money and
-      // can cancel from the portal. The other way round could cancel them
-      // and leave the refund unissued.
-      const refund = await stripe.refunds.create(
-        { payment_intent: paymentIntent, metadata: { supabase_user_id: user.id, reason: 'refund_button' } },
-        { idempotencyKey: `refund-${first.id}` },
-      )
+      /* Everything paid inside the window comes back: a monthly plan can
+         renew once inside 30 days, and the guarantee is "full refund". */
+      let refunded = 0
+      let refundCurrency = first.currency ?? 'usd'
+      for (const invoice of paid.data) {
+        // Basil: an invoice no longer points at its payment. The Invoice
+        // Payments list does.
+        const payments = await stripe.invoicePayments.list({ invoice: invoice.id!, limit: 5 })
+        const pi = payments.data.find((p: Stripe.InvoicePayment) => p.payment?.type === 'payment_intent')?.payment?.payment_intent
+        const paymentIntent = typeof pi === 'string' ? pi : pi?.id
+        if (!paymentIntent) continue
+        // Refund first: if the cancel then fails, they have their money and
+        // can cancel from the portal. The other way round could cancel them
+        // and leave the refund unissued.
+        const refund = await stripe.refunds.create(
+          { payment_intent: paymentIntent, metadata: { supabase_user_id: user.id, reason: 'refund_button' } },
+          { idempotencyKey: `refund-${invoice.id}` },
+        )
+        refunded += refund.amount
+        refundCurrency = refund.currency
+      }
+      if (refunded === 0) return json({ error: 'Could not find that payment. Email songdraftsapp@gmail.com.' }, 500)
       await stripe.subscriptions.cancel(sub.id, { prorate: false, invoice_now: false })
 
       const now = new Date().toISOString()
@@ -194,8 +221,8 @@ serve(async (req) => {
 
       return json({
         refunded: true,
-        amount: refund.amount / 100,
-        currency: refund.currency.toUpperCase(),
+        amount: refunded / 100,
+        currency: refundCurrency.toUpperCase(),
       })
     }
 
@@ -207,8 +234,11 @@ serve(async (req) => {
     const plan: Plan = body.plan === 'founding' || body.plan === 'month' ? body.plan : 'year'
     if (plan === 'founding' && !foundingOn) return json({ error: 'founding_off' }, 409)
 
-    const priceId = await priceFor(stripe, plan)
-    if (!priceId) return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
+    const price = await priceFor(stripe, plan)
+    if (!price) return json({ error: 'Billing is not switched on yet. Nothing was charged.' }, 503)
+    const wantCurrency = body.currency === 'gbp' || body.currency === 'usd' ? body.currency : null
+    const currency = wantCurrency && price.currencies.includes(wantCurrency) ? wantCurrency : null
+    const promotionCode = await promotionCodeId(stripe, body.promo)
 
     let foundingPlaceId: string | null = null
     if (plan === 'founding') {
@@ -253,11 +283,13 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: price.id, quantity: 1 }],
+      ...(currency ? { currency } : {}),
       subscription_data: { metadata },
       metadata,
       client_reference_id: user.id,
-      allow_promotion_codes: false,
+      // A partner link's code is applied for them; otherwise a code box.
+      ...(promotionCode ? { discounts: [{ promotion_code: promotionCode }] } : { allow_promotion_codes: true }),
       expires_at: expiresAt,
       custom_text: {
         submit: { message: plan === 'founding' ? FOUNDING_TERMS : plan === 'year' ? YEAR_TERMS : MONTH_TERMS },

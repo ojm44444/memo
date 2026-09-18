@@ -7,7 +7,6 @@ import {
   NO_SUBSCRIPTION,
   PAYWALL_FROM,
   PRICES,
-  REFUND_DAYS,
   describeSubscription,
   getFoundingPlacesLeft,
   getSubscription,
@@ -257,8 +256,7 @@ export function PlanSection() {
             </button>
           </div>
           <p className="settings-field-note">
-            Full refund within {REFUND_DAYS.year} days on yearly, {REFUND_DAYS.month} days on your
-            first month. Cancel any time.
+            30 days, fully refunded if it is not for you. No questions. Cancel any time.
           </p>
         </>
       )}

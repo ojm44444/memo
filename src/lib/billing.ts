@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { PRICE_TABLE, type Currency, getPreferredCurrency } from '@/lib/currency'
 import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
 import { trackGa4BeginCheckout } from '@/lib/ga4'
 import { PRICES } from './prices'
@@ -44,7 +45,8 @@ export type SubscriptionStatus =
 export { PRICES, FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS } from './prices'
 
 /** Days after the first payment in which the Settings refund button works. */
-export const REFUND_DAYS = { year: 30, month: 14 } as const
+// 18 Sept, Owen: 30 days on both, no questions. Mirrors stripe-checkout.
+export const REFUND_DAYS = { year: 30, month: 30 } as const
 
 export type PlanChoice = 'founding' | 'year' | 'month'
 export type Plan = 'founding_year' | 'year' | 'month'
@@ -194,16 +196,36 @@ async function billingUrl(body: Record<string, unknown>): Promise<string> {
   return result.url
 }
 
-/** Send them to Stripe to subscribe. The price is chosen server side. */
-export async function startCheckout(plan: PlanChoice): Promise<void> {
+/**
+ * Send them to Stripe to subscribe. The price is chosen server side; this
+ * only asks for it in a currency, and a partner code if the visitor has one.
+ */
+export async function startCheckout(
+  plan: PlanChoice,
+  options?: { currency?: Currency },
+): Promise<void> {
+  const currency = options?.currency ?? getPreferredCurrency()
+  const amount = currency === 'gbp' ? PRICE_TABLE.gbp[plan === 'month' ? 'month' : 'year'] : PRICES[plan].amount
   const consent = adConsentForCheckout()
+  let promo: string | null = null
+  try {
+    promo = localStorage.getItem('sd_promo')
+  } catch {
+    // No storage: no code to pre-apply, the checkout page still takes one.
+  }
   trackPixelEvent('InitiateCheckout', {
     content_name: plan,
-    value: PRICES[plan].amount,
-    currency: 'USD',
+    value: amount,
+    currency: currency.toUpperCase(),
   })
-  trackGa4BeginCheckout(plan, PRICES[plan].amount)
-  window.location.href = await billingUrl({ mode: 'checkout', plan, ...consent })
+  trackGa4BeginCheckout(plan, amount, currency.toUpperCase())
+  window.location.href = await billingUrl({
+    mode: 'checkout',
+    plan,
+    currency,
+    ...(promo ? { promo } : {}),
+    ...consent,
+  })
 }
 
 /** Send them to Stripe to change their card, see receipts or cancel. */

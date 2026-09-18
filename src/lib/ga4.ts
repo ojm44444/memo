@@ -297,9 +297,9 @@ export function trackGa4SignUp(method: 'google' | 'email') {
   send('sign_up', { method, ...firstTouchParams() })
 }
 
-export function trackGa4BeginCheckout(plan: string, value: number) {
+export function trackGa4BeginCheckout(plan: string, value: number, currency = 'USD') {
   send('begin_checkout', {
-    currency: 'USD',
+    currency,
     value,
     items: [{ item_id: plan, item_name: `songdrafts ${plan}`, price: value, quantity: 1 }],
     ...firstTouchParams(),
