@@ -11,7 +11,14 @@ import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
 import { renderGoogleButton } from '@/lib/auth/googleIdentity'
-import { captureFirstTouch } from '@/lib/attribution'
+import {
+  captureFirstTouch,
+  getHeardFrom,
+  heardFromChosen,
+  setHeardFrom,
+  type HeardFromValue,
+} from '@/lib/attribution'
+import { HeardFromQuestion } from '@/components/auth/HeardFromQuestion'
 
 /** Our own pause between resends, so a double tap cannot send two links. */
 const RESEND_COOLDOWN_S = 30
@@ -36,12 +43,21 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   const [code, setCode] = useState('')
   const [googleReady, setGoogleReady] = useState(false)
   const googleSlot = useRef<HTMLDivElement>(null)
+  /* Create account only: the one-tap question above the buttons. */
+  const [heard, setHeard] = useState<HeardFromValue | null>(() =>
+    creating ? (getHeardFrom()?.source ?? null) : null,
+  )
+  const [heardOther, setHeardOther] = useState(() => (creating ? (getHeardFrom()?.other ?? '') : ''))
+  const needsHeard = creating && !heardFromChosen(heard)
 
   /* Google's own button, so its screen says songdrafts.com rather than the
      Supabase address. Our redirect button stays as the fallback. */
   useEffect(() => {
     const el = googleSlot.current
     if (!el || checking || sentTo || !supabase) return
+    /* Google's own button signs in the moment it is tapped, so it is only
+       drawn once the question is answered. */
+    if (needsHeard) return
     let live = true
     void renderGoogleButton(el, {
       text: creating ? 'signup_with' : 'continue_with',
@@ -51,7 +67,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
     return () => {
       live = false
     }
-  }, [checking, sentTo, creating])
+  }, [checking, sentTo, creating, needsHeard])
 
   useEffect(() => {
     if (resendIn <= 0) return
@@ -115,7 +131,18 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
   const client = supabase
   const redirectTo = `${window.location.origin}/app`
 
+  const chooseHeard = (next: Parameters<typeof setHeardFrom>[0]) => {
+    setHeard(next?.source ?? null)
+    setHeardFrom(next)
+  }
+
+  const changeHeardOther = (text: string) => {
+    setHeardOther(text)
+    if (heard === 'other') setHeardFrom({ source: 'other', other: text })
+  }
+
   const signInWithGoogle = async () => {
+    if (needsHeard) return
     setBusy(true)
     setMessage('')
     const { error } = await client.auth.signInWithOAuth({
@@ -142,7 +169,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
      A sent link now replaces the form with a screen that says what to do. */
   const signInWithEmail = async () => {
     const address = email.trim()
-    if (!address) return
+    if (!address || needsHeard) return
     setBusy(true)
     setMessage('')
     const { error } = await client.auth.signInWithOtp({
@@ -302,6 +329,16 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           </p>
         )}
 
+        {creating && (
+          <HeardFromQuestion
+            value={heard}
+            other={heardOther}
+            onChange={chooseHeard}
+            onOtherChange={changeHeardOther}
+            disabled={busy}
+          />
+        )}
+
         {/* First party before third party (BD ruling 4). The email path is
             ours; Google is a convenience. The old order led with a pure white
             Google button that was the loudest element on a dark screen and
@@ -322,11 +359,13 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
         <button
           type="button"
           className="sign-in-submit"
-          disabled={busy || offline}
+          disabled={busy || offline || needsHeard}
           onClick={() => void signInWithEmail()}
         >
           {busy ? 'Sending…' : creating ? 'Create account' : 'Email me a sign-in link'}
         </button>
+
+        {needsHeard && <p className="sign-in-muted sign-in-heard-hint">Pick one above to carry on.</p>}
 
         {/* Right under the button that caused it. It used to sit at the very
             bottom of the card, below Google, which is how a successful send
@@ -337,12 +376,16 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           <span>or</span>
         </div>
 
-        <div ref={googleSlot} className="sign-in-google-slot" style={googleReady ? undefined : { display: "none" }} />
-        {!googleReady && (
+        <div
+          ref={googleSlot}
+          className="sign-in-google-slot"
+          style={googleReady && !needsHeard ? undefined : { display: 'none' }}
+        />
+        {(!googleReady || needsHeard) && (
           <button
             type="button"
             className="sign-in-google"
-            disabled={busy || offline}
+            disabled={busy || offline || needsHeard}
             onClick={() => void signInWithGoogle()}
           >
             {creating ? 'Sign up with Google' : 'Continue with Google'}
