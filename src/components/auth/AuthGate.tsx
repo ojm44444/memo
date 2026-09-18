@@ -89,7 +89,9 @@ function TwoStepGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let live = true
-    void needsTwoStepCode().then((needs) => live && setState(needs ? 'needs' : 'ok'))
+    void needsTwoStepCode()
+      .catch(() => false)
+      .then((needs) => live && setState(needs ? 'needs' : 'ok'))
     return () => {
       live = false
     }
