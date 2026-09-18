@@ -102,6 +102,17 @@ async function promotionCodeFor(
   return { id: promo.id, free: coupon?.percent_off === 100 }
 }
 
+/** The assurance level in a Supabase JWT ('aal1' or 'aal2'). */
+function jwtAal(jwt: string): string | null {
+  try {
+    const part = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(part.padEnd(part.length + ((4 - (part.length % 4)) % 4), '=')))
+    return typeof payload.aal === 'string' ? payload.aal : null
+  } catch {
+    return null
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -124,6 +135,12 @@ serve(async (req) => {
     const { data: userData } = await admin.auth.getUser(jwt)
     const user = userData?.user
     if (!user?.email) return json({ error: 'Sign in required' }, 401)
+    // Two-step login on? Then refunds, cancelling and paying need the second
+    // step too, as mfa_satisfied() requires everywhere else.
+    const hasFactor = (user.factors ?? []).some((f) => f.status === 'verified')
+    if (hasFactor && jwtAal(jwt) !== 'aal2') {
+      return json({ error: 'Confirm your two-step code first, then try again.' }, 403)
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' })
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>

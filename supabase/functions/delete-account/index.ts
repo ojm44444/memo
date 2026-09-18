@@ -30,6 +30,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/** The assurance level in a Supabase JWT ('aal1' or 'aal2'). */
+function jwtAal(jwt: string): string | null {
+  try {
+    const part = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(part.padEnd(part.length + ((4 - (part.length % 4)) % 4), '=')))
+    return typeof payload.aal === 'string' ? payload.aal : null
+  } catch {
+    return null
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -70,6 +81,14 @@ serve(async (req) => {
         status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+
+    // Two-step login on? Then this needs the second step too, the same test
+    // as mfa_satisfied() in the database. The service role skips that rule,
+    // so a stolen password-only session could otherwise delete everything.
+    const hasFactor = (user.factors ?? []).some((f) => f.status === 'verified')
+    if (hasFactor && jwtAal(jwt) !== 'aal2') {
+      return fail(403, 'Confirm your two-step code first, then try again.')
+    }
 
     /**
      * 1. Stop the billing, before anything is deleted.
