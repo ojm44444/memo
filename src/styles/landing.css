@@ -355,10 +355,15 @@ html:has(.landing) {
   align-items: center;
   column-gap: 48px;
   padding: calc(64px + clamp(56px, 8vw, 104px)) var(--pad-x) 0;
+  /* The logo's own ramp, turned up (Owen, 18 Sept: "the gradient still needs
+     to be in the colour scheme, a little bit exaggerated"): the icon's cold
+     teal top left, its mint top right, meeting in the middle and settling
+     into paper by the board. Still painted once, never animated. */
   background:
-    radial-gradient(55% 60% at 0% 0%, rgba(47, 111, 158, 0.16) 0%, transparent 70%),
-    radial-gradient(50% 55% at 100% 8%, rgba(120, 190, 140, 0.26) 0%, transparent 70%),
-    linear-gradient(180deg, #e6eee6 0%, var(--paper) 62%);
+    radial-gradient(70% 85% at 0% 0%, rgba(94, 167, 184, 0.5) 0%, transparent 68%),
+    radial-gradient(65% 80% at 100% 0%, rgba(195, 232, 189, 0.9) 0%, transparent 72%),
+    radial-gradient(45% 55% at 55% 18%, rgba(138, 196, 166, 0.32) 0%, transparent 72%),
+    linear-gradient(180deg, #dceae4 0%, var(--paper) 80%);
 }
 
 .hero-stage {
@@ -1670,10 +1675,12 @@ html:has(.landing) {
   padding: clamp(56px, 8vw, 96px) var(--gutter);
   border-radius: var(--r-lg);
   text-align: center;
-  background:
-    radial-gradient(60% 90% at 0% 0%, rgba(47, 111, 158, 0.14), transparent 70%),
-    radial-gradient(60% 90% at 100% 100%, rgba(120, 190, 140, 0.28), transparent 70%),
-    #e6ece2;
+  /* The one full-strength brand moment: the app icon's gradient, blown up.
+     Owen has praised the full-strength bands every time and asked for the
+     gradient to be exaggerated. Everything on it is ink, never the muted
+     grey, which fails contrast on the teal end. */
+  background: linear-gradient(135deg, #5ea7b8 0%, #65a396 32%, #8ac4a6 64%, #c3e8bd 100%);
+  color: var(--ink);
 }
 
 .cta-kicker {
@@ -1681,19 +1688,24 @@ html:has(.landing) {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink);
 }
 
 .cta-section h2 {
   margin-top: 18px;
   font-size: clamp(42px, 6vw, 76px);
+  color: var(--ink);
+}
+
+.cta-section h2 em {
+  color: #0d3b35;
 }
 
 .cta-section > p:not(.cta-kicker):not(.cta-status) {
   max-width: 30em;
   margin: 20px auto 0;
   font-size: 18px;
-  color: var(--muted);
+  color: var(--ink);
 }
 
 .cta-button {
@@ -1703,7 +1715,7 @@ html:has(.landing) {
 .cta-status {
   margin-top: 14px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--ink);
 }
 
 /* ── The process ──────────────────────────────────────────────────────────── */
