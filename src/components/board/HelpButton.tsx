@@ -3,19 +3,27 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { getImportWatermark } from '@/db/repositories/integrityRepo'
 import { useUiStore } from '@/stores/uiStore'
 import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
+import { ImportGuide } from '@/components/onboarding/ImportGuide'
+import {
+  HELP_FAB_OPENS,
+  SUPPORT_EMAIL,
+  countAppOpen,
+  hideHelpFab,
+  isHelpFabHidden,
+  isOnboardingTourComplete,
+} from '@/lib/onboarding'
 
 /**
- * Help, bottom right (Owen's ask). One sheet, three sections: how audio gets
- * in (the B6 honest routes), where things live, and a person to write to.
+ * Help, bottom right, for newcomers only.
  *
- * SUPPORT EMAIL IS A PLACEHOLDER: songdraftsapp@gmail.com has no mailbox behind
- * it yet. Owen has to create the address (or a forward) at IONOS before launch,
- * or this line is a promise the product does not keep. Tracked in the decision
- * log; do not ship the waitlist-era mistake twice.
+ * 18 Sept, Owen: the question mark is useful but "should not be there all the
+ * time, it would be a bit annoying". So it shows until the guide is done and
+ * for the first few app opens after, then steps aside (or sooner, with Hide
+ * this button). Help and the guide live in Settings for good, which is also
+ * in the phone ⋮ menu.
  */
-const SUPPORT_EMAIL = 'songdraftsapp@gmail.com'
-
 export function HelpButton() {
+  const [visible, setVisible] = useState(false)
   const [open, setOpen] = useState(false)
   const [phone, setPhone] = useState(false)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -23,6 +31,18 @@ export function HelpButton() {
   // an empty board, so the watermark lives here as well as on the import
   // screen - it is only computable once there ARE songs.
   const watermark = useLiveQuery(() => (open ? getImportWatermark() : undefined), [open])
+
+  useEffect(() => {
+    const opens = countAppOpen()
+    if (isHelpFabHidden()) return
+    let live = true
+    void isOnboardingTourComplete().then((done) => {
+      if (live) setVisible(!done || opens <= HELP_FAB_OPENS)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -40,6 +60,8 @@ export function HelpButton() {
     }
   }, [open])
 
+  if (!visible) return null
+
   return (
     <>
       <button
@@ -56,7 +78,7 @@ export function HelpButton() {
 
       {open && (
         <div className="help-sheet" ref={sheetRef} role="dialog" aria-label="Help">
-          <h3 className="help-sheet-title">Getting your memos in</h3>
+          <h3 className="help-sheet-title">Help</h3>
 
           {/* 17 Sept, Owen: the guide should be reachable whenever, not only
               on the first run. */}
@@ -79,7 +101,7 @@ export function HelpButton() {
                 setPhone(true)
               }}
             >
-              Put it on your phone
+              Install songdrafts
             </button>
           </div>
 
@@ -100,30 +122,9 @@ export function HelpButton() {
           )}
 
           <div className="help-sheet-section">
-            <h4>On a Mac</h4>
-            <p>
-              Link your Voice Memos folder once (the card in your Inbox) and everything synced to
-              this Mac imports, plus every new memo after.
-            </p>
+            <h4>Getting your audio in</h4>
+            <ImportGuide />
           </div>
-
-          <div className="help-sheet-section">
-            <h4>On your iPhone</h4>
-            <p>
-              In Voice Memos, select your recordings and Save to Files. Then tap + Import audio
-              here and pick them all in one go from Files.
-            </p>
-          </div>
-
-          <div className="help-sheet-section">
-            <h4>From anywhere else</h4>
-            <p>Drag audio straight onto the board. It lands in Inbox.</p>
-          </div>
-
-          <p className="help-sheet-note">
-            No app can read your Voice Memos library directly. Not us, not App Store apps,
-            nobody: Apple does not allow it. These are the honest routes.
-          </p>
 
           <div className="help-sheet-section">
             <h4>Where your music lives</h4>
@@ -138,6 +139,18 @@ export function HelpButton() {
             Stuck on something? Write to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>{' '}
             and a person reads it.
           </p>
+
+          <button
+            type="button"
+            className="ob-link help-sheet-hide"
+            onClick={() => {
+              hideHelpFab()
+              setOpen(false)
+              setVisible(false)
+            }}
+          >
+            Hide this button. Help stays in Settings.
+          </button>
         </div>
       )}
     </>

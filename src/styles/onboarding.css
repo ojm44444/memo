@@ -1,0 +1,366 @@
+/* First run, install and import guides, Help, and the Plan cancel button.
+   Held to the Listen tab (record.css): serif titles, small mono eyebrows,
+   soft surfaces, pills. New class names (ob-*) so nothing here fights the
+   older onboarding-tour rules in board.css, which are now unused. */
+
+.ob-overlay {
+  --ob-soft: color-mix(in srgb, var(--text) 7%, transparent);
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+@media (min-width: 640px) {
+  .ob-overlay {
+    align-items: center;
+  }
+}
+
+.ob-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: default;
+}
+
+.ob-card {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 28px 24px 22px;
+  border-radius: 18px;
+  background: var(--bg-2, var(--surface));
+  color: var(--text);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.ob-card.is-choice {
+  width: min(600px, 100%);
+}
+
+.ob-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ob-soft);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ob-close:hover {
+  color: var(--text);
+}
+
+.ob-eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ob-count {
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+.ob-title {
+  margin: 0 0 12px;
+  padding-right: 32px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(26px, 5vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.ob-body {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.ob-points {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ob-points li {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--ob-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+/* The opening question */
+.ob-choice {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+
+.ob-choice button {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--ob-soft);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.ob-choice button:hover {
+  border-color: var(--accent);
+}
+
+.ob-choice strong {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.ob-choice span {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .ob-choice {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ob-dots {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 0;
+}
+
+.ob-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.ob-dots span.is-active {
+  width: 18px;
+  background: var(--accent);
+}
+
+.ob-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Pills, the Listen shape at a smaller size */
+.ob-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, opacity 150ms ease, transform 150ms ease;
+}
+
+.ob-pill:active {
+  transform: scale(0.98);
+}
+
+.ob-pill:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ob-pill.is-primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.ob-pill.is-primary:hover {
+  opacity: 0.92;
+}
+
+.ob-pill.is-quiet {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
+}
+
+.ob-pill.is-quiet:hover {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.ob-link {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ob-link:hover {
+  color: var(--text);
+}
+
+/* Install and import guides */
+.ob-install,
+.ob-import {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ob-install .ob-eyebrow,
+.ob-import .ob-eyebrow {
+  margin: 0;
+}
+
+.ob-import-place {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.ob-steps {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ob-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.ob-step-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.ob-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ob-tabs button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.ob-tabs button.is-on {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.ob-note {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.ob-callout {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Help sheet: the guide sits inside a section, so drop its top gap. */
+.help-sheet .ob-import {
+  margin-top: 6px;
+}
+
+.help-sheet-hide {
+  margin-top: 12px;
+}
+
+/* Settings: Plan, the Cancel plan button */
+.plan-cancel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.plan-cancel .settings-field-note {
+  margin: 0;
+}
+
+.plan-cancel-btn {
+  color: var(--danger, var(--text));
+}
