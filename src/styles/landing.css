@@ -400,6 +400,14 @@ html:has(.landing) {
   margin-top: 36px;
 }
 
+/* The guarantee, sitting under the button it belongs to. */
+.hero-guarantee {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
 .hero-trial-note {
   margin-top: 20px;
   font-size: 15px;
@@ -409,6 +417,26 @@ html:has(.landing) {
 .hero-platforms {
   margin-top: 6px;
   font-size: 15px;
+  color: var(--muted);
+}
+
+/* Owen's record, directly under the hero: one line, no box. Serif for the
+   claim, muted sans for the line that follows it. */
+.hero-credential {
+  max-width: var(--wrap);
+  margin: clamp(32px, 5vw, 56px) auto 0;
+  padding: 0 var(--gutter);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hero-credential span {
+  font-family: var(--font-sans);
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -1523,21 +1551,21 @@ html:has(.landing) {
   color: var(--muted);
 }
 
-.discipline-credential {
-  margin-top: 32px;
-  padding: 20px 24px;
-  border-radius: var(--r-md);
-  background: var(--panel);
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--ink);
-}
-
-.discipline-credential span {
-  color: var(--muted);
-}
+/* The credential line moved out of here, up under the hero (.hero-credential).
+   The grey box it sat in is gone with it. */
 
 /* ── Compare ──────────────────────────────────────────────────────────────── */
+
+/* The one line that says what the table proves. */
+.compare-oneline {
+  max-width: 30em;
+  margin-top: 24px;
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 2.8vw, 32px);
+  line-height: 1.25;
+  color: var(--ink);
+  text-wrap: balance;
+}
 
 .compare-wrap {
   margin-top: 48px;
@@ -1890,8 +1918,43 @@ html:has(.landing) {
   box-shadow: 0 2px 8px -2px rgba(22, 35, 31, 0.2);
 }
 
-.price-trial {
+/* The guarantee on the left, the $ / £ switch on the right. */
+.price-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 24px;
+}
+
+.currency-toggle {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.currency-toggle button {
+  min-width: 34px;
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.currency-toggle button.is-active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 2px 8px -2px rgba(22, 35, 31, 0.2);
+}
+
+.price-trial {
+  margin-top: 0;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.06em;

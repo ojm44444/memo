@@ -12718,6 +12718,40 @@ html.light .song-drawer {
   gap: 10px;
 }
 
+/* Dollars or pounds. */
+.plan-gate-currency {
+  align-self: flex-start;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.plan-gate-currency button {
+  min-width: 36px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-gate-currency button.is-on {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.plan-gate-guarantee {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
 .plan-gate-option {
   display: flex;
   flex-direction: column;
