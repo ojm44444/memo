@@ -5,7 +5,10 @@ import {
   isRealAudioSrc,
   markRealSrcSet,
   registerAudioEl,
+  registerSpareAudioEl,
+  swapActiveAudioEl,
   unlockAudioEl,
+  unlockSpareElement,
 } from './globalAudioEl'
 
 /**
@@ -70,5 +73,56 @@ describe('globalAudioEl unlock', () => {
     el.src = 'blob:real-song'
     expect(isRealAudioSrc(el)).toBe(true)
     expect(isRealAudioSrc(null)).toBe(false)
+  })
+})
+
+/**
+ * Gapless playback keeps a second element for the next track. iOS lets an
+ * element start without a tap only once it has played inside one, so the
+ * unlock covers it too, and after a handoff the tap paths follow whichever
+ * element is now playing.
+ */
+describe('globalAudioEl with the gapless pair', () => {
+  beforeEach(() => __resetGlobalAudioForTests())
+
+  it('unlocks the second element in the same tap', async () => {
+    const main = fakeAudio()
+    const spare = fakeAudio()
+    registerAudioEl(main)
+    registerSpareAudioEl(spare)
+    unlockAudioEl()
+    expect(spare.play).toHaveBeenCalled()
+    await flush()
+    expect(spare.hasAttribute('src')).toBe(false)
+  })
+
+  it('never swaps a preloaded next track for the silent clip', () => {
+    const spare = fakeAudio()
+    spare.src = 'blob:next-track'
+    unlockSpareElement(spare)
+    expect(spare.play).not.toHaveBeenCalled()
+    expect(spare.getAttribute('src')).toBe('blob:next-track')
+  })
+
+  it('unlocks an element once only', async () => {
+    const spare = fakeAudio()
+    unlockSpareElement(spare)
+    await flush()
+    unlockSpareElement(spare)
+    expect(spare.play).toHaveBeenCalledTimes(1)
+  })
+
+  it('after a handoff, taps unlock the element now playing, not the old one', async () => {
+    const a = fakeAudio()
+    const b = fakeAudio()
+    registerAudioEl(a)
+    registerSpareAudioEl(b)
+    swapActiveAudioEl(b)
+    unlockAudioEl()
+    expect(b.play).toHaveBeenCalled()
+    expect(b.getAttribute('src')).toBe(SILENT_SRC)
+    await flush()
+    // The old one is the spare now: unlocked as a spare, never as the main.
+    expect(a.hasAttribute('src')).toBe(false)
   })
 })

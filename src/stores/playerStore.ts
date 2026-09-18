@@ -130,7 +130,37 @@ interface PlayerState {
    * and the board. Returns true when something new starts.
    */
   advanceAtEnd: () => Promise<boolean>
+  /**
+   * A gapless handoff already started the next track on the player's second
+   * element. Move the queue on to it without asking the player to load
+   * anything. `index` must be what peekNextAtEnd said; anything else is
+   * refused and the normal end-of-track path takes over.
+   */
+  advanceGapless: (index: number, versionId: string) => boolean
   stop: () => void
+}
+
+/**
+ * What advanceAtEnd will play next, when it can be known ahead of time: the
+ * next item in the queue, or for a looping Listen playlist its first item.
+ * The player preloads this on its second element for a gapless join.
+ *
+ * Null where the answer needs async work or leaves the queue (the end of a
+ * board section moves to the next section; favourites rebuild their list;
+ * repeat-one replays in place). Those keep the ordinary path. Never crosses
+ * between Listen and the board: it only ever returns an item of `playlist`.
+ */
+export function peekNextAtEnd(
+  state: Pick<PlayerState, 'playlist' | 'currentIndex' | 'playlistSource' | 'loopMode' | 'queueRepeat'>,
+): { index: number; item: PlaylistItem } | null {
+  if (state.queueRepeat) return null
+  const nextIndex = state.currentIndex + 1
+  const next = state.playlist[nextIndex]
+  if (next) return { index: nextIndex, item: next }
+  if (state.playlistSource === 'listen' && state.loopMode !== 'off' && state.playlist[0]) {
+    return { index: 0, item: state.playlist[0] }
+  }
+  return null
 }
 
 function syncPlaybackColumnForSong(
@@ -635,6 +665,22 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     set({ isPlaying: false })
     return false
+  },
+
+  advanceGapless: (index, versionId) => {
+    const next = peekNextAtEnd(get())
+    if (!next || next.index !== index || next.item.audioVersionId !== versionId) return false
+    set({
+      currentIndex: index,
+      queueFocusIndex: get().queueOpen ? index : get().queueFocusIndex,
+      currentSongId: next.item.songId,
+      currentVersionId: next.item.audioVersionId,
+      pendingSeekMs: null,
+      progress: 0,
+      isPlaying: true,
+    })
+    syncPlaybackColumnForSong(next.item.songId, get, set)
+    return true
   },
 
   stop: () =>

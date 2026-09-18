@@ -31,7 +31,7 @@ vi.mock('@/lib/preferences', () => ({
   setLoopMode: vi.fn(async () => {}),
 }))
 
-const { usePlayerStore } = await import('./playerStore')
+const { usePlayerStore, peekNextAtEnd } = await import('./playerStore')
 
 const listenItems = [
   { songId: 'mix-1', audioVersionId: 'mv-1', songTitle: 'Master one' },
@@ -109,5 +109,84 @@ describe('board play still moves through the board', () => {
     const state = usePlayerStore.getState()
     expect(state.activeColumnId).toBe('demos')
     expect(state.currentSongId).toBe('board-2')
+  })
+})
+
+/**
+ * Gapless playback (18 Sept 2026). The player preloads what advanceAtEnd
+ * would play next and starts it on its second element before the current
+ * track ends. The guess must be exactly the store's own next step, and must
+ * never reach across from Listen to the board.
+ */
+describe('gapless: what plays next, known ahead of time', () => {
+  beforeEach(reset)
+
+  it('is the next Listen track, and nothing after the last one with loop off', () => {
+    usePlayerStore.getState().playListen(listenItems, 0)
+    expect(peekNextAtEnd(usePlayerStore.getState())).toEqual({ index: 1, item: listenItems[1] })
+    usePlayerStore.getState().jumpToQueueIndex(1)
+    expect(peekNextAtEnd(usePlayerStore.getState())).toBeNull()
+  })
+
+  it.each(['section', 'board'] as const)('goes round the same playlist with loop %s', (loopMode) => {
+    usePlayerStore.getState().playListen(listenItems, 1)
+    usePlayerStore.setState({ loopMode })
+    expect(peekNextAtEnd(usePlayerStore.getState())).toEqual({ index: 0, item: listenItems[0] })
+  })
+
+  it('leaves the end of a board section to the ordinary path', async () => {
+    await usePlayerStore.getState().playColumn('ideas')
+    usePlayerStore.setState({ loopMode: 'board' })
+    expect(peekNextAtEnd(usePlayerStore.getState())).toBeNull()
+  })
+
+  it('has no guess while repeat-one is on', () => {
+    usePlayerStore.getState().playListen(listenItems, 0)
+    usePlayerStore.setState({ queueRepeat: true })
+    expect(peekNextAtEnd(usePlayerStore.getState())).toBeNull()
+  })
+
+  it('moves the queue on without asking the player to reload', () => {
+    usePlayerStore.getState().playListen(listenItems, 0)
+    const before = usePlayerStore.getState().loadRequest
+    expect(usePlayerStore.getState().advanceGapless(1, 'lv-2')).toBe(true)
+    const state = usePlayerStore.getState()
+    expect(state.currentIndex).toBe(1)
+    expect(state.currentSongId).toBe('listen-2')
+    expect(state.currentVersionId).toBe('lv-2')
+    expect(state.isPlaying).toBe(true)
+    expect(state.loadRequest).toBe(before)
+    expect(state.playlistSource).toBe('listen')
+    expect(buildColumnPlaylist).not.toHaveBeenCalled()
+  })
+
+  it('loops a Listen playlist gaplessly and stays on Listen', async () => {
+    usePlayerStore.getState().playListen(listenItems, 1)
+    usePlayerStore.setState({ loopMode: 'section' })
+    expect(usePlayerStore.getState().advanceGapless(0, 'mv-1')).toBe(true)
+    await new Promise((r) => setTimeout(r, 0))
+    const state = usePlayerStore.getState()
+    expect(state.currentSongId).toBe('mix-1')
+    expect(state.activeColumnId).toBe('__listen__')
+    expect(state.playlistSource).toBe('listen')
+  })
+
+  it('refuses a handoff the queue no longer agrees with', () => {
+    usePlayerStore.getState().playListen(listenItems, 0)
+    expect(usePlayerStore.getState().advanceGapless(1, 'some-other-take')).toBe(false)
+    expect(usePlayerStore.getState().advanceGapless(0, 'mv-1')).toBe(false)
+    expect(usePlayerStore.getState().currentIndex).toBe(0)
+  })
+
+  it('moves through a board section gaplessly and stays on the board', async () => {
+    buildColumnPlaylist.mockImplementationOnce(async () => [
+      { songId: 'board-1', audioVersionId: 'bv-1', songTitle: 'Board one' },
+      { songId: 'board-3', audioVersionId: 'bv-3', songTitle: 'Board three' },
+    ])
+    await usePlayerStore.getState().playColumn('ideas')
+    expect(peekNextAtEnd(usePlayerStore.getState())?.item.songId).toBe('board-3')
+    expect(usePlayerStore.getState().advanceGapless(1, 'bv-3')).toBe(true)
+    expect(usePlayerStore.getState().playlistSource).toBe('column')
+    expect(usePlayerStore.getState().currentSongId).toBe('board-3')
   })
 })

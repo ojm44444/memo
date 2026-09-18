@@ -6,6 +6,15 @@
  * synchronously — before any async work — so iOS allows playback.
  */
 let audioEl: HTMLAudioElement | null = null
+/**
+ * The second element of the gapless pair (see gapless.ts). It holds the next
+ * track while `audioEl` plays, and the two swap at every gapless handoff. iOS
+ * only lets an element start without a tap once it has played inside one, so
+ * every unlock below covers this one too.
+ */
+let spareEl: HTMLAudioElement | null = null
+const unlockedEls = new WeakSet<HTMLAudioElement>()
+let pendingSpareUnlock = false
 
 // Set to true when playAudioImmediately changes the src so the onPause event
 // that the browser fires for the old src doesn't incorrectly stop playback.
@@ -73,6 +82,7 @@ function unlockMainEl(el: HTMLAudioElement) {
   el.src = SILENT
   void el.play().then(() => {
     audioUnlocked = true
+    unlockedEls.add(el)
     if (realSrcSet) {
       // Real audio took over while SILENT was starting. Leave it alone.
       return
@@ -87,6 +97,28 @@ function unlockMainEl(el: HTMLAudioElement) {
 }
 
 /**
+ * Play the silent clip on an element that is not the one in charge, so iOS
+ * lets it start later without a tap. Never touches an element holding a real
+ * song (a preloaded next track stays loaded), and puts the clip away only if
+ * nothing real arrived meanwhile.
+ */
+export function unlockSpareElement(el: HTMLAudioElement | null) {
+  if (!el || unlockedEls.has(el) || isRealAudioSrc(el) || !el.paused) return
+  el.src = SILENT
+  void el
+    .play()
+    .then(() => {
+      unlockedEls.add(el)
+      if (el.getAttribute('src') !== SILENT) return
+      el.pause()
+      clearSrc(el)
+    })
+    .catch(() => {
+      if (el.getAttribute('src') === SILENT) clearSrc(el)
+    })
+}
+
+/**
  * Install a one-time listener that fires on the user's very first touch/click
  * and plays the main audio element with a silent WAV to unlock iOS autoplay
  * for the session. Unlocking the main element (not a temp one) ensures that
@@ -96,6 +128,7 @@ function unlockMainEl(el: HTMLAudioElement) {
 export function installAudioUnlock() {
   if (typeof window === 'undefined') return
   const unlock = () => {
+    unlockSpareElement(spareEl)
     if (audioUnlocked) return
     if (audioEl) {
       // Already holding a real song: never swap it for the silent clip, or the
@@ -113,6 +146,7 @@ export function installAudioUnlock() {
     } else if (!pendingMainUnlock) {
       // Main element not mounted yet — unlock it the moment it registers.
       pendingMainUnlock = true
+      pendingSpareUnlock = true
       // Also play a temp element to keep the gesture context alive across
       // the async gap until the main element mounts.
       const tmp = new Audio(SILENT)
@@ -132,6 +166,29 @@ export function registerAudioEl(el: HTMLAudioElement | null) {
     pendingMainUnlock = false
     unlockMainEl(el)
   }
+}
+
+/** The other element of the gapless pair. */
+export function registerSpareAudioEl(el: HTMLAudioElement | null) {
+  spareEl = el
+  if (el && pendingSpareUnlock) {
+    pendingSpareUnlock = false
+    unlockSpareElement(el)
+  }
+}
+
+/**
+ * A gapless handoff: `el` (the old spare) is now the element in charge. The
+ * tap paths (playAudioImmediately, seekAudioTo, unlockAudioEl) follow it.
+ */
+export function swapActiveAudioEl(el: HTMLAudioElement) {
+  if (el === audioEl) return
+  const previous = audioEl
+  audioEl = el
+  spareEl = previous
+  // It has been told to play without a tap before, or is about to be. Either
+  // way it is real audio now, and the unlock must leave it alone.
+  realSrcSet = true
 }
 
 /**
@@ -186,6 +243,7 @@ export function markRealSrcSet() {
  * player reload the real source afterwards, even for the same song.
  */
 export function unlockAudioEl() {
+  unlockSpareElement(spareEl)
   if (!audioEl || !audioEl.paused) return
   unlockMainEl(audioEl)
 }
@@ -193,8 +251,10 @@ export function unlockAudioEl() {
 /** Test seam. */
 export function __resetGlobalAudioForTests() {
   audioEl = null
+  spareEl = null
   audioUnlocked = false
   pendingMainUnlock = false
+  pendingSpareUnlock = false
   realSrcSet = false
   srcSwitchPending = false
 }
