@@ -164,6 +164,7 @@ const BILLING_MESSAGES: Record<string, string> = {
   founding_off: 'The founding price is not available. Nothing was charged.',
   founding_not_eligible:
     'Founding places are for a first subscription only, so it is $79 a year now. Nothing was charged.',
+  promo_invalid: 'That code is not valid or has been used. Remove it to carry on without one.',
 }
 
 async function callBilling<T>(body: Record<string, unknown>): Promise<T> {
@@ -200,18 +201,33 @@ async function billingUrl(body: Record<string, unknown>): Promise<string> {
  * Send them to Stripe to subscribe. The price is chosen server side; this
  * only asks for it in a currency, and a partner code if the visitor has one.
  */
+/** What a code does, checked with Stripe before checkout. */
+export interface PromoCheck {
+  valid: boolean
+  /** Takes the whole price off: a free year. */
+  free?: boolean
+  percentOff?: number | null
+  amountOff?: number | null
+}
+
+export async function checkPromo(code: string): Promise<PromoCheck> {
+  return callBilling<PromoCheck>({ mode: 'promo', promo: code })
+}
+
 export async function startCheckout(
   plan: PlanChoice,
-  options?: { currency?: Currency },
+  options?: { currency?: Currency; promo?: string | null },
 ): Promise<void> {
   const currency = options?.currency ?? getPreferredCurrency()
   const amount = currency === 'gbp' ? PRICE_TABLE.gbp[plan === 'month' ? 'month' : 'year'] : PRICES[plan].amount
   const consent = adConsentForCheckout()
-  let promo: string | null = null
-  try {
-    promo = localStorage.getItem('sd_promo')
-  } catch {
-    // No storage: no code to pre-apply, the checkout page still takes one.
+  let promo: string | null = options?.promo ?? null
+  if (options?.promo === undefined) {
+    try {
+      promo = localStorage.getItem('sd_promo')
+    } catch {
+      // No storage: no code to pre-apply, the checkout page still takes one.
+    }
   }
   trackPixelEvent('InitiateCheckout', {
     content_name: plan,
@@ -219,13 +235,26 @@ export async function startCheckout(
     currency: currency.toUpperCase(),
   })
   trackGa4BeginCheckout(plan, amount, currency.toUpperCase())
-  window.location.href = await billingUrl({
-    mode: 'checkout',
-    plan,
-    currency,
-    ...(promo ? { promo } : {}),
-    ...consent,
-  })
+  try {
+    window.location.href = await billingUrl({
+      mode: 'checkout',
+      plan,
+      currency,
+      ...(promo ? { promo } : {}),
+      ...consent,
+    })
+  } catch (err) {
+    // A stale code saved on this device must not block paying for good.
+    if (err instanceof BillingError && err.code === 'promo_invalid' && options?.promo === undefined) {
+      try {
+        localStorage.removeItem('sd_promo')
+      } catch {
+        /* nothing saved */
+      }
+      throw new BillingError('That code is not valid, so it was removed. Press again to carry on.', err.code)
+    }
+    throw err
+  }
 }
 
 /** Send them to Stripe to change their card, see receipts or cancel. */

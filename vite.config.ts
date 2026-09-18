@@ -79,7 +79,10 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#16303b',
         background_color: '#16303b',
         display: 'standalone',
-        scope: '/',
+        // 18 Sept, Owen: Chrome's "Open in app" should only show on the board,
+        // not on the landing page or share links. The scope decides that.
+        // `id` stays '/' so installs already out there stay the same app.
+        scope: '/app',
         start_url: '/app',
         orientation: 'portrait',
         share_target: {

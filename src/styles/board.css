@@ -12788,6 +12788,102 @@ html.light .song-drawer {
   color: var(--text-muted);
 }
 
+/* A free code leaves only the yearly card. */
+.plan-gate-option:only-child {
+  grid-column: 1 / -1;
+}
+
+/* A partner's code. */
+.plan-gate-promo-open {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.plan-gate-promo-form {
+  display: flex;
+  gap: 8px;
+}
+
+.plan-gate-promo-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+}
+
+.plan-gate-promo-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.plan-gate-promo-apply {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-gate-promo-apply:disabled {
+  opacity: 0.5;
+}
+
+.plan-gate-promo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 14px;
+}
+
+.plan-gate-promo.is-bad {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.plan-gate-promo-code {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.plan-gate-promo-what {
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.plan-gate-promo.is-bad .plan-gate-promo-what {
+  color: var(--danger);
+}
+
+.plan-gate-promo-remove {
+  border: 0;
+  background: none;
+  padding: 4px 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .plan-gate-go {
   min-height: 52px;
   border: 0;

@@ -99,13 +99,14 @@ export function TermsPage() {
           days after a plan ends, and we email you twice before they are removed.
         </p>
 
-        <h3>30-day money-back guarantee</h3>
+        <h3>100% money-back guarantee</h3>
         <p>
           <strong>Ask within 30 days of your first payment and we refund it in full.</strong>{' '}
           Yearly or monthly, the same 30 days. No reason needed, no questions, and nothing is
           pro-rated: you get the whole of that payment back. Use the refund button in Settings,
           or email <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>. Your
-          plan ends when the refund is made.
+          plan ends when the refund is made. Your songs stay on your device, and you can export
+          them all as one zip from Settings.
         </p>
         <p>
           If you are a consumer in the UK or EU you also have a legal right to cancel within 14

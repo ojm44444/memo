@@ -128,6 +128,18 @@ export function getPromo(): string | null {
   }
 }
 
+/** Typed on the plan page, or removed there. Same rules as the address. */
+export function setPromo(raw: string | null): string | null {
+  const code = raw ? raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40) : ''
+  try {
+    if (code) localStorage.setItem(PROMO_KEY, code)
+    else localStorage.removeItem(PROMO_KEY)
+  } catch {
+    /* storage blocked: the code still applies for this checkout */
+  }
+  return code || null
+}
+
 /** Record the first visit. Never overwrites an existing first touch. */
 export function captureFirstTouch() {
   try {

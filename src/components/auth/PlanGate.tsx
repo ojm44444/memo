@@ -2,11 +2,14 @@ import { type ReactNode, useEffect, useState } from 'react'
 import {
   BILLING_LIVE,
   PAYWALL_FROM,
+  checkPromo,
   getSubscription,
   hasAccess,
   startCheckout,
   type PlanChoice,
+  type PromoCheck,
 } from '@/lib/billing'
+import { capturePromo, getPromo, setPromo } from '@/lib/attribution'
 import {
   PRICE_TABLE,
   getPreferredCurrency,
@@ -56,7 +59,36 @@ export function PlanGate({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>(getPreferredCurrency)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /* A partner's code: from their link (?promo=CODE, kept on this device from
+     the landing page, or on this address), or typed here. Checked with
+     Stripe as soon as the page shows, so the person sees what it does before
+     they press Continue. */
+  const [promo, setPromoState] = useState<string | null>(() => {
+    capturePromo()
+    return getPromo()
+  })
+  const [promoInfo, setPromoInfo] = useState<PromoCheck | null>(null)
+  const [promoOpen, setPromoOpen] = useState(false)
+  const [promoDraft, setPromoDraft] = useState('')
+  const [promoBusy, setPromoBusy] = useState(false)
   const returning = new URLSearchParams(window.location.search).get('checkout') === 'done'
+
+  useEffect(() => {
+    if (state !== 'needs' || !promo) return
+    let live = true
+    setPromoBusy(true)
+    checkPromo(promo)
+      .then((info) => {
+        if (!live) return
+        setPromoInfo(info)
+        if (info.free) setPlan('year')
+      })
+      .catch(() => live && setPromoInfo(null))
+      .finally(() => live && setPromoBusy(false))
+    return () => {
+      live = false
+    }
+  }, [state, promo])
 
   useEffect(() => {
     if (!BILLING_LIVE || !supabase) return
@@ -113,12 +145,7 @@ export function PlanGate({ children }: { children: ReactNode }) {
     setBusy(true)
     setError(null)
     try {
-      // The currency argument is being added to startCheckout in parallel;
-      // cast until it lands rather than edit billing.ts from here.
-      await (startCheckout as (p: PlanChoice, o?: { currency?: Currency }) => Promise<void>)(
-        plan,
-        { currency },
-      )
+      await startCheckout(plan, { currency, promo: promoInfo?.valid === false ? null : promo })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not open checkout. Nothing was charged.')
       setBusy(false)
@@ -130,6 +157,35 @@ export function PlanGate({ children }: { children: ReactNode }) {
     setCurrency(next)
     setPreferredCurrency(next)
   }
+
+  const applyPromo = () => {
+    const code = setPromo(promoDraft)
+    setPromoInfo(null)
+    setPromoState(code)
+    setPromoOpen(false)
+    setPromoDraft('')
+    setError(null)
+  }
+  const removePromo = () => {
+    setPromo(null)
+    setPromoState(null)
+    setPromoInfo(null)
+    setError(null)
+  }
+  const free = promoInfo?.valid && promoInfo.free
+  const promoLine = !promoInfo
+    ? promoBusy
+      ? 'Checking…'
+      : 'Applied at checkout'
+    : !promoInfo.valid
+      ? 'Not valid, or already used'
+      : promoInfo.free
+        ? 'A free year'
+        : promoInfo.percentOff
+          ? `${promoInfo.percentOff}% off`
+          : promoInfo.amountOff
+            ? `${money(currency, (promoInfo.amountOff / 100).toFixed(2).replace(/\.00$/, ''))} off`
+            : 'Applied at checkout'
 
   return (
     <div className="plan-gate">
@@ -171,28 +227,70 @@ export function PlanGate({ children }: { children: ReactNode }) {
               {money(currency, perMonthOfYear(currency))} a month
             </span>
           </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={plan === 'month'}
-            className={`plan-gate-option${plan === 'month' ? ' is-on' : ''}`}
-            onClick={() => setPlan('month')}
-          >
-            <span className="plan-gate-option-name">Monthly</span>
-            <span className="plan-gate-option-price">{money(currency, table.month)} a month</span>
-            <span className="plan-gate-option-note">Billed monthly</span>
-          </button>
+          {/* A free code is a free year, so monthly is not offered with it
+              (the server enforces the same). */}
+          {!free && (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={plan === 'month'}
+              className={`plan-gate-option${plan === 'month' ? ' is-on' : ''}`}
+              onClick={() => setPlan('month')}
+            >
+              <span className="plan-gate-option-name">Monthly</span>
+              <span className="plan-gate-option-price">{money(currency, table.month)} a month</span>
+              <span className="plan-gate-option-note">Billed monthly</span>
+            </button>
+          )}
         </div>
 
-        <button type="button" className="plan-gate-go" disabled={busy} onClick={() => void go()}>
-          {busy ? 'Opening checkout…' : 'Continue'}
+        {promo ? (
+          <div className={`plan-gate-promo${promoInfo?.valid === false ? ' is-bad' : ''}`}>
+            <span className="plan-gate-promo-code">{promo}</span>
+            <span className="plan-gate-promo-what">{promoLine}</span>
+            <button type="button" className="plan-gate-promo-remove" onClick={removePromo}>
+              Remove
+            </button>
+          </div>
+        ) : promoOpen ? (
+          <form
+            className="plan-gate-promo-form"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (promoDraft.trim()) applyPromo()
+            }}
+          >
+            <input
+              className="plan-gate-promo-input"
+              value={promoDraft}
+              onChange={(e) => setPromoDraft(e.target.value.toUpperCase())}
+              placeholder="Code"
+              aria-label="Code"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              autoFocus
+            />
+            <button type="submit" className="plan-gate-promo-apply" disabled={!promoDraft.trim()}>
+              Apply
+            </button>
+          </form>
+        ) : (
+          <button type="button" className="plan-gate-promo-open" onClick={() => setPromoOpen(true)}>
+            Have a code?
+          </button>
+        )}
+
+        <button type="button" className="plan-gate-go" disabled={busy || promoBusy} onClick={() => void go()}>
+          {busy ? 'Opening checkout…' : free ? 'Start my free year' : 'Continue'}
         </button>
         {error && <p className="plan-gate-error">{error}</p>}
         {/* The guarantee, under the button, in place of a cancel line. */}
-        <p className="plan-gate-guarantee">30 days, refunded if it&rsquo;s not for you.</p>
+        <p className="plan-gate-guarantee">100% money-back guarantee for 30 days.</p>
         <p className="plan-gate-foot">
-          Full refund of your first payment, no questions. Anyone you share a link with listens
-          free.
+          {free
+            ? 'Stripe asks for a card but charges nothing today. It renews after a year unless you cancel, any time, in Settings.'
+            : 'Not for you? Every penny back within 30 days, no questions. Your songs stay yours. Anyone you share a link with listens free.'}
         </p>
         <button
           type="button"

@@ -228,8 +228,16 @@ html:has(.landing) {
   height: 64px;
   padding: 0 var(--pad-x);
   padding-top: env(safe-area-inset-top);
-  background: rgba(244, 239, 226, 0.96);
-  border-bottom: 1px solid var(--line-soft);
+  /* Clear over the hero, so its gradient reaches the top edge. Paper once
+     the page scrolls under it, so the links stay readable. */
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.landing > nav.is-scrolled {
+  background: var(--paper);
+  border-bottom-color: var(--line-soft);
 }
 
 .landing > nav .logo {

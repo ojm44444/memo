@@ -265,8 +265,7 @@ export function PlanSection() {
               from REFUND_DAYS so it cannot drift from what the refund
               button actually allows. */}
           <p className="settings-field-note">
-            {REFUND_DAYS.year} days, fully refunded if it is not for you. No questions. Cancel any
-            time.
+            100% money-back guarantee for {REFUND_DAYS.year} days. No questions. Cancel any time.
           </p>
         </>
       )}

@@ -87,7 +87,7 @@ async function priceFor(stripe: Stripe, plan: Plan): Promise<{ id: string; curre
 async function promotionCodeFor(
   stripe: Stripe,
   raw: unknown,
-): Promise<{ id: string; free: boolean } | null> {
+): Promise<{ id: string; free: boolean; percentOff: number | null; amountOff: number | null } | null> {
   const code = typeof raw === 'string' ? raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40) : ''
   if (!code) return null
   const found = await stripe.promotionCodes.list({ code, active: true, limit: 1 })
@@ -99,8 +99,17 @@ async function promotionCodeFor(
   let coupon: string | Stripe.Coupon | null | undefined = (promo as { coupon?: string | Stripe.Coupon }).coupon
   coupon ??= promo.promotion?.coupon
   if (typeof coupon === 'string') coupon = await stripe.coupons.retrieve(coupon)
-  return { id: promo.id, free: coupon?.percent_off === 100 }
+  if (coupon && typeof coupon !== 'string' && coupon.valid === false) return null
+  return {
+    id: promo.id,
+    free: coupon?.percent_off === 100,
+    percentOff: coupon?.percent_off ?? null,
+    amountOff: coupon?.amount_off ?? null,
+  }
 }
+
+/** A code was sent. Was one given at all (so an unknown code can be refused)? */
+const promoGiven = (raw: unknown) => typeof raw === 'string' && /[A-Za-z0-9]/.test(raw)
 
 /** The assurance level in a Supabase JWT ('aal1' or 'aal2'). */
 function jwtAal(jwt: string): string | null {
@@ -144,7 +153,14 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' })
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
-    const mode = ['portal', 'refund', 'receipt'].includes(String(body.mode)) ? String(body.mode) : 'checkout'
+    const mode = ['portal', 'refund', 'receipt', 'promo'].includes(String(body.mode)) ? String(body.mode) : 'checkout'
+
+    // ── What does this code do? For the plan page, before checkout. ──
+    if (mode === 'promo') {
+      const found = await promotionCodeFor(stripe, body.promo)
+      if (!found) return json({ valid: false })
+      return json({ valid: true, free: found.free, percentOff: found.percentOff, amountOff: found.amountOff })
+    }
 
     const { data: row } = await admin
       .from('subscriptions')
@@ -263,6 +279,9 @@ serve(async (req) => {
     if (isLive) return json({ error: 'already_subscribed' }, 409)
 
     const promo = await promotionCodeFor(stripe, body.promo)
+    // A code was asked for and does not exist or is used up: say so, rather
+    // than quietly charging full price.
+    if (promoGiven(body.promo) && !promo) return json({ error: 'promo_invalid' }, 409)
     const promotionCode = promo?.id ?? null
     // A 100%-off code is a free year (Owen's five friends). Its coupon lasts
     // one billing period, so on the monthly plan it would be one free month.
@@ -327,9 +346,16 @@ serve(async (req) => {
       // A partner link's code is applied for them; otherwise a code box.
       ...(promotionCode ? { discounts: [{ promotion_code: promotionCode }] } : { allow_promotion_codes: true }),
       expires_at: expiresAt,
-      custom_text: {
-        submit: { message: plan === 'founding' ? FOUNDING_TERMS : plan === 'year' ? YEAR_TERMS : MONTH_TERMS },
-      },
+      // Managed Payments refuses custom_text outright ("You cannot use
+      // custom_text with Managed Payments"), which failed every checkout. The
+      // guarantee is said on our plan page instead, right above the button.
+      ...(managedPayments
+        ? {}
+        : {
+            custom_text: {
+              submit: { message: plan === 'founding' ? FOUNDING_TERMS : plan === 'year' ? YEAR_TERMS : MONTH_TERMS },
+            },
+          }),
       success_url: `${siteUrl}/app?checkout=done&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/app?checkout=cancelled`,
       ...(managedPayments ? { managed_payments: { enabled: true } } : {}),

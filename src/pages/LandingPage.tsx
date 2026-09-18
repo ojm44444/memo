@@ -26,7 +26,7 @@ import {
    questions, yearly and monthly alike. It sits under every buy button in
    place of "Cancel anytime", which is not risk reversal: it only tells
    someone what happens after they have already paid. */
-const GUARANTEE_LINE = "30 days, refunded if it's not for you."
+const GUARANTEE_LINE = '100% money-back guarantee for 30 days. No questions.'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -285,7 +285,7 @@ const FAQS = [
     // 18 Sept, Owen: one guarantee for both plans, 30 days, no questions.
     // Was yearly 30 days, monthly 14.
     q: 'Can I get my money back?',
-    a: 'Yes. Every plan, yearly or monthly, has a 30-day money-back guarantee: a full refund of your first payment, no questions. Use the refund button in Settings or email songdraftsapp@gmail.com.',
+    a: 'Yes, all of it. Every plan has a 100% money-back guarantee for 30 days. Pay yearly and the year comes back; pay monthly and the month comes back. No questions. The plan ends when the refund is made, and your songs stay on your device and export as one zip. Use the refund button in Settings or email songdraftsapp@gmail.com.',
   },
 ] as const
 
@@ -409,7 +409,7 @@ function PricingToggle({
         <p className="price-trial">
           {founding
             ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
-            : '30 days, full refund'}
+            : '100% money-back guarantee'}
         </p>
         <CurrencyToggle currency={currency} onChange={onCurrency} />
       </div>
@@ -431,7 +431,9 @@ function PricingToggle({
       </Link>
 
       <p className="price-refund">
-        {GUARANTEE_LINE} Full refund, yearly or monthly, no questions.
+        Not for you? Ask within 30 days and every penny comes back, yearly or monthly. Your
+        songs stay yours: they are on your device, and export as one zip. The plan ends when
+        the refund is made.
       </p>
 
       {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
@@ -463,7 +465,9 @@ function usePaperThemeColor() {
     const meta = document.querySelector('meta[name="theme-color"]')
     if (!meta) return
     const before = meta.getAttribute('content')
-    meta.setAttribute('content', '#f4efe2')
+    // The hero's top edge, not paper: on a phone the browser bar takes this
+    // colour, and paper made a pale strip above the gradient.
+    meta.setAttribute('content', '#d6e8df')
     return () => {
       if (before) meta.setAttribute('content', before)
     }
@@ -486,10 +490,20 @@ export function LandingPage() {
   usePaperThemeColor()
   // First-touch attribution (utm tags, ref, referrer). See lib/attribution.
   useEffect(() => captureFirstTouch(), [])
+  // 18 Sept, Owen: the solid strip over the hero "looks a bit shit". The nav
+  // is clear at the top so the hero gradient runs to the edge, and only
+  // takes the paper ground once the page scrolls under it.
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="landing">
-      <nav>
+      <nav className={scrolled ? 'is-scrolled' : undefined}>
         <div className="logo">
           <Wordmark />
         </div>
