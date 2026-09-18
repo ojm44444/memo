@@ -11,27 +11,28 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── The board's stage ramp ────────────────────────────────────────────────
-   Cold to warm across the columns: blue, sky, teal, lime, gold. The brand's
-   four stage tokens were all teal-to-green and separated mostly on
-   lightness, so neighbours blurred together. These separate on hue.
-   stageColorAt() reads them. Dark: all clear 6:1 on the ground. Light: all
-   clear 4.5:1 on the darkest end of the light wash, so counts stay legible. */
+   The logo's own teal-to-mint family, the same colours the product has
+   always used, just more saturated and spread a little wider so neighbouring
+   columns read apart (Owen, 18 Sept: "they were pretty before, I just thought
+   they should be a little bit more saturated"). A rainbow ramp shipped for an
+   hour and was rejected: never leave this family. Listen's generated covers
+   read the same ramp, so this also keeps Listen exactly as he likes it. */
 .board-page {
-  --board-stage-1: #7c9cff;
-  --board-stage-2: #45c4e8;
-  --board-stage-3: #3fd6a4;
-  --board-stage-4: #a6dd5a;
-  --board-stage-5: #f5c451;
+  --board-stage-1: #3d98b5;
+  --board-stage-2: #3fb1a9;
+  --board-stage-3: #5cc59d;
+  --board-stage-4: #8fd8a7;
+  --board-stage-5: #c3efb1;
   --board-soft: color-mix(in srgb, var(--text) 8%, transparent);
   --board-soft-hover: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
 html.light .board-page {
-  --board-stage-1: #3f55c9;
-  --board-stage-2: #0a6f93;
-  --board-stage-3: #087352;
-  --board-stage-4: #456f0c;
-  --board-stage-5: #93570a;
+  --board-stage-1: #25699d;
+  --board-stage-2: #0e727f;
+  --board-stage-3: #10745d;
+  --board-stage-4: #267a3d;
+  --board-stage-5: #556d12;
 }
 
 /* ── Top bar: part of the page, not a band across it ───────────────────── */
