@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { PlaybackRate } from '@/lib/constants'
 import type { LoopMode } from '@/lib/preferences'
 import { nextLoopMode, setLoopMode as persistLoopMode } from '@/lib/preferences'
-import type { ColumnSlug } from '@/types/column'
+import { LISTEN_SLUG, type ColumnSlug } from '@/types/column'
 import type { PlaylistItem } from '@/lib/audio/buildColumnPlaylist'
 import { shuffleArray } from '@/lib/shuffle'
 import { useUiStore } from '@/stores/uiStore'
@@ -27,7 +27,20 @@ function focusQueueButton() {
   })
 }
 
-export type PlaylistSource = 'column' | 'favourites'
+/**
+ * Where the queue came from. 'listen' is a Listen playlist and nothing else.
+ *
+ * THE LISTEN-INTO-WRITE BLEED (18 Sept, Owen: "after listening to a playlist,
+ * songs on Write started playing"). Listen used to queue its playlist through
+ * setPlaylist, which labelled it 'column' with the first track's columnSlug as
+ * the active column. When the last track ended, the column fallbacks ran:
+ * playAdjacentColumn('next') found no '__listen__' column, started from the
+ * top and played the first board section; a Listen track that also lives on
+ * the board made it play the next board section instead, and Loop section
+ * replayed that board column. A Listen queue now has its own source, and the
+ * end-of-queue logic (advanceAtEnd) never leaves it.
+ */
+export type PlaylistSource = 'column' | 'favourites' | 'listen'
 export type FavouritesScope = 'project' | 'library'
 
 interface PlayerState {
@@ -101,6 +114,22 @@ interface PlayerState {
   ) => Promise<boolean>
   playAdjacentColumn: (direction: 'prev' | 'next') => Promise<boolean>
   playBoardFromStart: () => Promise<boolean>
+  /**
+   * Play a Listen playlist. Call it inside the tap. Only these items ever
+   * play; at the end it stops, or starts the same playlist again when loop
+   * is on.
+   */
+  playListen: (
+    items: PlaylistItem[],
+    startIndex?: number,
+    versionId?: string,
+    seekMs?: number | null,
+  ) => void
+  /**
+   * The current track finished. Moves on without ever crossing between Listen
+   * and the board. Returns true when something new starts.
+   */
+  advanceAtEnd: () => Promise<boolean>
   stop: () => void
 }
 
@@ -109,10 +138,13 @@ function syncPlaybackColumnForSong(
   get: () => PlayerState,
   set: (partial: Partial<PlayerState>) => void,
 ) {
+  // A Listen queue never points the board at a column or scrolls it.
+  if (get().playlistSource === 'listen') return
   void (async () => {
     const { getSong } = await import('@/db/repositories/boardRepo')
     const song = await getSong(songId)
     if (!song) return
+    if (get().playlistSource === 'listen' || song.columnSlug === LISTEN_SLUG) return
     if (song.columnSlug === get().activeColumnId) return
     set({ activeColumnId: song.columnSlug })
     useUiStore.getState().requestColumnScroll(song.columnSlug)
@@ -161,7 +193,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       loadRequest: get().loadRequest + 1,
       playbackNotice: null,
       activeColumnId: columnSlug,
-      playlistSource: 'column',
+      // A queue labelled with Listen's slug is a Listen queue, whoever built it.
+      playlistSource: columnSlug === LISTEN_SLUG ? 'listen' : 'column',
       favouritesScope: null,
       playlist,
       currentIndex: startIndex,
@@ -434,6 +467,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   playColumn: async (columnSlug) => {
+    // The board only ever plays board songs. Listen has no column to play.
+    if (columnSlug === LISTEN_SLUG) return false
     primeForTap()
     const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
     const playlist = await buildColumnPlaylist(columnSlug)
@@ -503,7 +538,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const columns = await getColumns()
     if (!columns.length) return false
 
-    const { activeColumnId } = get()
+    const { activeColumnId, playlistSource } = get()
+    // Moving to the next board section only makes sense from the board.
+    if (playlistSource === 'listen') return false
     const currentIndex = activeColumnId
       ? columns.findIndex((column) => column.slug === activeColumnId)
       : -1
@@ -526,9 +563,77 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { getColumns } = await import('@/db/repositories/boardRepo')
     const columns = await getColumns()
     for (const column of columns) {
+      if (column.slug === LISTEN_SLUG) continue
       useUiStore.getState().requestColumnScroll(column.slug)
       if (await get().playColumn(column.slug)) return true
     }
+    return false
+  },
+
+  playListen: (items, startIndex = 0, versionId, seekMs = null) => {
+    const item = items[startIndex]
+    if (!item) return
+    primeForTap()
+    set({
+      loadRequest: get().loadRequest + 1,
+      playbackNotice: null,
+      activeColumnId: LISTEN_SLUG,
+      playlistSource: 'listen',
+      favouritesScope: null,
+      favouritesShuffle: false,
+      playlist: items,
+      currentIndex: startIndex,
+      currentSongId: item.songId,
+      currentVersionId: versionId ?? item.audioVersionId,
+      pendingSeekMs: seekMs,
+      progress: 0,
+      isPlaying: true,
+    })
+  },
+
+  advanceAtEnd: async () => {
+    if (get().playNextInColumn()) {
+      set({ isPlaying: true })
+      return true
+    }
+
+    const { playlistSource, playlist, loopMode, favouritesScope, favouritesShuffle, activeColumnId } = get()
+
+    if (playlistSource === 'listen') {
+      // Loop on (either setting) goes round the same playlist. Otherwise stop.
+      const first = playlist[0]
+      if (loopMode !== 'off' && first) {
+        set({
+          loadRequest: get().loadRequest + 1,
+          currentIndex: 0,
+          queueFocusIndex: get().queueOpen ? 0 : get().queueFocusIndex,
+          currentSongId: first.songId,
+          currentVersionId: first.audioVersionId,
+          pendingSeekMs: null,
+          progress: 0,
+          isPlaying: true,
+        })
+        return true
+      }
+      set({ isPlaying: false })
+      return false
+    }
+
+    if (playlistSource === 'favourites' && favouritesScope) {
+      if (loopMode === 'section' || loopMode === 'board') {
+        if (await get().playFavourites(favouritesScope, 0, undefined, favouritesShuffle)) return true
+      }
+      set({ isPlaying: false })
+      return false
+    }
+
+    if (loopMode === 'section' && activeColumnId) {
+      if (await get().playColumn(activeColumnId)) return true
+    }
+    if (await get().playAdjacentColumn('next')) return true
+    if (loopMode === 'board' && (await get().playBoardFromStart())) return true
+
+    set({ isPlaying: false })
     return false
   },
 

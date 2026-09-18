@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase/client'
 import { db } from '@/db/database'
 import type { AudioBlob } from '@/types/audio-version'
 import { canAutoDownload, recordAutoDownload } from './egressBudget'
+import { isPlaybackLoading } from '@/stores/loadProgressStore'
 
 /**
  * Pulling cloud audio down onto this device.
@@ -105,6 +106,16 @@ export async function cachePendingRemoteAudio(options?: {
    * pressing the button in Settings passes force and is never stopped.
    */
   if (!options?.force && !canAutoDownload()) {
+    const waiting = await countUncachedRemoteAudio()
+    return { attempted: 0, cached: 0, remaining: waiting, deferred: waiting }
+  }
+
+  /**
+   * A song someone tapped is still arriving. Four background downloads at
+   * once split the same connection with it, which is part of why Listen was
+   * slow to start (18 Sept). Wait for the next sync tick instead.
+   */
+  if (!options?.force && isPlaybackLoading()) {
     const waiting = await countUncachedRemoteAudio()
     return { attempted: 0, cached: 0, remaining: waiting, deferred: waiting }
   }

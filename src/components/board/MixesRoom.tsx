@@ -47,8 +47,12 @@ import { cacheRemoteAudioVersion } from '@/sync/audioDownload'
 import { requestStoragePersistence } from '@/lib/storagePersistence'
 import { ProjectSheet } from './ProjectSheet'
 import { ShareCollectionSheet } from './ShareCollectionSheet'
+import { getCachedUrl, presignPlaybackUrls } from '@/lib/audio/resolvePlaybackUrl'
+import { playAudioImmediately } from '@/lib/audio/globalAudioEl'
+import { loadingLabel, useLoadProgress } from '@/stores/loadProgressStore'
 import '@/styles/record.css'
 import '@/styles/listeners.css'
+import '@/styles/playback-progress.css'
 
 /**
  * Listen: demos, mixes and masters, and where they go out from.
@@ -108,6 +112,10 @@ function StackRow({
   const isPlaying = usePlayerStore((s) => s.isPlaying)
   const chosen = versions.find((v) => v.id === chosenId) ?? stack.latest
   const playing = isCurrent && isPlaying
+  // Set only while this row's take is still arriving from the cloud.
+  const loadingId = useLoadProgress((s) => s.versionId)
+  const loadFraction = useLoadProgress((s) => s.fraction)
+  const loading = isCurrent && loadingId != null && versions.some((v) => v.id === loadingId)
   const onBoard = song.columnSlug !== LISTEN_SLUG
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(song.title)
@@ -200,7 +208,9 @@ function StackRow({
             {selected ? <CheckIcon size={14} /> : null}
           </button>
           <span className="rec-num-face">
-            {isCurrent ? (
+            {loading ? (
+              <span className="pp-spinner" aria-hidden />
+            ) : isCurrent ? (
               <EqIcon className={playing ? undefined : 'is-paused'} />
             ) : (
               <>
@@ -234,6 +244,11 @@ function StackRow({
             />
           ) : (
             <span className="rec-name-title">{song.title}</span>
+          )}
+          {loading && (
+            <span className="pp-row-status" role="status">
+              {loadingLabel(loadFraction)}
+            </span>
           )}
           {cloud === 'uploading' && (
             <span className={`rec-name-warn${upload?.failed ? ' is-bad' : ''}`} title={upload?.failed ?? undefined}>
@@ -458,6 +473,20 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
 
   const loose = useMemo(() => (mixes ?? []).filter((s) => !s.song.listenProjectId), [mixes])
 
+  // Sign this playlist's cloud takes up front so a tap starts streaming at once.
+  const cloudPaths = useMemo(
+    () =>
+      ordered
+        .flatMap((s) => s.versions)
+        .filter((v) => !v.localBlobId && v.storagePath)
+        .map((v) => v.storagePath)
+        .join('\n'),
+    [ordered],
+  )
+  useEffect(() => {
+    if (cloudPaths) void presignPlaybackUrls(cloudPaths.split('\n'))
+  }, [cloudPaths])
+
   if (mixes === undefined || projects === undefined || (projectId && project === undefined)) return null
 
   const totalMs = ordered.reduce((sum, s) => {
@@ -468,11 +497,24 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
   const title = project?.title ?? 'Not in a playlist'
   const byLine = project ? project.artist || artist : 'Tracks not in a playlist yet'
 
+  /* A cloud take whose URL is already signed starts inside the tap, so the
+     stream begins at once instead of after the player's own async load. Only
+     for cloud takes: a take on this device is ready in milliseconds anyway,
+     and a seek (swapping versions mid-song) needs the player's own load. */
+  const startCloudTakeNow = (versionId: string, seekMs?: number) => {
+    if (seekMs) return
+    const version = ordered.flatMap((s) => s.versions).find((v) => v.id === versionId)
+    if (!version || version.localBlobId || !version.storagePath) return
+    const url = getCachedUrl(null, version.storagePath)
+    if (url) playAudioImmediately(url, usePlayerStore.getState().playbackRate)
+  }
+
+  // Listen plays only this playlist, never the board (playerStore.playListen).
   const playAll = (shuffle: boolean) => {
     if (!ordered.length) return
     const items = ordered.map((s) => {
       const chosen = s.versions.find((v) => v.id === pickedVersion[s.song.id]) ?? s.latest
-      return { songId: s.song.id, audioVersionId: chosen.id, songTitle: s.song.title, columnSlug: s.song.columnSlug }
+      return { songId: s.song.id, audioVersionId: chosen.id, songTitle: s.song.title }
     })
     if (shuffle) {
       for (let i = items.length - 1; i > 0; i--) {
@@ -480,20 +522,18 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
         ;[items[i], items[j]] = [items[j], items[i]]
       }
     }
-    const first = items[0]
-    const player = usePlayerStore.getState()
-    player.setPlaylist(first.columnSlug, items, 0, first.audioVersionId)
-    usePlayerStore.setState({ isPlaying: true, pendingSeekMs: null })
+    startCloudTakeNow(items[0].audioVersionId)
+    usePlayerStore.getState().playListen(items, 0)
   }
 
   const playFrom = (songId: string, versionId: string, seekMs?: number) => {
     const items = ordered.map((s) => {
       const v = s.song.id === songId ? versionId : (s.versions.find((x) => x.id === pickedVersion[s.song.id]) ?? s.latest).id
-      return { songId: s.song.id, audioVersionId: v, songTitle: s.song.title, columnSlug: s.song.columnSlug }
+      return { songId: s.song.id, audioVersionId: v, songTitle: s.song.title }
     })
     const index = Math.max(0, items.findIndex((i) => i.songId === songId))
-    usePlayerStore.getState().setPlaylist(items[index].columnSlug, items, index, versionId)
-    usePlayerStore.setState({ isPlaying: true, pendingSeekMs: seekMs ?? null })
+    startCloudTakeNow(versionId, seekMs)
+    usePlayerStore.getState().playListen(items, index, versionId, seekMs ?? null)
   }
 
   const joinSelected = async () => {

@@ -13,8 +13,9 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
-import { resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
+import { presignPlaybackUrls, resolvePlaybackUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
+import { loadingLabel, useLoadProgress } from '@/stores/loadProgressStore'
 import { useUiStore } from '@/stores/uiStore'
 import { SpeedControl } from './SpeedControl'
 import { PlayerLoopButton } from './PlayerLoopButton'
@@ -23,6 +24,18 @@ import { InteractiveWaveform } from './InteractiveWaveform'
 import { getMarkersForVersion } from '@/db/repositories/markerRepo'
 import { RecordArt } from '@/components/share/RecordParts'
 import '@/styles/record.css'
+import '@/styles/playback-progress.css'
+
+/** A take streaming from the cloud, as opposed to a file on this device. */
+function isRemoteSrc(el: HTMLMediaElement) {
+  return isRealAudioSrc(el) && !(el.getAttribute('src') ?? '').startsWith('blob:')
+}
+
+/** How much of the file the element holds, 0 to 1, or null before the length is known. */
+function bufferedFraction(el: HTMLMediaElement): number | null {
+  if (!el.duration || !Number.isFinite(el.duration) || el.buffered.length === 0) return null
+  return el.buffered.end(el.buffered.length - 1) / el.duration
+}
 
 export function ColumnPlayerBar() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -54,21 +67,14 @@ export function ColumnPlayerBar() {
     isPlaying,
     playbackRate,
     progress,
-    activeColumnId,
     expanded,
     setPlaying,
     setProgress,
     setPlaybackRate,
     playNextInColumn,
     playPreviousInColumn,
-    playAdjacentColumn,
-    playBoardFromStart,
-    playColumn,
-    playFavourites,
-    loopMode,
+    advanceAtEnd,
     playlistSource,
-    favouritesScope,
-    favouritesShuffle,
     playlist,
     currentIndex,
     setExpanded,
@@ -84,6 +90,9 @@ export function ColumnPlayerBar() {
   } = usePlayerStore()
 
   const openDrawer = useUiStore((s) => s.openDrawer)
+  const loadingVersionId = useLoadProgress((s) => s.versionId)
+  const loadFraction = useLoadProgress((s) => s.fraction)
+  const loading = loadingVersionId != null && loadingVersionId === currentVersionId
 
   // Keep ref in sync with store value so the load effect can consume it once
   if (pendingSeekMs != null) pendingSeekMsRef.current = pendingSeekMs
@@ -128,6 +137,8 @@ export function ColumnPlayerBar() {
     setBufferProgress(0)
     lastSavedMsRef.current = 0
     endedRef.current = false
+    // Whatever was loading belongs to the previous take.
+    useLoadProgress.getState().done()
 
     async function loadSource() {
       if (objectUrlRef.current) {
@@ -136,6 +147,13 @@ export function ColumnPlayerBar() {
       }
 
       if (!version || !audioRef.current || !currentSongId) return
+      // The live query can still hold the previous take for a moment after a
+      // tap. Loading it would put the old song back on the element.
+      if (currentVersionId && version.id !== currentVersionId) return
+
+      // A cloud take can take a while. Say so from the tap onwards.
+      const fromCloud = !version.localBlobId && Boolean(version.storagePath)
+      if (fromCloud) useLoadProgress.getState().start(version.id)
 
       const seekMs = pendingSeekMsRef.current
       pendingSeekMsRef.current = null
@@ -149,6 +167,7 @@ export function ColumnPlayerBar() {
       if (cancelled || !audioRef.current) return
 
       if (!url) {
+        useLoadProgress.getState().done(version.id)
         setPlaying(false)
         setBuffering(false)
         // Cloud-only take and no connection: say so instead of doing nothing.
@@ -177,6 +196,7 @@ export function ColumnPlayerBar() {
         if (audioRef.current.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
           setSourceReady(true)
           setBuffering(false)
+          useLoadProgress.getState().done(version.id)
         }
       } else {
         markSrcSwitch()
@@ -230,6 +250,7 @@ export function ColumnPlayerBar() {
     version?.localBlobId,
     version?.storagePath,
     currentSongId,
+    currentVersionId,
     // Bumped by every explicit "play this" tap, so the same song reloads its
     // source after the tap's unlock clip borrowed the element.
     loadRequest,
@@ -253,6 +274,12 @@ export function ColumnPlayerBar() {
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackRate
   }, [playbackRate])
+
+  // Paused (or play refused): iOS fetches nothing until play, so a
+  // "Loading" line would sit there forever. It comes back on the next wait.
+  useEffect(() => {
+    if (!isPlaying) useLoadProgress.getState().done()
+  }, [isPlaying])
 
   // Media Session API — lock screen / AirPods / CarPlay controls
   useEffect(() => {
@@ -331,37 +358,31 @@ export function ColumnPlayerBar() {
       setPlaying(true)
       return
     }
-
-    const next = playNextInColumn()
-    if (next) {
-      setPlaying(true)
-      return
-    }
-
-    if (playlistSource === 'favourites' && favouritesScope) {
-      if (loopMode === 'section' || loopMode === 'board') {
-        const restarted = await playFavourites(favouritesScope, 0, undefined, favouritesShuffle)
-        if (restarted) return
-      }
-      setPlaying(false)
-      return
-    }
-
-    if (loopMode === 'section' && activeColumnId) {
-      const restarted = await playColumn(activeColumnId)
-      if (restarted) return
-    }
-
-    const advanced = await playAdjacentColumn('next')
-    if (advanced) return
-
-    if (loopMode === 'board') {
-      const restarted = await playBoardFromStart()
-      if (restarted) return
-    }
-
-    setPlaying(false)
+    // The store decides what is next, and a Listen playlist never falls
+    // through to the board (see advanceAtEnd in playerStore).
+    await advanceAtEnd()
   }
+
+  /* Sign the next cloud take while this one plays, so moving on does not wait
+     for a round trip. Signing only: no audio is fetched ahead. */
+  const nextVersionId = playlist[currentIndex + 1]?.audioVersionId ?? null
+  useEffect(() => {
+    if (!sourceReady || !nextVersionId) return
+    let live = true
+    void db.audioVersions.get(nextVersionId).then((next) => {
+      if (live && next && !next.localBlobId && next.storagePath) void presignPlaybackUrls([next.storagePath])
+    })
+    return () => {
+      live = false
+    }
+  }, [sourceReady, nextVersionId])
+
+  /* The waveform decodes the whole file. For a cloud take that is a second
+     full download racing the stream for the same connection, which is a large
+     part of why big WAVs were slow to start. Hand it over once the stream has
+     the whole file; saved peaks show until then. */
+  const waveUrl =
+    audioUrl && (audioUrl.startsWith('blob:') || bufferProgress >= 0.999) ? audioUrl : null
 
   const seekTo = (fraction: number) => {
     const audio = audioRef.current
@@ -400,6 +421,7 @@ export function ColumnPlayerBar() {
           if (!isRealAudioSrc(event.currentTarget)) return
           setSourceReady(true)
           setBuffering(false)
+          useLoadProgress.getState().done(currentVersionId)
           if (usePlayerStore.getState().isPlaying) {
             void event.currentTarget.play().catch((err: Error) => {
               if (err?.name !== 'AbortError') setPlaying(false)
@@ -409,6 +431,7 @@ export function ColumnPlayerBar() {
         onError={(event) => {
           if (!isRealAudioSrc(event.currentTarget)) return
           console.warn('[songdrafts] audio element error', event.currentTarget.error)
+          useLoadProgress.getState().done()
           setBuffering(false)
           setPlaying(false)
           if (!navigator.onLine && version?.storagePath && !version.localBlobId) {
@@ -416,17 +439,33 @@ export function ColumnPlayerBar() {
           }
         }}
         onWaiting={(event) => {
-          if (isRealAudioSrc(event.currentTarget)) setBuffering(true)
+          const el = event.currentTarget
+          if (!isRealAudioSrc(el)) return
+          setBuffering(true)
+          // Ran dry mid-song on a cloud take: show how much has arrived.
+          if (currentVersionId && isRemoteSrc(el)) {
+            useLoadProgress.getState().start(currentVersionId)
+            const fraction = bufferedFraction(el)
+            if (fraction != null) useLoadProgress.getState().update(currentVersionId, fraction)
+          }
         }}
         onPlaying={(event) => {
-          if (isRealAudioSrc(event.currentTarget)) setBuffering(false)
+          if (!isRealAudioSrc(event.currentTarget)) return
+          setBuffering(false)
+          useLoadProgress.getState().done(currentVersionId)
+        }}
+        onDurationChange={(event) => {
+          const el = event.currentTarget
+          const fraction = isRealAudioSrc(el) ? bufferedFraction(el) : null
+          if (currentVersionId && fraction != null) useLoadProgress.getState().update(currentVersionId, fraction)
         }}
         onProgress={(event) => {
           const el = event.currentTarget
           if (!isRealAudioSrc(el)) return
-          if (el.buffered.length > 0 && el.duration) {
-            setBufferProgress(el.buffered.end(el.buffered.length - 1) / el.duration)
-          }
+          const fraction = bufferedFraction(el)
+          if (fraction == null) return
+          setBufferProgress(fraction)
+          if (currentVersionId) useLoadProgress.getState().update(currentVersionId, fraction)
         }}
         onTimeUpdate={(event) => {
           const element = event.currentTarget
@@ -496,7 +535,7 @@ export function ColumnPlayerBar() {
                 </button>
               </div>
               <InteractiveWaveform
-                audioUrl={audioUrl}
+                audioUrl={waveUrl}
                 cacheKey={currentVersionId ?? undefined}
                 progress={progress}
                 active={isPlaying}
@@ -534,7 +573,16 @@ export function ColumnPlayerBar() {
                   {displaySong!.title}
                 </button>
                 <div className="player-bar-sub">
-                  {playbackNotice ? <span role="status">{playbackNotice}</span> : version?.label}
+                  {playbackNotice ? (
+                    <span role="status">{playbackNotice}</span>
+                  ) : loading ? (
+                    <span className="pp-bar-status" role="status">
+                      <span className="pp-spinner pp-spinner--small" aria-hidden />
+                      {loadingLabel(loadFraction)}
+                    </span>
+                  ) : (
+                    version?.label
+                  )}
                   {playlist.length > 1 && (
                     <button
                       type="button"
@@ -554,14 +602,14 @@ export function ColumnPlayerBar() {
                 <span className="player-bar-time">{formatDuration(currentMs)}</span>
                 <div className="player-bar-wave-col">
                   <InteractiveWaveform
-                    audioUrl={audioUrl}
+                    audioUrl={waveUrl}
                     cacheKey={currentVersionId ?? undefined}
                     progress={progress}
                     active={isPlaying && !buffering}
                     height={40}
                     onSeek={seekTo}
                   />
-                  {buffering && (
+                  {(buffering || loading) && (
                     <div className="player-bar-buffer-track">
                       <div
                         className="player-bar-buffer-fill"
@@ -594,7 +642,7 @@ export function ColumnPlayerBar() {
                   className={`player-bar-play${buffering ? ' player-bar-buffering' : ''}`}
                   aria-label={buffering ? 'Loading…' : isPlaying ? 'Pause' : 'Play'}
                 >
-                  {buffering ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
+                  {buffering || (loading && isPlaying) ? <span className="player-bar-spinner" /> : isPlaying ? '❚❚' : '▶'}
                 </button>
                 <button
                   type="button"
