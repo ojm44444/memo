@@ -4,6 +4,8 @@ import type { ColumnSlug } from '@/types/column'
 import { db } from '@/db/database'
 import { getRecentSongs, getRecentSongsAcrossLibrary } from '@/db/repositories/boardRepo'
 import { formatDuration } from '@/lib/audio-utils'
+import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl } from '@/lib/audio/resolvePlaybackUrl'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
 
@@ -94,6 +96,11 @@ function RecentSongChip({
   const play = async (event: MouseEvent) => {
     event.stopPropagation()
     if (!version) return
+    // Same as the card: start the element inside the tap, before any await,
+    // or iOS refuses the play that follows.
+    const cachedUrl = getCachedUrl(version.localBlobId, version.storagePath)
+    if (cachedUrl) playAudioImmediately(cachedUrl, usePlayerStore.getState().playbackRate)
+    else unlockAudioEl()
     await usePlayerStore
       .getState()
       .playAtVersion(song.columnSlug as ColumnSlug, song.id, version.id)

@@ -3,7 +3,13 @@ import {
   getPlaybackPositionMs,
   setPlaybackPositionMs,
 } from '@/lib/audio/playbackPosition'
-import { registerAudioEl, consumeSrcSwitchPending, markSrcSwitch, markRealSrcSet } from '@/lib/audio/globalAudioEl'
+import {
+  registerAudioEl,
+  consumeSrcSwitchPending,
+  markSrcSwitch,
+  markRealSrcSet,
+  isRealAudioSrc,
+} from '@/lib/audio/globalAudioEl'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/db/database'
 import { formatDuration } from '@/lib/audio-utils'
@@ -71,6 +77,9 @@ export function ColumnPlayerBar() {
     clearPendingSeek,
     buffering,
     setBuffering,
+    loadRequest,
+    playbackNotice,
+    setPlaybackNotice,
   } = usePlayerStore()
 
   const openDrawer = useUiStore((s) => s.openDrawer)
@@ -140,8 +149,16 @@ export function ColumnPlayerBar() {
 
       if (!url) {
         setPlaying(false)
+        setBuffering(false)
+        // Cloud-only take and no connection: say so instead of doing nothing.
+        if (version.storagePath && !version.localBlobId) {
+          setPlaybackNotice(
+            navigator.onLine ? 'Could not load this take. Try again.' : 'Not on this device yet. Plays when online.',
+          )
+        }
         return
       }
+      setPlaybackNotice(null)
 
       if (version.localBlobId) {
         objectUrlRef.current = null
@@ -152,8 +169,12 @@ export function ColumnPlayerBar() {
         (version.trimStartMs ?? 0) > 0 ? version.trimStartMs! : savedMs > 0 ? savedMs : 0
       resumeSeekRef.current = effectiveStartMs > 0 ? effectiveStartMs : null
 
-      const sameUrl = audioRef.current.src === url
-      if (!sameUrl) {
+      const sameUrl = audioRef.current.src === url && isRealAudioSrc(audioRef.current)
+      if (sameUrl) {
+        // No new load, so no canplay is coming. Mark ready ourselves or the
+        // play/pause effect below would ignore this source.
+        if (audioRef.current.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) setSourceReady(true)
+      } else {
         markSrcSwitch()
         // Claim the element before the unlock's SILENT promise resolves and
         // tries to restore the old src. Without this the first play of a
@@ -182,10 +203,11 @@ export function ColumnPlayerBar() {
       if (usePlayerStore.getState().isPlaying) {
         try {
           await audioRef.current.play()
-        } catch {
+        } catch (err) {
           // Autoplay refused (no gesture, or the tab is backgrounded). Reflect
           // reality in the UI rather than showing a play state that is not real.
-          if (!cancelled) setPlaying(false)
+          // AbortError only means a newer source replaced this one mid-start.
+          if (!cancelled && (err as Error)?.name !== 'AbortError') setPlaying(false)
         }
       }
     }
@@ -204,8 +226,13 @@ export function ColumnPlayerBar() {
     version?.localBlobId,
     version?.storagePath,
     currentSongId,
+    // Bumped by every explicit "play this" tap, so the same song reloads its
+    // source after the tap's unlock clip borrowed the element.
+    loadRequest,
     clearPendingSeek,
     setPlaying,
+    setBuffering,
+    setPlaybackNotice,
   ])
 
   useEffect(() => {
@@ -263,6 +290,9 @@ export function ColumnPlayerBar() {
   useEffect(() => {
     const audio = audioRef.current
     if (!audio || !sourceReady) return
+    // Never drive the silent unlock clip or an empty element: play() on those
+    // fails and would flip isPlaying off before the real song arrives.
+    if (!isRealAudioSrc(audio)) return
 
     if (isPlaying) {
       const wasPaused = audio.paused
@@ -349,6 +379,7 @@ export function ColumnPlayerBar() {
         ref={(el) => { audioRef.current = el; registerAudioEl(el) }}
         onLoadedMetadata={(event) => {
           const element = event.currentTarget
+          if (!isRealAudioSrc(element)) return
           setDurationMs(element.duration * 1000)
 
           const resumeMs = resumeSeekRef.current
@@ -361,6 +392,8 @@ export function ColumnPlayerBar() {
           }
         }}
         onCanPlay={(event) => {
+          // The unlock clip fires canplay too. Only the real song counts.
+          if (!isRealAudioSrc(event.currentTarget)) return
           setSourceReady(true)
           setBuffering(false)
           if (usePlayerStore.getState().isPlaying) {
@@ -369,20 +402,31 @@ export function ColumnPlayerBar() {
             })
           }
         }}
-        onError={() => {
+        onError={(event) => {
+          if (!isRealAudioSrc(event.currentTarget)) return
+          console.warn('[songdrafts] audio element error', event.currentTarget.error)
           setBuffering(false)
           setPlaying(false)
+          if (!navigator.onLine && version?.storagePath && !version.localBlobId) {
+            setPlaybackNotice('Not on this device yet. Plays when online.')
+          }
         }}
-        onWaiting={() => setBuffering(true)}
-        onPlaying={() => setBuffering(false)}
+        onWaiting={(event) => {
+          if (isRealAudioSrc(event.currentTarget)) setBuffering(true)
+        }}
+        onPlaying={(event) => {
+          if (isRealAudioSrc(event.currentTarget)) setBuffering(false)
+        }}
         onProgress={(event) => {
           const el = event.currentTarget
+          if (!isRealAudioSrc(el)) return
           if (el.buffered.length > 0 && el.duration) {
             setBufferProgress(el.buffered.end(el.buffered.length - 1) / el.duration)
           }
         }}
         onTimeUpdate={(event) => {
           const element = event.currentTarget
+          if (!isRealAudioSrc(element)) return
           if (element.duration) {
             const ms = element.currentTime * 1000
             setProgress(element.currentTime / element.duration)
@@ -410,7 +454,10 @@ export function ColumnPlayerBar() {
             }
           }
         }}
-        onPause={() => {
+        onPause={(event) => {
+          // The unlock clip pausing (or a source being cleared) is not the
+          // person pausing.
+          if (!isRealAudioSrc(event.currentTarget)) return
           if (currentSongId && audioRef.current) {
             void setPlaybackPositionMs(currentSongId, audioRef.current.currentTime * 1000)
           }
@@ -420,7 +467,11 @@ export function ColumnPlayerBar() {
           }
           programmaticPauseRef.current = false
         }}
-        onEnded={() => void handleEnded()}
+        onEnded={(event) => {
+          // The 1-sample unlock clip "ends" too. That must never skip a song.
+          if (!isRealAudioSrc(event.currentTarget)) return
+          void handleEnded()
+        }}
       />
 
       {showBar && (
@@ -483,7 +534,7 @@ export function ColumnPlayerBar() {
                   {displaySong!.title}
                 </button>
                 <div className="player-bar-sub">
-                  {version?.label}
+                  {playbackNotice ? <span role="status">{playbackNotice}</span> : version?.label}
                   {playlist.length > 1 && (
                     <button
                       type="button"

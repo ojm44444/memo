@@ -34,25 +34,55 @@ let pendingMainUnlock = false
 // unlockMainEl checks this before restoring the prev src after pausing SILENT.
 let realSrcSet = false
 
+/**
+ * True when the element holds a real song, not the silent unlock clip and not
+ * nothing. ColumnPlayerBar ignores media events from anything else.
+ *
+ * THE FIRST-CLICK BUG, THIRD AND ACTUAL CAUSE (18 Sept). The unlock clip is a
+ * real media load, so it fired canplay (ColumnPlayerBar set sourceReady=true)
+ * and, when the clip was put away with `src = ''`, an error event and an
+ * element stuck in MEDIA_ERR_SRC_NOT_SUPPORTED. The first real click then set
+ * isPlaying, the play effect saw the stale sourceReady and called play() on
+ * that errored, empty element, which rejects at once with NotSupportedError,
+ * and the catch set isPlaying back to false. loadSource finished a moment
+ * later, found isPlaying false, and armed the song without playing it. The
+ * second click hit the URL cache and worked. Every first click of a session
+ * went this way, whenever it happened, because the unlock runs on the very
+ * first pointerdown and finishes within milliseconds.
+ */
+export function isRealAudioSrc(el: HTMLMediaElement | null | undefined): boolean {
+  if (!el) return false
+  const attr = el.getAttribute('src')
+  return Boolean(attr) && attr !== SILENT
+}
+
+/** Put the element back to "no source" without an error event. */
+function clearSrc(el: HTMLAudioElement) {
+  // `el.src = ''` is NOT empty: it is a failed load that fires `error` and
+  // leaves the element errored. No src attribute at all is a clean idle state.
+  el.removeAttribute('src')
+  try {
+    el.load()
+  } catch {
+    // jsdom and very old engines. Nothing to reset in that case.
+  }
+}
+
 function unlockMainEl(el: HTMLAudioElement) {
-  const prev = el.src
   realSrcSet = false
   el.src = SILENT
   void el.play().then(() => {
+    audioUnlocked = true
     if (realSrcSet) {
-      // playAudioImmediately() fired while SILENT was playing and already
-      // changed the src to real audio. Don't touch it — just ensure play()
-      // is running (it already called play(), so nothing to do here).
+      // Real audio took over while SILENT was starting. Leave it alone.
       return
     }
-    // SILENT finished and nothing took over — restore the element to a clean state.
-    srcSwitchPending = true
     el.pause()
-    el.src = prev || ''
+    clearSrc(el)
   }).catch(() => {
-    // Play was interrupted (e.g. src changed by playAudioImmediately mid-flight).
-    // If real audio is now in control, leave it alone.
-    if (!realSrcSet) el.src = prev || ''
+    // Refused (no gesture) or interrupted by a real src. Only tidy up if
+    // nothing real has taken the element in the meantime.
+    if (!realSrcSet && el.getAttribute('src') === SILENT) clearSrc(el)
   })
 }
 
@@ -67,10 +97,20 @@ export function installAudioUnlock() {
   if (typeof window === 'undefined') return
   const unlock = () => {
     if (audioUnlocked) return
-    audioUnlocked = true
     if (audioEl) {
+      // Already holding a real song: never swap it for the silent clip, or the
+      // player loses its source. Playing or not, leave it to the play paths.
+      if (isRealAudioSrc(audioEl)) {
+        if (!audioEl.paused) audioUnlocked = true
+        return
+      }
+      // A clip is already starting from an earlier event of the same tap.
+      if (audioEl.getAttribute('src') === SILENT && !audioEl.paused) return
+      // Marked unlocked only once play() succeeds, so an event that iOS does
+      // not count as a gesture (pointerdown, touchstart) gets another go on
+      // the touchend or click that follows.
       unlockMainEl(audioEl)
-    } else {
+    } else if (!pendingMainUnlock) {
       // Main element not mounted yet — unlock it the moment it registers.
       pendingMainUnlock = true
       // Also play a temp element to keep the gesture context alive across
@@ -79,8 +119,11 @@ export function installAudioUnlock() {
       void tmp.play().catch(() => {})
     }
   }
-  window.addEventListener('pointerdown', unlock, { once: true, capture: true })
-  window.addEventListener('touchstart', unlock, { once: true, capture: true })
+  // pointerdown and touchstart are not user activation on iOS; touchend and
+  // click are. Listen to all of them; `audioUnlocked` makes it once only.
+  for (const type of ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown']) {
+    window.addEventListener(type, unlock, { capture: true })
+  }
 }
 
 export function registerAudioEl(el: HTMLAudioElement | null) {
@@ -136,8 +179,24 @@ export function markRealSrcSet() {
   realSrcSet = true
 }
 
+/**
+ * Called from a tap when the song's URL is not resolved yet. Plays the silent
+ * clip on the real element inside the gesture, which is what iOS needs to let
+ * the async play() that follows through. The store's loadRequest makes the
+ * player reload the real source afterwards, even for the same song.
+ */
 export function unlockAudioEl() {
   if (!audioEl || !audioEl.paused) return
-  void audioEl.play().catch(() => {})
-  // Do NOT pause — that fires onPause → setPlaying(false).
+  unlockMainEl(audioEl)
 }
+
+/** Test seam. */
+export function __resetGlobalAudioForTests() {
+  audioEl = null
+  audioUnlocked = false
+  pendingMainUnlock = false
+  realSrcSet = false
+  srcSwitchPending = false
+}
+
+export const SILENT_SRC = SILENT
