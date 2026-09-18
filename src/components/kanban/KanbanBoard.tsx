@@ -42,12 +42,23 @@ import { BoardHero } from './BoardHero'
 import { DragOverlayCard } from './DragOverlay'
 import type { ColumnSlug } from '@/types/column'
 import type { Song } from '@/types/song'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 interface KanbanBoardProps {
   readOnly?: boolean
 }
 
 export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
+  /* On a phone Recent and Activity join Play in the hero's pill row (Listen's
+     layout); on a computer they stay a strip under the hero, as before.
+     Rendered in exactly one place at a time, never twice. */
+  const isPhone = useMediaQuery('(max-width: 767px)')
+  const strips = (
+    <div className="board-strips">
+      <RecentSongsRow />
+      <BoardActivityFeed />
+    </div>
+  )
   const selectionMode = useUiStore((state) => state.selectionMode)
   const setDraggingCardId = useUiStore((state) => state.setDraggingCardId)
   const columnScrollSlug = useUiStore((state) => state.columnScrollSlug)
@@ -295,6 +306,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       <BoardHero
         songCount={Object.values(columnCounts ?? {}).reduce((a, b) => a + b, 0)}
         stageCount={columns?.length ?? 0}
+        actions={isPhone ? strips : undefined}
       />
 
       {columns && columns.length > 0 && (
@@ -347,12 +359,7 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       )}
 
       <BulkActionsBar />
-      {/* One strip for both: on phone they sit side by side as two small
-          toggles instead of two full-width bands above the columns. */}
-      <div className="board-strips">
-        <RecentSongsRow />
-        <BoardActivityFeed />
-      </div>
+      {!isPhone && strips}
       <BoardOnboarding readOnly={readOnly} />
       <DuplicateProjectNotice />
       <BoardFilterBar />
