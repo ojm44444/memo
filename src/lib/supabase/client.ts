@@ -16,3 +16,13 @@ export const supabase = supabaseConfigured
       },
     })
   : null
+
+/* First-touch attribution onto a newly created account (see lib/attribution).
+   Loaded after the client, off the critical path, and it can never throw
+   into sign-in. */
+if (supabase) {
+  const client = supabase
+  void import('@/lib/attribution')
+    .then((m) => m.watchForNewAccount(client))
+    .catch(() => {})
+}

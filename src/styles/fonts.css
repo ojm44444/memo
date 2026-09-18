@@ -2,28 +2,15 @@
    Latin subset only, and the weights actually used (300 and 700 were
    dropped: 2 and 7 uses respectively, they fall back to the nearest face). */
 
+/* One face for 400 to 600. The -400, -500 and -600 files are byte-identical
+   (same checksum), so three declarations made the browser download the same
+   41 KB three times under three names. One URL, one download, same glyphs. */
 @font-face {
   font-family: 'Bricolage Grotesque';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 600;
   font-display: swap;
   src: url('/fonts/bricolage-grotesque-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bricolage Grotesque';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/bricolage-grotesque-500.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bricolage Grotesque';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/bricolage-grotesque-600.woff2') format('woff2');
 }
 
 @font-face {

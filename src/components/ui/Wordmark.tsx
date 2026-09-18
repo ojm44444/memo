@@ -1,4 +1,6 @@
-import { cn } from '@/lib/cn'
+/* Plain class joining, not cn(): cn pulls tailwind-merge (about 25 KB) into
+   the landing page's first download for two fixed class names. */
+const cn = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(' ')
 
 /**
  * THE wordmark, everywhere. One image from the pack, never rebuilt from text.
