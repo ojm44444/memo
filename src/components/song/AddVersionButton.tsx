@@ -5,9 +5,11 @@ import { AUDIO_MIME_ALLOWLIST } from '@/lib/constants'
 
 interface AddVersionButtonProps {
   songId: string
+  /** "round": the panel's + button beside Play. Default: a text link. */
+  variant?: 'link' | 'round'
 }
 
-export function AddVersionButton({ songId }: AddVersionButtonProps) {
+export function AddVersionButton({ songId, variant = 'link' }: AddVersionButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [adding, setAdding] = useState(false)
 
@@ -42,13 +44,26 @@ export function AddVersionButton({ songId }: AddVersionButtonProps) {
           e.target.value = ''
         }}
       />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="song-detail-link"
-      >
-        {adding ? 'Adding…' : '+ Add take'}
-      </button>
+      {variant === 'round' ? (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="sp-round"
+          aria-label="Add a take"
+          title="Add a take"
+          disabled={adding}
+        >
+          {adding ? <span className="player-bar-spinner" /> : '+'}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="song-detail-link"
+        >
+          {adding ? 'Adding…' : '+ Add take'}
+        </button>
+      )}
     </>
   )
 }

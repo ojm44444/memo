@@ -24,9 +24,13 @@ import { FavouriteButton } from './FavouriteButton'
 import { SongTagsEditor } from './SongTagsEditor'
 import { SongComments } from './SongComments'
 import { SongSharePanel } from './SongSharePanel'
+import { RecordArt } from '@/components/share/RecordParts'
+import { playAudioImmediately, unlockAudioEl } from '@/lib/audio/globalAudioEl'
+import { getCachedUrl } from '@/lib/audio/resolvePlaybackUrl'
 /* board.css first, then the panel's own sheet, so the panel's rules land
    after the older drawer rules in the cascade in dev and in the build. */
 import '@/styles/board.css'
+import '@/styles/record.css'
 import '@/styles/song-panel.css'
 
 /* Ask for the faces the panel uses before it first opens. The title serif is
@@ -91,8 +95,35 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     [selectedSongId],
   )
 
+  /* Every take, for the record line ("3 takes · 4:12") and for Play, which
+     starts the first one the way a card's play button does. */
+  const versions = useLiveQuery(
+    () => (selectedSongId ? db.audioVersions.where('songId').equals(selectedSongId).sortBy('sortOrder') : []),
+    [selectedSongId],
+  )
+  const isPlaying = usePlayerStore((state) => state.isPlaying)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!drawerOpen) { setMergeOpen(false); return }
+    if (!moreOpen) return
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (!moreRef.current?.contains(e.target as Node)) setMoreOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); setMoreOpen(false) }
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('touchstart', onDown)
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('touchstart', onDown)
+      window.removeEventListener('keydown', onKey, true)
+    }
+  }, [moreOpen])
+
+  useEffect(() => {
+    if (!drawerOpen) { setMergeOpen(false); setMoreOpen(false); return }
     if (selectedSongId) void markFeedbackSeen(selectedSongId)
   }, [drawerOpen, selectedSongId])
 
@@ -196,6 +227,30 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
   const titleValue = titleDraft?.id === song.id ? titleDraft.value : song.title
 
+  const takes = versions ?? []
+  const primary = takes[0]
+  const totalMs = takes.reduce((sum, v) => sum + (v.durationMs ?? 0), 0)
+  const thisIsPlaying = isThisSongPlaying && isPlaying
+
+  /* Same route as a card's play button: play() inside the tap, so iOS allows
+     it, then hand the rest to the store. */
+  const handlePlay = () => {
+    if (!primary) return
+    const store = usePlayerStore.getState()
+    if (thisIsPlaying) {
+      store.setPlaying(false)
+      return
+    }
+    if (isThisSongPlaying) {
+      store.setPlaying(true)
+      return
+    }
+    const cachedUrl = getCachedUrl(primary.localBlobId, primary.storagePath)
+    if (cachedUrl) playAudioImmediately(cachedUrl, store.playbackRate)
+    else unlockAudioEl()
+    void store.playAtVersion(song.columnSlug, song.id, primary.id)
+  }
+
   const commitTitle = () => {
     const next = titleValue.trim()
     setTitleDraft(null)
@@ -228,7 +283,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
           <span className="sp-grab" aria-hidden="true" />
           <span className="sp-eyebrow sp-bar-eyebrow">Song</span>
           <div className="sp-bar-actions">
-            {!readOnly && <SongSharePanel songId={song.id} />}
             <button type="button" className="sp-close" onClick={closeDrawer}>
               Close
             </button>
@@ -236,56 +290,111 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
         </div>
 
         <div className="sp-scroll">
-          <header className="sp-hero">
-            <div className="sp-title-row">
-              {readOnly ? (
-                <h2 className="sp-title">{song.title}</h2>
-              ) : (
-                <input
-                  ref={setTitleEl}
-                  value={titleValue}
-                  onChange={(e) => setTitleDraft({ id: song.id, value: e.target.value })}
-                  onBlur={commitTitle}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') e.currentTarget.blur()
-                  }}
-                  className="sp-title"
-                  placeholder="Song name"
-                  aria-label="Song name"
+          {/* The song as a record, the way Listen shows a playlist: its cover,
+              what's on it, the title, then Play. */}
+          <header className="sp-hero sp-record">
+            <RecordArt seed={song.id} label="" className="sp-art" />
+            <div className="sp-record-head">
+              <p className="sp-eyebrow sp-record-meta">
+                {takes.length} {takes.length === 1 ? 'take' : 'takes'}
+                {totalMs > 0 ? ` · ${formatDuration(totalMs)}` : ''}
+              </p>
+              <div className="sp-title-row">
+                {readOnly ? (
+                  <h2 className="sp-title">{song.title}</h2>
+                ) : (
+                  <input
+                    ref={setTitleEl}
+                    value={titleValue}
+                    onChange={(e) => setTitleDraft({ id: song.id, value: e.target.value })}
+                    onBlur={commitTitle}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur()
+                    }}
+                    className="sp-title"
+                    placeholder="Song name"
+                    aria-label="Song name"
+                  />
+                )}
+                <FavouriteButton
+                  songId={song.id}
+                  isFavourite={song.isFavourite ?? false}
+                  size="drawer"
+                  className="sp-fav"
                 />
-              )}
-              <FavouriteButton
-                songId={song.id}
-                isFavourite={song.isFavourite ?? false}
-                size="drawer"
-                className="sp-fav"
-              />
+              </div>
+              <div className="sp-facts">
+                <SongStageSelect songId={song.id} columnSlug={song.columnSlug} readOnly={readOnly} />
+                <SongProjectSelect
+                  songId={song.id}
+                  projectId={song.projectId ?? ''}
+                  readOnly={readOnly}
+                />
+              </div>
             </div>
 
-            <div className="sp-facts">
-              <SongStageSelect songId={song.id} columnSlug={song.columnSlug} readOnly={readOnly} />
-              <SongProjectSelect
-                songId={song.id}
-                projectId={song.projectId ?? ''}
-                readOnly={readOnly}
-              />
+            <div className="sp-record-actions">
+              <button
+                type="button"
+                className="sp-play"
+                onClick={handlePlay}
+                disabled={!primary}
+              >
+                <span aria-hidden="true">{thisIsPlaying ? '❚❚' : '▶'}</span>
+                {thisIsPlaying ? 'Pause' : 'Play'}
+              </button>
+              {!readOnly && <SongSharePanel songId={song.id} />}
+              {!readOnly && <AddVersionButton songId={song.id} variant="round" />}
+              {!readOnly && (
+                <div className="sp-more" ref={moreRef} data-drawer-layer={moreOpen ? '' : undefined}>
+                  <button
+                    type="button"
+                    className="sp-round"
+                    aria-label="More"
+                    aria-expanded={moreOpen}
+                    onClick={() => setMoreOpen((v) => !v)}
+                  >
+                    ⋯
+                  </button>
+                  {moreOpen && (
+                    <div className="sp-more-menu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setMoreOpen(false); setMergeOpen(true) }}
+                      >
+                        Merge with another song
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={duplicating}
+                        onClick={() => { setMoreOpen(false); void handleDuplicate() }}
+                      >
+                        {duplicating ? 'Duplicating…' : 'Duplicate song'}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="is-danger"
+                        onClick={() => { setMoreOpen(false); void handleDelete() }}
+                      >
+                        Delete song
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </header>
 
           <section className="sp-section">
             <div className="sp-section-head">
               <span className="sp-eyebrow">Takes</span>
-              {!readOnly && (
-                <div className="sp-section-actions">
-                  <AddVersionButton songId={song.id} />
-                  <button
-                    type="button"
-                    className="song-detail-link"
-                    onClick={() => setMergeOpen((v) => !v)}
-                  >
-                    {mergeOpen ? 'Close merge' : 'Merge with another song'}
-                  </button>
-                </div>
+              {!readOnly && mergeOpen && (
+                <button type="button" className="song-detail-link" onClick={() => setMergeOpen(false)}>
+                  Close merge
+                </button>
               )}
             </div>
 
@@ -326,23 +435,6 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
                 <ExternalLinks songId={song.id} />
               </section>
 
-              <footer className="sp-foot">
-                <button
-                  type="button"
-                  className="sp-foot-btn"
-                  disabled={duplicating}
-                  onClick={() => void handleDuplicate()}
-                >
-                  {duplicating ? 'Duplicating…' : 'Duplicate song'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleDelete()}
-                  className="sp-foot-btn sp-foot-btn--danger"
-                >
-                  Delete song
-                </button>
-              </footer>
             </>
           )}
         </div>
