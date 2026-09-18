@@ -17,7 +17,7 @@ import {
   updateAudioVersionTags,
   setAudioVersionTrimStart,
 } from '@/db/repositories/audioRepo'
-import { unmergeSong } from '@/db/repositories/boardRepo'
+import { unlinkTake } from '@/db/repositories/boardRepo'
 import { exportSongVersion } from '@/lib/export/exportSongVersion'
 import { scheduleFlush } from '@/sync/syncEngine'
 import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
@@ -35,12 +35,21 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   )
   const song = useLiveQuery(() => getSong(songId), [songId])
   const comments = useLiveQuery(() => getCommentsForSong(songId), [songId])
-  const { currentVersionId, isPlaying, progress, setProgress, setPlaying } = usePlayerStore()
+  /* Selectors rather than the whole store, so a change to something this list
+     does not show (volume, the queue) does not re-render every waveform. */
+  const currentVersionId = usePlayerStore((s) => s.currentVersionId)
+  const isPlaying = usePlayerStore((s) => s.isPlaying)
+  const progress = usePlayerStore((s) => s.progress)
+  const setProgress = usePlayerStore((s) => s.setProgress)
+  const setPlaying = usePlayerStore((s) => s.setPlaying)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftLabel, setDraftLabel] = useState('')
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
   const [tagDraft, setTagDraft] = useState('')
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  /** Set when the menu was opened by a right-click: it opens where you clicked. */
+  const [menuPoint, setMenuPoint] = useState<{ x: number; y: number } | null>(null)
+  const [unlinked, setUnlinked] = useState<string | null>(null)
   const [audioUrls, setAudioUrls] = useState<Record<string, string>>({})
 
   // Resolve audio URLs so InteractiveWaveform can decode peaks
@@ -59,13 +68,43 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   useEffect(() => {
     if (!menuOpenId) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpenId(null)
+      if (e.key === 'Escape') {
+        setMenuOpenId(null)
+        setMenuPoint(null)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [menuOpenId])
 
-  if (!song) return null
+  useEffect(() => {
+    if (!unlinked) return
+    const id = window.setTimeout(() => setUnlinked(null), 4000)
+    return () => window.clearTimeout(id)
+  }, [unlinked])
+
+  // Hold the space a take will fill while the song and its takes load, so
+  // the comments and fields below do not jump down when they arrive.
+  if (!song || !versions) {
+    return (
+      <div className="sp-takes" aria-busy="true">
+        <div className="sp-take-skeleton" />
+      </div>
+    )
+  }
+
+  const closeMenu = () => {
+    setMenuOpenId(null)
+    setMenuPoint(null)
+  }
+
+  const unlink = (versionId: string) => {
+    closeMenu()
+    void unlinkTake(versionId).then((landed) => {
+      scheduleFlush()
+      if (landed) setUnlinked(landed.title)
+    })
+  }
 
   const startRename = (versionId: string, label: string) => {
     setEditingId(versionId)
@@ -83,8 +122,8 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {versions?.map((version, i) => {
+    <div className="sp-takes">
+      {versions.map((version, i) => {
         const isCurrent = currentVersionId === version.id
         const isActive = isCurrent && isPlaying
         const isSecondary = i > 0
@@ -95,6 +134,14 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
         return (
           <div
             key={version.id}
+            onContextMenu={(e) => {
+              // Right-click a take for its menu, Unlink first. Touch devices
+              // reach the same menu from the ⋯ button.
+              if (readOnly || editingId === version.id) return
+              e.preventDefault()
+              setMenuOpenId(version.id)
+              setMenuPoint({ x: e.clientX, y: e.clientY })
+            }}
             className={cn(
               'version-stack-item',
               isSecondary && !isCurrent && 'version-stack-item--muted',
@@ -208,7 +255,10 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     className={cn('version-kebab', menuOpen && 'is-open')}
                     aria-label={`Options for ${version.label}`}
                     aria-expanded={menuOpen}
-                    onClick={() => setMenuOpenId(menuOpen ? null : version.id)}
+                    onClick={() => {
+                      setMenuPoint(null)
+                      setMenuOpenId(menuOpen ? null : version.id)
+                    }}
                   >
                     ⋯
                   </button>
@@ -216,15 +266,42 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                     <>
                       <div
                         className="version-menu-backdrop"
-                        onClick={() => setMenuOpenId(null)}
+                        onClick={closeMenu}
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          closeMenu()
+                        }}
                       />
-                      <div className="version-menu" role="menu">
+                      <div
+                        className={cn('version-menu', menuPoint && 'version-menu--at-point')}
+                        role="menu"
+                        data-drawer-layer="take-menu"
+                        style={
+                          menuPoint
+                            ? {
+                                left: Math.max(8, Math.min(menuPoint.x, window.innerWidth - 200)),
+                                top: Math.max(8, Math.min(menuPoint.y, window.innerHeight - 280)),
+                              }
+                            : undefined
+                        }
+                      >
+                        {multipleClips && (
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="version-menu-item version-menu-item--lead"
+                            title="Put this take back on its own card"
+                            onClick={() => unlink(version.id)}
+                          >
+                            Unlink
+                          </button>
+                        )}
                         <button
                           type="button"
                           role="menuitem"
                           className="version-menu-item"
                           onClick={() => {
-                            setMenuOpenId(null)
+                            closeMenu()
                             startRename(version.id, version.label)
                           }}
                         >
@@ -235,7 +312,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                           role="menuitem"
                           className="version-menu-item"
                           onClick={() => {
-                            setMenuOpenId(null)
+                            closeMenu()
                             setTagEditingId(version.id)
                             setTagDraft('')
                           }}
@@ -248,7 +325,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                             role="menuitem"
                             className="version-menu-item"
                             onClick={() => {
-                              setMenuOpenId(null)
+                              closeMenu()
                               void setPrimaryVersion(songId, version.id).then(() => scheduleFlush())
                             }}
                           >
@@ -265,7 +342,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                           role="menuitem"
                           className="version-menu-item"
                           onClick={() => {
-                            setMenuOpenId(null)
+                            closeMenu()
                             const next = (version.kind ?? 'take') === 'take' ? 'mix' : 'take'
                             void setAudioVersionKind(version.id, next).then(() => scheduleFlush())
                           }}
@@ -281,7 +358,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                             className="version-menu-item"
                             title="Start playback here every time"
                             onClick={() => {
-                              setMenuOpenId(null)
+                              closeMenu()
                               const ms = Math.round(progress * version.durationMs)
                               void setAudioVersionTrimStart(version.id, ms > 1000 ? ms : null)
                             }}
@@ -295,7 +372,7 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                             role="menuitem"
                             className="version-menu-item"
                             onClick={() => {
-                              setMenuOpenId(null)
+                              closeMenu()
                               void setAudioVersionTrimStart(version.id, null)
                             }}
                           >
@@ -307,33 +384,19 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
                           role="menuitem"
                           className="version-menu-item"
                           onClick={() => {
-                            setMenuOpenId(null)
+                            closeMenu()
                             void exportSongVersion(version.id)
                           }}
                         >
                           Export
                         </button>
-                        {multipleClips && isSecondary && (
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="version-menu-item"
-                            title="Move this take to its own song"
-                            onClick={() => {
-                              setMenuOpenId(null)
-                              void unmergeSong(version.id).then(() => scheduleFlush())
-                            }}
-                          >
-                            Split into own song
-                          </button>
-                        )}
                         {multipleClips && (
                           <button
                             type="button"
                             role="menuitem"
                             className="version-menu-item version-menu-item--danger"
                             onClick={() => {
-                              setMenuOpenId(null)
+                              closeMenu()
                               if (!confirm(`Remove "${version.label}" from this song?`)) return
                               void deleteAudioVersion(version.id).then(() => scheduleFlush())
                             }}
@@ -412,6 +475,11 @@ export function AudioVersionStack({ songId, readOnly = false }: AudioVersionStac
           </div>
         )
       })}
+      {unlinked && (
+        <p className="sp-unlinked" role="status">
+          Unlinked. "{unlinked}" is back on the board.
+        </p>
+      )}
     </div>
   )
 }

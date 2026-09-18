@@ -33,8 +33,27 @@ export function SongProjectSelect({ songId, projectId, readOnly = false }: SongP
   }
 
   const options = (projects ?? []).map((p) => ({ value: p.id, label: p.name }))
-  // Don't render the picker until projects are loaded — avoids showing raw UUID
-  if (!projects) return null
+  // A song in no project (or one whose project was removed) used to show an
+  // empty pill, which is why changing project looked impossible: there was
+  // nothing to see or click. Name the state instead.
+  if (!current) options.unshift({ value: projectId, label: 'No project' })
+  // Until projects load, hold the pill's place with no text rather than
+  // rendering nothing: the raw id must never show, and the panel must not
+  // jump when the picker arrives a moment after the song.
+  if (!projects) {
+    return (
+      <div className="song-project-select" aria-busy="true">
+        <span className="song-project-label">Project</span>
+        <div className="song-project-row">
+          <div className="custom-select song-project-custom-select">
+            <span className="custom-select-trigger" aria-hidden="true">
+              <span className="custom-select-value">&nbsp;</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="song-project-select">
@@ -65,17 +84,19 @@ export function SongProjectSelect({ songId, projectId, readOnly = false }: SongP
             value={projectId}
             options={options}
             onChange={(id) => {
+              if (!id || id === projectId) return
               void moveSongToProject(songId, id).then(() => scheduleFlush())
             }}
             className="song-project-custom-select"
+            popoverClassName="sp-select-popover"
           />
           <button
             type="button"
             className="song-project-new-btn"
             onClick={() => setCreating(true)}
-            title="New project"
+            title="Make a new project and move this song into it"
           >
-            + New
+            + New project
           </button>
         </div>
       )}
