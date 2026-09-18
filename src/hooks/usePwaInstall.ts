@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -6,6 +6,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 function detectInstalledPwa() {
+  if (typeof window === 'undefined') return false
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
     window.matchMedia('(display-mode: minimal-ui)').matches ||
@@ -13,46 +14,58 @@ function detectInstalledPwa() {
   )
 }
 
+/*
+ * The browser fires beforeinstallprompt once per page load. A hook that only
+ * listens while mounted misses it if the tour or Settings opens later, so the
+ * event is caught here at module load (App imports this through the install
+ * banner) and every component reads the same state.
+ */
+let deferredPrompt: BeforeInstallPromptEvent | null = null
+let state = { canInstall: false, isInstalled: detectInstalledPwa() }
+const listeners = new Set<() => void>()
+
+function setState(next: Partial<typeof state>) {
+  state = { ...state, ...next }
+  listeners.forEach((fn) => fn())
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault()
+    deferredPrompt = event as BeforeInstallPromptEvent
+    setState({ canInstall: true })
+  })
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null
+    setState({ isInstalled: true, canInstall: false })
+  })
+}
+
+function subscribe(fn: () => void) {
+  listeners.add(fn)
+  return () => {
+    listeners.delete(fn)
+  }
+}
+
+const getSnapshot = () => state
+
 export function usePwaInstall() {
-  const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null)
-  const [canInstall, setCanInstall] = useState(false)
-  const [isInstalled, setIsInstalled] = useState(detectInstalledPwa)
-
-  useEffect(() => {
-    const onBeforeInstall = (event: Event) => {
-      event.preventDefault()
-      deferredPrompt.current = event as BeforeInstallPromptEvent
-      setCanInstall(true)
-    }
-
-    const onInstalled = () => {
-      setIsInstalled(true)
-      setCanInstall(false)
-      deferredPrompt.current = null
-    }
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall)
-    window.addEventListener('appinstalled', onInstalled)
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
-      window.removeEventListener('appinstalled', onInstalled)
-    }
-  }, [])
+  const { canInstall, isInstalled } = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
   const install = useCallback(async () => {
-    const prompt = deferredPrompt.current
+    const prompt = deferredPrompt
     if (!prompt) return false
 
     await prompt.prompt()
     const { outcome } = await prompt.userChoice
-    deferredPrompt.current = null
-    setCanInstall(false)
+    deferredPrompt = null
 
     if (outcome === 'accepted') {
-      setIsInstalled(true)
+      setState({ canInstall: false, isInstalled: true })
       return true
     }
-
+    setState({ canInstall: false })
     return false
   }, [])
 

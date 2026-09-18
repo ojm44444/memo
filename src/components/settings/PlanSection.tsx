@@ -5,6 +5,7 @@ import {
   FOUNDING_OFFER,
   FOUNDING_TERMS,
   NO_SUBSCRIPTION,
+  PAYWALL_FROM,
   PRICES,
   REFUND_DAYS,
   describeSubscription,
@@ -19,9 +20,21 @@ import {
   type PlanChoice,
   type Subscription,
 } from '@/lib/billing'
+import { supabase } from '@/lib/supabase/client'
+import '@/styles/onboarding.css'
 
 const longDate = (date: Date) =>
   date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** Comped or created before the paywall: free for good, as PlanGate and the database agree. */
+async function isFreeForGood(): Promise<boolean> {
+  if (!supabase) return false
+  const { data } = await supabase.auth.getSession()
+  const user = data.session?.user
+  if (!user) return false
+  if (user.app_metadata?.comped === true) return true
+  return new Date(user.created_at).getTime() < new Date(PAYWALL_FROM).getTime()
+}
 
 /**
  * Plan and billing.
@@ -43,6 +56,9 @@ export function PlanSection() {
   const [error, setError] = useState<string | null>(null)
   const [refundOpen, setRefundOpen] = useState(false)
   const [refunded, setRefunded] = useState<string | null>(null)
+  // Comped and early accounts are free for good (PlanGate and the database
+  // agree): no subscription, so nothing to cancel and nothing to buy.
+  const [freeForGood, setFreeForGood] = useState(false)
 
   useEffect(() => {
     if (!BILLING_LIVE) return
@@ -51,12 +67,14 @@ export function PlanSection() {
       getSubscription(),
       FOUNDING_OFFER ? getFoundingPlacesLeft() : Promise.resolve(0),
       FOUNDING_OFFER ? isFoundingEligible() : Promise.resolve(false),
+      isFreeForGood(),
     ]).then(
-      ([nextSub, left, canFound]) => {
+      ([nextSub, left, canFound, free]) => {
         if (!live) return
         setSub(nextSub)
         setPlacesLeft(left)
         setEligible(canFound)
+        setFreeForGood(free)
       },
     )
     return () => {
@@ -119,10 +137,30 @@ export function PlanSection() {
           <p className="settings-plan-status" data-state="on">
             {describeSubscription(current)}
           </p>
-          <p className="settings-field-note">
-            Change card, see receipts, or cancel. Cancelling keeps your plan until the date above.
-            {current.plan === 'founding_year' ? ' Cancel and it is $79 a year if you come back.' : ''}
-          </p>
+          {current.cancelAtPeriodEnd ? (
+            <p className="settings-field-note">
+              Cancelled. You keep everything until the date above. Changed your mind? Manage
+              billing to keep your plan.
+            </p>
+          ) : (
+            /* 18 Sept, Owen: cancelling "needs to be a bit more obvious". Its
+               own button, not a line inside Manage billing. Stripe's portal
+               cancels at the end of the period. */
+            <div className="plan-cancel">
+              <button
+                type="button"
+                className="ob-pill is-quiet plan-cancel-btn"
+                disabled={busy}
+                onClick={() => void run(openBillingPortal)}
+              >
+                Cancel plan
+              </button>
+              <p className="settings-field-note">
+                You keep everything until the end of the period you’ve paid for.
+                {current.plan === 'founding_year' ? ' Cancel and it is $79 a year if you come back.' : ''}
+              </p>
+            </div>
+          )}
           <div className="reminder-row">
             <button
               type="button"
@@ -142,6 +180,7 @@ export function PlanSection() {
               </button>
             )}
           </div>
+          <p className="settings-field-note">Manage billing: change card or see receipts.</p>
 
           {refund.open && refundOpen && refund.until && (
             <div className="settings-everywhere">
@@ -169,6 +208,10 @@ export function PlanSection() {
             </div>
           )}
         </>
+      ) : freeForGood ? (
+        <p className="settings-plan-status" data-state="on">
+          Free for good on this account. Nothing is charging you.
+        </p>
       ) : (
         <>
           {refunded && <p className="settings-import-result">{refunded}</p>}

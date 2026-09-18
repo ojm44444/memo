@@ -7,7 +7,6 @@ import { PlanSection } from '@/components/settings/PlanSection'
 import { ShareLinksSection } from '@/components/settings/ShareLinksSection'
 import { TwoStepSection } from '@/components/settings/TwoStepSection'
 import { TrashSection } from '@/components/board/TrashSection'
-import { usePwaInstall } from '@/hooks/usePwaInstall'
 import {
   DAY_NAMES,
   buildReminderMessage,
@@ -29,7 +28,9 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { exportBoardBackup } from '@/lib/export/exportBoardBackup'
 import { importBoardBackup } from '@/lib/export/importBoardBackup'
 import type { ImportBackupResult, ImportProgress } from '@/lib/export/backupTypes'
-import { resetOnboardingTour } from '@/lib/onboarding'
+import { SUPPORT_EMAIL, resetOnboardingTour } from '@/lib/onboarding'
+import { InstallGuide } from '@/components/onboarding/InstallGuide'
+import { ImportGuide } from '@/components/onboarding/ImportGuide'
 import {
   cachePendingRemoteAudio,
   countUncachedRemoteAudio,
@@ -37,14 +38,12 @@ import {
 } from '@/sync/audioDownload'
 import { getBudgetState, resetEgressBudget } from '@/sync/egressBudget'
 import { useUiStore } from '@/stores/uiStore'
-import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
 
 /** A message the delete-account function wrote itself, shown as-is. */
 class DeleteAccountError extends Error {}
 
 export function SettingsPanel() {
   const navigate = useNavigate()
-  const { canInstall, isInstalled, install } = usePwaInstall()
   const [reminder, setReminder] = useState<ReminderSettings | null>(null)
   const [notifyOk, setNotifyOk] = useState(canNotify())
   const [preview, setPreview] = useState<string | null>(null)
@@ -62,7 +61,7 @@ export function SettingsPanel() {
   }
 
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [phoneGuide, setPhoneGuide] = useState(false)
+  const [importHelp, setImportHelp] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -260,19 +259,36 @@ export function SettingsPanel() {
 
             <section className="settings-section">
               <h3 className="settings-section-title">Help</h3>
-              <p className="settings-section-copy">Walk through the board tour again.</p>
-              <button
-                type="button"
-                className="settings-export"
-                onClick={() => {
-                  void resetOnboardingTour().then(() => {
-                    useUiStore.getState().requestOnboardingTour()
-                    setOpen(false)
-                  })
-                }}
-              >
-                Show onboarding tour
-              </button>
+              <p className="settings-section-copy">
+                The welcome guide, how to get audio in, and a person to write to.
+              </p>
+              <div className="reminder-row">
+                <button
+                  type="button"
+                  className="settings-export"
+                  onClick={() => {
+                    void resetOnboardingTour().then(() => {
+                      useUiStore.getState().requestOnboardingTour()
+                      setOpen(false)
+                    })
+                  }}
+                >
+                  Show the guide again
+                </button>
+                <button
+                  type="button"
+                  className="settings-export"
+                  aria-expanded={importHelp}
+                  onClick={() => setImportHelp((v) => !v)}
+                >
+                  How to get audio in
+                </button>
+              </div>
+              {importHelp && <ImportGuide />}
+              <p className="settings-field-note">
+                Stuck on something? Write to{' '}
+                <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> and a person reads it.
+              </p>
             </section>
 
             {supabaseConfigured && (
@@ -589,34 +605,12 @@ export function SettingsPanel() {
 
             <section className="settings-section">
               <h3 className="settings-section-title">Install</h3>
-              {isInstalled ? (
-                <p className="settings-install-note">
-                  Installed. songdrafts opens in its own window.
-                </p>
-              ) : canInstall ? (
-                <>
-                  <p className="settings-install-note">
-                    Runs in its own window, with its own icon, and works offline.
-                  </p>
-                  <button
-                    type="button"
-                    className="settings-install-btn"
-                    onClick={() => void install()}
-                  >
-                    Install songdrafts
-                  </button>
-                </>
-              ) : (
-                <p className="settings-install-note">
-                  Chrome and Edge, on Windows or Mac: look for the install icon in the address
-                  bar. Safari on Mac: File, then Add to Dock. iPhone: Share, then Add to Home
-                  Screen.
-                </p>
-              )}
-              <button type="button" className="settings-install-btn" onClick={() => setPhoneGuide(true)}>
-                Put it on your phone
-              </button>
-              {phoneGuide && <PhoneInstallGuide onClose={() => setPhoneGuide(false)} />}
+              <p className="settings-install-note">
+                Runs in its own window, with its own icon, like any other app.
+              </p>
+              {/* One guide for the tour, Help and here: the device you are on
+                  first, the others one tap away. */}
+              <InstallGuide />
             </section>
 
             {supabaseConfigured && email && (
