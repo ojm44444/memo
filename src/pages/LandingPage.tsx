@@ -9,7 +9,10 @@ import { HeroStack } from '@/components/landing/HeroStack'
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { CookieSettingsLink } from '@/components/layout/AdConsent'
-import { FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS, PRICES, getFoundingPlacesLeft } from '@/lib/billing'
+/* From prices.ts, not billing.ts: billing imports the Supabase client, and
+   that one import put all of supabase-js in the landing's first download. */
+import { FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS, PRICES } from '@/lib/prices'
+import { captureFirstTouch } from '@/lib/attribution'
 
 /* Was a visible "build 1a2b3c4" stamp in the footer, checkable at a glance
    after a deploy that "looks the same" (a stale service worker, more than
@@ -127,6 +130,7 @@ function Tick({ val }: { val: boolean | 'partial' | string }) {
   if (val === true) return <span className="tick tick--yes" aria-label="Yes">✓</span>
   if (val === false) return <span className="tick tick--no" aria-label="No">✕</span>
   if (val === 'partial') return <span className="tick tick--partial" aria-label="Partial">~</span>
+  if (val === '?') return <span className="tick tick--unknown" aria-label="Not confirmed">?</span>
   return <span className="tick tick--price">{val}</span>
 }
 
@@ -148,10 +152,23 @@ const COMPARE_ROWS = [
   // Dubnote is BACK as a sixth column (Owen, 30 Aug): Trello was an addition,
   // not a replacement. There is no cost to naming one more thing we beat, and
   // dropping a real competitor from the table reads worse than carrying it.
-  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  trello: true,  dubnote: false,       tapeit: false },
-  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
-  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  dubnote: false,  tapeit: false },
-  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
+  //
+  // Samply is IN as a seventh column (Owen, 18 Sept: "I thought we were
+  // putting Samply on the comparison"). It was left out above because it never
+  // came up in the r/Songwriting threads, which is still true of the
+  // songwriting side. But Listen now competes with Samply directly for mixes
+  // and masters, so leaving it out would be dodging the one rival that side
+  // actually has. Every Samply cell was checked on 18 Sept against Samply's
+  // own docs (docs.samply.app: sharing, applications, playback-quality,
+  // comments, projects) and its published plans. Where the docs do not say,
+  // the cell is "?" and the footnote says so, rather than a guess either way.
+  // Samply WINS or ties real rows (version stacks, password links) and they
+  // are conceded, for the same reason Trello's first row is.
+  { feature: 'A board your songs move across', songdrafts: true,      voicememos: false,  notes: 'partial',  trello: true,  dubnote: false,       tapeit: false,  samply: false },
+  // Samply stacks versions on one track and A/Bs them: that is this row.
+  { feature: 'Every take stacked on one song', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false,  samply: true },
+  { feature: 'Lyrics and the recording together', songdrafts: true,   voicememos: false,  notes: 'partial',  trello: 'partial',  dubnote: false,  tapeit: false,  samply: false },
+  { feature: 'Merge two half-songs into one',  songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false,  samply: false },
   // AUDITED 31 Aug. This row said "read off the file" with a full tick, which
   // overclaims twice over. extractFileMetadata reads common.key and common.bpm
   // from ID3 TAGS. It does not analyse audio. A voice memo carries no such
@@ -159,17 +176,25 @@ const COMPARE_ROWS = [
   // drawer's manual key/tempo/tuning inputs exist precisely because of that.
   // Dubnote's paywall advertises real BPM DETECTION, so on the harder
   // capability they beat us, and the old row had that backwards.
-  { feature: 'Filter by key and tempo', songdrafts: true, voicememos: false, notes: false, trello: false, dubnote: true,  tapeit: 'partial' },
-  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false },
-  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial' },
-  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true },
+  { feature: 'Filter by key and tempo', songdrafts: true, voicememos: false, notes: false, trello: false, dubnote: true,  tapeit: 'partial',  samply: '?' },
+  { feature: 'Comments pinned to a timestamp', songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: false,      tapeit: false,  samply: true },
+  // Added 18 Sept with the Samply column: the Listen side's own question.
+  // songdrafts: ShareCollectionSheet sets a password on a playlist link.
+  // Samply: "Add a password for extra security" (docs, sharing). Dubnote and
+  // Tape.it: neither site says either way (Tape.it mentions private shared
+  // mixtapes, not passwords), so "?" rather than a cross we cannot stand by.
+  { feature: 'A password on a share link',     songdrafts: true,      voicememos: false,  notes: false,      trello: false,  dubnote: '?',        tapeit: '?',  samply: true },
+  { feature: 'Deleting here is not deleting everywhere', songdrafts: true, voicememos: false, notes: false,  trello: 'partial',  dubnote: 'partial',  tapeit: 'partial',  samply: '?' },
+  // Samply: offline listening is in its iOS app; the web and Android app
+  // are a PWA with no offline claim in the docs. Hence partly.
+  { feature: 'Works fully offline',            songdrafts: true,      voicememos: true,   notes: true,       trello: 'partial',  dubnote: true,  tapeit: true,  samply: 'partial' },
   // Still conceded, and it stays, but it was WRONG rather than merely modest.
   // "Recording quality: partial" implied songdrafts half-records. It does not
   // record at all: there is no MediaRecorder and no getUserMedia anywhere in
   // the codebase, and no sampling either. The row now says the true thing, and
   // losing it four to two is on message rather than damaging, because the whole
   // pitch is "keep recording in Voice Memos, songdrafts is what happens next".
-  { feature: 'Records the audio itself',       songdrafts: false,     voicememos: true,      notes: 'partial', trello: false, dubnote: true,      tapeit: true },
+  { feature: 'Records the audio itself',       songdrafts: false,     voicememos: true,      notes: 'partial', trello: false, dubnote: true,      tapeit: true,  samply: false },
 ] as const
 
 const STEPS = [
@@ -189,7 +214,11 @@ const STEPS = [
 const FAQS = [
   {
     q: 'Does it work without Wi-Fi?',
-    a: 'Yes, properly. Not a cut-down offline mode. Everything you\'ve imported is already on your device, so the tube and the plane and the studio with the thick walls are all fine. It catches up on sync when you resurface.',
+    // 18 Sept: said what is true for each side. The songwriting board opens
+    // offline once installed (the service worker serves the app, the library
+    // is in IndexedDB). Listen needs "Make offline" on a playlist first
+    // (MixesRoom OfflineButton), which saves every version to the device.
+    a: 'Yes. Install it and the songwriting board opens with no signal, with everything you\'ve imported already on your device. For Listen, tap Make offline on a playlist and every track in it plays offline too. It catches up on sync when you resurface.',
   },
   {
     // Was "What happens to a song I never finish?", which Owen called a
@@ -211,7 +240,10 @@ const FAQS = [
     // is no iOS project, no Capacitor, no React Native and no Expo anywhere in
     // the repo. Nothing is being worked on, so that was a promise to customers
     // about work that does not exist. Removed rather than softened.
-    a: 'Import via the Files app on iPhone and run songdrafts in your mobile browser. You can install it to your home screen and it opens in its own window, offline. There is no App Store app.',
+    // REINSTATED by Owen, 18 Sept: he wants to say an App Store version is on
+    // the way, so people can share straight from Voice Memos. His call, one
+    // plain line, no date promised.
+    a: 'Import via the Files app on iPhone and run songdrafts in your mobile browser. You can install it to your home screen and it opens in its own window, offline. An App Store version is on the way, so you can share straight from Voice Memos.',
   },
   {
     q: 'Is my music private?',
@@ -255,16 +287,10 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   )
 }
 
-/**
- * Used to fade each section up as it scrolled into view: hidden until an
- * IntersectionObserver caught it, then a transition to visible. Owen's read,
- * scrolling the real page rather than a single screenshot: it looked like
- * the page was still loading, background and all, arriving in pieces as he
- * scrolled rather than being there already. Removed rather than tuned,
- * because the complaint was the mechanic itself (content appearing late),
- * not its timing.
- */
-function useSectionReveal() {}
+/* No scroll reveals, no fade-ins, anywhere on this page. Sections used to
+   fade up as an IntersectionObserver caught them, and Owen's read of the real
+   page was that it looked like it was still loading, arriving in pieces as he
+   scrolled. The whole page is simply there. Do not add a reveal back. */
 
 /**
  * The price card: yearly or monthly, with the founding offer leading the
@@ -285,9 +311,12 @@ function PricingToggle() {
   useEffect(() => {
     if (!FOUNDING_OFFER) return
     let live = true
-    void getFoundingPlacesLeft().then((left) => {
-      if (live) setPlacesLeft(left)
-    })
+    // Loaded only when the offer is on, so the client stays off the landing.
+    void import('@/lib/billing')
+      .then((m) => m.getFoundingPlacesLeft())
+      .then((left) => {
+        if (live) setPlacesLeft(left)
+      })
     return () => {
       live = false
     }
@@ -358,22 +387,24 @@ function PricingToggle() {
   )
 }
 
+/* The hero mesh used to be a full-viewport layer animating on a 22s loop,
+   with an IntersectionObserver to pause it off-screen. It is now a still
+   gradient painted once (18 Sept), so there is nothing to pause. */
+
 /**
- * The hero's background mesh is a full-viewport layer that animates on a 22s
- * loop. Nothing stopped it once the hero scrolled away, so the browser kept
- * repainting it for as long as the page was open. Paused off-screen.
+ * The browser bar follows the paper ground on this page. index.html sets the
+ * app's dark slate for every route; on a light page that read as a dark
+ * strip glued to the top. Restored on the way out to the app.
  */
-function useHeroMeshPause() {
+function usePaperThemeColor() {
   useEffect(() => {
-    const hero = document.querySelector('.hero')
-    if (!hero) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const io = new IntersectionObserver(
-      ([entry]) => { hero.classList.toggle('hero-mesh-paused', !entry.isIntersecting) },
-      { threshold: 0 },
-    )
-    io.observe(hero)
-    return () => io.disconnect()
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (!meta) return
+    const before = meta.getAttribute('content')
+    meta.setAttribute('content', '#f4efe2')
+    return () => {
+      if (before) meta.setAttribute('content', before)
+    }
   }, [])
 }
 
@@ -383,8 +414,9 @@ export function LandingPage() {
     'songdrafts · Finish more songs',
     'A board for your voice memos. Stack takes, drag songs right as they get better, send a demo link. Works offline. Nobody trains on your music.',
   )
-  useSectionReveal()
-  useHeroMeshPause()
+  usePaperThemeColor()
+  // First-touch attribution (utm tags, ref, referrer). See lib/attribution.
+  useEffect(() => captureFirstTouch(), [])
 
   return (
     <div className="landing">
@@ -439,6 +471,7 @@ export function LandingPage() {
         <div id="mobile-menu" className="mobile-menu">
           {[
             ['#features', 'Features'],
+            ['#listen', 'Listen'],
             ['#compare', 'Compare'],
             ['#pricing', 'Pricing'],
             ['#faq', 'FAQ'],
@@ -550,54 +583,60 @@ export function LandingPage() {
             </Link>
           </div>
 
+          {/* Drawn in the same shape as Listen itself (record.css): cover,
+              mono eyebrow, serif title, pills, a quiet zebra tracklist with
+              versions and length on the right, a note pinned to a second. */}
           <div className="listen-mock" aria-hidden>
             <div className="listen-mock-top">
               <div className="listen-mock-cover">
-                <span style={{ left: '17%', height: '20%' }} />
-                <span style={{ left: '35%', height: '32%' }} />
-                <span style={{ left: '53%', height: '25%' }} />
-                <span style={{ left: '71%', height: '38%' }} />
+                <span style={{ height: '46%' }} />
+                <span style={{ height: '78%' }} />
+                <span style={{ height: '58%' }} />
+                <span style={{ height: '92%' }} />
               </div>
-              <div>
-                <div className="listen-mock-eyebrow">Mixes · 4 tracks · 15:02</div>
+              <div className="listen-mock-head">
+                <div className="listen-mock-eyebrow">Playlist · 4 tracks · 15:02</div>
                 <div className="listen-mock-title">Evergreen EP</div>
                 <div className="listen-mock-artist">Harbour Lights</div>
               </div>
             </div>
             <div className="listen-mock-pills">
-              <span>Play</span>
-              <span>Shuffle</span>
+              <span className="is-primary">▶ Play</span>
               <span>Share</span>
+              <span>Make offline</span>
             </div>
-            <div style={{ marginTop: 16 }}>
-              <div className="listen-mock-row is-playing">
-                <span className="n">1</span>
-                <span>Heaven</span>
+            <ol className="listen-mock-list">
+              <li className="listen-mock-row is-playing">
+                <span className="n">
+                  <i /><i /><i />
+                </span>
+                <span className="t">Heaven <small>Master</small></span>
                 <span className="v">v3</span>
                 <span className="d">3:10</span>
-              </div>
-              <div className="listen-mock-note">
-                <b>1:43</b>Vocal a touch louder in the chorus?
-              </div>
-              <div className="listen-mock-row">
+              </li>
+              <li className="listen-mock-note">
+                <b>1:43</b>
+                <span>Vocal a touch louder in the chorus?</span>
+              </li>
+              <li className="listen-mock-row">
                 <span className="n">2</span>
-                <span>Lost</span>
+                <span className="t">Lost <small>Mix</small></span>
                 <span className="v">v2</span>
                 <span className="d">4:49</span>
-              </div>
-              <div className="listen-mock-row">
+              </li>
+              <li className="listen-mock-row">
                 <span className="n">3</span>
-                <span>Appreciation</span>
+                <span className="t">Appreciation <small>Mix</small></span>
                 <span className="v">v1</span>
                 <span className="d">3:36</span>
-              </div>
-              <div className="listen-mock-row">
+              </li>
+              <li className="listen-mock-row">
                 <span className="n">4</span>
-                <span>Evergreen</span>
+                <span className="t">Evergreen <small>Demo</small></span>
                 <span className="v">v4</span>
                 <span className="d">3:27</span>
-              </div>
-            </div>
+              </li>
+            </ol>
           </div>
         </div>
       </section>
@@ -711,11 +750,13 @@ export function LandingPage() {
             </h2>
             <p className="offline-sub">
               Most of these tools go blank the second you lose signal, which is exactly when
-              you're on a train with nothing else to do. Your library lives on your device.
-              Listen, sort, write notes. It syncs up later without being asked.
+              you're on a train with nothing else to do. Install songdrafts and the songwriting
+              board opens with no internet. Listen, sort, write notes. It syncs up later without
+              being asked.
             </p>
             <ul className="offline-list">
-              <li>The whole library, no internet</li>
+              <li>The whole songwriting board, no internet, once installed</li>
+              <li>Listen playlists too, once you tap Make offline</li>
               <li>Playback, speed and notes all still work</li>
               <li>Syncs itself when you're back online</li>
               <li>Close the app mid-song, lose nothing</li>
@@ -821,6 +862,8 @@ export function LandingPage() {
           songwriters once, and then deleted it.
         </p>
         <div className="compare-wrap">
+          {/* Scrolls sideways inside its card on a phone, never the page. */}
+          <div className="compare-scroll">
           <table className="compare-table">
             <thead>
               <tr>
@@ -833,6 +876,7 @@ export function LandingPage() {
                 <th className="compare-col">Trello</th>
                 <th className="compare-col">Dubnote</th>
                 <th className="compare-col">Tape.it</th>
+                <th className="compare-col">Samply</th>
               </tr>
             </thead>
             <tbody>
@@ -845,19 +889,23 @@ export function LandingPage() {
                   <td className="compare-cell"><Tick val={row.trello} /></td>
                   <td className="compare-cell"><Tick val={row.dubnote} /></td>
                   <td className="compare-cell"><Tick val={row.tapeit} /></td>
+                  <td className="compare-cell"><Tick val={row.samply} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
           {/* Was one paragraph doing three jobs at once (the half, the
               tilde, the loss). Split so each claim is its own line rather
               than making the reader hold three footnotes in their head at
               once. */}
           <ul className="compare-footnotes">
-            <li>~ means partly. Apple Notes holds lyrics but not the recording.</li>
+            <li>~ means partly. Apple Notes holds lyrics but not the recording. Samply plays offline in its iPhone app.</li>
+            <li>? means their own site and docs do not say, so we have not guessed.</li>
+            <li>Samply is built for sending mixes and masters, and it does that well: version stacks and password links are real there too.</li>
             <li>The one we lose outright: songdrafts doesn't record, and isn't trying to. You keep recording in Voice Memos. Left in, because a table that wins everything is one nobody believes.</li>
           </ul>
-          <p className="compare-footnote-date">Checked 31 August 2026.</p>
+          <p className="compare-footnote-date">Checked 18 September 2026.</p>
         </div>
       </section>
 

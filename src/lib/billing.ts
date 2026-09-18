@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
+import { PRICES } from './prices'
 
 /**
  * Billing, from the app's side.
@@ -37,30 +38,9 @@ export type SubscriptionStatus =
   | 'unpaid'
   | 'paused'
 
-/**
- * The prices, decided 14-15 Sept 2026. The server picks the Stripe price;
- * these are only what the page says, and must match it.
- */
-export const PRICES = {
-  founding: { amount: 49, interval: 'year' as const },
-  year: { amount: 79, interval: 'year' as const },
-  month: { amount: 12, interval: 'month' as const },
-}
-
-export const FOUNDING_CAP = 100
-
-/**
- * The $49 founding offer. OFF, settled 15 Sept after a Hormozi pass:
- * discounting an unproven product teaches people to wait and lowers what it
- * is worth. Everything behind it (the 100-place cap in 035, the Stripe price,
- * the checkout path) stays built, so turning it on is this flag plus
- * FOUNDING_OFFER=on on the checkout function.
- */
-export const FOUNDING_OFFER = false
-
-/** Said wherever the founding price is offered, before anyone pays. */
-export const FOUNDING_TERMS =
-  '$49 a year for as long as your subscription stays active. If you cancel, you rejoin at the current price.'
+/* The prices and the founding flag live in prices.ts (no imports), so the
+   landing page can show them without downloading the Supabase client. */
+export { PRICES, FOUNDING_CAP, FOUNDING_OFFER, FOUNDING_TERMS } from './prices'
 
 /** Days after the first payment in which the Settings refund button works. */
 export const REFUND_DAYS = { year: 30, month: 14 } as const

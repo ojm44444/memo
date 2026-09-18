@@ -115,19 +115,18 @@ const STAGE = [
  * Now the playing card renders its bars twice: the dim base, and a lit copy
  * on top whose clip-path sweeps open via a CSS animation. Same look, zero
  * re-renders, and the compositor throttles it offscreen for free. The two
- * layers share bar geometry and pulse delays, so they stay in register.
+ * layers share bar geometry, so they stay in register. The bars no longer
+ * pulse (18 Sept): thirty-odd elements animating forever, for a look Owen
+ * had already called childish on the Listen screen.
  */
-function Bars({ bars, playing }: { bars: number[]; playing?: boolean }) {
+function Bars({ bars }: { bars: number[] }) {
   return (
     <>
       {bars.map((h, i) => (
         <span
           key={i}
           className="lb-bar"
-          style={{
-            height: `${Math.round(h * 100)}%`,
-            animationDelay: playing ? `${(i % 12) * 90}ms` : undefined,
-          }}
+          style={{ height: `${Math.round(h * 100)}%` }}
         />
       ))}
     </>
@@ -137,10 +136,10 @@ function Bars({ bars, playing }: { bars: number[]; playing?: boolean }) {
 function Waveform({ bars, playing }: { bars: number[]; playing?: boolean }) {
   return (
     <div className={`lb-wave${playing ? ' is-playing' : ''}`}>
-      <Bars bars={bars} playing={playing} />
+      <Bars bars={bars} />
       {playing && (
         <div className="lb-wave-lit">
-          <Bars bars={bars} playing />
+          <Bars bars={bars} />
         </div>
       )}
     </div>
@@ -163,7 +162,9 @@ export function LiveBoard() {
 
   return (
     <div className="lb" aria-hidden="true">
-      <div className="lb-glow" />
+      {/* The drifting colour glow behind the board is gone (18 Sept): a
+          large layer animating forever, repainting the hero for as long as
+          the page was open. The board sits on the page's own still light. */}
       <div className="lb-frame">
         <div className="lb-cols">
           {COLUMNS.map((col, ci) => (

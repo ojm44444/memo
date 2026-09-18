@@ -11,6 +11,7 @@ import { Wordmark } from '@/components/ui/Wordmark'
 import { signupsAllowed } from '@/lib/signupsOpen'
 import { friendlyAuthError } from '@/lib/auth/friendlyAuthError'
 import { renderGoogleButton } from '@/lib/auth/googleIdentity'
+import { captureFirstTouch } from '@/lib/attribution'
 
 /** Our own pause between resends, so a double tap cannot send two links. */
 const RESEND_COOLDOWN_S = 30
@@ -57,6 +58,12 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
     const t = window.setTimeout(() => setResendIn((n) => n - 1), 1000)
     return () => window.clearTimeout(t)
   }, [resendIn])
+
+  /* A tagged link can point straight here, skipping the landing page. Keeps
+     the first touch if one was already recorded. See lib/attribution. */
+  useEffect(() => {
+    captureFirstTouch()
+  }, [])
 
   useEffect(() => {
     const onOffline = () => setOffline(true)
