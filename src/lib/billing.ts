@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import { adConsentForCheckout, trackPixelEvent } from '@/lib/metaPixel'
+import { trackGa4BeginCheckout } from '@/lib/ga4'
 import { PRICES } from './prices'
 
 /**
@@ -201,6 +202,7 @@ export async function startCheckout(plan: PlanChoice): Promise<void> {
     value: PRICES[plan].amount,
     currency: 'USD',
   })
+  trackGa4BeginCheckout(plan, PRICES[plan].amount)
   window.location.href = await billingUrl({ mode: 'checkout', plan, ...consent })
 }
 

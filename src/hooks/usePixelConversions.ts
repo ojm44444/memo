@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { trackPixelEvent } from '@/lib/metaPixel'
 import { getCheckoutReceipt } from '@/lib/billing'
+import { trackGa4Purchase, trackGa4SignUp } from '@/lib/ga4'
 
 const REGISTERED_KEY = 'songdrafts:pixel-registration-sent'
 
@@ -21,6 +22,9 @@ const NEW_ACCOUNT_WINDOW_MS = 15 * 60_000
  * Stripe rather than assumed, because Adaptive Pricing can charge in another
  * currency. The query is removed first, so a refresh cannot report twice.
  *
+ * Each is also sent to GA4 (sign_up and purchase, the Stripe session id as
+ * transaction_id) through the same once-only path.
+ *
  * Neither sends anything but the event: no email, no name, no board content.
  */
 export function usePixelConversions() {
@@ -37,6 +41,7 @@ export function usePixelConversions() {
         return
       }
       trackPixelEvent('CompleteRegistration')
+      trackGa4SignUp(data.user.app_metadata?.provider === 'google' ? 'google' : 'email')
     })
 
     const url = new URL(window.location.href)
@@ -58,6 +63,7 @@ export function usePixelConversions() {
               },
               receipt.eventId,
             )
+            trackGa4Purchase(sessionId, receipt.value ?? 0, receipt.currency ?? 'USD', receipt.plan ?? 'year')
           })
           .catch(() => {
             /* the server copy from the webhook still counts it */
