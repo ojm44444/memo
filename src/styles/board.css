@@ -1196,14 +1196,6 @@ body.is-file-dragging * {
   flex-shrink: 0;
 }
 
-.board-titlebar-accent {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-left: 4px;
-}
-
 .board-dot {
   width: 10px;
   height: 10px;
@@ -7619,8 +7611,9 @@ html.dark .song-detail-notes,
 
 /* ── Mobile — player bar safe area + titlebar ────────────── */
 @media (max-width: 768px) {
-  .app-titlebar,
-  [class*="titlebar"] {
+  /* Was also [class*="titlebar"], which put 12px side padding on every
+     board titlebar piece on phone (actions row, logo, overflow menu). */
+  .app-titlebar {
     padding: 0 12px;
   }
 
@@ -12584,33 +12577,7 @@ html.light .song-drawer {
     gap: 4px;
   }
 
-  .board-search {
-    flex: 0 0 auto;
-    width: 34px;
-    padding: 4px;
-    overflow: hidden;
-  }
-
-  .board-search-input {
-    width: 0;
-    padding: 0;
-  }
-
-  .board-search:focus-within {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    top: 8px;
-    z-index: 40;
-    width: auto;
-    padding: 4px 10px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  }
-
-  .board-search:focus-within .board-search-input {
-    width: 100%;
-    padding: 0 4px;
-  }
+  /* Search on phone: see board-polish.css (full-width field, 16px input). */
 
   /* The 900px block hides .board-add-section-form with a selector that also
      matches it inside the overflow panel (the panel is still a DOM

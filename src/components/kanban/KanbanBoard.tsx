@@ -32,6 +32,7 @@ import { BoardOnboarding } from '@/components/board/BoardOnboarding'
 import { getActiveProjectId, getProjectAccentHue } from '@/db/repositories/projectRepo'
 import { columnHeaderAccentStyle, projectAccentTextStyle } from '@/lib/projectAccent'
 import { cn } from '@/lib/cn'
+import { stageColorAt } from '@/lib/stageColor'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useUiStore } from '@/stores/uiStore'
 import { repeatedStems } from '@/lib/unnamedTitles'
@@ -322,7 +323,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
                   isPlayingTab && !isScrolledActive && 'is-playing-column',
                   showAccent && 'has-project-accent',
                 )}
-                style={showAccent ? activeTabAccentStyle : undefined}
+                style={{
+                  ...(showAccent ? activeTabAccentStyle : undefined),
+                  // Each tab carries its column's stage colour, so the phone
+                  // strip shows the same cold-to-warm ramp as the desktop board.
+                  ['--stage-ink' as string]: stageColorAt(index, columns.length),
+                }}
                 onClick={() => scrollToColumn(index)}
               >
                 {isPlayingTab && !isScrolledActive && (
@@ -341,8 +347,12 @@ export function KanbanBoard({ readOnly = false }: KanbanBoardProps) {
       )}
 
       <BulkActionsBar />
-      <RecentSongsRow />
-      <BoardActivityFeed />
+      {/* One strip for both: on phone they sit side by side as two small
+          toggles instead of two full-width bands above the columns. */}
+      <div className="board-strips">
+        <RecentSongsRow />
+        <BoardActivityFeed />
+      </div>
       <BoardOnboarding readOnly={readOnly} />
       <DuplicateProjectNotice />
       <BoardFilterBar />

@@ -26,8 +26,9 @@ export function BoardHero({ songCount, stageCount }: { songCount: number; stageC
       </div>
       <button
         type="button"
-        className="rec-pill is-primary"
+        className="rec-pill is-primary board-hero-play"
         disabled={songCount === 0}
+        aria-label={playingBoard ? 'Pause' : 'Play board'}
         onClick={() => {
           const player = usePlayerStore.getState()
           if (playingBoard) player.setPlaying(false)
@@ -35,7 +36,9 @@ export function BoardHero({ songCount, stageCount }: { songCount: number; stageC
         }}
       >
         {playingBoard ? <PauseIcon size={16} /> : <PlayIcon size={16} />}
-        {playingBoard ? 'Pause' : 'Play board'}
+        {/* Phone shows the icon alone: the button shrinks to a small round
+            control so the columns start near the top. */}
+        <span className="board-hero-play-label">{playingBoard ? 'Pause' : 'Play board'}</span>
       </button>
     </header>
   )
