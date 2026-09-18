@@ -11,28 +11,27 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── The board's stage ramp ────────────────────────────────────────────────
-   The logo's own teal-to-mint family, the same colours the product has
-   always used, just more saturated and spread a little wider so neighbouring
-   columns read apart (Owen, 18 Sept: "they were pretty before, I just thought
-   they should be a little bit more saturated"). A rainbow ramp shipped for an
-   hour and was rejected: never leave this family. Listen's generated covers
-   read the same ramp, so this also keeps Listen exactly as he likes it. */
+   Dark: the app icon's own four colours (public/brand/icon.svg), with one
+   step added between the last two. Light: the original light stage tokens.
+   LOCKED (Owen, 18 Sept, after a rainbow ramp and a saturated variant were
+   both rejected the same day): never leave the logo's teal-to-mint family.
+   Listen's generated covers read this ramp too. */
 .board-page {
-  --board-stage-1: #3d98b5;
-  --board-stage-2: #3fb1a9;
-  --board-stage-3: #5cc59d;
-  --board-stage-4: #8fd8a7;
-  --board-stage-5: #c3efb1;
+  --board-stage-1: #5ea7b8;
+  --board-stage-2: #65a396;
+  --board-stage-3: #8ac4a6;
+  --board-stage-4: #a9d8b3;
+  --board-stage-5: #c3e8bd;
   --board-soft: color-mix(in srgb, var(--text) 8%, transparent);
   --board-soft-hover: color-mix(in srgb, var(--text) 13%, transparent);
 }
 
 html.light .board-page {
-  --board-stage-1: #25699d;
-  --board-stage-2: #0e727f;
-  --board-stage-3: #10745d;
-  --board-stage-4: #267a3d;
-  --board-stage-5: #556d12;
+  --board-stage-1: #2f6f9e;
+  --board-stage-2: #12706b;
+  --board-stage-3: #1f7255;
+  --board-stage-4: #2f7440;
+  --board-stage-5: #5c6d16;
 }
 
 /* ── Top bar: part of the page, not a band across it ───────────────────── */
@@ -179,57 +178,39 @@ html.light .board-page .board-mode-btn.is-active {
   margin: 2px 0 0;
 }
 
-/* ── Columns: each one lit in its own stage colour ─────────────────────── */
-.board-page .board-kanban .board-column {
-  border-radius: 16px;
-  padding: 0 10px 10px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 22%, transparent) 0px,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 9%, transparent) 150px,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 70%,
-    transparent 100%
-  );
-}
-
-html.light .board-page .board-kanban .board-column {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 20%, transparent) 0px,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 8%, transparent) 150px,
-    color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 70%,
-    transparent 100%
-  );
-}
-
+/* ── Columns and cards: the calm board, lit in the logo's colours ─────────
+   Owen, 18 Sept: the earlier dark board was "quite nice, just not saturated
+   enough and not enough contrast". Coloured column washes and stage-tinted
+   cards were tried the same day and rejected ("the new dark mode is bad").
+   So the cards stay neutral, exactly as before, and the colour lives where it
+   always did (the dot, a rule under each header, the waveform), now at full
+   strength in the logo's own ramp so each column reads as its own colour. */
 .board-page .board-kanban .board-column.is-over,
 .board-page .board-kanban .board-column.is-file-drop {
   outline: 2px solid color-mix(in srgb, var(--stage-ink, var(--accent)) 70%, transparent);
   outline-offset: 0;
+  border-radius: 14px;
 }
 
 .board-page .board-kanban .board-column-header {
-  min-height: 48px;
-  padding: 12px 4px 10px;
-  margin-bottom: 2px;
-  border-bottom: 3px solid var(--stage-ink, var(--border));
-  box-shadow: 0 6px 14px -10px var(--stage-ink, transparent);
+  border-bottom: 2px solid var(--stage-ink, var(--border));
 }
 
 .board-page .board-column-header > span:first-child::before {
-  width: 10px;
-  height: 10px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage-ink, var(--accent)) 28%, transparent);
+  background: var(--stage-ink, var(--accent));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--stage-ink, var(--accent)) 55%, transparent);
 }
 
 .board-page .board-kanban .board-column-count {
   color: var(--stage-ink, var(--text-muted));
-  font-weight: 500;
+}
+
+.board-page .board-column .song-card-waveform {
+  opacity: 1;
 }
 
 /* The hover reveal used to float over the title on a fade to the bare
-   ground, which would show as a dark block over the new wash. Keep it in the
-   row instead: the title already truncates. */
+   ground. Keep it in the row instead: the title already truncates. */
 .board-page .board-column:hover .board-column-header-actions,
 .board-page .board-column-header-actions:focus-within {
   position: static;
@@ -241,105 +222,6 @@ html.light .board-page .board-kanban .board-column {
 .board-page .board-column-header > span:first-child {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-/* ── Cards: the Listen row, tinted by its stage ────────────────────────── */
-.board-page .board-kanban .board-column .song-card {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 20%, transparent) 0%,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 5%, transparent) 65%
-    ),
-    color-mix(in srgb, var(--bg) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--stage-ink, var(--border)) 22%, transparent);
-  border-left: 3px solid var(--stage-ink, var(--border));
-  border-radius: 12px;
-  box-shadow: 0 8px 20px -14px rgba(0, 0, 0, 0.6);
-}
-
-.board-page .board-kanban .board-column .song-card:hover {
-  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 45%, transparent);
-  border-left-color: var(--stage-ink, var(--border));
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 28%, transparent) 0%,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 8%, transparent) 65%
-    ),
-    color-mix(in srgb, var(--bg) 55%, transparent);
-}
-
-html.light .board-page .board-kanban .board-column .song-card {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 16%, transparent) 0%,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 3%, transparent) 65%
-    ),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 26%, transparent);
-  border-left-color: var(--stage-ink, var(--border));
-  box-shadow:
-    0 1px 2px rgba(15, 43, 46, 0.06),
-    0 8px 18px -12px color-mix(in srgb, var(--stage-ink, #0f2b2e) 55%, transparent);
-}
-
-html.light .board-page .board-kanban .board-column .song-card:hover {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 24%, transparent) 0%,
-      color-mix(in srgb, var(--stage-ink, var(--accent)) 6%, transparent) 65%
-    ),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--stage-ink, var(--border)) 45%, transparent);
-  border-left-color: var(--stage-ink, var(--border));
-}
-
-/* Playing and selected keep the accent: one lit card, as before. */
-.board-page .board-kanban .board-column .song-card.is-active,
-html.light .board-page .board-kanban .board-column .song-card.is-active {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent) 22%, transparent) 0%,
-      color-mix(in srgb, var(--accent) 8%, transparent) 70%
-    ),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-  border-left-color: var(--accent);
-}
-
-.board-page .board-kanban .board-column .song-card.is-dragging {
-  background: var(--bg-2);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-}
-
-.board-page .board-kanban .board-column .song-card.is-selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.board-page .board-column .song-card-title {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-}
-
-.board-page .board-column .song-card-play {
-  background: color-mix(in srgb, var(--stage-ink, var(--text)) 22%, transparent);
-  color: var(--text);
-}
-
-.board-page .board-column .song-card-play:hover {
-  background: var(--text);
-  color: var(--bg);
-}
-
-.board-page .board-column .song-card-play.is-playing {
-  background: var(--accent);
-  color: var(--accent-on);
 }
 
 /* ── Tags: every tag its own colour, clearly ───────────────────────────── */
