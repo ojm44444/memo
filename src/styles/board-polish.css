@@ -34,148 +34,86 @@ html.light .board-page {
   --board-stage-5: #5c6d16;
 }
 
-/* ── Top bar: part of the page, not a band across it ───────────────────── */
-.board-page .board-titlebar {
-  background: var(--bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
-  padding: 10px 20px;
-  gap: 12px;
-}
+/* Desktop top bar, hero and Recent/Activity keep the look from the morning
+   of 18 Sept (Owen: "it looked way better before, they just need to be more
+   on brand and pop a bit more"). Only the phone versions changed, below. */
 
-.board-page .board-titlebar-logo {
-  margin-right: 8px;
-}
-
-/* Mode toggle: the mode you are in is a white pill, like Listen's Play. */
-.board-page .board-mode-toggle {
-  background: var(--board-soft);
-  border: 0;
-  padding: 3px;
-  gap: 2px;
-}
-
-.board-page .board-mode-btn {
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.board-page .board-mode-btn:hover {
-  color: var(--text);
-}
-
-.board-page .board-mode-btn.is-active,
-html.light .board-page .board-mode-btn.is-active {
-  background: var(--text);
-  color: var(--bg);
-  box-shadow: none;
-}
-
-/* Search: a soft pill, same fill as the toggle track. */
-.board-page .board-search {
-  border: 0;
-  background: var(--board-soft);
-  padding: 6px 12px;
-  min-height: 34px;
-}
-
-.board-page .board-search:focus-within {
-  background: var(--board-soft-hover);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.board-page .board-search-input {
-  font-size: 13px;
-}
-
-.board-page .board-search-icon {
-  font-size: 15px;
-  line-height: 1;
-}
-
-/* Cancel is the phone's way out of the full-width field. Desktop has Escape. */
+/* Cancel is the phone's way out of the full-width search. Desktop has Escape. */
 .board-page .board-search-close {
   display: none;
 }
 
-/* ── Hero: the project name, and Play without shouting ─────────────────── */
-.board-page .board-hero .rec-pill.board-hero-play {
-  min-height: 38px;
-  padding: 0 18px;
-  font-size: 13.5px;
-  gap: 8px;
-}
+/* ── Recent and Activity on phone: two small toggles, not two bands ────── */
+@media (max-width: 767px) {
+  .board-page .board-strips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 0 28px 12px;
+  }
 
-/* ── Recent and Activity: two small toggles, not two bands ─────────────── */
-.board-page .board-strips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 0 28px 12px;
-}
+  /* The sections dissolve so both headers share one row and whichever list is
+     open drops below them at full width. */
+  .board-page .board-strips > .recent-songs,
+  .board-page .board-strips > .board-activity {
+    display: contents;
+  }
 
-/* The sections dissolve so both headers share one row and whichever list is
-   open drops below them at full width. */
-.board-page .board-strips > .recent-songs,
-.board-page .board-strips > .board-activity {
-  display: contents;
-}
+  .board-page .board-strips .recent-songs-header,
+  .board-page .board-strips .board-activity-header {
+    order: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: auto;
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--board-soft);
+    color: var(--text);
+    transition: background 120ms ease;
+  }
 
-.board-page .board-strips .recent-songs-header,
-.board-page .board-strips .board-activity-header {
-  order: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  width: auto;
-  margin: 0;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--board-soft);
-  color: var(--text);
-  transition: background 120ms ease;
-}
+  .board-page .board-strips .recent-songs-header:hover,
+  .board-page .board-strips .board-activity-header:hover,
+  .board-page .board-strips .recent-songs-header[aria-expanded='true'],
+  .board-page .board-strips .board-activity-header[aria-expanded='true'] {
+    background: var(--board-soft-hover);
+  }
 
-.board-page .board-strips .recent-songs-header:hover,
-.board-page .board-strips .board-activity-header:hover,
-.board-page .board-strips .recent-songs-header[aria-expanded='true'],
-.board-page .board-strips .board-activity-header[aria-expanded='true'] {
-  background: var(--board-soft-hover);
-}
+  .board-page .board-strips .recent-songs-title,
+  .board-page .board-strips .board-activity-title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text);
+    opacity: 1;
+  }
 
-.board-page .board-strips .recent-songs-title,
-.board-page .board-strips .board-activity-title {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text);
-  opacity: 1;
-}
+  .board-page .board-strips .recent-songs-hint,
+  .board-page .board-strips .board-activity-hint {
+    display: none;
+  }
 
-.board-page .board-strips .recent-songs-hint,
-.board-page .board-strips .board-activity-hint {
-  display: none;
-}
+  .board-page .board-strips .recent-songs-toggle,
+  .board-page .board-strips .board-activity-toggle {
+    margin: 0;
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 1;
+  }
 
-.board-page .board-strips .recent-songs-toggle,
-.board-page .board-strips .board-activity-toggle {
-  margin: 0;
-  font-size: 10px;
-  color: var(--text-muted);
-  opacity: 1;
-}
-
-.board-page .board-strips .recent-songs-track,
-.board-page .board-strips .board-activity-list {
-  order: 1;
-  flex: 0 0 100%;
-  min-width: 0;
-  margin: 2px 0 0;
+  .board-page .board-strips .recent-songs-track,
+  .board-page .board-strips .board-activity-list {
+    order: 1;
+    flex: 0 0 100%;
+    min-width: 0;
+    margin: 2px 0 0;
+  }
 }
 
 /* ── Columns and cards: the calm board, lit in the logo's colours ─────────
