@@ -173,7 +173,10 @@ export function ColumnPlayerBar() {
       if (sameUrl) {
         // No new load, so no canplay is coming. Mark ready ourselves or the
         // play/pause effect below would ignore this source.
-        if (audioRef.current.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) setSourceReady(true)
+        if (audioRef.current.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          setSourceReady(true)
+          setBuffering(false)
+        }
       } else {
         markSrcSwitch()
         // Claim the element before the unlock's SILENT promise resolves and
