@@ -164,6 +164,12 @@ export function PrivacyPage() {
           ours, which is why it is here rather than in the list above. You can change your mind at any
           time with the link at the bottom of this page.
         </p>
+        {/* Added 18 Sept 2026 with GA4 (src/lib/ga4.ts). Same switch as the pixel. */}
+        <p>
+          We also use Google Analytics to count visits, where they came from, sign-ups and payments,
+          never on share, invite or playlist links; Your privacy choices and Global Privacy Control
+          turn it off too.
+        </p>
 
         <h2>Where it is, and how long we keep it</h2>
         <p>
@@ -223,9 +229,9 @@ export function PrivacyPage() {
         </p>
         <p>
           The only other one is Meta&apos;s, when the pixel runs (see above): it sets a cookie called
-          _fbp so it can tell whether someone who saw an ad later signed up. There are no other
-          analytics or advertising cookies. Your privacy choices, at the bottom of this page, turns it off
-          and removes Meta&apos;s cookie.
+          _fbp so it can tell whether someone who saw an ad later signed up. Google Analytics, when
+          it runs, sets cookies starting _ga. There are no other analytics or advertising cookies.
+          Your privacy choices, at the bottom of this page, turns both off and removes their cookies.
         </p>
 
         <h2>Changes</h2>

@@ -13,6 +13,7 @@ import {
   shouldAskForConsent,
   trackPageView,
 } from '@/lib/metaPixel'
+import { initGa4, trackGa4PageView } from '@/lib/ga4'
 import '@/styles/ad-consent.css'
 
 /** Re-render whenever consent or the region changes. */
@@ -34,7 +35,11 @@ export function AdConsentBanner() {
   useConsentState()
 
   useEffect(() => {
-    void initPixelFromConsent()
+    // GA4 follows the same consent, so it starts once that is known.
+    void initPixelFromConsent().then(() => {
+      initGa4()
+      trackGa4PageView()
+    })
   }, [])
 
   if (isPixelBlockedHere(location.pathname)) return null
@@ -45,7 +50,7 @@ export function AdConsentBanner() {
     return (
       <div className="ad-consent" role="dialog" aria-live="polite" aria-label="Ad measurement">
         <p className="ad-consent-text">
-          Your browser sends Global Privacy Control, so nothing is shared with Meta.{' '}
+          Your browser sends Global Privacy Control, so nothing is shared with Meta or Google Analytics.{' '}
           <Link to="/privacy">Details</Link>
         </p>
         <div className="ad-consent-actions">
@@ -62,8 +67,8 @@ export function AdConsentBanner() {
   return (
     <div className="ad-consent" role="dialog" aria-live="polite" aria-label="Ad measurement">
       <p className="ad-consent-text">
-        <strong>Allow an ad cookie?</strong> It tells Meta you visited, so we know which ads
-        work. Meta never sees your music or your board.{' '}
+        <strong>Allow ad and analytics cookies?</strong> They tell Meta and Google you visited,
+        so we know which ads and posts work. Neither sees your music or your board.{' '}
         <Link to="/privacy">Details</Link>
       </p>
       <div className="ad-consent-actions">
@@ -78,11 +83,12 @@ export function AdConsentBanner() {
   )
 }
 
-/** Counts a page view on the public pages when the route changes. */
+/** Counts a page view (Meta and GA4) on allowed pages when the route changes. */
 export function PixelPageViews() {
   const location = useLocation()
   useEffect(() => {
     trackPageView(location.pathname)
+    trackGa4PageView(location.pathname)
   }, [location.pathname])
   return null
 }

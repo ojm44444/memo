@@ -42,6 +42,11 @@ function read(): FirstTouch | null {
   }
 }
 
+/** The first touch in this browser, if one was recorded. */
+export function getFirstTouch(): FirstTouch | null {
+  return read()
+}
+
 /** Record the first visit. Never overwrites an existing first touch. */
 export function captureFirstTouch() {
   try {
