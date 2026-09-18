@@ -39,3 +39,7 @@ content_path = "./supabase/templates/magic-link.html"
 [auth.email.template.confirmation]
 subject = "Open your new songdrafts board"
 content_path = "./supabase/templates/confirm-signup.html"
+
+# Anonymous listeners on share links call this; it validates the link itself.
+[functions.share-audio]
+verify_jwt = false

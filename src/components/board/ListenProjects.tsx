@@ -17,7 +17,7 @@ import {
   savePendingLink,
   type SavedLink,
 } from '@/db/repositories/savedLinksRepo'
-import { signedTrackUrl } from '@/db/repositories/collectionShareRepo'
+import { shareCoverUrl } from '@/db/repositories/collectionShareRepo'
 import '@/styles/record.css'
 
 /**
@@ -187,8 +187,8 @@ function SharedWithYou() {
       setLinks(list)
       for (const link of list) {
         if (!link.cover_path) continue
-        void signedTrackUrl(link.cover_path)
-          .then((url) => live && setCovers((prev) => ({ ...prev, [link.token]: url })))
+        void shareCoverUrl(link.token)
+          .then((url) => live && url && setCovers((prev) => ({ ...prev, [link.token]: url })))
           .catch(() => undefined)
       }
     })()

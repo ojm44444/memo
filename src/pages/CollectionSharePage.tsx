@@ -28,13 +28,15 @@ import { supabaseConfigured } from '@/lib/supabase/client'
 import {
   addCollectionComment,
   getCollectionShare,
-  signedTrackUrl,
+  shareCoverUrl,
+  shareDownloadUrl,
   type CollectionComment,
   type CollectionPayload,
   type CollectionTrack,
 } from '@/db/repositories/collectionShareRepo'
 import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
 import { ListenerNameField } from '@/components/share/ListenerNameField'
+import { SHARE_URL_MARGIN_MS, ShareUrlCache } from '@/lib/share/shareAudio'
 import '@/styles/record.css'
 import '@/styles/collection-share.css'
 
@@ -48,9 +50,11 @@ const AUTHOR_KEY = LISTENER_NAME_KEY
  * right, and a player along the bottom with the waveform to scrub and the
  * notes pinned on it. Owen held this to Samply's standard on 16 Sept.
  *
- * Tracks stream from signed URLs (a master is often a 60 MB WAV). The page
- * only works while the link is live: the storage rule checks the link on
- * every file, so nothing here needs to say so in words.
+ * Tracks stream from signed URLs (a master is often a 60 MB WAV). They come
+ * from the share-audio function, which checks the link and password and signs
+ * for ten minutes (security review, 19 Sept), so a revoked link stops within
+ * minutes. URLs are asked for again as each track starts or is preloaded, and
+ * once more if playback fails because one ran out mid-listen.
  */
 
 type Song = { songId: string; versions: CollectionTrack[] }
@@ -91,10 +95,15 @@ export function CollectionSharePage() {
   // What plays after the current track, kept fresh for the handoff timer.
   const upcomingRef = useRef<{ songIndex: number; versionId: string } | null>(null)
   const [handoffs, setHandoffs] = useState(0)
-  const urlCache = useRef(new Map<string, string>())
   const listenRecorded = useRef(false)
   const openRecorded = useRef(false)
   const passwordRef = useRef<string | undefined>(undefined)
+  const urls = useMemo(
+    () => new ShareUrlCache({ kind: 'collection', token: token ?? '' }),
+    [token],
+  )
+  // URLs that already failed once and were re-requested: never loop on one.
+  const recoveredRef = useRef(new Set<string>())
 
   const [loading, setLoading] = useState(true)
   const [needsPassword, setNeedsPassword] = useState(false)
@@ -140,6 +149,7 @@ export function CollectionSharePage() {
       try {
         const payload = await getCollectionShare(token, password)
         passwordRef.current = password
+        urls.setPassword(password)
         setData(payload)
         setComments(payload.comments ?? [])
         setNeedsPassword(false)
@@ -152,7 +162,10 @@ export function CollectionSharePage() {
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : ''
-        if (/password/i.test(message)) {
+        if (/too many/i.test(message)) {
+          setNeedsPassword(false)
+          setError('Too many wrong passwords. Try again in an hour.')
+        } else if (/password/i.test(message)) {
           setPasswordWrong(Boolean(password))
           setNeedsPassword(true)
         } else {
@@ -166,7 +179,7 @@ export function CollectionSharePage() {
         setLoading(false)
       }
     },
-    [token],
+    [token, urls],
   )
 
   useEffect(() => {
@@ -175,17 +188,17 @@ export function CollectionSharePage() {
 
   useEffect(() => {
     const path = data?.cover_path
-    if (!path) return
+    if (!path || !token) return
     let live = true
-    signedTrackUrl(path)
-      .then((url) => live && setCoverUrl(url))
+    shareCoverUrl(token, passwordRef.current)
+      .then((url) => live && url && setCoverUrl(url))
       .catch(() => {
         /* the generated art stays */
       })
     return () => {
       live = false
     }
-  }, [data?.cover_path])
+  }, [data?.cover_path, token])
 
   useEffect(() => {
     nameRef.current = authorName
@@ -241,22 +254,20 @@ export function CollectionSharePage() {
       setPinMs(null)
       setBuffering(true)
       try {
-        let url = urlCache.current.get(track.version_id)
-        if (!url) {
-          url = await signedTrackUrl(track.storage_path)
-          urlCache.current.set(track.version_id, url)
-        }
-        setCurrentUrl(url)
         const prepared = preparedRef.current
         const spare = otherDeck(decksRef.current, audio)
-        if (
+        // The preloaded element is only worth switching to while its URL can
+        // still fetch the rest of the file; otherwise ask for a fresh one.
+        const reusable =
           atMs === 0 &&
           prepared &&
           spare &&
           prepared.el === spare &&
           prepared.versionId === track.version_id &&
-          prepared.url === url
-        ) {
+          !urls.isExpired(prepared.url, 60_000)
+        const url = reusable ? prepared.url : await urls.get(track.storage_path)
+        setCurrentUrl(url)
+        if (reusable && prepared && spare) {
           // Already loaded on the other element (Next tapped, or the track
           // ended before the handoff timer ran): switch instead of reloading.
           preparedRef.current = null
@@ -288,13 +299,57 @@ export function CollectionSharePage() {
             listenRecorded.current = false
           })
         }
-      } catch {
+      } catch (err) {
         setBuffering(false)
-        setError('That track would not play. Try again, or try another browser.')
+        setError(
+          err instanceof Error && /not found|expired/i.test(err.message)
+            ? 'This link has stopped working. Ask whoever sent it for a new one.'
+            : 'That track would not play. Try again, or try another browser.',
+        )
       }
     },
-    [token],
+    [token, urls],
   )
+
+  /* A URL lasts ten minutes. A long track, or a long pause, can outlive it:
+     the next range request is refused and the element errors. Ask for a fresh
+     URL and carry on from the same moment. Once per URL, so a link that has
+     really been turned off ends here rather than looping. */
+  const recoverExpired = async (el: HTMLAudioElement) => {
+    const failed = el.currentSrc || el.src
+    if (currentSong === null || !songs[currentSong] || !failed) return
+    if (!urls.isExpired(failed, 60_000) || recoveredRef.current.has(failed)) return
+    recoveredRef.current.add(failed)
+    const track = trackFor(currentSong)
+    const at = el.currentTime
+    const wasPlaying = !el.paused
+    setBuffering(true)
+    try {
+      const url = await urls.get(track.storage_path, { force: true })
+      if (audioRef.current !== el) return
+      setCurrentUrl(url)
+      el.src = url
+      if (at > 0) {
+        el.addEventListener(
+          'loadedmetadata',
+          () => {
+            el.currentTime = at
+          },
+          { once: true },
+        )
+      }
+      if (wasPlaying) await el.play()
+      else setBuffering(false)
+    } catch (err) {
+      setBuffering(false)
+      setIsPlaying(false)
+      setError(
+        err instanceof Error && /not found|expired|password/i.test(err.message)
+          ? 'This link has stopped working. Ask whoever sent it for a new one.'
+          : 'That track would not play. Try again, or try another browser.',
+      )
+    }
+  }
 
   const playSong = (songIndex: number) => {
     const audio = audioRef.current
@@ -336,18 +391,21 @@ export function CollectionSharePage() {
     const spare = otherDeck(decksRef.current, audioRef.current)
     if (!spare) return
     const held = preparedRef.current
-    if (held && held.el === spare && held.versionId === upcomingVersionId) return
+    if (
+      held &&
+      held.el === spare &&
+      held.versionId === upcomingVersionId &&
+      !urls.isExpired(held.url, SHARE_URL_MARGIN_MS)
+    )
+      return
     if (preparingRef.current === upcomingVersionId) return
     preparingRef.current = upcomingVersionId
     const track = trackFor(upcomingIndex)
     const songIndex = upcomingIndex
     void (async () => {
       try {
-        let url = urlCache.current.get(track.version_id)
-        if (!url) {
-          url = await signedTrackUrl(track.storage_path)
-          urlCache.current.set(track.version_id, url)
-        }
+        // Fresh for at least a few more minutes, so the handoff lands in time.
+        const url = await urls.get(track.storage_path)
         // The element that just handed over may still be finishing.
         await whenIdle(spare)
         if (spare === audioRef.current) return
@@ -504,7 +562,7 @@ export function CollectionSharePage() {
     try {
       const label = extraLabel(track) ? ` (${extraLabel(track)})` : ''
       const name = `${String(position).padStart(2, '0')} ${safeName(track.title + label)}${fileExtension(track.storage_path)}`
-      const url = await signedTrackUrl(track.storage_path, name)
+      const url = await shareDownloadUrl(token ?? '', track.storage_path, name, passwordRef.current)
       const anchor = document.createElement('a')
       anchor.href = url
       anchor.rel = 'noopener'
@@ -526,7 +584,7 @@ export function CollectionSharePage() {
         for (const [vi, track] of song.versions.entries()) {
           const label = extraLabel(track) ? ` (${extraLabel(track)})` : ''
           const prefix = `${String(i + 1).padStart(2, '0')}${vi ? `.${vi}` : ''}`
-          const url = await signedTrackUrl(track.storage_path)
+          const url = await urls.get(track.storage_path)
           const blob = await (await fetch(url)).blob()
           zip.file(`${prefix} ${safeName(track.title + label)}${fileExtension(track.storage_path)}`, blob)
         }
@@ -646,6 +704,15 @@ export function CollectionSharePage() {
           }}
           onEnded={(e) => {
             if (e.currentTarget === audioRef.current) step(1)
+          }}
+          onError={(e) => {
+            const el = e.currentTarget
+            if (el !== audioRef.current) {
+              // The preloaded next track failed: let its turn load it afresh.
+              if (preparedRef.current?.el === el) preparedRef.current = null
+              return
+            }
+            void recoverExpired(el)
           }}
         />
       ))}

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { fetchShareAudio } from '@/lib/share/shareAudio'
 
 export interface ShareListenComment {
   id: string
@@ -268,6 +269,10 @@ export async function getSongShareListen(token: string, password?: string) {
   })
 
   if (error) throw error
+  // A wrong password comes back as { error } rather than raising, so the
+  // attempt is kept and counted toward the link's hourly limit (049).
+  const failed = (data as { error?: string } | null)?.error
+  if (failed) throw new Error(failed)
   return data as unknown as ShareListenPayload
 }
 
@@ -294,9 +299,17 @@ export async function addShareListenComment(
   return data as string
 }
 
-export async function downloadSharedAudio(storagePath: string) {
-  if (!supabase) throw new Error('Cloud sync is not configured')
-  const { data, error } = await supabase.storage.from('audio').download(storagePath)
-  if (error) throw error
-  return data
+/**
+ * The shared song's audio, as a blob. The share-audio function signs its URL
+ * for ten minutes after checking the link and password; the page used to
+ * download straight from storage under an anon read rule, which let a viewer
+ * sign their own URLs for any length of time (security review, 19 Sept).
+ */
+export async function downloadSharedAudio(token: string, storagePath: string, password?: string) {
+  const { urls } = await fetchShareAudio({ kind: 'song', token, password, paths: [storagePath] })
+  const url = urls[storagePath]
+  if (!url) throw new Error('Could not open that file')
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('Could not open that file')
+  return response.blob()
 }
