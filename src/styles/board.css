@@ -1416,24 +1416,12 @@ body.is-file-dragging * {
 }
 
 @media (max-width: 900px) {
-  .app-header {
-    padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
-  }
-
-  /* On mobile, strip down the header to logo + feedback + settings only */
+  /* Sync auth/status stay desktop-only; board switcher and invite move into
+     the overflow menu on phone (see the 560px block below) instead of
+     disappearing, so they're not hidden here. */
   .sync-status-badge,
-  .sync-auth,
-  .board-switcher,
-  .invite-bandmate {
+  .sync-auth {
     display: none;
-  }
-
-  .app-header-actions {
-    gap: 8px;
-  }
-
-  .app-shell {
-    padding-top: calc(44px + env(safe-area-inset-top));
   }
 
   /* Titlebar: hide decorative chrome so action buttons have room */
@@ -1575,6 +1563,10 @@ body.is-file-dragging * {
     display: none;
   }
 
+  /* Re-enabled inside the overflow menu by a later rule (560px block below):
+     the panel is still a DOM descendant of .board-titlebar-actions even
+     though it renders as a popover, so a bare selector here would hide it
+     there too, where there's actually room for it. */
   .board-add-section-form {
     display: none;
   }
@@ -2945,7 +2937,6 @@ html.light .song-card-tag-overflow {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding-top: calc(57px + env(safe-area-inset-top)); /* offset for fixed app-header + notch */
 }
 
 .app-main {
@@ -2955,52 +2946,6 @@ html.light .song-card-tag-overflow {
   min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
-}
-
-.app-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(18, 18, 20, 0.92);
-  backdrop-filter: blur(12px);
-}
-
-.app-header-badge {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--audio-mint);
-  border: 1px solid var(--audio-mint-dim);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.app-header-logo {
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-  letter-spacing: -0.02em;
-  color: var(--text);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
-.app-header-logo span {
-  display: inline-block;
-  width: 0.62em;
-  height: 0.62em;
-  background: var(--audio-mint) url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='2,13 5,7 8,15 11,5 14,13 17,9 20,11' stroke='%230a0c10' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / 75% 75%;
-  border-radius: 50%;
-  color: transparent;
-  vertical-align: -0.1em;
 }
 
 .board-switcher {
@@ -3081,12 +3026,6 @@ html.light .song-card-tag-overflow {
   font-size: 0.65rem;
   font-weight: 500;
   color: var(--text-muted);
-}
-
-.app-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .sync-auth {
@@ -3610,31 +3549,15 @@ html.light .song-card-tag-overflow {
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@media (max-width: 600px) {
-  .song-drawer-overlay {
-    align-items: flex-end;
-    justify-content: stretch;
-    padding-top: 0;
-  }
-
-  .song-drawer {
-    width: 100%;
-    max-width: 100%;
-    max-height: calc(100dvh - 44px - env(safe-area-inset-top));
-    border-left: none;
-    border-top: 1px solid var(--border);
-    border-radius: 16px 16px 0 0;
-    animation: slideUp 0.28s ease;
-    padding-top: 0;
-    padding-bottom: 0;
-    box-shadow: none;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
+
+/* Mobile sizing for .song-drawer-overlay/.song-drawer lives with the rest of
+   the drawer's mobile rules, next to the record-pass restyle below — this
+   used to be a separate @media(600px) block up here that fought the one
+   down there for the same elements. */
 
 .song-drawer-close {
   position: absolute;
@@ -3825,7 +3748,9 @@ html.light .song-card-tag-overflow {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 48px 18px 20px;
+  /* Always overridden by .song-drawer .scp-header below; kept symmetric here
+     so it isn't misread as reserving space for a close button. */
+  padding: 18px 20px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -6856,11 +6781,6 @@ html.light .waveform-bar-idle { background: rgba(28, 42, 40, 0.38); }
 html.light .waveform-bar-played { background: rgba(28, 42, 40, 0.66); }
 
 /* Light mode component overrides */
-html.light .app-header {
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
-}
-
 html.light .song-card.is-active {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-dim), 0 6px 18px rgba(28, 42, 40, 0.14);
@@ -12147,6 +12067,14 @@ html.light .song-drawer {
   opacity: 0.6;
 }
 
+/* Touch devices never fire :hover, so the handle above would stay invisible
+   and undiscoverable forever without this. */
+@media (hover: none) {
+  .board-page .song-card-drag-handle {
+    opacity: 0.5;
+  }
+}
+
 /* Recent and Activity: quiet single lines, not two bands across the page. */
 .board-page .recent-songs-header,
 .board-page .board-activity-header {
@@ -12198,6 +12126,21 @@ html.light .song-drawer {
 
 .board-page .board-column:hover .board-column-count {
   display: none;
+}
+
+/* Rename/delete on a column are hover-revealed above, which makes them
+   unreachable by tap. Show them by default when there's no hover to reveal
+   them with. */
+@media (hover: none) {
+  .board-page .board-column-header-actions > :not(.board-column-count) {
+    display: inline-flex;
+  }
+
+  .board-page .board-column-header-actions {
+    position: static;
+    background: none;
+    padding-left: 0;
+  }
 }
 
 .board-page .song-card-footer {
@@ -12404,13 +12347,54 @@ html.light .song-drawer {
 }
 
 @media (max-width: 600px) {
+  .song-drawer-overlay {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding-top: 0;
+  }
+
+  .song-drawer {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 44px - env(safe-area-inset-top));
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    animation: slideUp 0.28s ease;
+    padding-top: 0;
+    padding-bottom: 0;
+    box-shadow: none;
+  }
+
   .song-drawer .scp-header {
     padding: 22px 18px 16px;
     flex-wrap: wrap;
   }
 
+  /* Favourite/stage/share wrap onto their own row under the title, instead
+     of an unspecified wrap order. */
+  .song-drawer .scp-header-actions {
+    flex-basis: 100%;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
   .song-drawer .scp-body {
     padding: 18px 18px 28px;
+  }
+
+  /* iOS Safari (and the PWA shell) zooms the whole viewport in on focusing
+     any input under 16px. These drawer fields were sized for desktop density
+     and never checked against that. Scoped to mobile so desktop keeps its
+     tighter, more compact sizing. */
+  .song-meta-field input,
+  .lyrics-field,
+  .song-detail-notes,
+  .song-comments-input,
+  .external-links-input,
+  .song-tags-input,
+  .song-project-create-input {
+    font-size: 16px;
   }
 }
 
@@ -12565,6 +12549,80 @@ html.light .song-drawer {
   .board-page .board-activity-header {
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+
+/* Phone: most titlebar controls now live in the overflow menu (see
+   BoardTitlebarOverflow), so the row no longer needs to hide an overflow
+   scroll strip with no visual hint it's there. Placed after the 767px block
+   above so it wins the cascade tie on the properties both blocks set. */
+@media (max-width: 560px) {
+  .board-titlebar-actions {
+    overflow-x: visible;
+    flex-wrap: nowrap;
+  }
+
+  .board-titlebar-overflow-trigger {
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 6px 10px;
+  }
+
+  /* Logo + search box don't fit a phone width both at full size. Search
+     collapses to its icon and expands over the row on focus (no JS:
+     :focus-within does the work), keeping its placeholder text as the
+     accessible name. Everything else that used to fight it for space
+     (add-section, board switcher, filters...) now lives in the overflow
+     menu instead. */
+  .board-titlebar {
+    position: relative;
+    padding: 8px 8px;
+    gap: 4px;
+  }
+
+  .board-titlebar-actions {
+    gap: 4px;
+  }
+
+  .board-search {
+    flex: 0 0 auto;
+    width: 34px;
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  .board-search-input {
+    width: 0;
+    padding: 0;
+  }
+
+  .board-search:focus-within {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 8px;
+    z-index: 40;
+    width: auto;
+    padding: 4px 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .board-search:focus-within .board-search-input {
+    width: 100%;
+    padding: 0 4px;
+  }
+
+  /* The 900px block hides .board-add-section-form with a selector that also
+     matches it inside the overflow panel (the panel is still a DOM
+     descendant of .board-titlebar-actions, even though it renders as a
+     popover). Bring it back to life there, where there's room for it. */
+  .board-titlebar-overflow-panel .board-add-section-form {
+    display: flex;
+  }
+
+  .board-titlebar-overflow-panel .board-add-section-input {
+    width: auto;
+    flex: 1;
   }
 }
 

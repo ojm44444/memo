@@ -3892,7 +3892,8 @@ a.nav-cta {
    raised again per the repeated note. */
 .offline-section,
 .trust,
-.pricing {
+.pricing,
+.cta-section {
   background:
     radial-gradient(ellipse 65% 95% at 85% 15%, color-mix(in srgb, var(--stage-inbox) 34%, transparent) 0%, transparent 66%),
     radial-gradient(ellipse 70% 90% at 10% 85%, color-mix(in srgb, var(--stage-half) 24%, transparent) 0%, transparent 68%),
@@ -3925,7 +3926,7 @@ a.nav-cta {
 
 .offline-section p,
 .trust p,
-.pricing p,
+.pricing p:not(.price-headline),
 .offline-section li,
 .trust li,
 .offline-section .offline-sub,
@@ -3933,6 +3934,13 @@ a.nav-cta {
 .pricing .section-sub,
 .pricing .pricing-not-live {
   color: var(--text-muted) !important;
+}
+
+/* The price itself is not body copy: it needs to be the brightest thing on
+   the card, not swept into the dimmed-paragraph rule above just because
+   it's also a <p>. */
+.pricing .price-headline {
+  color: var(--text) !important;
 }
 
 .offline-section .offline-list li::before,
@@ -5264,6 +5272,157 @@ html { scroll-padding-top: 88px; }
   background: rgba(13, 38, 43, 0.44);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE LIGHT PASS (18 Sept 2026, Owen, direct: "overhaul the landing page,
+   won't say it again"). Warm off-white ground below the hero, dark ink text,
+   the green accent kept for buttons and links only, never a full-bleed block
+   — the spec decided 15 Sept and never actually shipped. The hero keeps its
+   own tuned mesh (a deliberate single colourful moment, not part of this
+   pass); everything a visitor scrolls into below it goes light. Last block
+   in the file, so it wins over every dark-ground rule above without having
+   to find and delete each one.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.landing {
+  --bg: #f4efe2;
+  --bg2: #ece3cd;
+  --bg3: #e3d8bf;
+  --bg-2: #ece3cd;
+  --surface: #ece3cd;
+  --border: rgba(15, 31, 26, 0.14);
+  --text: #12241d;
+  --text-muted: #5c6d61;
+  --muted: #5c6d61;
+  background: #f4efe2;
+  color: #12241d;
+}
+
+/* The wordmark's light/dark swap is tied to the app's html.light class,
+   which this page never sets. Force the ink variant here since the whole
+   page is paper now, not just when that unrelated class happens to be set. */
+.landing .wordmark-img .wm-on-dark { display: none; }
+.landing .wordmark-img .wm-on-light { display: block; }
+
+.landing::before {
+  background: linear-gradient(165deg, #f8f3e6 0%, #f1ead4 45%, #e6dfc0 100%);
+}
+
+/* The coloured blooms were tuned for a dark ground; on paper they just look
+   like dirt. */
+.landing::after {
+  display: none;
+}
+
 .landing > nav {
-  background: rgba(31, 85, 96, 0.88) !important;
+  background: rgba(244, 239, 226, 0.9) !important;
+  border-bottom: 1px solid var(--border);
+}
+
+.landing .nav-links a,
+.landing .nav-signin {
+  color: #4b5c52;
+}
+
+.landing .nav-links a:hover,
+.landing .nav-signin:hover {
+  color: var(--text);
+}
+
+/* Cards lift off a light ground with a soft DARK tint, not the near-white
+   one that was tuned to lift off a dark ground and vanishes here. */
+.landing .feature-card,
+.landing .faq-item,
+.landing .price-card,
+.landing .listen-mock,
+.landing .compare-table,
+.landing .ramp-step,
+.landing .signal-card {
+  background: rgba(15, 31, 26, 0.04) !important;
+  border-color: var(--border) !important;
+  box-shadow: none;
+}
+
+.landing .feature-card:hover {
+  background: rgba(15, 31, 26, 0.07) !important;
+  border-color: rgba(47, 125, 92, 0.4) !important;
+}
+
+/* The two glow bands and the closing band, tuned down for paper: a warm
+   tint instead of a dark-ground spotlight, dark ink throughout. */
+.landing .offline-section,
+.landing .trust,
+.landing .pricing,
+.landing .cta-section {
+  background:
+    radial-gradient(ellipse 65% 95% at 85% 15%, color-mix(in srgb, var(--stage-inbox) 12%, transparent) 0%, transparent 66%),
+    radial-gradient(ellipse 70% 90% at 10% 85%, color-mix(in srgb, var(--stage-half) 10%, transparent) 0%, transparent 68%),
+    transparent !important;
+  color: var(--text) !important;
+}
+
+.landing .offline-section p,
+.landing .trust p,
+.landing .pricing p:not(.price-headline),
+.landing .cta-section p,
+.landing .offline-section li,
+.landing .trust li,
+.landing .offline-section .offline-sub,
+.landing .offline-section .offline-list li,
+.landing .pricing .section-sub,
+.landing .pricing .pricing-not-live,
+.landing .cta-status {
+  color: var(--text-muted) !important;
+}
+
+.landing .cta-section h2 em,
+.landing .offline-section h2 em,
+.landing .trust h2 em,
+.landing .section-h2 em {
+  color: #2f7d5c !important;
+}
+
+.landing .offline-section .section-label,
+.landing .trust .section-label,
+.landing .pricing .section-label,
+.landing .cta-section .section-label,
+.landing .section-label {
+  color: #2f7d5c !important;
+}
+
+.landing .hero-cta,
+.landing .cta-button {
+  background: #12241d !important;
+  color: #f4efe2 !important;
+}
+
+.landing .hero-cta:hover,
+.landing .cta-button:hover {
+  background: #24382f !important;
+}
+
+/* Inputs, pills and the compare table's zebra rows all inherited light-on-
+   dark assumptions through --bg2/--bg3, which are already warm now, but a
+   few had hard-coded whites. */
+.landing .waitlist-input,
+.landing .price-toggle,
+.landing .pricing-faq {
+  background: var(--bg2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.landing .price-toggle button.is-active {
+  background: var(--accent) !important;
+  color: var(--accent-on) !important;
+}
+
+/* The scroll-fade masks made every band's top 90px fade in from nothing,
+   which read as "the page is still loading" while scrolling fast, not as a
+   transition — Owen's repeated complaint. Content should just be there. */
+.offline-section,
+.trust,
+.pricing,
+.cta-section {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
 }

@@ -1,42 +1,18 @@
-import { Link } from 'react-router-dom'
-import { InviteBandmateButton } from '@/components/board/InviteBandmateButton'
-import { SyncAuthButton } from '@/components/auth/SyncAuthButton'
 import { OfflineGraceBanner } from './OfflineGraceBanner'
 import { CollaboratorBanner } from './CollaboratorBanner'
-import { SyncStatusBadge } from './SyncStatusBadge'
-import { FeedbackBadge } from './FeedbackBadge'
 import { KeyboardShortcutsHelp } from '@/components/board/KeyboardShortcutsHelp'
-import { SettingsPanel } from '@/components/settings/SettingsPanel'
-import { ThemeToggle } from '@/components/board/ThemeToggle'
 import type { ReactNode } from 'react'
-import { Wordmark } from '@/components/ui/Wordmark'
 
-interface AppShellProps {
-  children: ReactNode
-  /**
-   * The board is the page, not a widget on one. When it supplies its own
-   * single merged bar, the shell's header would be a second row of chrome
-   * costing ~60px of board height for no added function.
-   */
-  chromeless?: boolean
-}
-
-export function AppShell({ children, chromeless = false }: AppShellProps) {
+/**
+ * The board is the page, not a widget on one: it supplies its own single
+ * merged titlebar, so this shell never renders a header of its own (that
+ * used to exist for other routes, but nothing else has mounted this
+ * non-chromeless in a long time, and keeping a second, unused header system
+ * around just to maintain was a bigger cost than deleting it).
+ */
+export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className={chromeless ? 'app-shell app-shell--chromeless' : 'app-shell'}>
-      {!chromeless && <header className="app-header">
-        <Link to="/app" className="app-header-logo">
-          <Wordmark />
-        </Link>
-        <div className="app-header-actions">
-          <InviteBandmateButton />
-          <ThemeToggle />
-          <SettingsPanel />
-          <SyncAuthButton />
-          <FeedbackBadge />
-          <SyncStatusBadge />
-        </div>
-      </header>}
+    <div className="app-shell app-shell--chromeless">
       <OfflineGraceBanner />
       <CollaboratorBanner />
       <main className="app-main">{children}</main>

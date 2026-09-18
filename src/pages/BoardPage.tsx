@@ -46,6 +46,8 @@ import { recordSessionOncePerDay } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import '@/styles/board.css'
 import { Wordmark } from '@/components/ui/Wordmark'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { BoardTitlebarOverflow } from '@/components/layout/BoardTitlebarOverflow'
 
 const DROP_ERRORS: Record<DropRejectReason, string> = {
   empty: "Couldn't read that file. Drag from Finder or use + Import audio.",
@@ -133,6 +135,7 @@ function AuthenticatedBoard() {
   const boardMode = useUiStore((s) => s.boardMode)
   const boardRole = useBoardRole()
   const readOnly = boardRole === 'viewer' || boardRole === 'editor'
+  const isPhone = useMediaQuery('(max-width: 560px)')
   const { shareImportMessage, clearShareImportMessage } = useShareImport()
   useSyncAuth()
 
@@ -165,7 +168,7 @@ function AuthenticatedBoard() {
   return (
     <>
       <FileDropLayer enabled={boardMode === 'manage' && !readOnly} />
-      <AppShell chromeless>
+      <AppShell>
         <div className="board-page">
           <div className="board-workspace">
             <BoardFrame>
@@ -182,29 +185,59 @@ function AuthenticatedBoard() {
                 <div className="board-titlebar-actions">
                   <BoardModeToggle />
                   {boardMode !== 'listen' && <BoardSearch />}
-                  <BoardSwitcher />
-                  {/* Songwriting projects group the board. Listen has its own
-                      Projects page, so two different "Project" pickers never
-                      share the screen. */}
-                  {boardMode !== 'listen' && (
+                  {!isPhone && (
                     <>
-                      <ProjectSwitcher readOnly={readOnly} />
-                      <BoardFilters readOnly={readOnly} />
-                    </>
-                  )}
-                  {boardMode === 'manage' && !readOnly && (
-                    <>
-                      <BoardSelectToggle />
-                      <AddSectionButton />
+                      <BoardSwitcher />
+                      {/* Songwriting projects group the board. Listen has its own
+                          Projects page, so two different "Project" pickers never
+                          share the screen. */}
+                      {boardMode !== 'listen' && (
+                        <>
+                          <ProjectSwitcher readOnly={readOnly} />
+                          <BoardFilters readOnly={readOnly} />
+                        </>
+                      )}
+                      {boardMode === 'manage' && !readOnly && (
+                        <>
+                          <BoardSelectToggle />
+                          <AddSectionButton />
+                        </>
+                      )}
                     </>
                   )}
                   <span className="board-titlebar-spacer" />
-                  <InviteBandmateButton />
-                  <ThemeToggle />
-                  <SettingsPanel />
-                  <SyncAuthButton />
-                  <FeedbackBadge />
-                  <SyncStatusBadge />
+                  {isPhone ? (
+                    <BoardTitlebarOverflow>
+                      <BoardSwitcher />
+                      {boardMode !== 'listen' && (
+                        <>
+                          <ProjectSwitcher readOnly={readOnly} />
+                          <BoardFilters readOnly={readOnly} />
+                        </>
+                      )}
+                      {boardMode === 'manage' && !readOnly && (
+                        <>
+                          <BoardSelectToggle />
+                          <AddSectionButton />
+                        </>
+                      )}
+                      <InviteBandmateButton />
+                      <ThemeToggle />
+                      <SettingsPanel />
+                      <FeedbackBadge />
+                      {/* Sync auth/status stay off on phone, same as before the
+                          overflow menu existed: they're desktop-only controls. */}
+                    </BoardTitlebarOverflow>
+                  ) : (
+                    <>
+                      <InviteBandmateButton />
+                      <ThemeToggle />
+                      <SettingsPanel />
+                      <SyncAuthButton />
+                      <FeedbackBadge />
+                      <SyncStatusBadge />
+                    </>
+                  )}
                 </div>
               </div>
               {boardMode === 'listen' ? (

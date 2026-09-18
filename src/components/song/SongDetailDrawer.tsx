@@ -126,7 +126,10 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
     return versions[0]
   }, [isThisSongPlaying, song?.id])
 
-  // Swipe down to close on mobile
+  /* Swipe down to close on mobile. Scoped to the handle + header rather than
+     the whole drawer: the sticky DrawerMiniPlayer sits at the bottom of the
+     same scroll container, and a swipe-down there to scroll the lyrics/
+     comments above it was being read as a close gesture. */
   const touchStartY = useRef(0)
   const onTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY }
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -175,12 +178,19 @@ export function SongDetailDrawer({ readOnly = false }: { readOnly?: boolean }) {
 
   return (
     <div className="song-drawer-overlay" role="button" tabIndex={-1} aria-label="Close" onClick={closeDrawer} onKeyDown={(e) => e.key === 'Escape' && closeDrawer()}>
-      <div className="song-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <button type="button" className="song-drawer-handle" onClick={closeDrawer} aria-label="Close">
+      <div className="song-drawer" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="song-drawer-handle"
+          onClick={closeDrawer}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          aria-label="Close"
+        >
           <span className="song-drawer-handle-pill" />
           <span className="song-drawer-handle-label">✕ Close</span>
         </button>
-        <div className="scp-header">
+        <div className="scp-header" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {readOnly ? (
             <h2 className="scp-title-input">{song.title}</h2>
           ) : (
