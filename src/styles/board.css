@@ -12125,7 +12125,7 @@ html.light .song-drawer {
    unreachable by tap. Show them by default when there's no hover to reveal
    them with. */
 @media (hover: none) {
-  .board-page .board-column-header-actions > :not(.board-column-count) {
+  .board-page .board-column-header-actions > :not(.board-column-count):not(input):not(.hidden) {
     display: inline-flex;
   }
 

@@ -1157,3 +1157,9 @@ html.light .sp-overlay .sp .song-tag-pill.is-active {
     animation: none;
   }
 }
+
+/* The help button floats above the board; while a song is open it sat on top
+   of the panel's fields. It steps aside until the panel closes. */
+body:has(.sp-overlay) .help-fab {
+  display: none;
+}

@@ -653,7 +653,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
             </div>
           </div>
           {needsOffline(ordered.flatMap((st) => st.versions)) && (
-            <p className="listeners-offline-note">This playlist plays offline only once you tap Make offline.</p>
+            <p className="listeners-offline-note">Tap Make offline so every track plays without signal.</p>
           )}
         </div>
       </section>
