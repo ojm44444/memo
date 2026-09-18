@@ -9,6 +9,7 @@ import { supabaseConfigured } from '@/lib/supabase/client'
 import { cachePendingRemoteAudio } from './audioDownload'
 import { pullChanges } from './pullChanges'
 import { pushChanges } from './pushChanges'
+import { friendlySyncError } from './friendlySyncError'
 
 type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error'
 
@@ -176,16 +177,19 @@ export async function flush() {
     const pendingHint = await getPendingHint()
 
     const hasError = pendingCount > 0 || pullError || pushResult.lastFailure
+    let rawError: string | null = null
     if (pendingCount > 0) {
       status = 'error'
-      lastError = itemError ?? pushResult.lastFailure ?? pullError ?? pendingHint
+      rawError = itemError ?? pushResult.lastFailure ?? pullError ?? pendingHint
     } else if (pullError || pushResult.lastFailure) {
       status = 'error'
-      lastError = pushResult.lastFailure ?? pullError
+      rawError = pushResult.lastFailure ?? pullError
     } else {
       status = 'idle'
-      lastError = null
     }
+    // The badge shows a short plain line; the real message goes to the console.
+    lastError = friendlySyncError(rawError)
+    if (rawError && rawError !== pendingHint) console.warn('[songdrafts] sync:', rawError)
 
     if (hasError && cloudSyncEnabled && navigator.onLine) {
       consecutiveErrors++
@@ -197,7 +201,7 @@ export async function flush() {
        * Ten minutes between attempts is enough to notice it coming back.
        */
       const restricted = /egress|quota|restricted|402/i.test(
-        `${lastError ?? ''} ${pullError ?? ''} ${pushResult.lastFailure ?? ''}`,
+        `${rawError ?? ''} ${pullError ?? ''} ${pushResult.lastFailure ?? ''}`,
       )
       const ceiling = restricted ? 10 * 60_000 : 60_000
       const backoffMs = Math.min(4_000 * Math.pow(2, consecutiveErrors - 1), ceiling)

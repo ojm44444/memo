@@ -4,6 +4,7 @@ import { INBOX_SLUG, LISTEN_SLUG, type Column, type ColumnSlug } from '@/types/c
 import type { Song } from '@/types/song'
 import { db } from '../database'
 import { enqueueSync } from './outboxRepo'
+import { ORDER_STEP, integerBetween, renumberColumn } from './songOrder'
 import {
   getActiveProjectId,
   getActiveTagFilter,
@@ -410,7 +411,7 @@ async function computeInsertSortOrder(
   projectId: string | null,
   beforeSongId: string | undefined,
   excludeSongId: string,
-): Promise<number> {
+): Promise<number | null> {
   if (beforeSongId) {
     const beforeSong = await db.songs.get(beforeSongId)
     if (beforeSong) {
@@ -422,9 +423,11 @@ async function computeInsertSortOrder(
         .sortBy('sortOrder')
       const beforeIdx = siblings.findIndex((s) => s.id === beforeSongId)
       const prev = beforeIdx > 0 ? siblings[beforeIdx - 1] : null
+      // Whole numbers only: the cloud column is an integer (see songOrder.ts).
+      // null means the neighbours are adjacent and the column needs spacing.
       return prev
-        ? (prev.sortOrder + beforeSong.sortOrder) / 2
-        : beforeSong.sortOrder - 1024
+        ? integerBetween(prev.sortOrder, beforeSong.sortOrder)
+        : Math.floor(beforeSong.sortOrder) - ORDER_STEP
     }
   }
   // Append: one past the highest existing sortOrder.
@@ -444,7 +447,7 @@ async function computeInsertSortOrder(
     .toArray()
 
   if (siblings.length === 0) return 0
-  return Math.max(...siblings.map((s) => s.sortOrder)) + 1
+  return Math.floor(Math.max(...siblings.map((s) => s.sortOrder))) + 1
 }
 
 export async function moveSong(
@@ -457,11 +460,15 @@ export async function moveSong(
   if (!song || song.deletedAt) return
 
   const now = new Date().toISOString()
-  const sortOrder = await computeInsertSortOrder(targetColumnSlug, song.projectId, beforeSongId, songId)
+  const between = await computeInsertSortOrder(targetColumnSlug, song.projectId, beforeSongId, songId)
+  const sortOrder = between ?? song.sortOrder
 
   const updated: Song = { ...song, columnSlug: targetColumnSlug, sortOrder, updatedAt: now }
   await db.songs.put(updated)
   await enqueueSync('update', 'song', songId, { columnSlug: targetColumnSlug, sortOrder, updatedAt: now })
+  // No whole number between the neighbours: space the column out, which also
+  // puts this song in place and queues its final position.
+  if (between == null) await renumberColumn(targetColumnSlug, song.projectId ?? null, { songId, beforeSongId })
 
   // The single most important event in the product. If nobody ever does this,
   // the board is not the answer and no amount of import polish saves it.
@@ -481,11 +488,16 @@ export async function reorderSongInColumn(
   if (!song) return
 
   const now = new Date().toISOString()
-  const sortOrder = await computeInsertSortOrder(columnSlug, song.projectId, beforeSongId, songId)
+  const between = await computeInsertSortOrder(columnSlug, song.projectId, beforeSongId, songId)
+  if (between == null) {
+    // No whole number between the neighbours: space the column out instead.
+    await renumberColumn(columnSlug, song.projectId ?? null, { songId, beforeSongId })
+    return
+  }
 
-  const updated: Song = { ...song, sortOrder, updatedAt: now }
+  const updated: Song = { ...song, sortOrder: between, updatedAt: now }
   await db.songs.put(updated)
-  await enqueueSync('update', 'song', songId, { sortOrder, updatedAt: now })
+  await enqueueSync('update', 'song', songId, { sortOrder: between, updatedAt: now })
 }
 
 export async function deleteSong(id: string) {
@@ -749,7 +761,8 @@ export async function unmergeSong(versionId: string) {
     musicalKey: null,
     bpm: null,
     recordedAt: version.recordedAt ?? null,
-    sortOrder: parentSong.sortOrder + 0.5,
+    // Placed after its parent below; a whole number, never parent + 0.5.
+    sortOrder: parentSong.sortOrder,
     notes: '',
     createdAt: now,
     updatedAt: now,
@@ -770,6 +783,14 @@ export async function unmergeSong(versionId: string) {
   }
 
   await enqueueSync('create', 'song', newSongId, newSong)
+  // Put the split-off song straight after its parent.
+  const siblings = await getSongsInColumnScope(parentSong.columnSlug, parentSong.projectId ?? null)
+  const parentIndex = siblings.findIndex((s) => s.id === parentSong.id)
+  const after = parentIndex >= 0 ? siblings.slice(parentIndex + 1).find((s) => s.id !== newSongId) : undefined
+  await renumberColumn(parentSong.columnSlug, parentSong.projectId ?? null, {
+    songId: newSongId,
+    beforeSongId: after?.id,
+  })
   await enqueueSync('update', 'audio_version', versionId, {
     songId: newSongId,
     sortOrder: 0,

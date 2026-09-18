@@ -16,9 +16,15 @@ export async function getTwoStepFactor() {
 /** True when this session still owes a code before the board can open. */
 export async function needsTwoStepCode(): Promise<boolean> {
   if (!supabase || !navigator.onLine) return false
-  const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-  if (error || !data) return false
-  return data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'
+  // A weak signal reports online but never answers. Opening the board from
+  // this device must not wait on it (the database still refuses cloud data
+  // without the code), so give up after a few seconds and on any failure.
+  const check = supabase.auth.mfa
+    .getAuthenticatorAssuranceLevel()
+    .then(({ data, error }) => (error || !data ? false : data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'))
+    .catch(() => false)
+  const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 4000))
+  return Promise.race([check, timeout])
 }
 
 export async function startTwoStepSetup() {

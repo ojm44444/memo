@@ -6,6 +6,20 @@ import type { ColumnSlug } from '@/types/column'
 import type { PlaylistItem } from '@/lib/audio/buildColumnPlaylist'
 import { shuffleArray } from '@/lib/shuffle'
 import { useUiStore } from '@/stores/uiStore'
+import { unlockAudioEl } from '@/lib/audio/globalAudioEl'
+
+/**
+ * Start the audio element inside the tap that asked for playback.
+ *
+ * Column Play, Listen's Play all and the queue used to reach play() only after
+ * an await, which iOS refuses unless the element was already unlocked. This
+ * runs synchronously at the top of those actions. It only touches a paused
+ * element, and the loadRequest bump makes the player load the real source
+ * again afterwards.
+ */
+function primeForTap() {
+  unlockAudioEl()
+}
 
 function focusQueueButton() {
   requestAnimationFrame(() => {
@@ -35,6 +49,11 @@ interface PlayerState {
   queueFocusIndex: number
   queueKeyboardActive: boolean
   loopMode: LoopMode
+  /** Bumped on every explicit play tap so the player reloads its source. */
+  loadRequest: number
+  /** Short plain line shown in the player when a take cannot play here. */
+  playbackNotice: string | null
+  setPlaybackNotice: (notice: string | null) => void
   setExpanded: (expanded: boolean) => void
   setQueueOpen: (open: boolean) => void
   setQueueFocusIndex: (index: number) => void
@@ -120,6 +139,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   queueKeyboardActive: false,
   queueRepeat: false,
   loopMode: 'off',
+  loadRequest: 0,
+  playbackNotice: null,
+
+  setPlaybackNotice: (notice) => set({ playbackNotice: notice }),
 
   setLoopMode: (mode) => {
     set({ loopMode: mode })
@@ -133,7 +156,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setPlaylist: (columnSlug, playlist, startIndex = 0, versionId) => {
     const item = playlist[startIndex]
+    primeForTap()
     set({
+      loadRequest: get().loadRequest + 1,
+      playbackNotice: null,
       activeColumnId: columnSlug,
       playlistSource: 'column',
       favouritesScope: null,
@@ -160,6 +186,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       progress: 0,
       isPlaying: true,
       buffering: true,
+      playbackNotice: null,
+      loadRequest: get().loadRequest + 1,
     })
     const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
     const playlist = await buildColumnPlaylist(columnSlug)
@@ -190,6 +218,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       progress: 0,
       isPlaying: true,
       expanded: true,
+      playbackNotice: null,
+      loadRequest: get().loadRequest + 1,
     })
   },
 
@@ -237,7 +267,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const item = playlist[index]
     if (!item) return
 
+    primeForTap()
     set({
+      loadRequest: get().loadRequest + 1,
+      playbackNotice: null,
       currentIndex: index,
       queueFocusIndex: options?.keepFocus ? queueFocusIndex : index,
       queueKeyboardActive: true,
@@ -401,9 +434,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   playColumn: async (columnSlug) => {
+    primeForTap()
     const { buildColumnPlaylist } = await import('@/lib/audio/buildColumnPlaylist')
     const playlist = await buildColumnPlaylist(columnSlug)
-    if (!playlist.length) return false
+    if (!playlist.length) {
+      // The tap may have borrowed the element; reload whatever was loaded.
+      set({ loadRequest: get().loadRequest + 1 })
+      return false
+    }
 
     set({
       activeColumnId: columnSlug,
@@ -417,19 +455,28 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       progress: 0,
       isPlaying: true,
       expanded: false,
+      playbackNotice: null,
+      loadRequest: get().loadRequest + 1,
     })
     return true
   },
 
   playFavourites: async (scope, startIndex = 0, versionId, shuffle = false) => {
+    primeForTap()
     const { buildFavouritesPlaylist } = await import('@/lib/audio/buildFavouritesPlaylist')
     const { getSong } = await import('@/db/repositories/boardRepo')
     const playlist = await buildFavouritesPlaylist(scope, { shuffle })
-    if (!playlist.length || startIndex >= playlist.length) return false
+    if (!playlist.length || startIndex >= playlist.length) {
+      set({ loadRequest: get().loadRequest + 1 })
+      return false
+    }
 
     const item = playlist[startIndex]
     const song = await getSong(item.songId)
-    if (!song) return false
+    if (!song) {
+      set({ loadRequest: get().loadRequest + 1 })
+      return false
+    }
 
     set({
       activeColumnId: song.columnSlug,
@@ -444,6 +491,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       progress: 0,
       isPlaying: true,
       expanded: false,
+      playbackNotice: null,
+      loadRequest: get().loadRequest + 1,
     })
     useUiStore.getState().requestColumnScroll(song.columnSlug)
     return true

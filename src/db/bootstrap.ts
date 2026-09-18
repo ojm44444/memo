@@ -1,5 +1,6 @@
 import { db } from './database'
 import { ensureSeeded } from './seed'
+import { installIdbResumeGuard } from './idbRecovery'
 import { backfillSongTitlesFromVersionLabels } from './migrations/backfillSongTitlesFromVersionLabels'
 
 /**
@@ -23,8 +24,20 @@ export async function bootstrapDatabase(): Promise<void> {
     return
   }
 
+  // iPhone app resumed after iOS dropped the IndexedDB connection: reopen it
+  // before a live query trips over it. See idbRecovery.ts.
+  installIdbResumeGuard()
+
   await ensureSeeded()
   void backfillSongTitlesFromVersionLabels()
+
+  // Card positions from before 18 Sept could be fractional, which the cloud's
+  // integer column refuses on every sync. Renumber those columns once.
+  void import('@/db/repositories/songOrder').then(({ repairFractionalSortOrders }) =>
+    repairFractionalSortOrders().catch((err) =>
+      console.error('[songdrafts] order repair failed:', err),
+    ),
+  )
 
   // Import integrity. Silent orphan cards are the failure mode that makes
   // someone think their music is gone, so they get named in the console rather

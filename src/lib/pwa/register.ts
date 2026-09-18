@@ -1,113 +1,104 @@
 import { registerSW } from 'virtual:pwa-register'
+import { shouldReloadNow } from './updatePolicy'
 
 type Listener = () => void
 
 const listeners = new Set<Listener>()
-let applyUpdate: (() => void) | null = null
+let reloadPending = false
 
 export function subscribePwaUpdate(listener: Listener) {
   listeners.add(listener)
+  if (reloadPending) listener()
   return () => {
     listeners.delete(listener)
   }
 }
 
+/** The banner's button. The new build is already active; this just loads it. */
 export function applyPwaUpdate() {
-  applyUpdate?.()
+  window.location.reload()
 }
 
 function notifyUpdateReady() {
   listeners.forEach((listener) => listener())
 }
 
+// When the app was last opened or brought back to the foreground.
+let shownAt = 0
+
+const RELOAD_GUARD = 'sd-sw-autoreload-at'
+
+function reloadGuarded(): boolean {
+  try {
+    const at = Number(sessionStorage.getItem(RELOAD_GUARD) ?? 0)
+    if (Number.isFinite(at) && Date.now() - at < 10_000) return false
+    sessionStorage.setItem(RELOAD_GUARD, String(Date.now()))
+  } catch {
+    // No sessionStorage: reload anyway, the worker only activates once.
+  }
+  window.location.reload()
+  return true
+}
+
+function currentUiState() {
+  const active = document.activeElement as HTMLElement | null
+  const editing = Boolean(
+    active &&
+      (active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.tagName === 'SELECT' ||
+        active.isContentEditable),
+  )
+  const playing = Array.from(document.querySelectorAll('audio, video')).some(
+    (el) => !(el as HTMLMediaElement).paused,
+  )
+  return {
+    onAppRoute: window.location.pathname.startsWith('/app'),
+    editing,
+    playing,
+    hidden: document.visibilityState === 'hidden',
+    sinceLoadMs: performance.now() - shownAt,
+  }
+}
+
+/**
+ * A new build has taken over. Load it at a safe moment.
+ *
+ * WHY THE PHONE "LOOKED OLD" (18 Sept, likely rather than proven). /app is
+ * served offline-first from the precache, so every launch of the installed
+ * app paints the build that was cached last time. The new build only arrives
+ * once the worker checks, downloads every file and activates. That check used
+ * to wait for an idle callback plus five seconds, and the onNeedRefresh
+ * handler that was meant to decide when to reload never ran at all: with
+ * registerType 'autoUpdate' vite-plugin-pwa only ever calls onNeedReload
+ * (or reloads unconditionally), so a mid-edit reload could also happen.
+ *
+ * Now: check straight away on start and on every return to the foreground,
+ * and when the new build is active reload at once if nothing is in progress
+ * (the usual case right after launch), otherwise the moment the app goes to
+ * the background, with a small banner meanwhile. Offline-first loading is
+ * unchanged.
+ */
+function onNewBuildActive() {
+  if (shouldReloadNow(currentUiState()) && reloadGuarded()) return
+  reloadPending = true
+  notifyUpdateReady()
+}
+
 export function initPwa() {
   if (!('serviceWorker' in navigator)) return
 
-  applyUpdate = registerSW({
+  registerSW({
     immediate: true,
-    onNeedRefresh() {
-      /**
-       * Take the update automatically on a fresh page load.
-       *
-       * THIS IS THE BUG THAT MADE THE SITE "LOOK THE SAME EVERY TIME".
-       * The service worker serves the PRECACHED index.html for every
-       * navigation (NavigationRoute -> createHandlerBoundToURL), and it
-       * deliberately does not skipWaiting on install. So a new build installs,
-       * sits in "waiting", and the OLD worker keeps answering every navigation
-       * with the OLD index.html and therefore the OLD asset hashes. Reloading
-       * does not help - the reload is served by the same waiting-blocked
-       * worker. The only escapes were clicking the update banner or closing
-       * every window, so anyone who missed the banner was pinned to a stale
-       * build permanently, however many times they visited.
-       *
-       * A fresh navigation is the safe moment to activate: there is no
-       * in-flight session to break, which was the original reason for not
-       * calling skipWaiting on install. Mid-session updates still go through
-       * the banner. sessionStorage guards against a reload loop.
-       */
-      /**
-       * TWO BUGS IN THE PREVIOUS VERSION OF THIS GUARD, both of which pinned
-       * people to a stale build for a whole session.
-       *
-       * 1. The guard was a session-long boolean that was set and never
-       *    cleared. It correctly stopped a reload loop, and then it also
-       *    stopped EVERY subsequent update for the life of the tab. Ten
-       *    deploys in an afternoon meant the first one auto-applied and the
-       *    other nine silently did not. It is now a timestamp, so it blocks
-       *    a second reload within ten seconds (which is all a loop guard
-       *    needs to do) and allows the next genuine update after that.
-       *
-       * 2. `performance.now() < 20_000` meant an update detected more than
-       *    twenty seconds after load never auto-applied. Updates are checked
-       *    at five seconds, on focus, on visibility, on reconnect and every
-       *    fifteen minutes, so in practice almost every update arrived
-       *    outside that window and fell through to the banner. Anyone who
-       *    did not spot the banner stayed on the old build indefinitely.
-       *
-       * The original reason for the freshness check was not to yank the page
-       * out from under someone mid-session. That risk is real on /app, where
-       * there can be unsaved work, and absent on the marketing pages, where
-       * there is nothing to lose. So the condition is now about WHERE you
-       * are, not how long ago you loaded.
-       */
-      const RELOAD_GUARD = 'sd-sw-autoreload-at'
-      let recentlyReloaded = false
-      try {
-        const at = Number(sessionStorage.getItem(RELOAD_GUARD) ?? 0)
-        recentlyReloaded = Number.isFinite(at) && Date.now() - at < 10_000
-      } catch {}
-
-      const onAppRoute = window.location.pathname.startsWith('/app')
-      const safeToReload = !onAppRoute
-
-      if (safeToReload && !recentlyReloaded) {
-        try {
-          sessionStorage.setItem(RELOAD_GUARD, String(Date.now()))
-        } catch {}
-        // Deferred: onNeedRefresh can fire before registerSW() has returned,
-        // so applyUpdate may not be assigned yet at this point.
-        setTimeout(() => applyUpdate?.(), 0)
-        return
-      }
-
-      notifyUpdateReady()
-    },
+    onNeedReload: onNewBuildActive,
     onRegisteredSW(_url, registration) {
       if (!registration) return
 
-      /**
-       * Updates have to actually arrive.
-       *
-       * This used to be a lone 60-minute setInterval, which fails twice: an
-       * app left open waits up to an hour, and browsers throttle timers hard
-       * in background tabs, so a backgrounded PWA can go far longer. That is
-       * how an open install served a build two identities old.
-       *
-       * Now: check when the tab becomes visible (the "next focus" case),
-       * when connectivity returns, and on a much shorter timer as a backstop.
-       */
       const check = () => {
-        void registration.update()
+        if (!navigator.onLine) return
+        void registration.update().catch(() => {
+          // Offline or the server hiccuped. The next foreground tries again.
+        })
       }
 
       // Debounced so a burst of focus events is one request.
@@ -120,16 +111,23 @@ export function initPwa() {
       }
 
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') checkThrottled()
+        if (document.visibilityState === 'visible') {
+          shownAt = performance.now()
+          checkThrottled()
+          return
+        }
+        // Going to the background is the safe moment for a waiting reload.
+        if (reloadPending && shouldReloadNow(currentUiState())) reloadGuarded()
       })
+      window.addEventListener('pageshow', checkThrottled)
       window.addEventListener('focus', checkThrottled)
       window.addEventListener('online', checkThrottled)
 
-      // Backstop for a tab left open and visible.
+      // Backstop for an app left open and visible.
       window.setInterval(check, 15 * 60 * 1000)
 
-      // And once shortly after boot, so a stale install heals on next open.
-      window.setTimeout(check, 5_000)
+      // At once: a stale install heals on this launch, not the next one.
+      checkThrottled()
     },
   })
 }
