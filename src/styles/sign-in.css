@@ -370,3 +370,62 @@
     font-size: 38px;
   }
 }
+
+/* The one-tap question on Create account (18 Sept). Pills in the app's
+   shape, the chosen one filled, the rest quiet. */
+
+.sign-in-heard {
+  margin: 0 0 22px;
+}
+
+.sign-in-heard-q {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.sign-in-heard-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sign-in-pill {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  color: var(--text);
+  font-family: var(--font-sans, 'Bricolage Grotesque', sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, opacity 150ms ease, transform 150ms ease;
+}
+
+.sign-in-pill:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.sign-in-pill:active {
+  transform: scale(0.98);
+}
+
+.sign-in-pill.is-on {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+
+.sign-in-pill:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sign-in-heard-other {
+  margin-top: 10px;
+}
+
+.sign-in-heard-hint {
+  margin: 8px 0 0;
+}

@@ -32,7 +32,7 @@
  * an email address, or anything from a board.
  */
 
-import { getFirstTouch } from '@/lib/attribution'
+import { getFirstTouch, getHeardFrom } from '@/lib/attribution'
 import { effectiveAdConsent, onAdConsentChange } from '@/lib/metaPixel'
 
 type Gtag = (...args: unknown[]) => void
@@ -294,7 +294,8 @@ export function trackGa4PageView(pathname: string = window.location.pathname) {
 }
 
 export function trackGa4SignUp(method: 'google' | 'email') {
-  send('sign_up', { method, ...firstTouchParams() })
+  const heard = getHeardFrom()
+  send('sign_up', { method, ...firstTouchParams(), ...(heard ? { heard_from: heard.source } : {}) })
 }
 
 export function trackGa4BeginCheckout(plan: string, value: number) {

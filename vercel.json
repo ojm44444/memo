@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/r", "destination": "/?utm_source=reddit&utm_medium=social&utm_campaign=r", "permanent": true }
+  ],
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/" }],
   "headers": [
     {
