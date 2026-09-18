@@ -22,6 +22,8 @@ import {
 import { Wordmark } from '@/components/ui/Wordmark'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { formatDuration } from '@/lib/audio-utils'
+import { HandoffScheduler, nextLeadMs, otherDeck, whenIdle, type HandoffReading } from '@/lib/audio/gapless'
+import { unlockSpareElement } from '@/lib/audio/globalAudioEl'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import {
   addCollectionComment,
@@ -68,9 +70,27 @@ function safeName(value: string) {
   return value.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'track'
 }
 
+/** The next track, loaded on the second element (see lib/audio/gapless.ts). */
+interface PreparedTrack {
+  songIndex: number
+  versionId: string
+  url: string
+  el: HTMLAudioElement
+}
+
 export function CollectionSharePage() {
   const { token } = useParams<{ token: string }>()
+  /* Gapless (18 Sept, Owen asked for true gapless playback): two <audio>
+     elements. audioRef is the one playing; the other loads the next track and
+     takes over a few milliseconds before this one ends. Handlers ignore
+     whichever is not in charge. */
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const decksRef = useRef<[HTMLAudioElement | null, HTMLAudioElement | null]>([null, null])
+  const preparedRef = useRef<PreparedTrack | null>(null)
+  const leadMsRef = useRef(0)
+  // What plays after the current track, kept fresh for the handoff timer.
+  const upcomingRef = useRef<{ songIndex: number; versionId: string } | null>(null)
+  const [handoffs, setHandoffs] = useState(0)
   const urlCache = useRef(new Map<string, string>())
   const listenRecorded = useRef(false)
   const openRecorded = useRef(false)
@@ -199,10 +219,22 @@ export function CollectionSharePage() {
   const eyebrowKind =
     kinds.size === 1 && kinds.has('master') ? 'Masters' : kinds.has('mix') || kinds.has('master') ? 'Mixes' : 'Demos'
 
+  const attachDeck = useCallback((deck: 0 | 1, el: HTMLAudioElement | null) => {
+    decksRef.current[deck] = el
+    if (!audioRef.current || !decksRef.current.includes(audioRef.current)) {
+      audioRef.current = decksRef.current[0] ?? decksRef.current[1] ?? null
+    }
+  }, [])
+  const deckRefA = useCallback((el: HTMLAudioElement | null) => attachDeck(0, el), [attachDeck])
+  const deckRefB = useCallback((el: HTMLAudioElement | null) => attachDeck(1, el), [attachDeck])
+
   const startTrack = useCallback(
     async (songIndex: number, track: CollectionTrack, atMs = 0) => {
-      const audio = audioRef.current
-      if (!audio) return
+      // Called inside the tap: let the second element play later without one.
+      unlockSpareElement(otherDeck(decksRef.current, audioRef.current))
+      const current = audioRef.current
+      if (!current) return
+      let audio: HTMLAudioElement = current
       setCurrentSong(songIndex)
       setProgress(0)
       setCurrentMs(atMs)
@@ -215,7 +247,28 @@ export function CollectionSharePage() {
           urlCache.current.set(track.version_id, url)
         }
         setCurrentUrl(url)
-        audio.src = url
+        const prepared = preparedRef.current
+        const spare = otherDeck(decksRef.current, audio)
+        if (
+          atMs === 0 &&
+          prepared &&
+          spare &&
+          prepared.el === spare &&
+          prepared.versionId === track.version_id &&
+          prepared.url === url
+        ) {
+          // Already loaded on the other element (Next tapped, or the track
+          // ended before the handoff timer ran): switch instead of reloading.
+          preparedRef.current = null
+          const from = audio
+          audioRef.current = spare
+          from.pause()
+          audio = spare
+          if (audio.currentTime > 0.05) audio.currentTime = 0
+          if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) setBuffering(false)
+        } else {
+          audio.src = url
+        }
         if (atMs > 0) {
           audio.addEventListener(
             'loadedmetadata',
@@ -260,20 +313,34 @@ export function CollectionSharePage() {
     } else playSong(currentSong)
   }
 
-  /* Close to gapless (17 Sept, Owen asked for Samply's gapless playback):
-     once a track is past 60%, sign the next one's link and start buffering it
-     in the background, so the change-over does not wait on the network.
-     Only the next track, and only once it is likely to be reached. */
-  const prewarmed = useRef<{ versionId: string; el: HTMLAudioElement } | null>(null)
-  const prewarmNext = () => {
-    if (currentSong === null) return
+  /* Gapless (17 Sept, Owen asked for Samply's gapless playback; 18 Sept, true
+     gapless). Once a track is past 60%, sign the next one's link and load it
+     on the second element, so the change-over neither waits on the network
+     nor on opening the file. Only the next track, and only once it is likely
+     to be reached: every byte streamed here is paid for. */
+  const upcomingIndex = (() => {
+    if (currentSong === null) return undefined
     const at = playOrder.indexOf(currentSong)
-    const nextIndex = playOrder[at + 1] ?? (repeat ? playOrder[0] : undefined)
-    if (nextIndex === undefined) return
-    const track = trackFor(nextIndex)
-    if (prewarmed.current?.versionId === track.version_id) return
-    prewarmed.current = { versionId: track.version_id, el: new Audio() }
-    const warm = prewarmed.current
+    return playOrder[at + 1] ?? (repeat ? playOrder[0] : undefined)
+  })()
+  const upcomingVersionId =
+    upcomingIndex !== undefined && songs[upcomingIndex] ? trackFor(upcomingIndex).version_id : null
+  useEffect(() => {
+    upcomingRef.current =
+      upcomingIndex !== undefined && upcomingVersionId ? { songIndex: upcomingIndex, versionId: upcomingVersionId } : null
+  }, [upcomingIndex, upcomingVersionId])
+
+  const preparingRef = useRef<string | null>(null)
+  const prepareNext = () => {
+    if (upcomingIndex === undefined || !upcomingVersionId) return
+    const spare = otherDeck(decksRef.current, audioRef.current)
+    if (!spare) return
+    const held = preparedRef.current
+    if (held && held.el === spare && held.versionId === upcomingVersionId) return
+    if (preparingRef.current === upcomingVersionId) return
+    preparingRef.current = upcomingVersionId
+    const track = trackFor(upcomingIndex)
+    const songIndex = upcomingIndex
     void (async () => {
       try {
         let url = urlCache.current.get(track.version_id)
@@ -281,14 +348,76 @@ export function CollectionSharePage() {
           url = await signedTrackUrl(track.storage_path)
           urlCache.current.set(track.version_id, url)
         }
-        warm.el.preload = 'auto'
-        warm.el.src = url
-        warm.el.load()
+        // The element that just handed over may still be finishing.
+        await whenIdle(spare)
+        if (spare === audioRef.current) return
+        preparedRef.current = { songIndex, versionId: track.version_id, url, el: spare }
+        spare.preload = 'auto'
+        if (spare.src !== url) spare.src = url
       } catch {
-        prewarmed.current = null
+        // Only a head start. The track still plays when its turn comes.
+      } finally {
+        if (preparingRef.current === track.version_id) preparingRef.current = null
       }
     })()
   }
+
+  /* Start the next element a few milliseconds before this one runs out. */
+  const readHandoff = useCallback((): HandoffReading | null => {
+    const el = audioRef.current
+    const prepared = preparedRef.current
+    if (!el || !prepared || prepared.el === el) return null
+    if (el.paused || !el.duration || !Number.isFinite(el.duration)) return null
+    return { currentTimeSec: el.currentTime, endSec: el.duration, rate: el.playbackRate || 1, leadMs: leadMsRef.current }
+  }, [])
+
+  const handOff = useCallback(() => {
+    const from = audioRef.current
+    const prepared = preparedRef.current
+    const upcoming = upcomingRef.current
+    if (!from || !prepared || prepared.el === from || from.ended) return
+    if (!upcoming || upcoming.songIndex !== prepared.songIndex || upcoming.versionId !== prepared.versionId) return
+    const to = prepared.el
+    preparedRef.current = null
+    if (to.currentTime > 0.05) to.currentTime = 0
+    // In charge before it starts, so the old one's pause and ended are ignored.
+    audioRef.current = to
+    const calledAt = performance.now()
+    to.addEventListener(
+      'playing',
+      () => {
+        leadMsRef.current = nextLeadMs(leadMsRef.current, performance.now() - calledAt)
+      },
+      { once: true },
+    )
+    void to.play().catch((err: Error) => {
+      if (err?.name === 'AbortError' || audioRef.current !== to) return
+      // Refused (never unlocked by a tap): play it on the element that was
+      // just playing, as this page always did.
+      audioRef.current = from
+      from.src = prepared.url
+      void from.play().catch(() => setIsPlaying(false))
+    })
+    setCurrentSong(prepared.songIndex)
+    setCurrentUrl(prepared.url)
+    setProgress(0)
+    setCurrentMs(0)
+    setPinMs(null)
+    setBuffering(to.readyState < HTMLMediaElement.HAVE_FUTURE_DATA)
+    setHandoffs((n) => n + 1)
+  }, [])
+
+  const schedulerRef = useRef<HandoffScheduler | null>(null)
+  useEffect(() => {
+    const scheduler = new HandoffScheduler(readHandoff, handOff)
+    schedulerRef.current = scheduler
+    return () => scheduler.cancel()
+  }, [readHandoff, handOff])
+  // Ready again for every new track (and every handoff: a one-track repeat
+  // hands over to the same track).
+  useEffect(() => {
+    schedulerRef.current?.reset()
+  }, [currentSong, currentUrl, handoffs])
 
   const step = (by: 1 | -1) => {
     if (currentSong === null) return
@@ -484,23 +613,42 @@ export function CollectionSharePage() {
         <span className="coll-chip">Shared privately</span>
       </header>
 
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onWaiting={() => setBuffering(true)}
-        onPlaying={() => setBuffering(false)}
-        onCanPlay={() => setBuffering(false)}
-        onTimeUpdate={(e) => {
-          const el = e.currentTarget
-          if (!el.duration) return
-          setProgress(el.currentTime / el.duration)
-          setCurrentMs(el.currentTime * 1000)
-          if (el.currentTime / el.duration > 0.6) prewarmNext()
-        }}
-        onEnded={() => step(1)}
-      />
+      {[0, 1].map((deck) => (
+        <audio
+          key={deck}
+          ref={deck === 0 ? deckRefA : deckRefB}
+          preload="metadata"
+          onPlay={(e) => {
+            if (e.currentTarget === audioRef.current) setIsPlaying(true)
+          }}
+          onPause={(e) => {
+            if (e.currentTarget === audioRef.current) setIsPlaying(false)
+          }}
+          onWaiting={(e) => {
+            if (e.currentTarget === audioRef.current) setBuffering(true)
+          }}
+          onPlaying={(e) => {
+            if (e.currentTarget === audioRef.current) setBuffering(false)
+          }}
+          onCanPlay={(e) => {
+            if (e.currentTarget === audioRef.current) setBuffering(false)
+          }}
+          onTimeUpdate={(e) => {
+            const el = e.currentTarget
+            if (el !== audioRef.current || !el.duration) return
+            setProgress(el.currentTime / el.duration)
+            setCurrentMs(el.currentTime * 1000)
+            if (el.currentTime / el.duration > 0.6) prepareNext()
+            schedulerRef.current?.poke()
+          }}
+          onSeeked={(e) => {
+            if (e.currentTarget === audioRef.current) schedulerRef.current?.poke()
+          }}
+          onEnded={(e) => {
+            if (e.currentTarget === audioRef.current) step(1)
+          }}
+        />
+      ))}
 
       {loading && <p className="coll-state">Opening…</p>}
 
