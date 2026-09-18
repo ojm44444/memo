@@ -22,6 +22,7 @@ import {
 } from '@/lib/billing'
 import { PRICE_TABLE, getPreferredCurrency, money, type Currency } from '@/lib/currency'
 import { supabase } from '@/lib/supabase/client'
+import { exportBoardBackup } from '@/lib/export/exportBoardBackup'
 import '@/styles/onboarding.css'
 
 const longDate = (date: Date) =>
@@ -56,6 +57,10 @@ export function PlanSection() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refundOpen, setRefundOpen] = useState(false)
+  // 19 Sept, Owen: cancel and refund each get a "before you go" step, so
+  // nobody loses access without knowing, and the zip is one tap away.
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [exporting, setExporting] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle')
   const [refunded, setRefunded] = useState<string | null>(null)
   // Comped and early accounts are free for good (PlanGate and the database
   // agree): no subscription, so nothing to cancel and nothing to buy.
@@ -118,6 +123,31 @@ export function PlanSection() {
 
   const checkout = (plan: PlanChoice) => run(() => startCheckout(plan, { currency }))
 
+  const exportSongs = async () => {
+    setExporting('busy')
+    try {
+      await exportBoardBackup()
+      setExporting('done')
+    } catch {
+      setExporting('failed')
+    }
+  }
+
+  const exportButton = (
+    <button
+      type="button"
+      className="settings-export"
+      disabled={exporting === 'busy'}
+      onClick={() => void exportSongs()}
+    >
+      {exporting === 'busy'
+        ? 'Making the zip…'
+        : exporting === 'done'
+          ? 'Downloaded. Export again'
+          : 'Export all my songs'}
+    </button>
+  )
+
   const takeRefund = () =>
     run(async () => {
       const result = await requestRefund()
@@ -152,18 +182,63 @@ export function PlanSection() {
                own button, not a line inside Manage billing. Stripe's portal
                cancels at the end of the period. */
             <div className="plan-cancel">
-              <button
-                type="button"
-                className="ob-pill is-quiet plan-cancel-btn"
-                disabled={busy}
-                onClick={() => void run(openBillingPortal)}
-              >
-                Cancel plan
-              </button>
-              <p className="settings-field-note">
-                You keep everything until the end of the period you’ve paid for.
-                {current.plan === 'founding_year' ? ' Cancel and it is $79 a year if you come back.' : ''}
-              </p>
+              {!cancelOpen ? (
+                <>
+                  <button
+                    type="button"
+                    className="ob-pill is-quiet plan-cancel-btn"
+                    disabled={busy}
+                    onClick={() => {
+                      setCancelOpen(true)
+                      setRefundOpen(false)
+                    }}
+                  >
+                    Cancel plan
+                  </button>
+                  <p className="settings-field-note">
+                    You keep everything until the end of the period you’ve paid for.
+                    {current.plan === 'founding_year' ? ' Cancel and it is $79 a year if you come back.' : ''}
+                  </p>
+                </>
+              ) : (
+                <div className="settings-everywhere">
+                  <p className="settings-section-title" style={{ margin: 0 }}>Before you go</p>
+                  <p className="settings-field-note" style={{ marginTop: 0 }}>
+                    {current.currentPeriodEnd
+                      ? `You keep everything until ${longDate(new Date(current.currentPeriodEnd))}. `
+                      : 'You keep everything until the end of the period you have paid for. '}
+                    After that, syncing and backup stop and your share links stop playing. Songs on
+                    this device stay. Export them all as one zip first, so you have a copy anywhere.
+                  </p>
+                  {refund.open && (
+                    <p className="settings-field-note">
+                      Want your money back instead? Use Get a refund below. That ends the plan
+                      straight away, so export first.
+                    </p>
+                  )}
+                  <div className="reminder-row" style={{ marginBottom: 0 }}>
+                    {exportButton}
+                    <button
+                      type="button"
+                      className="settings-delete-confirm"
+                      disabled={busy}
+                      onClick={() => void run(openBillingPortal)}
+                    >
+                      {busy ? 'Opening…' : 'Continue to cancel'}
+                    </button>
+                    <button
+                      type="button"
+                      className="settings-avatar-clear"
+                      onClick={() => setCancelOpen(false)}
+                    >
+                      Keep my plan
+                    </button>
+                  </div>
+                  {exporting === 'failed' && (
+                    <p className="settings-avatar-error">The zip could not be made. Try again.</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="reminder-row">
@@ -179,7 +254,10 @@ export function PlanSection() {
               <button
                 type="button"
                 className="settings-avatar-clear"
-                onClick={() => setRefundOpen(true)}
+                onClick={() => {
+                  setRefundOpen(true)
+                  setCancelOpen(false)
+                }}
               >
                 Get a refund
               </button>
@@ -189,11 +267,14 @@ export function PlanSection() {
 
           {refund.open && refundOpen && refund.until && (
             <div className="settings-everywhere">
+              <p className="settings-section-title" style={{ margin: 0 }}>Before you go</p>
               <p className="settings-field-note" style={{ marginTop: 0 }}>
-                Full refund, and your plan ends now. Songs on this device stay. Open until{' '}
-                {longDate(refund.until)}.
+                Every penny back, and your plan ends straight away: syncing, backup and share
+                links stop now, not at the end of the month. Songs on this device stay. Export them
+                all as one zip first. Refunds are open until {longDate(refund.until)}.
               </p>
               <div className="reminder-row" style={{ marginBottom: 0 }}>
+                {exportButton}
                 <button
                   type="button"
                   className="settings-delete-confirm"
@@ -207,7 +288,7 @@ export function PlanSection() {
                   className="settings-avatar-clear"
                   onClick={() => setRefundOpen(false)}
                 >
-                  Cancel
+                  Keep my plan
                 </button>
               </div>
             </div>

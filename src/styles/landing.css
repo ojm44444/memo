@@ -40,6 +40,22 @@
   --green: #1d6a4c;
   --green-tint: rgba(29, 106, 76, 0.09);
 
+  /* 19 Sept, Owen: the page read too beige, "the green could pop a bit more"
+     and colour should run through it, like the closing band he liked. So the
+     panels between the hero and that band carry the app icon's own ramp
+     (#5ea7b8 teal, #65a396, #8ac4a6, #c3e8bd mint) washed onto paper. The
+     icon's colours only: nothing new, no other hues. Text on every wash is
+     ink or muted, both still pass on the mint end and the teal end. */
+  --wash:
+    radial-gradient(80% 90% at 0% 0%, rgba(94, 167, 184, 0.42) 0%, transparent 70%),
+    radial-gradient(75% 85% at 100% 100%, rgba(195, 232, 189, 0.95) 0%, transparent 72%),
+    linear-gradient(135deg, #d9ebe5 0%, #e3f0e0 100%);
+  --wash-cool:
+    radial-gradient(85% 90% at 100% 0%, rgba(94, 167, 184, 0.38) 0%, transparent 70%),
+    radial-gradient(70% 80% at 0% 100%, rgba(138, 196, 166, 0.45) 0%, transparent 72%),
+    linear-gradient(160deg, #dcebe6 0%, #e6f1e4 100%);
+  --wash-chip: linear-gradient(135deg, #cfe6e6 0%, #d8eed3 100%);
+
   --wrap: 1120px;
   --gutter: clamp(16px, 4vw, 32px);
   --pad-x: max(var(--gutter), calc((100% - var(--wrap)) / 2));
@@ -773,7 +789,7 @@ html:has(.landing) {
   gap: clamp(32px, 5vw, 72px);
   padding: clamp(32px, 5vw, 64px);
   border-radius: var(--r-lg);
-  background: var(--panel);
+  background: var(--wash);
 }
 
 .listen-lede {
@@ -1021,7 +1037,7 @@ html:has(.landing) {
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  background: var(--panel);
+  background: var(--wash-chip);
   color: var(--ink);
   font-size: 17px;
   line-height: 1;
@@ -1190,7 +1206,7 @@ html:has(.landing) {
   position: relative;
   min-height: 340px;
   border-radius: var(--r-lg);
-  background: var(--panel);
+  background: var(--wash-cool);
   overflow: hidden;
 }
 
@@ -1311,7 +1327,7 @@ html:has(.landing) {
   gap: clamp(32px, 5vw, 72px);
   padding: clamp(32px, 5vw, 64px);
   border-radius: var(--r-lg);
-  background: var(--panel);
+  background: var(--wash-cool);
 }
 
 .offline-sub {
@@ -1806,7 +1822,7 @@ html:has(.landing) {
   top: 96px;
   padding: clamp(28px, 4vw, 48px);
   border-radius: var(--r-lg);
-  background: var(--panel);
+  background: var(--wash);
 }
 
 .workflow-quote-text {
@@ -1833,6 +1849,7 @@ html:has(.landing) {
 
 .trust {
   padding: var(--section-y) var(--pad-x) 0;
+  background: radial-gradient(45% 50% at 8% 65%, rgba(138, 196, 166, 0.3) 0%, transparent 70%);
 }
 
 .trust-inner {
@@ -1888,6 +1905,10 @@ html:has(.landing) {
 
 .pricing {
   text-align: center;
+  /* The icon ramp behind the price card, so the card sits on colour. */
+  background:
+    radial-gradient(55% 60% at 18% 35%, rgba(94, 167, 184, 0.28) 0%, transparent 70%),
+    radial-gradient(55% 60% at 82% 65%, rgba(195, 232, 189, 0.8) 0%, transparent 72%);
 }
 
 .price-card {
@@ -2046,7 +2067,7 @@ html:has(.landing) {
 /* ── FAQ ──────────────────────────────────────────────────────────────────── */
 
 .faq-section {
-  padding: 0 var(--pad-x) var(--section-y);
+  padding: var(--section-y) var(--pad-x);
 }
 
 .faq-inner {
