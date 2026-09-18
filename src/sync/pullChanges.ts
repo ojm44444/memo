@@ -360,6 +360,7 @@ export async function pullChanges(userId: string) {
             // Local-only fields — server has no column for these, preserve them
             ...(local?.trimStartMs != null ? { trimStartMs: local.trimStartMs } : {}),
             ...(local?.tags?.length ? { tags: local.tags } : {}),
+            ...(local?.mergedFromSongId ? { mergedFromSongId: local.mergedFromSongId } : {}),
           }
           await db.audioVersions.put(version)
           pulled++

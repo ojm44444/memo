@@ -62,7 +62,7 @@ export function LyricsEditor({ songId, initial }: { songId: string; initial: str
         className="lyrics-field"
         value={value}
         spellCheck={false}
-        placeholder={'Verse 1\nG            C\nWords go here, chords above them'}
+        placeholder="Put any lyrics and chords here."
         aria-label="Lyrics and chords for this song"
         onChange={(e) => {
           setValue(e.target.value)
@@ -76,9 +76,6 @@ export function LyricsEditor({ songId, initial }: { songId: string; initial: str
           }
         }}
       />
-      <p className="lyrics-hint">
-        Spacing is kept exactly as you type it, so chords stay above the right word.
-      </p>
     </div>
   )
 }

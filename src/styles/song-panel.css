@@ -1,0 +1,1159 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   The song panel (18 Sept). Built to the Listen tab's language: the title
+   large in the serif, small mono caps for eyebrows, soft filled surfaces with
+   no hard outlines, pills, generous spacing, one accent (Share).
+
+   Owen prefers the light version, so dark is built the same way rather than
+   as heavy dark blocks: a lifted slate panel with translucent light cards,
+   the way light mode has white cards on a pale ground.
+
+   One design on every screen. On a phone it is a sheet from the bottom with
+   the same bar, title, pills and cards, not a separate older style.
+
+   Scoped under .sp-overlay .sp so it outranks the older drawer rules in
+   board.css, which this file is loaded after (see SongDetailDrawer.tsx).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 24px;
+  background: rgba(4, 12, 16, 0.55);
+  cursor: pointer;
+  animation: sp-fade 0.18s ease-out;
+}
+
+html.light .sp-overlay {
+  background: rgba(15, 43, 46, 0.26);
+}
+
+.sp-overlay .sp {
+  --sp-bg: color-mix(in srgb, var(--bg) 45%, var(--surface));
+  --sp-card: color-mix(in srgb, var(--text) 5.5%, transparent);
+  --sp-card-hover: color-mix(in srgb, var(--text) 8%, transparent);
+  --sp-field: color-mix(in srgb, var(--text) 6%, transparent);
+  --sp-field-focus: color-mix(in srgb, var(--text) 8%, transparent);
+  --sp-pill: color-mix(in srgb, var(--text) 8%, transparent);
+  --sp-pill-hover: color-mix(in srgb, var(--text) 12%, transparent);
+  --sp-line: color-mix(in srgb, var(--text) 8%, transparent);
+  --sp-ring: color-mix(in srgb, var(--accent) 55%, transparent);
+  --sp-radius: 22px;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100dvh - 64px);
+  cursor: default;
+  color: var(--text);
+  background: var(--sp-bg);
+  border: 1px solid color-mix(in srgb, var(--text) 7%, transparent);
+  border-radius: var(--sp-radius);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+  animation: sp-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html.light .sp-overlay .sp {
+  --sp-bg: color-mix(in srgb, var(--bg-2) 55%, var(--surface));
+  --sp-card: rgba(255, 255, 255, 0.72);
+  --sp-card-hover: rgba(255, 255, 255, 0.9);
+  --sp-field: rgba(255, 255, 255, 0.72);
+  --sp-field-focus: #ffffff;
+  --sp-pill: rgba(15, 43, 46, 0.07);
+  --sp-pill-hover: rgba(15, 43, 46, 0.11);
+  --sp-line: rgba(15, 43, 46, 0.09);
+  border-color: rgba(15, 43, 46, 0.06);
+  box-shadow: 0 30px 80px rgba(15, 43, 46, 0.18), 0 4px 16px rgba(15, 43, 46, 0.06);
+}
+
+@keyframes sp-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Opacity and a small lift only. The panel is never left with a transform
+   once it has landed, because a transformed ancestor would pin the take
+   menu (position: fixed) to the panel instead of the screen. */
+@keyframes sp-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sp-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+/* ── Top bar: never scrolls, Close always in reach ─────────────────────── */
+.sp-overlay .sp-bar {
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px 32px;
+  border-bottom: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius) var(--sp-radius) 0 0;
+  background: var(--sp-bg);
+}
+
+.sp-overlay .sp-grab {
+  display: none;
+}
+
+.sp-overlay .sp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sp-overlay .sp-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sp-overlay .sp-close {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sp-pill);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sp-overlay .sp-close:hover {
+  background: var(--sp-pill-hover);
+}
+
+/* Share: the one accent on the panel. */
+.sp-overlay .sp-bar .song-share {
+  gap: 0;
+}
+
+.sp-overlay .sp-bar .song-share-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.sp-overlay .sp-bar .song-share-trigger:hover {
+  background: var(--accent-hover);
+  color: var(--accent-on);
+}
+
+.sp-overlay .sp-bar .song-share-badge {
+  background: color-mix(in srgb, var(--accent-on) 18%, transparent);
+  color: var(--accent-on);
+}
+
+.sp-overlay .sp .song-share-panel {
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+html.light .sp-overlay .sp .song-share-panel {
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(15, 43, 46, 0.18);
+}
+
+/* ── The scrolling body ─────────────────────────────────────────────────── */
+.sp-overlay .sp-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 28px 32px 34px;
+  border-radius: 0 0 var(--sp-radius) var(--sp-radius);
+}
+
+.sp-overlay .sp-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sp-overlay .sp-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sp-overlay .sp-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(34px, 5vw, 48px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  border-radius: 8px;
+}
+
+.sp-overlay .sp-title::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 60%, transparent);
+}
+
+.sp-overlay .sp-title:focus-visible {
+  box-shadow: 0 2px 0 0 var(--sp-ring);
+  border-radius: 0;
+}
+
+.sp-overlay .sp-fav.song-favourite-btn--drawer {
+  width: 40px;
+  height: 40px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--sp-pill);
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.sp-overlay .sp-fav.song-favourite-btn--drawer:hover {
+  transform: none;
+  background: var(--sp-pill-hover);
+  color: var(--text);
+}
+
+.sp-overlay .sp-fav.song-favourite-btn--drawer.is-active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* Stage and project: two labelled pills, obviously clickable. */
+.sp-overlay .sp-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sp-overlay .sp .song-stage-select,
+.sp-overlay .sp .song-project-select {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.sp-overlay .sp .song-project-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.sp-overlay .sp .song-stage-label,
+.sp-overlay .sp .song-project-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 4px 0 16px;
+  border-radius: 999px 0 0 999px;
+  background: var(--sp-pill);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sp-overlay .sp .song-stage-custom-select,
+.sp-overlay .sp .song-project-custom-select {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0 999px 999px 0;
+  background: none;
+}
+
+.sp-overlay .sp .song-stage-custom-select .custom-select-trigger,
+.sp-overlay .sp .song-project-custom-select .custom-select-trigger {
+  gap: 8px;
+  min-height: 40px;
+  min-width: 64px;
+  max-width: 260px;
+  padding: 0 16px 0 8px;
+  border: 0;
+  border-radius: 0 999px 999px 0;
+  background: var(--sp-pill);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.sp-overlay .sp .song-stage-select:hover .song-stage-label,
+.sp-overlay .sp .song-stage-select:hover .custom-select-trigger,
+.sp-overlay .sp .song-project-select:hover .song-project-label,
+.sp-overlay .sp .song-project-row:hover .custom-select-trigger {
+  background: var(--sp-pill-hover);
+}
+
+.sp-overlay .sp .custom-select-chevron {
+  opacity: 0.7;
+  font-size: 15px;
+}
+
+/* The popovers open under their pill, from its left edge, so they stay
+   inside the panel. They used to hang off the right edge of a pill at the
+   left of the panel, which put most of the project list out of sight. */
+.sp-overlay .sp .sp-select-popover {
+  left: 0;
+  right: auto;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 48px));
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+}
+
+html.light .sp-overlay .sp .sp-select-popover {
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 43, 46, 0.18), 0 2px 8px rgba(15, 43, 46, 0.06);
+}
+
+.sp-overlay .sp .sp-select-popover .custom-select-option {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.sp-overlay .sp .sp-select-popover .custom-select-option:hover {
+  background: var(--sp-pill);
+}
+
+.sp-overlay .sp .sp-select-popover .custom-select-option--active {
+  color: var(--accent);
+}
+
+.sp-overlay .sp .song-project-new-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sp-overlay .sp .song-project-new-btn:hover {
+  background: var(--sp-pill);
+  color: var(--text);
+}
+
+.sp-overlay .sp .song-project-create-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-overlay .sp .song-project-create-input {
+  min-height: 40px;
+  min-width: 180px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+
+.sp-overlay .sp .song-project-create-confirm {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sp-overlay .sp .song-project-create-cancel {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.sp-overlay .sp .song-stage-readonly,
+.sp-overlay .sp .song-project-readonly {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sp-pill);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+.sp-overlay .sp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sp-overlay .sp-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sp-overlay .sp-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* Every label in the panel: small mono caps, like the eyebrows in Listen. */
+.sp-overlay .sp .song-detail-label,
+.sp-overlay .sp .lyrics-label,
+.sp-overlay .sp .song-meta-field > span,
+.sp-overlay .sp .song-tags-suggestions-label {
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sp-overlay .sp .song-detail-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sp-overlay .sp .song-detail-link:hover {
+  background: var(--sp-pill);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* ── Takes ──────────────────────────────────────────────────────────────── */
+.sp-overlay .sp-takes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sp-overlay .sp-take-skeleton {
+  height: 64px;
+  border-radius: 16px;
+  background: var(--sp-card);
+}
+
+.sp-overlay .sp .version-stack-item {
+  border: 0;
+  border-radius: 16px;
+}
+
+.sp-overlay .sp .version-stack-item--muted {
+  opacity: 0.85;
+}
+
+.sp-overlay .sp .version-row {
+  gap: 6px;
+}
+
+.sp-overlay .sp .scp-audio-item {
+  gap: 14px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--sp-card);
+  box-shadow: none;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.sp-overlay .sp .scp-audio-item:hover {
+  border: 0;
+  background: var(--sp-card-hover);
+  box-shadow: none;
+}
+
+html.light .sp-overlay .sp .scp-audio-item {
+  box-shadow: 0 1px 2px rgba(15, 43, 46, 0.05);
+}
+
+.sp-overlay .sp .version-stack-item--current .scp-audio-item,
+.sp-overlay .sp .version-stack-item--active .scp-audio-item {
+  background: color-mix(in srgb, var(--accent) 10%, var(--sp-card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.sp-overlay .sp .scp-play {
+  width: 40px;
+  height: 40px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.sp-overlay .sp .scp-play-muted {
+  background: var(--sp-pill);
+  color: var(--text);
+}
+
+.sp-overlay .sp .scp-dur {
+  font-size: 12px;
+}
+
+.sp-overlay .sp .version-row-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sp-overlay .sp .version-kebab {
+  width: 40px;
+  border-radius: 14px;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.sp-overlay .sp .version-kebab:hover,
+.sp-overlay .sp .version-kebab.is-open {
+  background: var(--sp-card);
+  color: var(--text);
+}
+
+.sp-overlay .sp .version-menu {
+  min-width: 190px;
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+}
+
+html.light .sp-overlay .sp .version-menu {
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 43, 46, 0.18), 0 2px 8px rgba(15, 43, 46, 0.06);
+}
+
+/* Opened by a right-click: at the pointer, over everything. */
+.sp-overlay .sp .version-menu--at-point {
+  position: fixed;
+  right: auto;
+  z-index: 120;
+}
+
+.sp-overlay .sp .version-menu-backdrop {
+  z-index: 110;
+}
+
+.sp-overlay .sp .version-menu-item {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.sp-overlay .sp .version-menu-item:hover {
+  background: var(--sp-pill);
+}
+
+.sp-overlay .sp .version-menu-item--lead {
+  font-weight: 600;
+}
+
+.sp-overlay .sp .version-clip-tags {
+  padding: 6px 4px 0 70px;
+}
+
+.sp-overlay .sp-unlinked {
+  margin: 2px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* ── Comments, under the waveform ───────────────────────────────────────── */
+.sp-overlay .sp .song-comments {
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.sp-overlay .sp .song-comment {
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--sp-card);
+}
+
+.sp-overlay .sp .song-comment-author {
+  font-size: 14px;
+}
+
+.sp-overlay .sp .song-comment-body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sp-overlay .sp .song-comment-timestamp {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.sp-overlay .sp .song-comments-stamp-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sp-pill);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.sp-overlay .sp .song-comments-stamp-btn.is-active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* ── Fields: soft fills, no hard outlines, a thin accent ring on focus ──── */
+.sp-overlay .sp .song-meta-field input,
+.sp-overlay .sp .song-comments-input,
+.sp-overlay .sp .song-detail-notes,
+.sp-overlay .sp .lyrics-field,
+.sp-overlay .sp .song-tags-input,
+.sp-overlay .sp .external-links-input,
+.sp-overlay .sp .song-project-create-input,
+.sp-overlay .sp .merge-picker-search,
+.sp-overlay .sp .merge-picker-column-select,
+.sp-overlay .sp .version-stack-rename,
+.sp-overlay .sp .version-clip-tag-input {
+  border: 1px solid transparent;
+  background: var(--sp-field);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-style: normal;
+  box-shadow: none;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+html.light .sp-overlay .sp .song-meta-field input,
+html.light .sp-overlay .sp .song-comments-input,
+html.light .sp-overlay .sp .song-detail-notes,
+html.light .sp-overlay .sp .lyrics-field,
+html.light .sp-overlay .sp .song-tags-input,
+html.light .sp-overlay .sp .external-links-input {
+  box-shadow: 0 1px 2px rgba(15, 43, 46, 0.05);
+}
+
+.sp-overlay .sp .song-meta-field input:focus,
+.sp-overlay .sp .song-comments-input:focus,
+.sp-overlay .sp .song-detail-notes:focus,
+.sp-overlay .sp .lyrics-field:focus,
+.sp-overlay .sp .song-tags-input:focus,
+.sp-overlay .sp .external-links-input:focus,
+.sp-overlay .sp .song-project-create-input:focus,
+.sp-overlay .sp .merge-picker-search:focus {
+  outline: none;
+  border-color: var(--sp-ring);
+  background: var(--sp-field-focus);
+}
+
+.sp-overlay .sp input::placeholder,
+.sp-overlay .sp textarea::placeholder {
+  font-style: normal;
+  color: color-mix(in srgb, var(--text-muted) 72%, transparent);
+}
+
+.sp-overlay .sp .song-comments-input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sp-overlay .sp .song-comments-send,
+.sp-overlay .sp .song-tags-add-btn {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sp-pill);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.sp-overlay .sp .song-comments-send:not(:disabled):hover,
+.sp-overlay .sp .song-tags-add-btn:hover {
+  background: var(--sp-pill-hover);
+  color: var(--text);
+}
+
+/* Key, tempo, tuning. */
+.sp-overlay .sp .song-meta {
+  margin: 0;
+  gap: 10px;
+}
+
+.sp-overlay .sp .song-meta-field {
+  gap: 8px;
+}
+
+.sp-overlay .sp .song-meta-field input {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+/* Lyrics: the mono and the kept spacing are the feature, so they stay. */
+.sp-overlay .sp .lyrics {
+  margin: 0;
+}
+
+.sp-overlay .sp .lyrics-head {
+  margin-bottom: 12px;
+}
+
+.sp-overlay .sp .lyrics-status {
+  font-size: 12px;
+}
+
+.sp-overlay .sp .lyrics-field {
+  min-height: 200px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.sp-overlay .sp .lyrics-field::placeholder {
+  font-family: var(--font-sans);
+}
+
+.sp-overlay .sp .song-detail-notes {
+  min-height: 110px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.sp-overlay .sp label.song-detail-label.mb-2 {
+  margin-bottom: 12px;
+}
+
+/* Inspiration links. */
+.sp-overlay .sp .scp-inspiration {
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--sp-card);
+}
+
+.sp-overlay .sp .scp-spot-text {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.sp-overlay .sp .scp-spot-text strong {
+  color: var(--text);
+}
+
+.sp-overlay .sp .external-links-input {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+/* Merge picker, inline under Takes. */
+.sp-overlay .sp .song-detail-section {
+  padding: 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--sp-card);
+}
+
+.sp-overlay .sp .merge-picker-search,
+.sp-overlay .sp .merge-picker-column-select {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.sp-overlay .sp .song-detail-action {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ── Tags: each tag in its own colour ───────────────────────────────────────
+   The hue comes from tagHueStyle() (--tag-h), the same system as the cards.
+   Off: a clear tint of the tag's colour with its colour as the ink. On: filled
+   in that colour. Legible in both themes. */
+.sp-overlay .sp .song-tags-editor {
+  margin: 0;
+}
+
+.sp-overlay .sp .song-tags-presets {
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+
+.sp-overlay .sp .song-tag-pill {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 1;
+  background: hsla(var(--tag-h, 150), 55%, 62%, 0.16);
+  color: hsl(var(--tag-h, 150), 60%, 76%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 55%, 62%, 0.28);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.sp-overlay .sp .song-tag-pill:hover {
+  opacity: 1;
+  transform: none;
+  background: hsla(var(--tag-h, 150), 55%, 62%, 0.26);
+}
+
+.sp-overlay .sp .song-tag-pill.is-active {
+  background: hsl(var(--tag-h, 150), 58%, 70%);
+  color: #0e1f26;
+  box-shadow: none;
+}
+
+html.light .sp-overlay .sp .song-tag-pill {
+  background: hsla(var(--tag-h, 150), 55%, 38%, 0.11);
+  color: hsl(var(--tag-h, 150), 65%, 24%);
+  box-shadow: inset 0 0 0 1px hsla(var(--tag-h, 150), 55%, 32%, 0.22);
+}
+
+html.light .sp-overlay .sp .song-tag-pill:hover {
+  background: hsla(var(--tag-h, 150), 55%, 38%, 0.18);
+}
+
+html.light .sp-overlay .sp .song-tag-pill.is-active {
+  background: hsl(var(--tag-h, 150), 55%, 30%);
+  color: #f3f8f1;
+  box-shadow: none;
+}
+
+.sp-overlay .sp .song-tags-add {
+  gap: 8px;
+  margin: 0;
+}
+
+.sp-overlay .sp .song-tags-input {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+
+.sp-overlay .sp .song-tags-suggestions {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ── Bottom: quiet housekeeping ─────────────────────────────────────────── */
+.sp-overlay .sp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--sp-line);
+}
+
+.sp-overlay .sp-foot-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sp-overlay .sp-foot-btn:hover {
+  background: var(--sp-pill);
+  color: var(--text);
+}
+
+.sp-overlay .sp-foot-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sp-overlay .sp-foot-btn--danger {
+  color: var(--danger);
+}
+
+.sp-overlay .sp-foot-btn--danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+/* ── Mini player, pinned under the body while this song plays ───────────── */
+.sp-overlay .sp .drawer-mini-player {
+  position: static;
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 12px 20px 12px 24px;
+  border-top: 1px solid var(--sp-line);
+  border-radius: 0 0 var(--sp-radius) var(--sp-radius);
+  background: var(--sp-bg);
+}
+
+.sp-overlay .sp .drawer-mini-play {
+  width: 40px;
+  height: 40px;
+}
+
+.sp-overlay .sp .drawer-mini-label {
+  font-size: 14px;
+}
+
+.sp-overlay .sp .drawer-mini-time {
+  font-size: 12px;
+}
+
+/* The body loses its bottom rounding when the player sits under it. */
+.sp-overlay .sp-scroll:has(+ .drawer-mini-player) {
+  border-radius: 0;
+}
+
+/* ── Phone: the same panel as a sheet from the bottom ───────────────────── */
+@media (max-width: 600px) {
+  .sp-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .sp-overlay .sp {
+    --sp-radius: 22px;
+    max-width: 100%;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top));
+    border-width: 1px 0 0;
+    border-radius: var(--sp-radius) var(--sp-radius) 0 0;
+    animation: sp-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .sp-overlay .sp-bar {
+    padding: 20px 14px 12px 20px;
+    touch-action: none;
+  }
+
+  .sp-overlay .sp-grab {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 38px;
+    height: 4px;
+    margin-left: -19px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 22%, transparent);
+  }
+
+  .sp-overlay .sp-close,
+  .sp-overlay .sp-bar .song-share-trigger {
+    min-height: 40px;
+    font-size: 15px;
+  }
+
+  .sp-overlay .sp-scroll {
+    gap: 26px;
+    padding: 22px 20px calc(28px + env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+
+  .sp-overlay .sp .drawer-mini-player {
+    border-radius: 0;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .sp-overlay .sp-title {
+    font-size: 34px;
+  }
+
+  /* Stage and project each take a full row, so their lists open under them
+     with the whole width of the screen to use. */
+  .sp-overlay .sp-facts {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sp-overlay .sp .song-stage-select,
+  .sp-overlay .sp .song-project-select,
+  .sp-overlay .sp .song-project-row {
+    width: 100%;
+  }
+
+  .sp-overlay .sp .song-stage-label,
+  .sp-overlay .sp .song-project-label {
+    min-height: 44px;
+    min-width: 96px;
+  }
+
+  .sp-overlay .sp .song-stage-custom-select,
+  .sp-overlay .sp .song-project-custom-select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sp-overlay .sp .song-stage-custom-select .custom-select-trigger,
+  .sp-overlay .sp .song-project-custom-select .custom-select-trigger {
+    width: 100%;
+    max-width: none;
+    min-height: 44px;
+    justify-content: space-between;
+    font-size: 16px;
+  }
+
+  .sp-overlay .sp .sp-select-popover {
+    width: 100%;
+    max-width: none;
+  }
+
+  .sp-overlay .sp .song-project-create-row {
+    width: 100%;
+  }
+
+  .sp-overlay .sp .song-project-create-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sp-overlay .sp .scp-audio-item {
+    gap: 12px;
+    padding: 12px 12px 12px 14px;
+  }
+
+  .sp-overlay .sp .version-clip-tags {
+    padding-left: 12px;
+  }
+
+  .sp-overlay .sp .song-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sp-overlay .sp .song-meta-field--wide {
+    grid-column: 1 / -1;
+  }
+
+  /* iOS zooms the page on focusing any field under 16px. */
+  .sp-overlay .sp .song-meta-field input,
+  .sp-overlay .sp .lyrics-field,
+  .sp-overlay .sp .song-detail-notes,
+  .sp-overlay .sp .song-comments-input,
+  .sp-overlay .sp .external-links-input,
+  .sp-overlay .sp .song-tags-input,
+  .sp-overlay .sp .song-project-create-input,
+  .sp-overlay .sp .merge-picker-search,
+  .sp-overlay .sp .version-stack-rename,
+  .sp-overlay .sp .version-clip-tag-input {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-overlay,
+  .sp-overlay .sp {
+    animation: none;
+  }
+}

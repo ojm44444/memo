@@ -648,6 +648,9 @@ export async function mergeSongsInto(
       await db.audioVersions.update(version.id, {
         songId: targetSongId,
         sortOrder: newSortOrder,
+        // Where it came from, so Unlink can put it back. The first home wins:
+        // a take merged twice still belongs to the song it was recorded as.
+        mergedFromSongId: version.mergedFromSongId ?? sourceId,
       })
       // Push song_id change to server so pull doesn't move the version back
       await enqueueSync('update', 'audio_version', version.id, {
@@ -698,7 +701,12 @@ export async function undoMerge(record: MergeUndoRecord): Promise<void> {
     for (const v of source.versions) {
       const current = await db.audioVersions.get(v.id)
       if (!current) continue
-      await db.audioVersions.update(v.id, { songId: source.sourceId, sortOrder: v.sortOrder })
+      await db.audioVersions.update(v.id, {
+        songId: source.sourceId,
+        sortOrder: v.sortOrder,
+        mergedFromSongId:
+          current.mergedFromSongId === source.sourceId ? undefined : current.mergedFromSongId,
+      })
       await enqueueSync('update', 'audio_version', v.id, {
         songId: source.sourceId,
         sortOrder: v.sortOrder,
@@ -769,4 +777,111 @@ export async function unmergeSong(versionId: string) {
   })
 
   return newSong
+}
+
+/**
+ * Find the song a take lived on before it was merged, if it is still there to
+ * go back to. Merge soft-deletes the source song rather than removing it, so
+ * the card, its tags, notes and comments are all still in the database.
+ *
+ * Takes merged since 18 Sept carry mergedFromSongId. Older merges do not, so
+ * for those the match is a deleted song that has no takes of its own left (a
+ * song binned the normal way still has its takes) with the take's name, in
+ * the same project. No match means a fresh card instead, never a guess.
+ */
+async function findMergeSource(
+  version: { id: string; label: string; mergedFromSongId?: string },
+  parent: Song,
+): Promise<Song | null> {
+  if (version.mergedFromSongId) {
+    const source = await db.songs.get(version.mergedFromSongId)
+    if (source?.deletedAt) {
+      const takesLeft = await db.audioVersions.where('songId').equals(source.id).count()
+      if (takesLeft === 0) return source
+    }
+  }
+
+  const label = version.label.trim().toLowerCase()
+  if (!label) return null
+  const candidates = await db.songs
+    .filter(
+      (s) =>
+        !!s.deletedAt &&
+        s.id !== parent.id &&
+        (s.projectId ?? null) === (parent.projectId ?? null) &&
+        s.title.trim().toLowerCase() === label,
+    )
+    .toArray()
+  const empty: Song[] = []
+  for (const c of candidates) {
+    const takesLeft = await db.audioVersions.where('songId').equals(c.id).count()
+    if (takesLeft === 0) empty.push(c)
+  }
+  empty.sort((a, b) => (b.deletedAt ?? '').localeCompare(a.deletedAt ?? ''))
+  return empty[0] ?? null
+}
+
+/**
+ * Unlink one take from a song it was merged into, and put it back on the
+ * board as its own card.
+ *
+ * If the song it came from can be found, that song comes back as it was
+ * (its column, tags, notes and comments) with the take on it. Otherwise the
+ * take gets a new card in the same column as the song it was linked to, the
+ * way "Split into own song" always worked. Returns the song it landed on.
+ */
+export async function unlinkTake(versionId: string): Promise<Song | null> {
+  const version = await db.audioVersions.get(versionId)
+  if (!version) return null
+
+  const parent = await db.songs.get(version.songId)
+  if (!parent) return null
+
+  const versionCount = await db.audioVersions.where('songId').equals(version.songId).count()
+  if (versionCount <= 1) return null
+
+  const source = await findMergeSource(version, parent)
+  if (!source) {
+    const created = await unmergeSong(versionId)
+    if (created) await db.audioVersions.update(versionId, { mergedFromSongId: undefined })
+    return created
+  }
+
+  const { restoreSong } = await import('./trashRepo')
+  await restoreSong(source.id)
+
+  // Its old column may have been removed since. Then it goes where the song
+  // it was linked to is, rather than into a column nobody can see.
+  const columnStillThere = await db.columns.where('slug').equals(source.columnSlug).count()
+  if (!columnStillThere && source.columnSlug !== parent.columnSlug) {
+    const moved = { columnSlug: parent.columnSlug, updatedAt: new Date().toISOString() }
+    await db.songs.update(source.id, moved)
+    await enqueueSync('update', 'song', source.id, moved)
+  }
+
+  await db.audioVersions.update(versionId, {
+    songId: source.id,
+    sortOrder: 0,
+    mergedFromSongId: undefined,
+  })
+
+  const remaining = await db.audioVersions.where('songId').equals(parent.id).sortBy('sortOrder')
+  for (let i = 0; i < remaining.length; i++) {
+    if (remaining[i].sortOrder !== i) {
+      await db.audioVersions.update(remaining[i].id, { sortOrder: i })
+      await enqueueSync('update', 'audio_version', remaining[i].id, {
+        songId: parent.id,
+        sortOrder: i,
+        label: remaining[i].label,
+      })
+    }
+  }
+
+  await enqueueSync('update', 'audio_version', versionId, {
+    songId: source.id,
+    sortOrder: 0,
+    label: version.label,
+  })
+
+  return (await db.songs.get(source.id)) ?? null
 }

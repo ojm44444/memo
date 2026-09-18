@@ -39,7 +39,7 @@ export function SongStageSelect({ songId, columnSlug, readOnly = false }: SongSt
         options={options}
         onChange={(slug) => void onChange(slug)}
         className="song-stage-custom-select"
-        popoverClassName="song-stage-popover"
+        popoverClassName="song-stage-popover sp-select-popover"
       />
     </label>
   )

@@ -35,6 +35,12 @@ export interface AudioVersion {
   uploadBlockedReason?: 'too_large' | 'unsupported_type' | null
   /** Playback end offset in ms — stops playback early when set. */
   trimEndMs?: number
+  /**
+   * The song this take lived on before a merge moved it. Local only. Unlink
+   * uses it to put the take back on its own card (the merged-away song is
+   * soft-deleted, not gone, so its tags, notes and comments come back too).
+   */
+  mergedFromSongId?: string
 }
 
 export interface AudioBlob {
