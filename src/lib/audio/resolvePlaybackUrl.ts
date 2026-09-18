@@ -89,8 +89,48 @@ export function getCachedUrl(
   storagePath: string | null,
 ): string | null {
   if (localBlobId) return localUrlCache.get(localBlobId) ?? null
-  if (storagePath) return signedUrlCache.get(storagePath) ?? null
+  if (storagePath) {
+    // An expired signed URL would start a load that fails. Treat it as absent.
+    const cachedAt = signedUrlTimestamps.get(storagePath) ?? 0
+    if (Date.now() - cachedAt >= SIGNED_URL_TTL_MS) return null
+    return signedUrlCache.get(storagePath) ?? null
+  }
   return null
+}
+
+/**
+ * Sign every cloud take a screen might play, in one request, before anyone taps.
+ *
+ * WHY LISTEN FELT SLOW (18 Sept). A tap on a cloud-only track waited for a
+ * signing round trip to Supabase before the audio element was even given a
+ * source, and only then started streaming. With the URL signed here the tap
+ * hands it straight to the element inside the gesture (playAudioImmediately),
+ * so the network fetch starts at the tap. It costs one small API call and no
+ * audio bytes: nothing is downloaded until something plays.
+ */
+export async function presignPlaybackUrls(storagePaths: Array<string | null | undefined>) {
+  if (!supabase || typeof navigator === 'undefined' || !navigator.onLine) return
+  const now = Date.now()
+  const wanted = [
+    ...new Set(
+      storagePaths.filter((path): path is string => {
+        if (!path) return false
+        const cachedAt = signedUrlTimestamps.get(path) ?? 0
+        return !signedUrlCache.has(path) || now - cachedAt >= SIGNED_URL_TTL_MS
+      }),
+    ),
+  ]
+  if (!wanted.length) return
+  try {
+    const { data } = await supabase.storage.from('audio').createSignedUrls(wanted, 3600)
+    for (const row of data ?? []) {
+      if (!row.path || !row.signedUrl || row.error) continue
+      signedUrlCache.set(row.path, row.signedUrl)
+      signedUrlTimestamps.set(row.path, now)
+    }
+  } catch {
+    // Signing ahead is only a head start. The tap signs on its own if this fails.
+  }
 }
 
 /** Call when a blob is permanently deleted so the cached URL is revoked. */

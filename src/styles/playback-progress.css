@@ -1,0 +1,45 @@
+/* Loading progress for takes arriving from the cloud (18 Sept).
+   Shown on the Listen row and in the player bar while a take loads. */
+
+@keyframes pp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pp-spinner {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: pp-spin 0.75s linear infinite;
+}
+
+.pp-spinner--small {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+
+.pp-row-status,
+.pp-bar-status {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.pp-bar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-spinner {
+    animation-duration: 2s;
+  }
+}

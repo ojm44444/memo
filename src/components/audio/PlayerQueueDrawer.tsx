@@ -102,7 +102,11 @@ export function PlayerQueueDrawer() {
   if (!queueOpen || playlist.length === 0) return null
 
   const title =
-    playlistSource === 'favourites' ? 'Favourites queue' : 'Section queue'
+    playlistSource === 'favourites'
+      ? 'Favourites queue'
+      : playlistSource === 'listen'
+        ? 'Playlist queue'
+        : 'Section queue'
 
   return (
     <div
