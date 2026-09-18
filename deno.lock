@@ -16,7 +16,8 @@
     "https://deno.land/std@0.168.0/async/tee.ts": "3a47cc4e9a940904fd4341f0224907e199121c80b831faa5ec2b054c6d2eff5e",
     "https://deno.land/std@0.168.0/http/server.ts": "e99c1bee8a3f6571ee4cdeb2966efad465b8f6fe62bec1bdb59c1f007cc4d155",
     "https://esm.sh/@supabase/supabase-js@2.114.0": "946ce759db4e6549badf08f6fb26bf763a1740a20d044931769535162c45e1a3",
-    "https://esm.sh/stripe@14.21.0?target=deno": "c68b76780452938e9bbae9e312323e97869ccbdafeb83ddf372746ffa52f6b66"
+    "https://esm.sh/stripe@14.21.0?target=deno": "c68b76780452938e9bbae9e312323e97869ccbdafeb83ddf372746ffa52f6b66",
+    "https://esm.sh/stripe@18.5.0?target=deno": "d9b6d1310d5168cc94495f0ffc275048be7aac23ea942ddc7f8bff513ffd9e71"
   },
   "workspace": {
     "packageJson": {
@@ -56,6 +57,7 @@
         "npm:supabase@^2.105.0",
         "npm:tailwind-merge@^3.6.0",
         "npm:tailwindcss@^4.3.0",
+        "npm:tus-js-client@^4.3.1",
         "npm:typescript-eslint@^8.59.2",
         "npm:typescript@~6.0.2",
         "npm:uuid@14",
