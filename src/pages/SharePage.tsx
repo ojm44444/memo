@@ -91,7 +91,7 @@ export function SharePage() {
         objectUrlRef.current = null
       }
 
-      const blob = await downloadSharedAudio(payload.storage_path)
+      const blob = await downloadSharedAudio(token, payload.storage_path, pwd ?? savedPasswordRef.current)
       const url = URL.createObjectURL(blob)
       objectUrlRef.current = url
       setAudioUrl(url)
@@ -104,7 +104,10 @@ export function SharePage() {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not load share'
-      if (message.toLowerCase().includes('password')) {
+      if (/too many/i.test(message)) {
+        setNeedsPassword(false)
+        setError('Too many wrong passwords. Try again in an hour.')
+      } else if (message.toLowerCase().includes('password')) {
         setNeedsPassword(true)
         setError(null)
       } else {

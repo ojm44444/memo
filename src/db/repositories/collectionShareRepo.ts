@@ -3,6 +3,7 @@ import { resolveBoardId } from '@/lib/supabase/boardAccess'
 import { getBoardUserId } from '@/lib/auth/session'
 import type { ShareLifetimeDays } from '@/db/repositories/shareRepo'
 import { createId } from '@/lib/ids'
+import { fetchShareAudio } from '@/lib/share/shareAudio'
 
 /**
  * Collections: one link to a set of mixes (036).
@@ -204,6 +205,10 @@ export async function getCollectionShare(token: string, password?: string): Prom
     p_password: password?.trim() || null,
   })
   if (error) throw new Error(error.message)
+  // A wrong password comes back as { error } rather than raising, so the
+  // attempt is kept and counted toward the link's hourly limit (049).
+  const failed = (data as { error?: string } | null)?.error
+  if (failed) throw new Error(failed)
   return data as CollectionPayload
 }
 
@@ -229,18 +234,28 @@ export async function addCollectionComment(
 }
 
 /**
- * A streamable URL for one shared file. Streaming rather than downloading the
- * whole thing first: a master is often a 60 MB WAV, and a label listening on
- * a phone should hear the first bar in a second, not after the whole file.
- * The storage rule still decides: this only signs a file the link releases.
+ * A collection's cover, signed for ten minutes by the share-audio function.
+ * Null when there is none. Track URLs come from ShareUrlCache in
+ * lib/share/shareAudio (the page streams them: a master is often a 60 MB WAV).
+ * The saved-links row has no password, so a locked link keeps its generated
+ * art there.
  */
-export async function signedTrackUrl(storagePath: string, download?: string): Promise<string> {
-  if (!supabase) throw new Error('Cloud sync is not configured')
-  const { data, error } = await supabase.storage
-    .from('audio')
-    .createSignedUrl(storagePath, 60 * 60 * 6, download ? { download } : undefined)
-  if (error || !data?.signedUrl) throw new Error(error?.message ?? 'Could not open that file')
-  return data.signedUrl
+export async function shareCoverUrl(token: string, password?: string): Promise<string | null> {
+  const { coverUrl } = await fetchShareAudio({ kind: 'collection', token, password, cover: true })
+  return coverUrl
+}
+
+/** A one-off URL that saves the file under `name`. Refused when downloads are off. */
+export async function shareDownloadUrl(
+  token: string,
+  storagePath: string,
+  name: string,
+  password?: string,
+): Promise<string> {
+  const { urls } = await fetchShareAudio({ kind: 'collection', token, password, paths: [storagePath], download: name })
+  const url = urls[storagePath]
+  if (!url) throw new Error('Could not open that file')
+  return url
 }
 
 /**
