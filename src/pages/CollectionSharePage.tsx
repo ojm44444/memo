@@ -4,7 +4,6 @@ import { InteractiveWaveform } from '@/components/audio/InteractiveWaveform'
 import { ShareCommentThread } from '@/components/share/ShareCommentThread'
 import { isSignedIn, rememberPendingLink, saveLink } from '@/db/repositories/savedLinksRepo'
 import { RecordArt, RecordMenu } from '@/components/share/RecordParts'
-import { kindName } from '@/lib/kindName'
 import {
   CheckIcon,
   CommentIcon,
@@ -227,9 +226,6 @@ export function CollectionSharePage() {
   }
 
   const totalMs = songs.reduce((sum, _s, i) => sum + (trackFor(i).duration_ms || 0), 0)
-  const kinds = new Set((data?.tracks ?? []).map((t) => t.kind))
-  const eyebrowKind =
-    kinds.size === 1 && kinds.has('master') ? 'Masters' : kinds.has('mix') || kinds.has('master') ? 'Mixes' : 'Demos'
 
   const attachDeck = useCallback((deck: 0 | 1, el: HTMLAudioElement | null) => {
     decksRef.current[deck] = el
@@ -751,7 +747,7 @@ export function CollectionSharePage() {
             <RecordArt seed={token ?? title} label={`Cover for ${title}`} src={coverUrl} />
             <div>
               <p className="rec-eyebrow">
-                {eyebrowKind} · {songs.length} {songs.length === 1 ? 'track' : 'tracks'} · {formatDuration(totalMs)}
+                {songs.length} {songs.length === 1 ? 'track' : 'tracks'} · {formatDuration(totalMs)}
               </p>
               <h1 className="rec-title">{title}</h1>
               {data.artist && <p className="rec-artist">{data.artist}</p>}
@@ -827,9 +823,11 @@ export function CollectionSharePage() {
 
                     <span className="rec-name">
                       <span className="rec-name-title">{track.title}</span>
-                      {kinds.size > 1 && (
-                        <span className={`rec-name-kind is-${track.kind ?? 'demo'}`}>{kindName(track.kind)}</span>
-                      )}
+                      {/* 23 Sept, Owen: producers see this link, and "Mix"/"Demo"
+                          read as a judgement he never asked to make. Nothing by
+                          default; his own take label (already editable on the
+                          song) shows here instead, if he set one. */}
+                      {extraLabel(track) && <span className="rec-name-kind">{extraLabel(track)}</span>}
                     </span>
 
                     <span className="rec-right" onClick={(e) => e.stopPropagation()}>
@@ -877,7 +875,7 @@ export function CollectionSharePage() {
                                 >
                                   <span>{v.version_id === track.version_id ? <CheckIcon size={16} /> : null}</span>
                                   <span>
-                                    v{song.versions.length - vi} · {kindName(v.kind)}
+                                    v{song.versions.length - vi}
                                     {extraLabel(v) && <small>{extraLabel(v)}</small>}
                                   </span>
                                   <span className="rec-menu-meta">{formatDuration(v.duration_ms)}</span>
