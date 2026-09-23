@@ -1,9 +1,13 @@
 import { db } from '@/db/database'
 import { enqueueSync } from '@/db/repositories/outboxRepo'
-import { updateSong } from '@/db/repositories/boardRepo'
+import { createSong, updateSong } from '@/db/repositories/boardRepo'
 import { supabase } from '@/lib/supabase/client'
+import { getBoardUserId } from '@/lib/auth/session'
+import { resolveBoardId } from '@/lib/supabase/boardAccess'
 import { createId } from '@/lib/ids'
 import type { ListenProject } from '@/types/listen-project'
+import type { AudioBlob, AudioVersion } from '@/types/audio-version'
+import type { ColumnSlug } from '@/types/column'
 import type { Song } from '@/types/song'
 
 /**
@@ -69,17 +73,88 @@ export interface DuplicateListenProjectResult {
   clipsSkipped: number
 }
 
+type RemoteSong = {
+  id: string
+  column_slug: string
+  title: string
+  notes: string | null
+  tags: string[] | null
+  musical_key: string | null
+  bpm: number | null
+  project_id: string | null
+  listen_position: number | null
+}
+
+type RemoteVersion = {
+  id: string
+  storage_path: string | null
+  file_name: string | null
+  label: string | null
+  duration_ms: number | null
+  position: number | null
+}
+
+/** Download one take from cloud storage and add it as a new local clip. */
+async function cloneRemoteVersion(songId: string, remote: RemoteVersion): Promise<boolean> {
+  if (!remote.storage_path || !supabase) return false
+  const { data, error } = await supabase.storage.from('audio').download(remote.storage_path)
+  if (error || !data) return false
+
+  const blobId = createId()
+  const blob: AudioBlob = {
+    id: blobId,
+    blob: data,
+    mimeType: data.type || 'audio/mp4',
+    size: data.size,
+    createdAt: new Date().toISOString(),
+  }
+  const versionId = createId()
+  const label = remote.label || 'Take'
+  const now = new Date().toISOString()
+  const version: AudioVersion = {
+    id: versionId,
+    songId,
+    label,
+    durationMs: remote.duration_ms ?? 0,
+    mimeType: blob.mimeType,
+    sortOrder: remote.position ?? 0,
+    localBlobId: blobId,
+    storagePath: null,
+    recordedAt: null,
+    createdAt: now,
+    syncedAt: null,
+  }
+
+  await db.audioBlobs.add(blob)
+  await db.audioVersions.add(version)
+  await enqueueSync('upload', 'audio_version', versionId, {
+    versionId,
+    songId,
+    fileName: remote.file_name || `${label}.audio`,
+    mimeType: blob.mimeType,
+    durationMs: version.durationMs,
+    sortOrder: version.sortOrder,
+    label,
+    localBlobId: blobId,
+  })
+  return true
+}
+
 /**
  * Copy a playlist: a new playlist, same title (deduped), artist and cover,
  * with its own copy of every track (23 Sept, Owen).
  *
- * A song belongs to at most one playlist (listenProjectId is a single field,
- * not a list), so the only way for the same track to sit in two playlists at
- * once is two separate songs. duplicateSong already does exactly this for
- * the board's own "Duplicate project" — same audio, its own blob, re-queued
- * for upload — so this reuses it rather than inventing a second copy path.
- * clipsSkipped mirrors that: a cloud-only take not yet downloaded to this
- * device cannot be cloned here and is left out.
+ * Reads the source from the cloud, not this device's local mirror. A
+ * playlist is something you make to send, so duplicating one has to work
+ * from whichever device you happen to be on, not only the one the songs
+ * were first imported on. Falls back to the local copy if there is no
+ * connection (offline) or nothing signed in.
+ *
+ * A song belongs to at most one playlist (listenProjectId is a single
+ * field, not a list), so the only way for the same track to sit in two
+ * playlists at once is two separate songs, each with its own copy of the
+ * audio. clipsSkipped counts a take that was never finished uploading
+ * anywhere, so there is nothing to copy yet.
  */
 export async function duplicateListenProject(sourceId: string): Promise<DuplicateListenProjectResult> {
   const source = await db.listenProjects.get(sourceId)
@@ -91,25 +166,74 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
     coverPath: source.coverPath,
   })
 
-  const songs = (await db.songs
-    .where('listenProjectId')
-    .equals(sourceId)
-    .toArray()) as Song[]
-  songs.sort((a, b) => (a.listenPosition ?? 0) - (b.listenPosition ?? 0))
-
-  const { duplicateSong } = await import('./audioRepo')
+  let remoteSongs: RemoteSong[] | null = null
+  if (supabase) {
+    try {
+      const userId = await getBoardUserId()
+      const boardId = userId ? await resolveBoardId(userId) : null
+      if (boardId) {
+        const { data, error } = await supabase
+          .from('songs')
+          .select('id, column_slug, title, notes, tags, musical_key, bpm, project_id, listen_position')
+          .eq('board_id', boardId)
+          .eq('listen_project_id', sourceId)
+          .is('deleted_at', null)
+          .order('listen_position', { ascending: true })
+        if (!error) remoteSongs = (data as RemoteSong[] | null) ?? []
+      }
+    } catch {
+      // Offline or the request failed: fall through to the local copy below.
+    }
+  }
 
   let clipsCopied = 0
   let clipsSkipped = 0
+  let songsCopied = 0
   let position = 0
-  for (const song of songs) {
-    const result = await duplicateSong(song.id, { title: song.title })
-    await updateSong(result.song.id, { listenProjectId: project.id, listenPosition: position++ })
-    clipsCopied += result.clipsCopied
-    clipsSkipped += result.clipsSkipped
+
+  if (remoteSongs) {
+    for (const remote of remoteSongs) {
+      const newSong = await createSong({
+        title: remote.title,
+        columnSlug: remote.column_slug as ColumnSlug,
+        notes: remote.notes ?? undefined,
+        tags: remote.tags ?? undefined,
+        projectId: remote.project_id ?? undefined,
+        musicalKey: remote.musical_key,
+        bpm: remote.bpm,
+      })
+
+      const { data: versions, error } = await supabase!
+        .from('audio_versions')
+        .select('id, storage_path, file_name, label, duration_ms, position')
+        .eq('song_id', remote.id)
+        .order('position', { ascending: true })
+
+      for (const remoteVersion of ((versions as RemoteVersion[] | null) ?? [])) {
+        if (await cloneRemoteVersion(newSong.id, remoteVersion)) clipsCopied++
+        else clipsSkipped++
+      }
+      if (error) clipsSkipped++
+
+      await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
+      songsCopied++
+    }
+  } else {
+    // Offline, or signed out of cloud: whatever this device already has.
+    const songs = (await db.songs.where('listenProjectId').equals(sourceId).toArray()) as Song[]
+    songs.sort((a, b) => (a.listenPosition ?? 0) - (b.listenPosition ?? 0))
+
+    const { duplicateSong } = await import('./audioRepo')
+    for (const song of songs) {
+      const result = await duplicateSong(song.id, { title: song.title })
+      await updateSong(result.song.id, { listenProjectId: project.id, listenPosition: position++ })
+      clipsCopied += result.clipsCopied
+      clipsSkipped += result.clipsSkipped
+    }
+    songsCopied = songs.length
   }
 
-  return { project, songsCopied: songs.length, clipsCopied, clipsSkipped }
+  return { project, songsCopied, clipsCopied, clipsSkipped }
 }
 
 export async function updateListenProject(

@@ -660,22 +660,14 @@ export function MixesRoom({
                         disabled={duplicating}
                         onClick={() => {
                           close()
-                          const count = ordered.length
-                          if (
-                            count > 0 &&
-                            !window.confirm(
-                              `Duplicate "${project.title}" with ${count} ${count === 1 ? 'track' : 'tracks'}?`,
-                            )
-                          ) {
-                            return
-                          }
+                          if (!window.confirm(`Duplicate "${project.title}"? Makes its own copy of every track.`)) return
                           setDuplicating(true)
                           void duplicateListenProject(project.id)
                             .then((result) => {
                               scheduleFlush()
                               if (result.clipsSkipped > 0) {
                                 alert(
-                                  `Made "${result.project.title}" with ${result.songsCopied} tracks. ${result.clipsSkipped} cloud-only takes were skipped. Download them first from Settings.`,
+                                  `Made "${result.project.title}" with ${result.songsCopied} tracks. ${result.clipsSkipped} ${result.clipsSkipped === 1 ? 'take was' : 'takes were'} still uploading and could not be copied yet. Try again once they've finished.`,
                                 )
                               }
                               onOpen?.(result.project.id)
