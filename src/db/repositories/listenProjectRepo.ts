@@ -99,47 +99,54 @@ type RemoteVersion = {
 /** Download one take from cloud storage and add it as a new local clip. */
 async function cloneRemoteVersion(songId: string, remote: RemoteVersion): Promise<boolean> {
   if (!remote.storage_path || !supabase) return false
-  const { data, error } = await supabase.storage.from('audio').download(remote.storage_path)
-  if (error || !data) return false
+  try {
+    const { data, error } = await supabase.storage.from('audio').download(remote.storage_path)
+    if (error || !data) return false
 
-  const blobId = createId()
-  const blob: AudioBlob = {
-    id: blobId,
-    blob: data,
-    mimeType: data.type || 'audio/mp4',
-    size: data.size,
-    createdAt: new Date().toISOString(),
-  }
-  const versionId = createId()
-  const label = remote.label || 'Take'
-  const now = new Date().toISOString()
-  const version: AudioVersion = {
-    id: versionId,
-    songId,
-    label,
-    durationMs: remote.duration_ms ?? 0,
-    mimeType: blob.mimeType,
-    sortOrder: remote.position ?? 0,
-    localBlobId: blobId,
-    storagePath: null,
-    recordedAt: null,
-    createdAt: now,
-    syncedAt: null,
-  }
+    const blobId = createId()
+    const blob: AudioBlob = {
+      id: blobId,
+      blob: data,
+      mimeType: data.type || 'audio/mp4',
+      size: data.size,
+      createdAt: new Date().toISOString(),
+    }
+    const versionId = createId()
+    const label = remote.label || 'Take'
+    const now = new Date().toISOString()
+    const version: AudioVersion = {
+      id: versionId,
+      songId,
+      label,
+      durationMs: remote.duration_ms ?? 0,
+      mimeType: blob.mimeType,
+      sortOrder: remote.position ?? 0,
+      localBlobId: blobId,
+      storagePath: null,
+      recordedAt: null,
+      createdAt: now,
+      syncedAt: null,
+    }
 
-  await db.audioBlobs.add(blob)
-  await db.audioVersions.add(version)
-  await enqueueSync('upload', 'audio_version', versionId, {
-    versionId,
-    songId,
-    fileName: remote.file_name || `${label}.audio`,
-    mimeType: blob.mimeType,
-    durationMs: version.durationMs,
-    sortOrder: version.sortOrder,
-    label,
-    localBlobId: blobId,
-  })
-  return true
+    await db.audioBlobs.add(blob)
+    await db.audioVersions.add(version)
+    await enqueueSync('upload', 'audio_version', versionId, {
+      versionId,
+      songId,
+      fileName: remote.file_name || `${label}.audio`,
+      mimeType: blob.mimeType,
+      durationMs: version.durationMs,
+      sortOrder: version.sortOrder,
+      label,
+      localBlobId: blobId,
+    })
+    return true
+  } catch (err) {
+    // A clip failing to clone must never take the song down with it: the
+    // song still belongs in the new playlist, just with one fewer take.
+    console.error('[songdrafts] cloneRemoteVersion failed for', remote.label, err)
+    return false
+  }
 }
 
 /**
@@ -205,6 +212,7 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
 
   if (remoteSongs) {
     for (const remote of remoteSongs) {
+      let newSongId: string | null = null
       try {
         const newSong = await createSong({
           title: remote.title,
@@ -215,6 +223,14 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
           musicalKey: remote.musical_key,
           bpm: remote.bpm,
         })
+        newSongId = newSong.id
+
+        // Linked into the new playlist right away, before touching any
+        // audio: if a take fails to clone below, the song still belongs
+        // here with whatever takes it did get, rather than sitting
+        // unlinked and invisible while looking like nothing was copied.
+        await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
+        songsCopied++
 
         const { data: versions, error } = await supabase!
           .from('audio_versions')
@@ -227,12 +243,9 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
           if (await cloneRemoteVersion(newSong.id, remoteVersion)) clipsCopied++
           else clipsSkipped++
         }
-
-        await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
-        songsCopied++
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
-        console.error('[songdrafts] duplicateListenProject: could not copy', remote.title, err)
+        console.error('[songdrafts] duplicateListenProject: could not copy', remote.title, newSongId, err)
         failures.push(`${remote.title}: ${message}`)
       }
     }
