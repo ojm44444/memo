@@ -382,6 +382,7 @@ export async function duplicateSong(
       recordedAt: version.recordedAt ?? null,
       createdAt: now,
       syncedAt: null,
+      kind: version.kind,
     }
 
     await db.audioVersions.add(nextVersion)
@@ -395,6 +396,16 @@ export async function duplicateSong(
       label: version.label,
       localBlobId: clonedBlob.id,
     })
+    if (version.kind) {
+      // The upload row has no kind column of its own; a second, ordinary
+      // update carries it across, same as setAudioVersionKind.
+      await enqueueSync('update', 'audio_version', versionId, {
+        songId: copy.id,
+        label: version.label,
+        sortOrder: version.sortOrder,
+        kind: version.kind,
+      })
+    }
     clipsCopied++
   }
 

@@ -94,6 +94,7 @@ type RemoteVersion = {
   label: string | null
   duration_ms: number | null
   position: number | null
+  kind: string | null
 }
 
 /** Download one take from cloud storage and add it as a new local clip. */
@@ -114,6 +115,10 @@ async function cloneRemoteVersion(songId: string, remote: RemoteVersion): Promis
     const versionId = createId()
     const label = remote.label || 'Take'
     const now = new Date().toISOString()
+    // 'take', 'demo', 'mix' or 'master' (audio-version.ts) — without this a
+    // cloned mix showed as a plain take, and the record page fell back to
+    // labelling it "Demo" (23 Sept, Owen: "why are you calling this a demo").
+    const kind = (remote.kind as AudioVersion['kind']) ?? undefined
     const version: AudioVersion = {
       id: versionId,
       songId,
@@ -126,6 +131,7 @@ async function cloneRemoteVersion(songId: string, remote: RemoteVersion): Promis
       recordedAt: null,
       createdAt: now,
       syncedAt: null,
+      kind,
     }
 
     await db.audioBlobs.add(blob)
@@ -140,6 +146,16 @@ async function cloneRemoteVersion(songId: string, remote: RemoteVersion): Promis
       label,
       localBlobId: blobId,
     })
+    if (kind) {
+      // The upload row has no kind column of its own; a second, ordinary
+      // update carries it across the same way setAudioVersionKind does.
+      await enqueueSync('update', 'audio_version', versionId, {
+        songId,
+        label,
+        sortOrder: version.sortOrder,
+        kind,
+      })
+    }
     return true
   } catch (err) {
     // A clip failing to clone must never take the song down with it: the
@@ -232,9 +248,11 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
         await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
         songsCopied++
 
-        const { data: versions, error } = await supabase!
+        // kind is real (audio_versions.kind, 019) but missing from the
+        // generated types too, same reason as the songs query above.
+        const { data: versions, error } = await (supabase as any)
           .from('audio_versions')
-          .select('id, storage_path, file_name, label, duration_ms, position')
+          .select('id, storage_path, file_name, label, duration_ms, position, kind')
           .eq('song_id', remote.id)
           .order('position', { ascending: true })
         if (error) throw error
