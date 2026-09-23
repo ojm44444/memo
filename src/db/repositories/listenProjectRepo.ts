@@ -172,7 +172,10 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
       const userId = await getBoardUserId()
       const boardId = userId ? await resolveBoardId(userId) : null
       if (boardId) {
-        const { data, error } = await supabase
+        // listen_project_id / listen_position are real columns (039) but the
+        // generated types haven't been refreshed to know them, so this one
+        // query goes through untyped, same as the RPCs below it in the file.
+        const { data, error } = await (supabase as any)
           .from('songs')
           .select('id, column_slug, title, notes, tags, musical_key, bpm, project_id, listen_position')
           .eq('board_id', boardId)
