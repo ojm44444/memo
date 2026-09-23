@@ -665,10 +665,19 @@ export function MixesRoom({
                           void duplicateListenProject(project.id)
                             .then((result) => {
                               scheduleFlush()
+                              const notes: string[] = []
                               if (result.clipsSkipped > 0) {
-                                alert(
-                                  `Made "${result.project.title}" with ${result.songsCopied} tracks. ${result.clipsSkipped} ${result.clipsSkipped === 1 ? 'take was' : 'takes were'} still uploading and could not be copied yet. Try again once they've finished.`,
+                                notes.push(
+                                  `${result.clipsSkipped} ${result.clipsSkipped === 1 ? 'take was' : 'takes were'} still uploading and could not be copied yet.`,
                                 )
+                              }
+                              if (result.songFailures.length > 0) {
+                                notes.push(
+                                  `${result.songFailures.length} ${result.songFailures.length === 1 ? 'track' : 'tracks'} could not be copied: ${result.songFailures.join('; ')}`,
+                                )
+                              }
+                              if (notes.length > 0) {
+                                alert(`Made "${result.project.title}" with ${result.songsCopied} tracks. ${notes.join(' ')}`)
                               }
                               onOpen?.(result.project.id)
                             })

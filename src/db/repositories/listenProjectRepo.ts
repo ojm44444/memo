@@ -71,6 +71,8 @@ export interface DuplicateListenProjectResult {
   songsCopied: number
   clipsCopied: number
   clipsSkipped: number
+  /** A song that failed outright, title and why. Empty on a clean run. */
+  songFailures: string[]
 }
 
 type RemoteSong = {
@@ -193,33 +195,49 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
   let clipsSkipped = 0
   let songsCopied = 0
   let position = 0
+  /* One song failing (a bad field, a dropped connection mid-loop) used to
+     abort every song after it, silently, and the copy that resulted looked
+     no different from a genuine empty playlist — exactly what happened to
+     Owen's first two tries (23 Sept). Now a song that fails is skipped, not
+     fatal, and if every one of them failed the real reason is thrown so it
+     reaches the alert instead of a playlist that quietly has nothing in it. */
+  const failures: string[] = []
 
   if (remoteSongs) {
     for (const remote of remoteSongs) {
-      const newSong = await createSong({
-        title: remote.title,
-        columnSlug: remote.column_slug as ColumnSlug,
-        notes: remote.notes ?? undefined,
-        tags: remote.tags ?? undefined,
-        projectId: remote.project_id ?? undefined,
-        musicalKey: remote.musical_key,
-        bpm: remote.bpm,
-      })
+      try {
+        const newSong = await createSong({
+          title: remote.title,
+          columnSlug: remote.column_slug as ColumnSlug,
+          notes: remote.notes ?? undefined,
+          tags: Array.isArray(remote.tags) ? remote.tags : undefined,
+          projectId: remote.project_id ?? undefined,
+          musicalKey: remote.musical_key,
+          bpm: remote.bpm,
+        })
 
-      const { data: versions, error } = await supabase!
-        .from('audio_versions')
-        .select('id, storage_path, file_name, label, duration_ms, position')
-        .eq('song_id', remote.id)
-        .order('position', { ascending: true })
+        const { data: versions, error } = await supabase!
+          .from('audio_versions')
+          .select('id, storage_path, file_name, label, duration_ms, position')
+          .eq('song_id', remote.id)
+          .order('position', { ascending: true })
+        if (error) throw error
 
-      for (const remoteVersion of ((versions as RemoteVersion[] | null) ?? [])) {
-        if (await cloneRemoteVersion(newSong.id, remoteVersion)) clipsCopied++
-        else clipsSkipped++
+        for (const remoteVersion of ((versions as RemoteVersion[] | null) ?? [])) {
+          if (await cloneRemoteVersion(newSong.id, remoteVersion)) clipsCopied++
+          else clipsSkipped++
+        }
+
+        await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
+        songsCopied++
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error('[songdrafts] duplicateListenProject: could not copy', remote.title, err)
+        failures.push(`${remote.title}: ${message}`)
       }
-      if (error) clipsSkipped++
-
-      await updateSong(newSong.id, { listenProjectId: project.id, listenPosition: position++ })
-      songsCopied++
+    }
+    if (songsCopied === 0 && failures.length > 0) {
+      throw new Error(`Could not copy any tracks. ${failures[0]}`)
     }
   } else {
     // Offline, or signed out of cloud: whatever this device already has.
@@ -236,7 +254,7 @@ export async function duplicateListenProject(sourceId: string): Promise<Duplicat
     songsCopied = songs.length
   }
 
-  return { project, songsCopied, clipsCopied, clipsSkipped }
+  return { project, songsCopied, clipsCopied, clipsSkipped, songFailures: failures }
 }
 
 export async function updateListenProject(
