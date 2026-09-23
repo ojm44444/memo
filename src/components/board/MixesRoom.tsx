@@ -15,6 +15,7 @@ import {
   listenCoverUrl,
   moveSongsToListenProject,
   deleteListenProject,
+  duplicateListenProject,
   reorderListenProject,
   updateListenProject,
 } from '@/db/repositories/listenProjectRepo'
@@ -421,7 +422,16 @@ function StackRow({
   )
 }
 
-export function MixesRoom({ projectId, onBack }: { projectId: string | null; onBack: () => void }) {
+export function MixesRoom({
+  projectId,
+  onBack,
+  onOpen,
+}: {
+  projectId: string | null
+  onBack: () => void
+  /** Jump straight into another playlist, e.g. the copy just made. */
+  onOpen?: (id: string) => void
+}) {
   const mixes = useLiveQuery(() => getSongsWithMixes(), [])
   const projects = useLiveQuery(() => getListenProjects(), [])
   const project = useLiveQuery(
@@ -436,6 +446,7 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
   const [artist, setArtist] = useState('')
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [selected, setSelected] = useState<string[]>([])
+  const [duplicating, setDuplicating] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -640,6 +651,43 @@ export function MixesRoom({ projectId, onBack }: { projectId: string | null; onB
                       <button type="button" role="menuitem" className="rec-menu-item" onClick={() => { close(); setEditing(true) }}>
                         <span />
                         <span>Edit title, artist and cover</span>
+                        <span />
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="rec-menu-item"
+                        disabled={duplicating}
+                        onClick={() => {
+                          close()
+                          const count = ordered.length
+                          if (
+                            count > 0 &&
+                            !window.confirm(
+                              `Duplicate "${project.title}" with ${count} ${count === 1 ? 'track' : 'tracks'}?`,
+                            )
+                          ) {
+                            return
+                          }
+                          setDuplicating(true)
+                          void duplicateListenProject(project.id)
+                            .then((result) => {
+                              scheduleFlush()
+                              if (result.clipsSkipped > 0) {
+                                alert(
+                                  `Made "${result.project.title}" with ${result.songsCopied} tracks. ${result.clipsSkipped} cloud-only takes were skipped. Download them first from Settings.`,
+                                )
+                              }
+                              onOpen?.(result.project.id)
+                            })
+                            .catch((err) => {
+                              alert(err instanceof Error ? err.message : 'Could not duplicate this playlist')
+                            })
+                            .finally(() => setDuplicating(false))
+                        }}
+                      >
+                        <span />
+                        <span>{duplicating ? 'Duplicating…' : 'Duplicate playlist'}</span>
                         <span />
                       </button>
                       <button

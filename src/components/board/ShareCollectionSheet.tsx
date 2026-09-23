@@ -5,9 +5,12 @@ import { formatDuration } from '@/lib/audio-utils'
 import { getMyDisplayName } from '@/lib/displayName'
 import { SHARE_LIFETIMES, type ShareLifetimeDays } from '@/db/repositories/shareRepo'
 import {
+  collectionUrl,
   createCollectionShare,
+  listCollectionLinks,
   uploadCollectionCover,
   type CollectionItem,
+  type CollectionLinkRow,
 } from '@/db/repositories/collectionShareRepo'
 import { listenCoverUrl } from '@/db/repositories/listenProjectRepo'
 import { RecordArt } from '@/components/share/RecordParts'
@@ -56,6 +59,14 @@ export function ShareCollectionSheet({
   const [cover, setCover] = useState<File | null>(null)
   const coverInput = useRef<HTMLInputElement>(null)
   const coverPreview = useMemo(() => (cover ? URL.createObjectURL(cover) : null), [cover])
+  /* 23 Sept, Owen: pressing Share always minted a new link, so the same
+     playlist piled up several live links, one per press. If a live link
+     already has this exact title, offer it first instead. `undefined`
+     while checking, `null` once checked and there is none. */
+  const [existing, setExisting] = useState<CollectionLinkRow | null | undefined>(
+    defaults?.title ? undefined : null,
+  )
+  const [useExisting, setUseExisting] = useState(true)
 
   useEffect(() => () => {
     if (coverPreview) URL.revokeObjectURL(coverPreview)
@@ -68,6 +79,20 @@ export function ShareCollectionSheet({
       live = false
     }
   }, [defaults?.coverPath])
+
+  useEffect(() => {
+    const wanted = defaults?.title?.trim().toLowerCase()
+    if (!wanted) return
+    let live = true
+    void listCollectionLinks()
+      .then((links) => {
+        if (live) setExisting(links.find((l) => l.title?.trim().toLowerCase() === wanted) ?? null)
+      })
+      .catch(() => live && setExisting(null))
+    return () => {
+      live = false
+    }
+  }, [defaults?.title])
 
   useEffect(() => {
     void getMyDisplayName().then((name) => setArtist((prev) => prev || (name === 'You' ? '' : name)))
@@ -179,6 +204,41 @@ export function ShareCollectionSheet({
               <a className="send-sheet-secondary" href={url} target="_blank" rel="noopener noreferrer">
                 Open it
               </a>
+              <button type="button" className="send-sheet-primary" onClick={onClose}>
+                Done
+              </button>
+            </div>
+          </div>
+        ) : existing && useExisting ? (
+          <div className="send-sheet-done">
+            <p className="send-sheet-note">
+              This playlist already has a live link: {existing.view_count} {existing.view_count === 1 ? 'open' : 'opens'},{' '}
+              {existing.listen_count} {existing.listen_count === 1 ? 'play' : 'plays'}. Sharing again reuses it rather
+              than making another.
+            </p>
+            <div className="send-sheet-url">
+              <input
+                readOnly
+                value={collectionUrl(existing.token)}
+                onFocus={(e) => e.currentTarget.select()}
+                aria-label="Link"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  void navigator.clipboard
+                    .writeText(collectionUrl(existing.token))
+                    .then(() => setCopied(true))
+                    .catch(() => setCopied(false))
+                }
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <div className="send-sheet-actions">
+              <button type="button" className="send-sheet-secondary" onClick={() => setUseExisting(false)}>
+                Make a new link instead
+              </button>
               <button type="button" className="send-sheet-primary" onClick={onClose}>
                 Done
               </button>

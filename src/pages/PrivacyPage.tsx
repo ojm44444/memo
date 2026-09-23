@@ -91,10 +91,9 @@ export function PrivacyPage() {
           one. If they leave a comment, we store the comment and the timestamp it is pinned to.
         </p>
         <p>
-          For each open or play we keep when it happened, their name if they chose to give it,
-          their browser's time zone and the rough place it points to (such as London), and a
-          random id their browser makes so a repeat visit is not counted twice. We do not look up
-          IP addresses for this.
+          For each open or play we keep when it happened, their name if they left one on a
+          comment, and a random id their browser makes so a repeat visit is not counted twice. We
+          do not look up IP addresses for this.
         </p>
 
                 <h2>Who we are</h2>

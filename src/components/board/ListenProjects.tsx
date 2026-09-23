@@ -30,7 +30,7 @@ export function ListenProjects() {
   const [openId, setOpenId] = useState<string | 'loose' | null>(null)
   const back = useCallback(() => setOpenId(null), [])
 
-  if (openId) return <MixesRoom projectId={openId === 'loose' ? null : openId} onBack={back} />
+  if (openId) return <MixesRoom projectId={openId === 'loose' ? null : openId} onBack={back} onOpen={setOpenId} />
   return <ProjectsGrid onOpen={setOpenId} />
 }
 

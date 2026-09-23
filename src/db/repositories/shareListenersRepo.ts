@@ -3,10 +3,11 @@ import { supabase } from '@/lib/supabase/client'
 /**
  * Who listened on a share link (046).
  *
- * The listener's side sends an open or a play with an optional name and the
- * browser's time zone. No IP lookups and no third party: the rough place is
- * read from the time zone ("Europe/London" is "London"), and it is only ever
- * as good as that.
+ * The listener's side sends an open or a play with a name, if we have one
+ * from a comment they left. A time zone used to be sent too, to show a rough
+ * place, but for a UK listener that place was "London" whoever they were, so
+ * it told the owner nothing (23 Sept, Owen). No IP lookups and no third
+ * party, and now no time zone either.
  */
 
 export type ShareLinkKind = 'song' | 'collection'
@@ -45,26 +46,6 @@ export function readListenerName(): string {
   }
 }
 
-export function listenerTimeZone(): string | null {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || null
-  } catch {
-    return null
-  }
-}
-
-/**
- * "Europe/London" is "London", "America/Los_Angeles" is "Los Angeles",
- * "America/Argentina/Buenos_Aires" is "Buenos Aires". Zones that name no
- * place (UTC, Etc/GMT+5) give null. Mirrors the SQL in 046.
- */
-export function placeFromTimeZone(timeZone: string | null | undefined): string | null {
-  if (!timeZone || timeZone.length > 64) return null
-  if (!/^[A-Za-z]+(\/[A-Za-z0-9_+-]+){1,2}$/.test(timeZone)) return null
-  if (/^(etc|systemv)\//i.test(timeZone)) return null
-  return timeZone.slice(timeZone.lastIndexOf('/') + 1).replace(/_/g, ' ')
-}
-
 // The generated types do not know this RPC or table yet.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const client = () => supabase as any
@@ -83,7 +64,6 @@ export async function recordShareListener(
     p_event: event,
     p_listener_id: getListenerId(),
     p_name: options.name?.trim() || null,
-    p_time_zone: listenerTimeZone(),
     p_password: options.password?.trim() || null,
   })
   if (error) throw new Error(error.message)
@@ -93,16 +73,12 @@ export interface ShareListenEventRow {
   listener_id: string
   event: 'open' | 'play'
   listener_name: string | null
-  time_zone: string | null
-  place: string | null
   created_at: string
 }
 
 export interface ShareListener {
   id: string
   name: string | null
-  place: string | null
-  timeZone: string | null
   lastAt: string
   played: boolean
 }
@@ -117,16 +93,12 @@ export function groupListeners(rows: ShareListenEventRow[]): ShareListener[] {
       byId.set(row.listener_id, {
         id: row.listener_id,
         name: row.listener_name,
-        place: row.place ?? placeFromTimeZone(row.time_zone),
-        timeZone: row.time_zone,
         lastAt: row.created_at,
         played: row.event === 'play',
       })
       continue
     }
     seen.name ??= row.listener_name
-    seen.place ??= row.place ?? placeFromTimeZone(row.time_zone)
-    seen.timeZone ??= row.time_zone
     if (row.event === 'play') seen.played = true
   }
   return [...byId.values()]
@@ -171,7 +143,7 @@ export async function listShareListeners(kind: ShareLinkKind, shareId: string): 
   if (!supabase) return []
   const { data, error } = await client()
     .from('share_listen_events')
-    .select('listener_id, event, listener_name, time_zone, place, created_at')
+    .select('listener_id, event, listener_name, created_at')
     .eq(kind === 'song' ? 'song_share_id' : 'playlist_share_id', shareId)
     .order('created_at', { ascending: false })
     .limit(300)

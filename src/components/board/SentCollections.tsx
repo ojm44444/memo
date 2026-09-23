@@ -82,12 +82,10 @@ async function loadLinks(): Promise<SentLink[]> {
 }
 
 function listenerLine(listener: ShareListener) {
-  return [
-    listener.name || 'Someone',
-    listener.place,
-    formatRelativeTime(listener.lastAt),
-    listener.played ? 'played' : 'opened',
-  ]
+  // 23 Sept, Owen: a "place" read off the time zone said London for
+  // everyone in the UK, which is not information. Dropped; the name if
+  // they gave one, otherwise just "Someone".
+  return [listener.name || 'Someone', formatRelativeTime(listener.lastAt), listener.played ? 'played' : 'opened']
     .filter(Boolean)
     .join(' · ')
 }
@@ -215,7 +213,7 @@ export function SentCollections({ refreshKey }: { refreshKey: number }) {
                     <p className="sent-notes-meta">Loading…</p>
                   ) : who.length === 0 ? (
                     <p className="sent-notes-meta">
-                      {link.view_count > 0 ? 'Opened before names and places were kept.' : 'Nobody yet.'}
+                      {link.view_count > 0 ? 'Opened before this was tracked.' : 'Nobody yet.'}
                     </p>
                   ) : (
                     <ul className="listeners-list">
@@ -226,7 +224,6 @@ export function SentCollections({ refreshKey }: { refreshKey: number }) {
                       ))}
                     </ul>
                   )}
-                  <p className="listeners-hint">Places are rough, from the listener's time zone.</p>
 
                   {link.kind === 'collection' && (
                     <>

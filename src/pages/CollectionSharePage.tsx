@@ -35,7 +35,6 @@ import {
   type CollectionTrack,
 } from '@/db/repositories/collectionShareRepo'
 import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
-import { ListenerNameField } from '@/components/share/ListenerNameField'
 import { SHARE_URL_MARGIN_MS, ShareUrlCache } from '@/lib/share/shareAudio'
 import '@/styles/record.css'
 import '@/styles/collection-share.css'
@@ -790,18 +789,6 @@ export function CollectionSharePage() {
                   </div>
                 )}
               </div>
-              <ListenerNameField
-                value={authorName}
-                onChange={setAuthorName}
-                onCommit={(name) => {
-                  if (token) {
-                    void recordShareListener('collection', token, 'name', {
-                      name,
-                      password: passwordRef.current,
-                    }).catch(() => {})
-                  }
-                }}
-              />
             </div>
           </section>
 

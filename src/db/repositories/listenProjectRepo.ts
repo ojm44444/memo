@@ -4,6 +4,7 @@ import { updateSong } from '@/db/repositories/boardRepo'
 import { supabase } from '@/lib/supabase/client'
 import { createId } from '@/lib/ids'
 import type { ListenProject } from '@/types/listen-project'
+import type { Song } from '@/types/song'
 
 /**
  * Projects in Listen (039). Written to this device first and pushed through
@@ -59,6 +60,56 @@ export async function createListenProject(input: {
   await db.listenProjects.add(project)
   await enqueueSync('create', 'listen_project', project.id, project)
   return project
+}
+
+export interface DuplicateListenProjectResult {
+  project: ListenProject
+  songsCopied: number
+  clipsCopied: number
+  clipsSkipped: number
+}
+
+/**
+ * Copy a playlist: a new playlist, same title (deduped), artist and cover,
+ * with its own copy of every track (23 Sept, Owen).
+ *
+ * A song belongs to at most one playlist (listenProjectId is a single field,
+ * not a list), so the only way for the same track to sit in two playlists at
+ * once is two separate songs. duplicateSong already does exactly this for
+ * the board's own "Duplicate project" — same audio, its own blob, re-queued
+ * for upload — so this reuses it rather than inventing a second copy path.
+ * clipsSkipped mirrors that: a cloud-only take not yet downloaded to this
+ * device cannot be cloned here and is left out.
+ */
+export async function duplicateListenProject(sourceId: string): Promise<DuplicateListenProjectResult> {
+  const source = await db.listenProjects.get(sourceId)
+  if (!source || source.deletedAt) throw new Error('Playlist not found')
+
+  const project = await createListenProject({
+    title: `${source.title} (copy)`,
+    artist: source.artist,
+    coverPath: source.coverPath,
+  })
+
+  const songs = (await db.songs
+    .where('listenProjectId')
+    .equals(sourceId)
+    .toArray()) as Song[]
+  songs.sort((a, b) => (a.listenPosition ?? 0) - (b.listenPosition ?? 0))
+
+  const { duplicateSong } = await import('./audioRepo')
+
+  let clipsCopied = 0
+  let clipsSkipped = 0
+  let position = 0
+  for (const song of songs) {
+    const result = await duplicateSong(song.id, { title: song.title })
+    await updateSong(result.song.id, { listenProjectId: project.id, listenPosition: position++ })
+    clipsCopied += result.clipsCopied
+    clipsSkipped += result.clipsSkipped
+  }
+
+  return { project, songsCopied: songs.length, clipsCopied, clipsSkipped }
 }
 
 export async function updateListenProject(

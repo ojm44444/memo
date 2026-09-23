@@ -13,7 +13,6 @@ import {
   type ShareListenComment,
 } from '@/db/repositories/shareRepo'
 import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
-import { ListenerNameField } from '@/components/share/ListenerNameField'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
@@ -318,18 +317,6 @@ export function SharePage() {
                   </div>
                 )}
               </div>
-              <ListenerNameField
-                value={authorName}
-                onChange={setAuthorName}
-                onCommit={(name) => {
-                  if (token) {
-                    void recordShareListener('song', token, 'name', {
-                      name,
-                      password: savedPasswordRef.current,
-                    }).catch(() => {})
-                  }
-                }}
-              />
             </div>
           </section>
 
