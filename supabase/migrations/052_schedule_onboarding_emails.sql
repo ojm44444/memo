@@ -1,4 +1,4 @@
--- NOT APPLIED. Needs the same two secrets as 028 (LIFECYCLE_EMAIL_SECRET in
+-- APPLIED 24 Sept 2026. Needed the same two secrets as 028 (LIFECYCLE_EMAIL_SECRET in
 -- Edge Function secrets, and the same value in Vault as lifecycle_email_secret),
 -- and RESEND_API_KEY. Runs every morning at 09:10 UTC.
 
