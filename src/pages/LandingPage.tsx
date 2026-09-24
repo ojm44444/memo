@@ -1,3 +1,4 @@
+import { ContactForm } from '@/components/ui/ContactForm'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { prefetchAppChunks } from '@/lib/prefetchRoutes'
@@ -437,9 +438,7 @@ function PricingToggle({
       </p>
 
       {/* #14: was a 16px-tall line of text, the last sub-44px target left. */}
-      <a className="price-support" href="mailto:songdraftsapp@gmail.com">
-        Questions? Email us, a person answers.
-      </a>
+      <ContactForm />
 
       <ul className="price-includes">
         <li>The board, and every take stacked on one song</li>

@@ -33,6 +33,7 @@ describe('detectDevice', () => {
   it('maps devices to import routes', () => {
     expect(importPlaceFor('iphone-chrome')).toBe('iphone')
     expect(importPlaceFor('android')).toBe('android')
-    expect(importPlaceFor('mac-safari')).toBe('computer')
+    expect(importPlaceFor('mac-safari')).toBe('mac')
+    expect(importPlaceFor('pc')).toBe('windows')
   })
 })

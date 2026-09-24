@@ -87,18 +87,27 @@ export function welcomeEmail(name: string): EmailTemplate {
 
 Thanks for signing up to songdrafts.
 
-It only starts to work once your recordings are in it, so start there. There are
-three ways in:
+It only starts to work once your recordings are in it, so start there. Pick the
+one that matches where your recordings are:
 
-On a computer: drag audio files, or a whole folder, onto the Songwriting board.
-They land in your Inbox. Or click + Import audio at the bottom of your Inbox.
+iPhone: in Voice Memos, tap a recording, then Share, then Save to Files. To do
+several at once, tap Edit, tick them, then Share, then Save to Files. Then open
+songdrafts on your phone, tap + Import audio and pick them. They sync to your
+computer on their own.
 
-On an iPhone: in Voice Memos, tap a recording, then Share, then Save to Files.
-In songdrafts, tap + Import audio and pick them from Files. You can select
-several at once.
+Mac: drag audio files, or a whole folder, from Finder onto the Songwriting
+board. Or click + Import audio at the bottom of your Inbox.
 
-On Android: save the recordings to Files from your recorder app, then tap
+Windows: drag files, or a whole folder, from File Explorer onto the board. Or
+click + Import audio.
+
+Android: save the recordings to Files from your recorder app, then tap
 + Import audio in songdrafts.
+
+We know this looks like a lot of work. The first batch takes a few minutes, and
+after that you only bring in new recordings, which gets quicker every time. We
+are building an app that lets you share straight from Voice Memos. Until it is
+ready, this is the fastest way that works.
 
 Finished demos and mixes go to Listen instead: drop them onto a playlist.
 
@@ -127,15 +136,17 @@ export function stalledImportEmail(name: string): EmailTemplate {
 Your board is still empty, which usually means the import got stuck rather
 than that you changed your mind.
 
-If your memos are on your phone, they have to come across first. In Voice
-Memos, tap a recording, then Share, then Save to Files. Then open songdrafts,
-tap + Import audio and pick them from Files. Select as many as you like.
+If your memos are on your iPhone: in Voice Memos, tap Edit, tick the ones you
+want, then Share, then Save to Files. Open songdrafts on the phone, tap
++ Import audio and pick them. Do it on the phone even if you mainly use a
+computer, because they sync across.
 
-If they are on a computer, drag the files, or the whole folder, onto the board.
-Anything that is not audio is ignored.
+If the recordings are on a Mac or a Windows computer: drag the files, or the
+whole folder, onto the board. Anything that is not audio is ignored.
 
-If it was neither of those, reply and tell us what you saw. We would rather
-fix it than have you quietly give up on it.
+It is fiddly the first time and quicker after that, and a proper app for this is
+on the way. If you got stuck somewhere, reply and tell us what you saw. We would
+rather fix it than have you quietly give up on it.
 
 ${SIGN_OFF}`,
   }

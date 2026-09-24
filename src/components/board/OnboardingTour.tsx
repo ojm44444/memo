@@ -9,6 +9,7 @@ import { usePwaInstall } from '@/hooks/usePwaInstall'
 import { useUiStore, type BoardMode } from '@/stores/uiStore'
 import { InstallGuide } from '@/components/onboarding/InstallGuide'
 import { ImportGuide } from '@/components/onboarding/ImportGuide'
+import { SupportLink } from '@/components/ui/SupportLink'
 import '@/styles/onboarding.css'
 
 /**
@@ -195,6 +196,7 @@ export function OnboardingTour({ readOnly = false }: OnboardingTourProps) {
           <p className="ob-eyebrow">One last thing</p>
           <h2 className="ob-title">Getting your audio in</h2>
           <ImportGuide />
+          <SupportLink topic="getting my audio in" className="ob-note" />
           <div className="ob-actions">
             <span />
             <button type="button" className="ob-pill is-primary" onClick={() => setOpen(false)}>

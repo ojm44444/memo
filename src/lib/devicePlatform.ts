@@ -34,10 +34,11 @@ export function detectDevice(ua = navigator.userAgent, touchPoints = navigator.m
   return 'pc'
 }
 
-export type ImportPlace = 'computer' | 'iphone' | 'android'
+export type ImportPlace = 'iphone' | 'mac' | 'windows' | 'android'
 
 export function importPlaceFor(device: Device): ImportPlace {
   if (device === 'android') return 'android'
   if (device === 'iphone-safari' || device === 'iphone-chrome') return 'iphone'
-  return 'computer'
+  if (device === 'pc') return 'windows'
+  return 'mac'
 }

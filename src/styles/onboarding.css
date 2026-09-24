@@ -364,3 +364,26 @@
 .plan-cancel-btn {
   color: var(--danger, var(--text));
 }
+
+.ob-import-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.ob-import-tab {
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ob-import-tab.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+  color: var(--text);
+}

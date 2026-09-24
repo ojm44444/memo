@@ -1,99 +1,15 @@
-import { useVoiceMemosFolder } from '@/hooks/useVoiceMemosFolder'
-import { VOICE_MEMOS_FOLDER_HINT } from '@/lib/voice-memos-folder'
+/**
+ * The card in an empty Inbox. It used to offer to link the Mac Voice Memos
+ * folder; that does not work reliably (Owen, 24 Sept), so it now shows the
+ * routes that do, the same ones as everywhere else.
+ */
+import { ImportGuide } from '@/components/onboarding/ImportGuide'
 
 export function MobileImportCard() {
-  const {
-    supported,
-    linked,
-    folderName,
-    scanning,
-    lastImportCount,
-    stubCount,
-    error,
-    linkFolder,
-    unlinkFolder,
-    scanNewMemos,
-  } = useVoiceMemosFolder()
-
-  if (supported) {
-    return (
-      <div className="voice-memos-connect">
-        <p className="voice-memos-share-eyebrow">Mac · Voice Memos folder</p>
-
-        {linked ? (
-          <>
-            <div className="voice-memos-connect-status">
-              <span className="voice-memos-connect-dot" />
-              <span>Watching {folderName ?? 'Voice Memos'}</span>
-            </div>
-            <p className="voice-memos-connect-copy">
-              New recordings appear in Inbox automatically when you open songdrafts.
-            </p>
-            {lastImportCount > 0 && (
-              <p className="voice-memos-connect-copy">
-                Imported {lastImportCount} new {lastImportCount === 1 ? 'memo' : 'memos'}.
-              </p>
-            )}
-            {stubCount > 0 && (
-              <p className="voice-memos-connect-warning">
-                {stubCount} file{stubCount === 1 ? '' : 's'} still in iCloud. Download in Finder
-                first.
-              </p>
-            )}
-            <div className="voice-memos-connect-actions">
-              <button
-                type="button"
-                className="voice-memos-connect-secondary"
-                disabled={scanning}
-                onClick={() => void scanNewMemos()}
-              >
-                {scanning ? 'Scanning…' : 'Scan now'}
-              </button>
-              <button type="button" className="voice-memos-connect-ghost" onClick={() => void unlinkFolder()}>
-                Unlink
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="voice-memos-connect-copy">
-              Link your Voice Memos folder once and new takes land in Inbox without dragging files.
-            </p>
-            <p className="voice-memos-connect-path">
-              Pick this folder in the dialog:
-              <code>{VOICE_MEMOS_FOLDER_HINT}</code>
-            </p>
-            <button
-              type="button"
-              className={`voice-memos-connect-primary${scanning ? ' is-busy' : ''}`}
-              disabled={scanning}
-              onClick={() => void linkFolder()}
-            >
-              {scanning ? 'Scanning…' : 'Link Voice Memos folder'}
-            </button>
-          </>
-        )}
-
-        {error && <p className="voice-memos-connect-warning">{error}</p>}
-      </div>
-    )
-  }
-
   return (
     <div className="voice-memos-share">
-      <p className="voice-memos-share-eyebrow">Import from your phone</p>
-      <ol className="voice-memos-share-steps">
-        <li>
-          In Voice Memos, select your recordings, then <strong>Save to Files</strong>
-        </li>
-        <li>
-          Tap <strong>+ Import audio</strong> below and pick them all in one go
-        </li>
-        <li>They land in Inbox and sync across your devices</li>
-      </ol>
-      <p className="voice-memos-share-note">
-        Add songdrafts to your Home Screen for offline access. Import still works via Files.
-      </p>
+      <p className="voice-memos-share-eyebrow">Get your recordings in</p>
+      <ImportGuide />
     </div>
   )
 }

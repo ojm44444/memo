@@ -2,60 +2,81 @@ import { useState } from 'react'
 import { detectDevice, importPlaceFor, type ImportPlace } from '@/lib/devicePlatform'
 import '@/styles/onboarding.css'
 
+/**
+ * How audio gets in, said the same way everywhere (tour, Help, Settings, the
+ * empty board, the emails). Keep the emails in supabase/functions/_shared/
+ * emails.ts in step with this.
+ *
+ * What is true: a home screen web app can never appear in the iOS share sheet,
+ * and no web app can read the Voice Memos library, so the phone route is Save
+ * to Files, then Import audio. The Mac Voice Memos folder link is NOT offered:
+ * it does not work reliably (Owen, 24 Sept).
+ */
 const PLACES: Record<ImportPlace, { label: string; steps: string[] }> = {
-  computer: {
-    label: 'Mac or PC',
-    steps: [
-      'Drag files or whole folders onto the Songwriting board. They land in your Inbox.',
-      'Or click + Import audio at the bottom of your Inbox.',
-    ],
-  },
   iphone: {
     label: 'iPhone',
     steps: [
-      'In Voice Memos, tap a recording, then Share (under ⋯), then Save to Files.',
-      'In songdrafts, tap + Import audio and pick them. You can select several at once.',
+      'In Voice Memos, tap a recording, tap the three dots, then Share, then Save to Files.',
+      'To do several at once, tap Edit, tick the recordings, then Share, then Save to Files.',
+      'Open songdrafts on your phone, tap + Import audio and pick them. They sync to your computer.',
+    ],
+  },
+  mac: {
+    label: 'Mac',
+    steps: [
+      'Drag audio files, or a whole folder, from Finder onto the Songwriting board.',
+      'Or click + Import audio at the bottom of your Inbox and pick them.',
+      'Recordings on your iPhone? Do them on the iPhone (see iPhone). They appear here on their own.',
+    ],
+  },
+  windows: {
+    label: 'Windows',
+    steps: [
+      'Drag audio files, or a whole folder, from File Explorer onto the Songwriting board.',
+      'Or click + Import audio at the bottom of your Inbox and pick them.',
+      'Recordings on your iPhone? Do them on the iPhone (see iPhone). They appear here on their own.',
     ],
   },
   android: {
     label: 'Android',
     steps: [
       'In your recorder app, share or save the recordings to Files.',
-      'In songdrafts, tap + Import audio and pick them.',
+      'Open songdrafts, tap + Import audio and pick them. Select as many as you like.',
     ],
   },
 }
 
-/**
- * How audio gets in, honestly (17 Sept, Owen). A home screen web app can
- * never appear in the iOS share sheet, only App Store apps can, so this says
- * the real routes and what is coming, instead of implying a share button.
- */
+const ORDER: ImportPlace[] = ['iphone', 'mac', 'windows', 'android']
+
 export function ImportGuide() {
-  const [place] = useState<ImportPlace>(() => importPlaceFor(detectDevice()))
-  const [others, setOthers] = useState(false)
-  const shown = others ? (Object.keys(PLACES) as ImportPlace[]) : [place]
+  const [place, setPlace] = useState<ImportPlace>(() => importPlaceFor(detectDevice()))
+  const shown = PLACES[place]
 
   return (
     <div className="ob-import">
-      {shown.map((p) => (
-        <div key={p} className="ob-import-place">
-          <p className="ob-eyebrow">{PLACES[p].label}</p>
-          <ol className="ob-steps">
-            {PLACES[p].steps.map((step, i) => (
-              <li key={step}>
-                <span className="ob-step-num">{i + 1}</span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ))}
-      {!others && (
-        <button type="button" className="ob-link" onClick={() => setOthers(true)}>
-          Show other devices
-        </button>
-      )}
+      <div className="ob-import-tabs" role="tablist" aria-label="Where are your recordings?">
+        {ORDER.map((p) => (
+          <button
+            key={p}
+            type="button"
+            role="tab"
+            aria-selected={p === place}
+            className={p === place ? 'ob-import-tab is-active' : 'ob-import-tab'}
+            onClick={() => setPlace(p)}
+          >
+            {PLACES[p].label}
+          </button>
+        ))}
+      </div>
+
+      <ol className="ob-steps">
+        {shown.steps.map((step, i) => (
+          <li key={step}>
+            <span className="ob-step-num">{i + 1}</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
 
       <p className="ob-note">
         Finished demos, mixes and masters go to Listen instead: drop them onto a playlist or use +
@@ -63,8 +84,10 @@ export function ImportGuide() {
       </p>
 
       <p className="ob-callout">
-        Sharing straight from Voice Memos into songdrafts is on the way, with an App Store version.
-        In the meantime, tell your friends: every person who joins helps us build it.
+        We know this looks like a lot of work. The first batch takes a few minutes; after that you
+        only bring in new recordings, which gets quicker every time. We are building an app that
+        lets you share straight from Voice Memos. Until it is ready, this is the fastest way that
+        works.
       </p>
     </div>
   )
