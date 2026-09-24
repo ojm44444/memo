@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { getImportWatermark } from '@/db/repositories/integrityRepo'
 import { useUiStore } from '@/stores/uiStore'
 import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
 import { ImportGuide } from '@/components/onboarding/ImportGuide'
@@ -29,7 +27,6 @@ export function HelpButton() {
   // "Where did I get up to" is a question you ask while using the app, not on
   // an empty board, so the watermark lives here as well as on the import
   // screen - it is only computable once there ARE songs.
-  const watermark = useLiveQuery(() => (open ? getImportWatermark() : undefined), [open])
 
   useEffect(() => {
     const opens = countAppOpen()
@@ -103,22 +100,6 @@ export function HelpButton() {
               Install songdrafts
             </button>
           </div>
-
-          {watermark && (
-            <div className="help-watermark">
-              <span className="help-watermark-label">You got up to</span>
-              <strong>
-                {new Date(watermark.recordedAt).toLocaleDateString(undefined, {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </strong>
-              <span className="help-watermark-sub">
-                Anything recorded after that is still only on your phone. Start there.
-              </span>
-            </div>
-          )}
 
           <div className="help-sheet-section">
             <h4>Getting your audio in</h4>

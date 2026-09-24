@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { detectDevice, importPlaceFor, type ImportPlace } from '@/lib/devicePlatform'
+import { LastImportCard } from '@/components/onboarding/LastImportCard'
 import '@/styles/onboarding.css'
 
 /**
@@ -24,9 +25,10 @@ const PLACES: Record<ImportPlace, { label: string; steps: string[] }> = {
   mac: {
     label: 'Mac',
     steps: [
-      'Drag audio files, or a whole folder, from Finder onto the Songwriting board.',
-      'Or click + Import audio at the bottom of your Inbox and pick them.',
-      'Recordings on your iPhone? Do them on the iPhone (see iPhone). They appear here on their own.',
+      'Open Voice Memos on your Mac and give iCloud a minute to sync. Your recordings appear there.',
+      'Press Cmd+A to select them all, then drag them into a new folder on your Desktop.',
+      'Drag that folder onto the Songwriting board, or click + Import audio and pick the files.',
+      'Or on your iPhone: see iPhone. What you import there appears here on its own.',
     ],
   },
   windows: {
@@ -69,6 +71,8 @@ export function ImportGuide() {
         ))}
       </div>
 
+      <LastImportCard />
+
       <ol className="ob-steps">
         {shown.steps.map((step, i) => (
           <li key={step}>
@@ -77,6 +81,11 @@ export function ImportGuide() {
           </li>
         ))}
       </ol>
+
+      <p className="ob-note">
+        <strong>Keep everything in Voice Memos.</strong> We do not recommend deleting anything
+        there. It stays where your recordings live, and songdrafts is where they get sorted.
+      </p>
 
       <p className="ob-note">
         Finished demos, mixes and masters go to Listen instead: drop them onto a playlist or use +

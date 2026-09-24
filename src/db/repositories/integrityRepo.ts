@@ -94,6 +94,8 @@ export type ImportWatermark = {
   title: string
   /** Total songs on the board, for context. */
   totalSongs: number
+  /** Length of that recording, when known, so it is easy to spot in the list. */
+  durationMs: number | null
 }
 
 export async function getImportWatermark(): Promise<ImportWatermark | null> {
@@ -106,5 +108,7 @@ export async function getImportWatermark(): Promise<ImportWatermark | null> {
   }
 
   const totalSongs = await db.songs.filter((s) => !s.deletedAt).count()
-  return { recordedAt: newest.recordedAt!, title: newest.title, totalSongs }
+  const versions = await db.audioVersions.where('songId').equals(newest.id).toArray()
+  const durationMs = versions.find((v) => v.durationMs > 0)?.durationMs ?? null
+  return { recordedAt: newest.recordedAt!, title: newest.title, totalSongs, durationMs }
 }

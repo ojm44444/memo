@@ -94,7 +94,11 @@ The one thing to do first is get your recordings in. The guide inside songdrafts
 
 iPhone: in Voice Memos, tap a recording, then Share, then Save to Files. Then open songdrafts on your phone, tap + Import audio and pick them. They sync to your computer on their own.
 
-Mac or Windows: drag audio files, or a whole folder, onto the Songwriting board.
+Mac: open Voice Memos and give iCloud a minute to sync. Press Cmd+A to select everything, drag it into a new folder on your Desktop, then drag that folder onto the Songwriting board.
+
+Windows: drag audio files, or a whole folder, onto the board.
+
+Keep everything in Voice Memos. We do not recommend deleting anything there. It is where your recordings live, and songdrafts is where they get sorted. songdrafts also remembers the last recording you brought in, so you can find that spot in Voice Memos and bring in only what is newer.
 
 We know this looks like a lot of work. The first batch takes a few minutes, and after that you only bring in new recordings, which gets quicker every time. We are building an app that lets you share straight from Voice Memos. Until it is ready, this is the fastest way that works.
 
@@ -121,7 +125,9 @@ Your board is still empty, which usually means the import got stuck rather than 
 
 If your memos are on your iPhone: in Voice Memos, tap Edit, tick the ones you want, then Share, then Save to Files. Open songdrafts on the phone, tap + Import audio and pick them. Do it on the phone even if you mainly use a computer, because they sync across.
 
-If the recordings are on a Mac or a Windows computer: drag the files, or the whole folder, onto the board. Anything that is not audio is ignored.
+If you use a Mac: open Voice Memos, let iCloud finish syncing, press Cmd+A, drag everything into a new folder on your Desktop, then drag that folder onto the board. On Windows, drag the files or folder straight onto the board. Anything that is not audio is ignored.
+
+Leave your recordings in Voice Memos. Nothing needs deleting.
 
 It is fiddly the first time and quicker after that, and a proper app for this is on the way. If you got stuck somewhere, reply and tell us what you saw. We would rather fix it than have you quietly give up on it.
 
