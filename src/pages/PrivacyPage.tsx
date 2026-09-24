@@ -31,7 +31,7 @@ export function PrivacyPage() {
     <div className="legal">
       <header className="legal-head">
         <Link to="/" className="legal-logo"><Wordmark /></Link>
-        <p className="legal-updated">Last updated 18 September 2026</p>
+        <p className="legal-updated">Last updated 24 September 2026</p>
       </header>
 
       <main className="legal-body">
@@ -145,6 +145,11 @@ export function PrivacyPage() {
         <ul>
           <li>that you visited the site, including the app (the page address only, never what is on it);</li>
           <li>
+            that a songdrafts share page was opened, or played, by someone with a share link. This
+            is sent from a separate hidden page with a fixed address, so Meta learns that it
+            happened and never which link, song or playlist it was;
+          </li>
+          <li>
             that you created an account, imported recordings (as a count only), started a
             checkout, or paid, with the amount and currency.
           </li>
@@ -159,7 +164,7 @@ export function PrivacyPage() {
         </p>
         <p>
           It never receives your music, song names, lyrics, notes, anything inside your board, or
-          anything from a share or invite link. Meta uses this under its own privacy policy as well as
+          the address or contents of a share or invite link. Meta uses this under its own privacy policy as well as
           ours, which is why it is here rather than in the list above. You can change your mind at any
           time with the link at the bottom of this page.
         </p>

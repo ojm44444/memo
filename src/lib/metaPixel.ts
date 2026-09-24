@@ -13,8 +13,15 @@
  *
  *  2. NEVER ON SHARE, INVITE OR PLAYLIST LINKS. A pixel reports the page URL,
  *     and those URLs carry the secret token that opens someone's unreleased
- *     music. Sending them to Meta would hand over the key. The people opening
- *     them are also a producer or a bandmate who never agreed to anything.
+ *     music. Sending them to Meta would hand over the key. So the pixel itself
+ *     never loads on those pages.
+ *     24 Sept, Owen: producers, labels and promoters open share links, and
+ *     they are exactly who he wants to retarget. So a share page now embeds a
+ *     hidden frame of /listener-pixel (ListenerPixelFrame), a page with a
+ *     fixed address and no token, sent with no referrer. The pixel runs
+ *     inside that frame and sees only "/listener-pixel", so Meta learns that
+ *     a share page was opened (ShareLinkOpened) or played (ShareLinkPlayed),
+ *     never which link. Same consent rules as everywhere (opt-out, GPC = no).
  *
  *  3. NO PAGE VIEWS INSIDE THE APP. The board's tab title is now the name of
  *     the open song, and what someone is working on is not Meta's business.
@@ -68,6 +75,8 @@ const PAGE_VIEW_ROUTES = [
   /^\/privacy\/?$/,
   /^\/terms\/?$/,
   /^\/app(\/|$)/,
+  // The token-free frame a share page embeds (rule 2).
+  /^\/listener-pixel\/?$/,
 ]
 
 type Fbq = ((...args: unknown[]) => void) & {
@@ -258,6 +267,19 @@ function canSend(): boolean {
   return effectiveAdConsent() === 'granted' && !isPixelBlockedHere() && typeof window.fbq === 'function'
 }
 
+/** Has the pixel loaded, and is it allowed to send? Polls briefly, then gives up. */
+export function whenPixelReady(timeoutMs = 4000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const started = Date.now()
+    const check = () => {
+      if (canSend()) return resolve(true)
+      if (Date.now() - started > timeoutMs) return resolve(false)
+      setTimeout(check, 150)
+    }
+    check()
+  })
+}
+
 export function trackPageView(pathname: string) {
   if (!PAGE_VIEW_ROUTES.some((pattern) => pattern.test(pathname))) return
   // The pixel reports the full URL. A sign-in lands on /app?code=... and
@@ -268,7 +290,7 @@ export function trackPageView(pathname: string) {
 }
 
 type StandardEvent = 'CompleteRegistration' | 'InitiateCheckout' | 'Purchase'
-type CustomEvent = 'ImportStarted' | 'ImportCompleted'
+type CustomEvent = 'ImportStarted' | 'ImportCompleted' | 'ShareLinkOpened' | 'ShareLinkPlayed'
 
 /**
  * `eventID` lets the server-side Conversions API send the same event later

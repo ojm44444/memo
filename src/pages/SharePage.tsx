@@ -13,6 +13,7 @@ import {
   type ShareListenComment,
 } from '@/db/repositories/shareRepo'
 import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
+import { ListenerPixelNotice, announceListenerPlayed } from '@/components/share/ListenerPixelFrame'
 import { supabaseConfigured } from '@/lib/supabase/client'
 import { stageColorVar } from '@/lib/stageColor'
 import '@/styles/share.css'
@@ -59,6 +60,7 @@ export function SharePage() {
   const recordListen = () => {
     if (!token || listenRecordedRef.current) return
     listenRecordedRef.current = true
+    announceListenerPlayed()
     void recordShareListener('song', token, 'play', {
       name: authorName,
       password: savedPasswordRef.current,
@@ -358,6 +360,7 @@ export function SharePage() {
           </section>
 
           <p className="coll-foot">Shared from songdrafts.</p>
+          <ListenerPixelNotice />
         </main>
       )}
     </div>

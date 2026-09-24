@@ -36,6 +36,9 @@ const SharePage = lazy(() =>
 const CollectionSharePage = lazy(() =>
   import('@/pages/CollectionSharePage').then((m) => ({ default: m.CollectionSharePage })),
 )
+const ListenerPixelPage = lazy(() =>
+  import('@/pages/ListenerPixelPage').then((m) => ({ default: m.ListenerPixelPage })),
+)
 const InvitePage = lazy(() =>
   import('@/pages/InvitePage').then((m) => ({ default: m.InvitePage })),
 )
@@ -68,6 +71,9 @@ export default function App() {
           <Route path="invite/:token" element={<InvitePage />} />
           <Route path="share/:token" element={<SharePage />} />
           <Route path="playlist/:token" element={<CollectionSharePage />} />
+          {/* The hidden frame a share page embeds so the pixel can run without
+              the link's address (ListenerPixelFrame). */}
+          <Route path="listener-pixel" element={<ListenerPixelPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

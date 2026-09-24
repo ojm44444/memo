@@ -34,6 +34,7 @@ import {
   type CollectionTrack,
 } from '@/db/repositories/collectionShareRepo'
 import { LISTENER_NAME_KEY, recordShareListener } from '@/db/repositories/shareListenersRepo'
+import { ListenerPixelNotice, announceListenerPlayed } from '@/components/share/ListenerPixelFrame'
 import { SHARE_URL_MARGIN_MS, ShareUrlCache } from '@/lib/share/shareAudio'
 import '@/styles/record.css'
 import '@/styles/collection-share.css'
@@ -287,6 +288,7 @@ export function CollectionSharePage() {
         await audio.play()
         if (!listenRecorded.current && token) {
           listenRecorded.current = true
+          announceListenerPlayed()
           void recordShareListener('collection', token, 'play', {
             name: nameRef.current,
             password: passwordRef.current,
@@ -956,6 +958,7 @@ export function CollectionSharePage() {
               ? `. This link works until ${new Date(data.expires_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}.`
               : '.'}
           </p>
+          <ListenerPixelNotice />
         </main>
       )}
 
