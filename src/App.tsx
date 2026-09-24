@@ -21,6 +21,9 @@ const BoardPage = lazy(() =>
 const AdminPage = lazy(() =>
   import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })),
 )
+const ContactPage = lazy(() =>
+  import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage })),
+)
 const PrivacyPage = lazy(() =>
   import('@/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -62,6 +65,7 @@ export default function App() {
           <Route index element={<LandingPage />} />
           <Route path="sign-in" element={<SignInPage />} />
           <Route path="sign-up" element={<SignInPage mode="create" />} />
+          <Route path="contact" element={<ContactPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="terms" element={<TermsPage />} />
           <Route path="app/*" element={<BoardPage />} />

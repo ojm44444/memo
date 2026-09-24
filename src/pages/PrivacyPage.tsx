@@ -99,7 +99,7 @@ export function PrivacyPage() {
                 <h2>Who we are</h2>
         <p>
           songdrafts is the data controller for everything described on this page, and
-          songdraftsapp@gmail.com reaches us directly rather than a ticket queue.
+          the <Link to="/contact">contact form</Link> reaches us directly rather than a ticket queue.
         </p>
 
 <h2>Who else touches it</h2>
@@ -182,7 +182,7 @@ export function PrivacyPage() {
               is safe" and a wrong country in the same sentence is worse than
               saying nothing. */}
           Your audio and your account sit with Supabase. If you need to know the exact
-          region before you upload unreleased work, email songdraftsapp@gmail.com and we
+          region before you upload unreleased work, use the <Link to="/contact">contact form</Link> and we
           will tell you rather than make you guess.
         </p>
         <p>
@@ -223,7 +223,7 @@ export function PrivacyPage() {
           Under UK and EU data protection law you can ask for a copy of your data, ask us to
           correct it, ask us to delete it, or object to how we use it. The export and the delete
           button above do the first and third immediately and without asking anyone. For anything
-          else, email <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>.
+          else, use the <Link to="/contact">contact form</Link>.
         </p>
 
         <h2>Cookies</h2>
@@ -245,7 +245,7 @@ export function PrivacyPage() {
         </p>
 
         <p className="legal-contact">
-          Questions: <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>
+          Questions: <Link to="/contact">contact form</Link>
         </p>
       </main>
 

@@ -141,7 +141,7 @@ serve(async (req) => {
       to: [email],
       subject: template.subject,
       text: template.text,
-      html: toHtml(template.text),
+      html: toHtml(template.text, template.cta),
     }),
   })
 

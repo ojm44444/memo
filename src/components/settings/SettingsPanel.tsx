@@ -28,7 +28,7 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { exportBoardBackup } from '@/lib/export/exportBoardBackup'
 import { importBoardBackup } from '@/lib/export/importBoardBackup'
 import type { ImportBackupResult, ImportProgress } from '@/lib/export/backupTypes'
-import { SUPPORT_EMAIL, resetOnboardingTour } from '@/lib/onboarding'
+import { resetOnboardingTour } from '@/lib/onboarding'
 import { InstallGuide } from '@/components/onboarding/InstallGuide'
 import { ImportGuide } from '@/components/onboarding/ImportGuide'
 import {
@@ -192,7 +192,7 @@ export function SettingsPanel() {
         /not found|404|failed to send|failed to fetch|non-2xx/i.test(raw)
       setDeleteError(
         notDeployed
-          ? 'Account deletion is not switched on yet, so nothing was removed. Email songdraftsapp@gmail.com and it will be done by hand.'
+          ? 'Account deletion is not switched on yet, so nothing was removed. Use Ask us at songdrafts.com/contact and it will be done by hand.'
           : raw || 'Could not delete the account. Nothing was removed.',
       )
     } finally {
@@ -286,8 +286,8 @@ export function SettingsPanel() {
               </div>
               {importHelp && <ImportGuide />}
               <p className="settings-field-note">
-                Stuck on something? Write to{' '}
-                <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> and a person reads it.
+                Stuck on something?{' '}
+                <a href="/contact" target="_blank" rel="noopener">Ask us</a> and a person reads it.
               </p>
             </section>
 

@@ -252,7 +252,7 @@ serve(async (req) => {
         refunded += refund.amount
         refundCurrency = refund.currency
       }
-      if (refunded === 0) return json({ error: 'Could not find that payment. Email songdraftsapp@gmail.com.' }, 500)
+      if (refunded === 0) return json({ error: 'Could not find that payment. Use Ask us at songdrafts.com/contact.' }, 500)
       await stripe.subscriptions.cancel(sub.id, { prorate: false, invoice_now: false })
 
       const now = new Date().toISOString()

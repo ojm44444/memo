@@ -6,7 +6,6 @@ import { PhoneInstallGuide } from '@/components/layout/PhoneInstallGuide'
 import { ImportGuide } from '@/components/onboarding/ImportGuide'
 import {
   HELP_FAB_OPENS,
-  SUPPORT_EMAIL,
   countAppOpen,
   hideHelpFab,
   isHelpFabHidden,
@@ -136,8 +135,8 @@ export function HelpButton() {
           </div>
 
           <p className="help-sheet-contact">
-            Stuck on something? Write to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>{' '}
-            and a person reads it.
+            Stuck on something?{' '}
+            <a href="/contact" target="_blank" rel="noopener">Ask us</a> and a person reads it.
           </p>
 
           <button

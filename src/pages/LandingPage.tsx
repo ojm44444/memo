@@ -286,7 +286,7 @@ const FAQS = [
     // 18 Sept, Owen: one guarantee for both plans, 30 days, no questions.
     // Was yearly 30 days, monthly 14.
     q: 'Can I get my money back?',
-    a: 'Yes, all of it. Every plan has a 100% money-back guarantee for 30 days. Pay yearly and the year comes back; pay monthly and the month comes back. No questions. The plan ends when the refund is made, and your songs stay on your device and export as one zip. Use the refund button in Settings or email songdraftsapp@gmail.com.',
+    a: 'Yes, all of it. Every plan has a 100% money-back guarantee for 30 days. Pay yearly and the year comes back; pay monthly and the month comes back. No questions. The plan ends when the refund is made, and your songs stay on your device and export as one zip. Use the refund button in Settings, or the contact form.',
   },
 ] as const
 
@@ -1125,7 +1125,7 @@ export function LandingPage() {
           <span aria-hidden="true">·</span>
           <Link to="/terms">Terms</Link>
           <span aria-hidden="true">·</span>
-          <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>
+          <Link to="/contact">Contact</Link>
           <span aria-hidden="true">·</span>
           <CookieSettingsLink />
         </nav>

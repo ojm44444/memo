@@ -104,7 +104,7 @@ export function TermsPage() {
           <strong>Ask within 30 days of your first payment and we refund it in full.</strong>{' '}
           Yearly or monthly, the same 30 days. No reason needed, no questions, and nothing is
           pro-rated: you get the whole of that payment back. Use the refund button in Settings,
-          or email <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>. Your
+          or use the <Link to="/contact">contact form</Link>. Your
           plan ends when the refund is made. Your songs stay on your device, and you can export
           them all as one zip from Settings.
         </p>
@@ -151,7 +151,7 @@ export function TermsPage() {
         <p>These terms are governed by the law of England and Wales.</p>
 
         <p className="legal-contact">
-          Questions: <a href="mailto:songdraftsapp@gmail.com">songdraftsapp@gmail.com</a>
+          Questions: <Link to="/contact">contact form</Link>
         </p>
       </main>
 

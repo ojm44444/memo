@@ -22,6 +22,8 @@ export interface EmailTemplate {
   subject: string
   /** Plain text. The HTML version is generated from this. */
   text: string
+  /** An optional button under the message. */
+  cta?: { label: string; url: string }
 }
 
 /*
@@ -82,40 +84,21 @@ useful whether or not you ever open songdrafts again.`
  */
 export function welcomeEmail(name: string): EmailTemplate {
   return {
-    subject: 'Get your voice memos in',
+    subject: 'Welcome to songdrafts',
+    cta: { label: 'Open songdrafts', url: 'https://www.songdrafts.com/app' },
     text: `Hi ${name},
 
-Thanks for signing up to songdrafts.
+Welcome to songdrafts. Your board is ready.
 
-It only starts to work once your recordings are in it, so start there. Pick the
-one that matches where your recordings are:
+The one thing to do first is get your recordings in. The guide inside songdrafts walks you through it for your device. The short version:
 
-iPhone: in Voice Memos, tap a recording, then Share, then Save to Files. To do
-several at once, tap Edit, tick them, then Share, then Save to Files. Then open
-songdrafts on your phone, tap + Import audio and pick them. They sync to your
-computer on their own.
+iPhone: in Voice Memos, tap a recording, then Share, then Save to Files. Then open songdrafts on your phone, tap + Import audio and pick them. They sync to your computer on their own.
 
-Mac: drag audio files, or a whole folder, from Finder onto the Songwriting
-board. Or click + Import audio at the bottom of your Inbox.
+Mac or Windows: drag audio files, or a whole folder, onto the Songwriting board.
 
-Windows: drag files, or a whole folder, from File Explorer onto the board. Or
-click + Import audio.
+We know this looks like a lot of work. The first batch takes a few minutes, and after that you only bring in new recordings, which gets quicker every time. We are building an app that lets you share straight from Voice Memos. Until it is ready, this is the fastest way that works.
 
-Android: save the recordings to Files from your recorder app, then tap
-+ Import audio in songdrafts.
-
-We know this looks like a lot of work. The first batch takes a few minutes, and
-after that you only bring in new recordings, which gets quicker every time. We
-are building an app that lets you share straight from Voice Memos. Until it is
-ready, this is the fastest way that works.
-
-Finished demos and mixes go to Listen instead: drop them onto a playlist.
-
-Then move one song to the right when it gets better. That is the entire idea.
-Nothing nags you, and there is no streak to keep.
-
-If the import does not work on your setup, reply and tell us what happened. It
-is the part we most want to hear about.
+If anything does not work, reply and tell us what happened. It is the part we most want to hear about.
 
 ${SIGN_OFF}`,
   }
@@ -131,22 +114,16 @@ ${SIGN_OFF}`,
 export function stalledImportEmail(name: string): EmailTemplate {
   return {
     subject: 'Did the import work?',
+    cta: { label: 'Open songdrafts', url: 'https://www.songdrafts.com/app' },
     text: `Hi ${name},
 
-Your board is still empty, which usually means the import got stuck rather
-than that you changed your mind.
+Your board is still empty, which usually means the import got stuck rather than that you changed your mind.
 
-If your memos are on your iPhone: in Voice Memos, tap Edit, tick the ones you
-want, then Share, then Save to Files. Open songdrafts on the phone, tap
-+ Import audio and pick them. Do it on the phone even if you mainly use a
-computer, because they sync across.
+If your memos are on your iPhone: in Voice Memos, tap Edit, tick the ones you want, then Share, then Save to Files. Open songdrafts on the phone, tap + Import audio and pick them. Do it on the phone even if you mainly use a computer, because they sync across.
 
-If the recordings are on a Mac or a Windows computer: drag the files, or the
-whole folder, onto the board. Anything that is not audio is ignored.
+If the recordings are on a Mac or a Windows computer: drag the files, or the whole folder, onto the board. Anything that is not audio is ignored.
 
-It is fiddly the first time and quicker after that, and a proper app for this is
-on the way. If you got stuck somewhere, reply and tell us what you saw. We would
-rather fix it than have you quietly give up on it.
+It is fiddly the first time and quicker after that, and a proper app for this is on the way. If you got stuck somewhere, reply and tell us what you saw. We would rather fix it than have you quietly give up on it.
 
 ${SIGN_OFF}`,
   }
@@ -291,25 +268,37 @@ ${SIGN_OFF}`,
 }
 
 /**
- * The plainest HTML that will not look broken in Gmail, Outlook or Mail.
- *
- * A table-based template is the standard answer and it is not needed here:
- * there is no layout to hold together, only paragraphs. Left as system fonts
- * on purpose, because a webfont in an email is one more thing to load and
- * fail.
+ * Branded but plain: a serif wordmark, one card, one optional button. Inline
+ * styles only and no images, because email clients strip everything else
+ * (SVG does not render in Gmail). Single line breaks in the text are just
+ * wrapping, so they are joined; blank lines start a new paragraph.
  */
-export function toHtml(text: string): string {
+export function toHtml(text: string, cta?: { label: string; url: string }): string {
   const paragraphs = text
     .trim()
     .split(/\n\s*\n/)
-    .map((p) => `<p style="margin:0 0 16px">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+    .map((p) => p.replace(/\s*\n\s*/g, ' ').trim())
+    .filter(Boolean)
+    .map((p) => `<p style="margin:0 0 16px">${escapeHtml(p)}</p>`)
     .join('\n')
 
-  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#1c2320;max-width:34em">
+  const button = cta
+    ? `<p style="margin:24px 0 8px"><a href="${escapeHtml(cta.url)}" style="display:inline-block;background:#1d6a4c;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px">${escapeHtml(cta.label)}</a></p>`
+    : ''
+
+  return `<div style="background:#f6f3ec;padding:28px 12px">
+<div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e7e2d6">
+<div style="background:#e3f1ea;padding:20px 28px;border-bottom:1px solid #d3e6db">
+<span style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;letter-spacing:-0.3px;color:#1d6a4c">songdrafts</span>
+</div>
+<div style="padding:28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#1c2320">
 ${paragraphs}
-<p style="margin:28px 0 0;font-size:12px;color:#6b7671">
-songdrafts. Reply to this and the team reads it.
-</p>
+${button}
+</div>
+<div style="padding:16px 28px;background:#faf8f3;border-top:1px solid #efeadd;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#6b7671">
+songdrafts, for people who write songs. Reply to this email and a person reads it.
+</div>
+</div>
 </div>`
 }
 
@@ -318,4 +307,5 @@ function escapeHtml(s: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }

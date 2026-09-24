@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { SUPPORT_EMAIL } from '@/lib/onboarding'
 
 /**
  * "Ask us anything" on the landing page. Goes to the support inbox through the
  * contact-support function. If that fails for any reason, the person is given
  * the plain email address instead, so a question is never lost.
  */
-export function ContactForm() {
-  const [open, setOpen] = useState(false)
+export function ContactForm({ startOpen = false }: { startOpen?: boolean }) {
+  const [open, setOpen] = useState(startOpen)
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [website, setWebsite] = useState('') // honeypot, never shown
@@ -32,7 +31,7 @@ export function ContactForm() {
       setError(
         err instanceof Error && err.message !== 'failed' && err.message !== 'Failed to fetch'
           ? err.message
-          : `That did not send. Email ${SUPPORT_EMAIL} and a person replies.`,
+          : 'That did not send. Try again in a minute.',
       )
     }
   }
