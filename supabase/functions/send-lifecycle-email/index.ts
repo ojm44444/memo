@@ -53,7 +53,7 @@ serve(async (req) => {
      Resend is switched on (it is on the launch list), or "reply and tell us"
      in every template is a promise that bounces. */
   const from = Deno.env.get('EMAIL_FROM') ?? 'songdrafts <hello@songdrafts.com>'
-  const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'support@songdrafts.com'
+  const replyTo = Deno.env.get('EMAIL_REPLY_TO') ?? 'songdraftsapp@gmail.com'
   const secret = Deno.env.get('LIFECYCLE_EMAIL_SECRET')
   const url = Deno.env.get('SUPABASE_URL')
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')

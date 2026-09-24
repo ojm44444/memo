@@ -87,15 +87,20 @@ export function welcomeEmail(name: string): EmailTemplate {
 
 Thanks for signing up to songdrafts.
 
-It only starts to work once your recordings are in it, so start there.
+It only starts to work once your recordings are in it, so start there. There are
+three ways in:
 
-On an iPhone: in Voice Memos, select your recordings and Save to Files. Then
-tap + Import audio in songdrafts and pick them all in one go from Files.
+On a computer: drag audio files, or a whole folder, onto the Songwriting board.
+They land in your Inbox. Or click + Import audio at the bottom of your Inbox.
 
-On a Mac: if your memos sync to the Mac through iCloud, the card at the top of
-your Inbox links the Voice Memos folder once, and everything on that Mac comes
-in, plus every new memo after. That needs Chrome or Edge. Otherwise, drag the
-audio files from Finder onto the board and they land in Inbox.
+On an iPhone: in Voice Memos, tap a recording, then Share, then Save to Files.
+In songdrafts, tap + Import audio and pick them from Files. You can select
+several at once.
+
+On Android: save the recordings to Files from your recorder app, then tap
++ Import audio in songdrafts.
+
+Finished demos and mixes go to Listen instead: drop them onto a playlist.
 
 Then move one song to the right when it gets better. That is the entire idea.
 Nothing nags you, and there is no streak to keep.
@@ -122,15 +127,12 @@ export function stalledImportEmail(name: string): EmailTemplate {
 Your board is still empty, which usually means the import got stuck rather
 than that you changed your mind.
 
-The two that catch people out:
-
 If your memos are on your phone, they have to come across first. In Voice
-Memos, select them and Save to Files, then tap + Import audio in songdrafts
-and pick them from Files.
+Memos, tap a recording, then Share, then Save to Files. Then open songdrafts,
+tap + Import audio and pick them from Files. Select as many as you like.
 
-If you are on a Mac and linked the Voice Memos folder but nothing arrived, the
-memos are probably still in iCloud rather than downloaded onto the machine.
-Opening each one once in Voice Memos pulls it down.
+If they are on a computer, drag the files, or the whole folder, onto the board.
+Anything that is not audio is ignored.
 
 If it was neither of those, reply and tell us what you saw. We would rather
 fix it than have you quietly give up on it.
