@@ -19,6 +19,7 @@ import {
   type HeardFromValue,
 } from '@/lib/attribution'
 import { HeardFromQuestion } from '@/components/auth/HeardFromQuestion'
+import { SupportLink } from '@/components/ui/SupportLink'
 
 /** Our own pause between resends, so a double tap cannot send two links. */
 const RESEND_COOLDOWN_S = 30
@@ -404,6 +405,7 @@ export function SignInPage({ mode = 'sign-in' }: { mode?: 'sign-in' | 'create' }
           )}
         </p>
 
+        <SupportLink topic="signing in" className="sign-in-support" />
 
         <Link to="/" className="sign-in-secondary">
           ← Back to home

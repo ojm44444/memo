@@ -9,6 +9,7 @@ import {
   type PlanChoice,
   type PromoCheck,
 } from '@/lib/billing'
+import { SupportLink } from '@/components/ui/SupportLink'
 import { capturePromo, getPromo, setPromo } from '@/lib/attribution'
 import {
   PRICE_TABLE,
@@ -292,6 +293,7 @@ export function PlanGate({ children }: { children: ReactNode }) {
             ? 'Stripe asks for a card but charges nothing today. It renews after a year unless you cancel, any time, in Settings.'
             : 'Not for you? Every penny back within 30 days, no questions. Your songs stay yours. Anyone you share a link with listens free.'}
         </p>
+        <SupportLink topic="choosing a plan or paying" className="plan-gate-foot" />
         <button
           type="button"
           className="plan-gate-signout"

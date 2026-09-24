@@ -12950,3 +12950,8 @@ html.light .song-drawer {
 .help-sheet-btn:hover {
   background: color-mix(in srgb, var(--text) 14%, transparent);
 }
+
+.plan-gate-foot a {
+  color: inherit;
+  text-decoration: underline;
+}

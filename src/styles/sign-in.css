@@ -429,3 +429,14 @@
 .sign-in-heard-hint {
   margin: 8px 0 0;
 }
+
+.sign-in-support {
+  margin: 14px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.sign-in-support a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
