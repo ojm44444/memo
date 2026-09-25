@@ -183,7 +183,7 @@ export function PlanGate({ children }: { children: ReactNode }) {
       : promoInfo.free
         ? 'A free year'
         : promoInfo.percentOff
-          ? `${promoInfo.percentOff}% off`
+          ? `${promoInfo.percentOff}% off your first payment`
           : promoInfo.amountOff
             ? `${money(currency, (promoInfo.amountOff / 100).toFixed(2).replace(/\.00$/, ''))} off`
             : 'Applied at checkout'
