@@ -410,7 +410,7 @@ function PricingToggle({
         <p className="price-trial">
           {founding
             ? `Founding price for the first ${FOUNDING_CAP} yearly plans${placesLeft != null ? `. ${placesLeft} left` : ''}.`
-            : '100% money-back guarantee'}
+            : 'Try it for 30 days, risk-free'}
         </p>
         <CurrencyToggle currency={currency} onChange={onCurrency} />
       </div>
